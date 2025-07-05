@@ -18,7 +18,7 @@ $plugin_url = plugin_dir_url(__FILE__);
     <div id="tab-pianquan" class="tab">
         <img src="<?php echo MY_PLUGIN_URL  . 'assets/images/icons/image.svg'; ?>"
             alt="Image ICON">
-
+        <div class="tab_title">Image</div>
     </div>
     <div id="tab-wenzi" class="tab">
         <img src="<?php echo MY_PLUGIN_URL  . 'assets/images/icons/text.svg'; ?>"
