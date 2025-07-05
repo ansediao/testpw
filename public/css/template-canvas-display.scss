@@ -1,0 +1,255 @@
+@import 'main';
+@import 'header';
+@import 'customization-area';
+
+@import 'footer';
+
+body.wpcanvas {
+    @import 'middle';
+    margin: 0;
+    padding: 0;    
+    font-family: "Arial", sans-serif;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+
+  
+
+ 
+
+    // .main-content {
+    //     flex-grow: 1; /* 填充图板区剩余空间 */
+    //       padding: 10px;
+    //       overflow: auto; /* 内容溢出时可滚动 */
+          
+    //     display: flex;
+    //     flex-direction: row;
+    //     gap: 1rem;
+    //     padding: 1rem;
+
+       
+
+    //     .canvas-area {
+    //         background-color: #fff;
+    //         border-radius: 8px;
+    //         position: relative;
+
+    //         .dongtai-area {
+    //             display: flex;
+    //             gap: 20px;
+    //             width: 100%;
+    //             min-height: 70px;
+    //         }
+
+    //         .canvas-container {
+    //             position: relative;
+    //             height: 600px;
+
+    //             // height: 800px !important;
+    //             canvas {
+    //                 position: absolute;
+    //                 top: 0;
+    //                 left: 0;
+    //                 border: 1px solid #ccc;
+    //                 background-color: transparent;
+    //             }
+    //         }
+    //     }
+    // }
+
+    // .preview-canvas-container {
+    //     margin: 20px 0;
+    //     text-align: center;
+    //     position: relative;
+
+    //     canvas {
+    //         position: absolute;
+    //     }
+    // }
+
+   
+
+    .dongtai-area {
+        padding: 10px;
+        background-color: #f5f5f5;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+
+    .toolbar-item {
+        margin: 10px 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .toolbar-item label {
+        margin-right: 10px;
+        min-width: 60px;
+    }
+
+    .toolbar-item select,
+    .toolbar-item input {
+        padding: 5px;
+        border-radius: 3px;
+        border: 1px solid #ccc;
+    }
+
+    .toolbar-item input[type="color"] {
+        height: 30px;
+        width: 50px;
+    }
+
+
+
+
+    .layers-panel {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+    }
+
+    .layers-header {
+        display: flex;
+        background-color: #eee;
+        padding: 5px;
+        font-weight: bold;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .layer-column {
+        padding: 2px 5px;
+    }
+
+    .layer-visibility,
+    .layer-lock {
+        width: 40px;
+        text-align: center;
+    }
+
+    .layer-name {
+        flex-grow: 1;
+    }
+
+    .layers-container {
+        min-height: 50px;
+    }
+
+    .layer-item {
+        display: flex;
+        padding: 5px;
+        border-bottom: 1px solid #eee;
+        align-items: center;
+        cursor: move;
+        background-color: #fff;
+        transition: background-color 0.2s;
+    }
+
+    .layer-item:hover {
+        background-color: #f5f5f5;
+    }
+
+    .layer-item.selected {
+        background-color: #e0f0ff;
+    }
+
+    .layer-item .layer-visibility,
+    .layer-item .layer-lock {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .layer-item .layer-visibility i,
+    .layer-item .layer-lock i {
+        cursor: pointer;
+        opacity: 0.7;
+    }
+
+    .layer-item .layer-visibility i:hover,
+    .layer-item .layer-lock i:hover {
+        opacity: 1;
+    }
+
+    .layer-item .layer-name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .layer-drag-placeholder {
+        background-color: #f0f8ff;
+        border: 1px dashed #aaa;
+        height: 30px;
+    }
+
+
+    #boundaryLayer {
+        pointer-events: none;
+        z-index: 999;
+    }
+
+    /* 缩放控制样式 */
+    .zoom-control {
+        background-color: #f5f5f5;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    .zoom-control label {
+        font-weight: bold;
+    }
+
+    .zoom-control input[type="range"] {
+        cursor: pointer;
+    }
+
+    /* 确保画布容器能够正确处理缩放 */
+    .canvas-container {
+        position: relative;
+        overflow: hidden;
+        transition: height 0.3s ease;
+    }
+
+    .canvas-container canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transition: transform 0.3s ease;
+    }
+
+    /* 3D视图区域样式 */
+    .view3d-area {
+        width: 100%;
+        margin-top: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    #model3dContainer {
+        width: 100% !important;
+        height: 400px !important;
+        background-color: #f0f0f0;
+        position: relative;
+    }
+
+    /* 确保3D模型容器内的canvas元素也有正确的尺寸 */
+    #model3dContainer canvas {
+        width: 600px !important;
+        height: 600px !important;
+    }
+
+    /* 加载进度提示样式 */
+    .loading-progress {
+        z-index: 1000;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+    }
+}

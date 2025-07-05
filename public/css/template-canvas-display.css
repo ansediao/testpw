@@ -1,0 +1,347 @@
+@charset "UTF-8";
+#app.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+header {
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.customization-area {
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  max-height: 300px;
+  overflow-y: auto;
+  border-bottom: 1px solid #dee2e6;
+  flex-shrink: 0; /* 防止被压缩 */
+  display: flex;
+  justify-content: center;
+}
+.customization-area h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  text-align: center;
+  bottom: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+}
+.footer .product-card {
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+.footer .product-card__info {
+  display: flex;
+  gap: 1rem;
+}
+.footer .product-card__detail {
+  display: flex;
+  align-items: baseline;
+  font-size: 0.875rem;
+}
+.footer .product-card__label {
+  margin-right: 0.5rem;
+}
+.footer .product-card__value {
+  color: #6b7280;
+}
+.footer .product-card__sub-value {
+  padding-left: 2.5rem;
+  color: #6b7280;
+}
+.footer .product-card__quantity {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.footer .product-card__button {
+  background-color: #e5e7eb;
+  color: #4b5563;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  cursor: pointer;
+}
+.footer .product-card__input {
+  width: 3rem;
+  text-align: center;
+  border: 1px solid #d1d5db;
+  padding: 0.25rem;
+}
+.footer .product-card__add-to-cart {
+  background-color: #ef4444;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+}
+.footer .product-card__add-to-cart:hover {
+  background-color: #eb1515;
+}
+
+body.wpcanvas {
+  margin: 0;
+  padding: 0;
+  font-family: "Arial", sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  /* 缩放控制样式 */
+  /* 确保画布容器能够正确处理缩放 */
+  /* 3D视图区域样式 */
+  /* 确保3D模型容器内的canvas元素也有正确的尺寸 */
+  /* 加载进度提示样式 */
+}
+body.wpcanvas .main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+body.wpcanvas .main-content .operation-panel {
+  flex: 100px;
+  background-color: #d0d0d0;
+  padding: 10px;
+}
+body.wpcanvas .main-content .operation-panel #content-sheji .content-sheji {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+body.wpcanvas .main-content .operation-panel #content-sheji .content-sheji.active {
+  display: block;
+}
+body.wpcanvas .main-content .operation-panel #content-sheji .content-sheji.active .category-item:not(.active) {
+  display: none;
+}
+body.wpcanvas .main-content .operation-panel #content-sheji .content-sheji:not(.active) .category-item-header .category_name {
+  width: 100%;
+  height: 175px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid;
+  background-color: #ccc;
+  cursor: pointer;
+}
+body.wpcanvas .main-content .operation-panel #content-sheji .content-sheji:not(.active) .category-item-header .back-button {
+  display: none;
+}
+body.wpcanvas .main-content .operation-panel #content-sheji .content-sheji .category-item .category-item-header .back-button {
+  display: none;
+}
+body.wpcanvas .main-content .operation-panel #content-sheji .content-sheji .category-item .designs-grid {
+  display: none;
+}
+body.wpcanvas .main-content .operation-panel #content-sheji .content-sheji .category-item.active .category-item-header {
+  display: flex;
+  justify-content: space-between;
+}
+body.wpcanvas .main-content .operation-panel #content-sheji .content-sheji .category-item.active .category-item-header .category_name {
+  width: unset;
+  height: unset;
+  display: block;
+  justify-content: unset;
+  align-items: unset;
+  border: unset;
+  background-color: unset;
+  cursor: unset;
+}
+body.wpcanvas .main-content .operation-panel #content-sheji .content-sheji .category-item.active .category-item-header .back-button {
+  display: block;
+}
+body.wpcanvas .main-content .operation-panel #content-sheji .content-sheji .category-item.active .designs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+body.wpcanvas .main-content .canvas-area {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  background-color: #c0c0c0;
+}
+body.wpcanvas .main-content .canvas-area .dongtai-area {
+  background-color: #cccccc;
+  padding: 10px;
+  text-align: center;
+  flex-shrink: 0;
+}
+body.wpcanvas .main-content .canvas-area .canvas-container {
+  flex-grow: 1;
+  padding: 10px;
+  overflow: auto;
+  display: flex;
+}
+body.wpcanvas .main-content .canvas-area .canvas-container .preview_area .view-area .preview-canvas-container {
+  position: relative;
+}
+body.wpcanvas .dongtai-area {
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+body.wpcanvas .toolbar-item {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+}
+body.wpcanvas .toolbar-item label {
+  margin-right: 10px;
+  min-width: 60px;
+}
+body.wpcanvas .toolbar-item select,
+body.wpcanvas .toolbar-item input {
+  padding: 5px;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+}
+body.wpcanvas .toolbar-item input[type=color] {
+  height: 30px;
+  width: 50px;
+}
+body.wpcanvas .layers-panel {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+}
+body.wpcanvas .layers-header {
+  display: flex;
+  background-color: #eee;
+  padding: 5px;
+  font-weight: bold;
+  border-bottom: 1px solid #ddd;
+}
+body.wpcanvas .layer-column {
+  padding: 2px 5px;
+}
+body.wpcanvas .layer-visibility,
+body.wpcanvas .layer-lock {
+  width: 40px;
+  text-align: center;
+}
+body.wpcanvas .layer-name {
+  flex-grow: 1;
+}
+body.wpcanvas .layers-container {
+  min-height: 50px;
+}
+body.wpcanvas .layer-item {
+  display: flex;
+  padding: 5px;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+  cursor: move;
+  background-color: #fff;
+  transition: background-color 0.2s;
+}
+body.wpcanvas .layer-item:hover {
+  background-color: #f5f5f5;
+}
+body.wpcanvas .layer-item.selected {
+  background-color: #e0f0ff;
+}
+body.wpcanvas .layer-item .layer-visibility,
+body.wpcanvas .layer-item .layer-lock {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+body.wpcanvas .layer-item .layer-visibility i,
+body.wpcanvas .layer-item .layer-lock i {
+  cursor: pointer;
+  opacity: 0.7;
+}
+body.wpcanvas .layer-item .layer-visibility i:hover,
+body.wpcanvas .layer-item .layer-lock i:hover {
+  opacity: 1;
+}
+body.wpcanvas .layer-item .layer-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+body.wpcanvas .layer-drag-placeholder {
+  background-color: #f0f8ff;
+  border: 1px dashed #aaa;
+  height: 30px;
+}
+body.wpcanvas #boundaryLayer {
+  pointer-events: none;
+  z-index: 999;
+}
+body.wpcanvas .zoom-control {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 5px;
+}
+body.wpcanvas .zoom-control label {
+  font-weight: bold;
+}
+body.wpcanvas .zoom-control input[type=range] {
+  cursor: pointer;
+}
+body.wpcanvas .canvas-container {
+  position: relative;
+  overflow: hidden;
+  transition: height 0.3s ease;
+}
+body.wpcanvas .canvas-container canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: transform 0.3s ease;
+}
+body.wpcanvas .view3d-area {
+  width: 100%;
+  margin-top: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+}
+body.wpcanvas #model3dContainer {
+  width: 100% !important;
+  height: 400px !important;
+  background-color: #f0f0f0;
+  position: relative;
+}
+body.wpcanvas #model3dContainer canvas {
+  width: 600px !important;
+  height: 600px !important;
+}
+body.wpcanvas .loading-progress {
+  z-index: 1000;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+}/*# sourceMappingURL=template-canvas-display.css.map */

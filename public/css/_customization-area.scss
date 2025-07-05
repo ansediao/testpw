@@ -1,0 +1,17 @@
+.customization-area {
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+    border-bottom: 1px solid #dee2e6;
+    flex-shrink: 0; /* 防止被压缩 */
+    display: flex;
+    justify-content: center;
+    h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 16px;
+      }
+}

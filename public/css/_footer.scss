@@ -1,0 +1,90 @@
+.footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    text-align: center;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+
+    .product-card {
+        background-color: #fff;
+        border: 1px solid #d1d5db; // gray-300
+        padding: 1rem; // 16px
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem; // space-x-4 equivalent
+
+        &__info {
+            display: flex;
+            gap: 1rem;
+        }
+
+        &__detail {
+            display: flex;
+            // flex-direction: column;
+            align-items: baseline;
+            font-size: 0.875rem; // text-sm
+        }
+
+        &__label {
+            margin-right: 0.5rem;
+        }
+
+        &__value {
+            color: #6b7280; // text-gray-500
+        }
+
+        &__sub-value {
+            padding-left: 2.5rem; // pl-10 equivalent
+            color: #6b7280; // text-gray-500
+        }
+
+        &__quantity {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; // space-x-2 equivalent
+        }
+
+        &__button {
+            background-color: #e5e7eb; // bg-gray-200
+            color: #4b5563; // text-gray-700
+            padding: 0.25rem 0.5rem; // py-1 px-2
+            border: none;
+            cursor: pointer;
+
+            &--minus {
+                ;
+                // Specific styles for minus button if needed
+            }
+
+            &--plus {
+                ;
+                // Specific styles for plus button if needed
+            }
+        }
+
+        &__input {
+            width: 3rem; // w-12 equivalent
+            text-align: center;
+            border: 1px solid #d1d5db; // border-gray-300
+            padding: 0.25rem;
+        }
+
+        &__add-to-cart {
+            background-color: #ef4444; // bg-red-500
+            color: #fff; // text-white
+            padding: 0.5rem 1rem; // py-2 px-4
+            border: none;
+            cursor: pointer;
+
+            &:hover {
+                background-color: darken(#ef4444, 10%);
+            }
+        }
+    }
+}
