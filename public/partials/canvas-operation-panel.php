@@ -36,8 +36,8 @@ $plugin_url = plugin_dir_url(__FILE__);
 <div class="content-area">
     <!-- 品名内容 -->
     <div id="content-pinming" class="content-pane active">
-        <div class="header">
-            <h2><?php echo get_the_title($product_id); ?></h2>
+        <div class="tab_header">
+            <div class="tab_header_title"><?php echo get_the_title($product_id); ?></div>
         </div>
         <div class="rating">
             <?php
@@ -398,10 +398,8 @@ $plugin_url = plugin_dir_url(__FILE__);
         </div>
     </div>
 
-    <!-- 图案内容 (隐藏) -->
+    <!-- 图层 -->
     <div id="content-tuan" class="content-pane">
-
-        <h2>图层设置</h2>
         <div class="layers-panel">
             <div class="layers-header">
                 <span class="layer-column layer-visibility">显示</span>
@@ -414,11 +412,12 @@ $plugin_url = plugin_dir_url(__FILE__);
         </div>
     </div>
 
-    <!-- 片圈内容 (隐藏) -->
+    <!-- 图片 -->
     <div id="content-pianquan" class="content-pane">
         <div id="img_origin_controls">
-            <h2>图片</h2>
-
+            <div class="tab_header">
+                <div class="tab_header_title">图片</div>
+            </div>
             <div id="dropZone" style="border: 2px dashed #ccc; padding: 20px; text-align: center; margin-bottom: 10px;">
                 将图片拖放到此处或点击上传
             </div>
@@ -675,8 +674,7 @@ $plugin_url = plugin_dir_url(__FILE__);
 
     <!-- 文字内容 (隐藏) -->
     <div id="content-wenzi" class="content-pane">
-        <h2>文字定制</h2>
-        <textarea id="customText" rows="4" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="请输入要添加的文字..."></textarea>
+               <textarea id="customText" rows="4" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="请输入要添加的文字..."></textarea>
         <button id="addTextBtn" style="margin-top: 10px;" onclick="addText()">
             <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle;">
                 <path fill="currentColor"
