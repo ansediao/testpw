@@ -1,51 +1,45 @@
 <?php
 // 获取插件目录的URL
-$plugin_url = plugin_dir_url( __FILE__ );
+$plugin_url = plugin_dir_url(__FILE__);
 ?>
 
 <!-- 左侧选项卡导航 -->
 <div class="tabs-nav">
     <div id="tab-pinming" class="tab active">
-        <img src="<?php echo MY_PLUGIN_URL  . 'assets/images/icons/product.svg'; ?>" 
-     alt="Product ICON">
-        Product
+        <img src="<?php echo MY_PLUGIN_URL  . 'assets/images/icons/product.svg'; ?>"
+            alt="Product ICON">
+        <div class="tab_title">Product</div>
     </div>
     <div id="tab-tuan" class="tab">
-        <img src="<?php echo MY_PLUGIN_URL  . 'assets/images/icons/layers.svg'; ?>" 
-     alt="Layers ICON">
-        Layers
+        <img src="<?php echo MY_PLUGIN_URL  . 'assets/images/icons/layers.svg'; ?>"
+            alt="Layers ICON">
+        <div class="tab_title">Layers</div>
     </div>
     <div id="tab-pianquan" class="tab">
-    <img src="<?php echo MY_PLUGIN_URL  . 'assets/images/icons/image.svg'; ?>" 
-     alt="Image ICON">    
-    Image</div>
+        <img src="<?php echo MY_PLUGIN_URL  . 'assets/images/icons/image.svg'; ?>"
+            alt="Image ICON">
+
+    </div>
     <div id="tab-wenzi" class="tab">
-    <img src="<?php echo MY_PLUGIN_URL  . 'assets/images/icons/text.svg'; ?>" 
-     alt="Text ICON">        
-    Text</div>
+        <img src="<?php echo MY_PLUGIN_URL  . 'assets/images/icons/text.svg'; ?>"
+            alt="Text ICON">
+        <div class="tab_title">Text</div>
+    </div>
     <div id="tab-sheji" class="tab">
-    <img src="<?php echo MY_PLUGIN_URL  . 'assets/images/icons/design.svg'; ?>" 
-     alt="Designs ICON">       
-    Designs</div>
+        <img src="<?php echo MY_PLUGIN_URL  . 'assets/images/icons/design.svg'; ?>"
+            alt="Designs ICON">
+        <div class="tab_title">Designs</div>
+    </div>
 </div>
 
 <!-- 右侧内容区域 -->
 <div class="content-area">
     <!-- 品名内容 -->
     <div id="content-pinming" class="content-pane active">
-
-
-
-
-
-
         <div class="header">
             <h2><?php echo get_the_title($product_id); ?></h2>
-
         </div>
-
         <div class="rating">
-
             <?php
             $rating = get_post_meta($product_id, 'rating', true);
             $rating = is_numeric($rating) ? floatval($rating) : 0;
@@ -672,9 +666,9 @@ $plugin_url = plugin_dir_url( __FILE__ );
                 renderUploadedImages();
             </script>
         </div>
-         <div id="img_add_controls">
+        <div id="img_add_controls">
 
-         </div>       
+        </div>
 
 
     </div>
@@ -858,14 +852,12 @@ $plugin_url = plugin_dir_url( __FILE__ );
 
     /* Left Tabs Navigation */
     .tabs-nav {
-       
+
         margin-right: -1px;
         /* Overlap border */
     }
 
-    .tab {
-        
-    }
+    .tab {}
 
     .tab:hover {
         background-color: #e5e7eb;
@@ -892,9 +884,12 @@ $plugin_url = plugin_dir_url( __FILE__ );
     .content-pane {
         display: none;
         /* Hide all panes by default */
-        position: relative; /* Add position relative for absolute positioning of footer */
-        min-height: 500px; /* Adjust as needed to ensure content fits above footer */
-        padding-bottom: 70px; /* Add padding to prevent content from being hidden by footer */
+        position: relative;
+        /* Add position relative for absolute positioning of footer */
+        min-height: 500px;
+        /* Adjust as needed to ensure content fits above footer */
+        padding-bottom: 70px;
+        /* Add padding to prevent content from being hidden by footer */
     }
 
     .content-pane.active {
@@ -903,7 +898,7 @@ $plugin_url = plugin_dir_url( __FILE__ );
     }
 
     /* Elements inside content area */
-   
+
 
     .rating {
         font-size: 0.875rem;
@@ -973,7 +968,7 @@ $plugin_url = plugin_dir_url( __FILE__ );
         color: #ffffff;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    
+
     .btn-gradient:hover {
         background-color: #0099ee;
     }
@@ -983,7 +978,7 @@ $plugin_url = plugin_dir_url( __FILE__ );
         color: #ffffff;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    
+
     .btn-custom:hover {
         background-color: #0099ee;
     }
@@ -994,12 +989,13 @@ $plugin_url = plugin_dir_url( __FILE__ );
         justify-content: space-between;
         align-items: center;
         border-top: 1px solid #e5e7eb;
-       
+
         position: absolute;
         bottom: 0;
         left: 0;
         width: 100%;
-        background-color: white; /* Ensure background is white */
+        background-color: white;
+        /* Ensure background is white */
     }
 
     .sample-check {
