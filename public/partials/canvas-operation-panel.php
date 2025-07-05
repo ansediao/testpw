@@ -414,10 +414,7 @@ $plugin_url = plugin_dir_url(__FILE__);
 
     <!-- 图片 -->
     <div id="content-pianquan" class="content-pane">
-        <div id="img_origin_controls">
-            <div class="tab_header">
-                <div class="tab_header_title">图片</div>
-            </div>
+        <div id="img_origin_controls">           
             <div id="dropZone" style="border: 2px dashed #ccc; padding: 20px; text-align: center; margin-bottom: 10px;">
                 将图片拖放到此处或点击上传
             </div>
