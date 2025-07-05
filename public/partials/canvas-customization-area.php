@@ -8,9 +8,12 @@ if (!empty($color_image_url)) {
     foreach ($image_urls as $index => $url) {
         $url = trim($url); // 去除可能存在的空格
         if (!empty($url)) {
+            // 定义按钮名称
+            $names = ['Front', 'Back', 'Left', 'Right'];
+            $btn_name = isset($names[$index]) ? $names[$index] : 'View ' . ($index + 1);
             echo '<button class="viewer-switch-btn" data-image-url="' . esc_attr($url) . '" style="margin: 5px;">' .
-                '视图 ' . ($index + 1) .
-                '</button>';
+            $btn_name .
+            '</button>';
         }
     }
 }
