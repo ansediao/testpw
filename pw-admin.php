@@ -13,9 +13,9 @@
  * @package           Pw_Admin
  *
  * @wordpress-plugin
- * Plugin Name:       PW Admin
+ * Plugin Name:       PW Canvas
  * Plugin URI:        https://www.pw.com
- * Description:       PW Admin
+ * Description:       PW Canvas
  * Version:           1.0.0
  * Author:            PW
  * Author URI:        https://www.pw.com/
