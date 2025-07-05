@@ -44,30 +44,31 @@ $plugin_url = plugin_dir_url(__FILE__);
             $rating = get_post_meta($product_id, 'rating', true);
             $rating = is_numeric($rating) ? floatval($rating) : 0;
             ?>
-            <span>评价星级: </span>
-
             <?php
             $product = wc_get_product($product_id); // 通过产品 ID 获取产品对象
             if ($product) {
                 $average_rating = $product->get_average_rating(); // 获取综合评分
                 $rating_count = $product->get_rating_count(); // 获取评分数量
 
-                if ($average_rating > 0) {
-                    // 以星星形式显示平均评分
-                    for ($i = 1; $i <= 5; $i++) {
-                        if ($i <= floor($average_rating)) {
-                            echo '<span style="color: #fbbf24;">★</span>';
-                        } elseif ($i - $average_rating < 1) {
-                            echo '<span style="color: #fbbf24;">☆</span>';
-                        } else {
-                            echo '<span style="color: #d1d5db;">★</span>';
-                        }
-                    }
-                }
+                // if ($average_rating > 0) {
+                //     // 以星星形式显示平均评分
+                //     for ($i = 1; $i <= 5; $i++) {
+                //         if ($i <= floor($average_rating)) {
+                //             echo '<span style="color: #fbbf24;">★</span>';
+                //         } elseif ($i - $average_rating < 1) {
+                //             echo '<span style="color: #fbbf24;">☆</span>';
+                //         } else {
+                //             echo '<span style="color: #d1d5db;">★</span>';
+                //         }
+                //     }
+                // }
+                echo '<span style="color: #fbbf24;">★</span>';
             }
             ?>
-            <span style="margin-left: 0.5rem;"><?php echo number_format($average_rating, 1); ?></span>
-            <a href="#" id="show-reviews-link">评价链接</a>
+            <span style="margin-left: 5px;"><?php echo number_format($average_rating, 1); ?></span>
+            <!-- 显示多少评价 -->
+            <span style="margin-left: 5px; color: #888;"><?php echo $rating_count; ?> Reviews</span>
+            <a href="#" id="show-reviews-link">Customization Instructions</a>
 
             <!-- 评价弹窗 -->
             <div id="reviews-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:9999; align-items:center; justify-content:center;">
@@ -254,7 +255,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                 });
             });
         </script>
-
+        
         <div class="action-buttons">
             <button class="btn btn-gradient">Gradient</button>
             <button class="btn btn-custom">Custom Colors</button>
@@ -414,7 +415,7 @@ $plugin_url = plugin_dir_url(__FILE__);
 
     <!-- 图片 -->
     <div id="content-pianquan" class="content-pane">
-        <div id="img_origin_controls">           
+        <div id="img_origin_controls">
             <div id="dropZone" style="border: 2px dashed #ccc; padding: 20px; text-align: center; margin-bottom: 10px;">
                 将图片拖放到此处或点击上传
             </div>
@@ -671,7 +672,7 @@ $plugin_url = plugin_dir_url(__FILE__);
 
     <!-- 文字内容 (隐藏) -->
     <div id="content-wenzi" class="content-pane">
-               <textarea id="customText" rows="4" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="请输入要添加的文字..."></textarea>
+        <textarea id="customText" rows="4" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="请输入要添加的文字..."></textarea>
         <button id="addTextBtn" style="margin-top: 10px;" onclick="addText()">
             <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle;">
                 <path fill="currentColor"
