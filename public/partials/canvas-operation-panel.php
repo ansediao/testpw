@@ -903,30 +903,7 @@ $plugin_url = plugin_dir_url( __FILE__ );
     }
 
     /* Elements inside content area */
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-
-    .header h2 {
-        font-size: 1.25rem;
-        /* 20px */
-        font-weight: 600;
-        color: #1f2937;
-    }
-
-    .header a {
-        font-size: 0.875rem;
-        /* 14px */
-        color: #3b82f6;
-        text-decoration: none;
-    }
-
-    .header a:hover {
-        text-decoration: underline;
-    }
+   
 
     .rating {
         font-size: 0.875rem;
