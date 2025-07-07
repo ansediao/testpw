@@ -73,59 +73,63 @@ if ($product_id > 0 && $product) {
         }
     }
     ?>
-<canvas id="shadowLayer"
-    data-color-image="<?php echo esc_attr($first_image_url); ?>"
-    data-img-width="<?php echo esc_attr($first_image_width); ?>"
-    data-img-height="<?php echo esc_attr($first_image_height); ?>"
-    style="height:100%;width:auto;display:block;"></canvas>
+    <canvas id="shadowLayer"
+        data-color-image="<?php echo esc_attr($first_image_url); ?>"
+        data-img-width="<?php echo esc_attr($first_image_width); ?>"
+        data-img-height="<?php echo esc_attr($first_image_height); ?>"
+        style="height:100%;width:auto;display:block;"></canvas>
 
-<canvas id="colorLayer"
-    data-img-width="<?php echo esc_attr($first_image_width); ?>"
-    data-img-height="<?php echo esc_attr($first_image_height); ?>"
-    data-product-image="<?php echo esc_attr($image_url); ?>"
-    style="height:100%;width:auto;display:block;"></canvas>
-<canvas id="mainCanvas"
-    data-img-width="<?php echo esc_attr($first_image_width); ?>"
-    data-img-height="<?php echo esc_attr($first_image_height); ?>"
-    style="height:100%;width:auto;display:block;"></canvas>
+    <canvas id="colorLayer"
+        data-img-width="<?php echo esc_attr($first_image_width); ?>"
+        data-img-height="<?php echo esc_attr($first_image_height); ?>"
+        data-product-image="<?php echo esc_attr($image_url); ?>"
+        style="height:100%;width:auto;display:block;"></canvas>
+    <canvas id="mainCanvas"
+        data-img-width="<?php echo esc_attr($first_image_width); ?>"
+        data-img-height="<?php echo esc_attr($first_image_height); ?>"
+        style="height:100%;width:auto;display:block;"></canvas>
 
-<!-- 添加边缘限制层 -->
-<canvas id="boundaryLayer"
-    data-img-width="<?php echo esc_attr($first_image_width); ?>"
-    data-img-height="<?php echo esc_attr($first_image_height); ?>"
-    <?php if ($pw_4_grid) { echo 'style="display:none;"'; } else { echo 'style="height:100%;width:auto;display:block;"'; } ?>></canvas>
+    <!-- 添加边缘限制层 -->
+    <canvas id="boundaryLayer"
+        data-img-width="<?php echo esc_attr($first_image_width); ?>"
+        data-img-height="<?php echo esc_attr($first_image_height); ?>"
+        <?php if ($pw_4_grid) {
+            echo 'style="display:none;"';
+        } else {
+            echo 'style="height:100%;width:auto;display:block;"';
+        } ?>></canvas>
 <?php endif; ?>
 
 
 
 <script>
-// 让所有canvas高度100%，宽度根据图片比例自适应
-document.addEventListener('DOMContentLoaded', function() {
-    var canvasIds = ['shadowLayer', 'colorLayer', 'boundaryLayer'];
-    canvasIds.forEach(function(id) {
-        var canvas_ele = document.getElementById(id);
-        if (canvas_ele) {
-            var imgW = parseInt(canvas.getAttribute('data-img-width'), 10);
-            var imgH = parseInt(canvas.getAttribute('data-img-height'), 10);
-            if (imgW > 0 && imgH > 0) {
-                var parent = canvas.parentElement;
-                var parentHeight = parent.clientHeight || 500;
-                canvas_ele.height = parentHeight;
-                canvas_ele.width = Math.round(parentHeight * imgW / imgH);
-                canvas_ele.style.height = '100%';
-                canvas_ele.style.width = 'auto';
+    // 让所有canvas高度100%，宽度根据图片比例自适应
+    document.addEventListener('DOMContentLoaded', function() {
+        var canvasIds = ['shadowLayer', 'colorLayer', 'boundaryLayer'];
+        canvasIds.forEach(function(id) {
+            var canvas_ele = document.getElementById(id);
+            if (canvas_ele) {
+                var imgW = parseInt(canvas.getAttribute('data-img-width'), 10);
+                var imgH = parseInt(canvas.getAttribute('data-img-height'), 10);
+                if (imgW > 0 && imgH > 0) {
+                    var parent = canvas.parentElement;
+                    var parentHeight = parent.clientHeight || 500;
+                    canvas_ele.height = parentHeight;
+                    canvas_ele.width = Math.round(parentHeight * imgW / imgH);
+                    canvas_ele.style.height = '100%';
+                    canvas_ele.style.width = 'auto';
+                    canvas.setWidth(canvas_ele.width);
+                    canvas.setHeight(canvas_ele.height);
+                }
+
             }
-         
-        }
+        });
+
+
+
+
+
+
+
     });
-
-    // 如果 canvas 存在 就设置它的长宽  canvas 是fabric.js 的画布
-    
-    canvas.setWidth(800); // 设置画板宽度为 800 像素
-canvas.setHeight(600); // 设置画板高度为 600 像素
-
-
-
-
-});
 </script>
