@@ -11,7 +11,8 @@ if (!empty($color_image_url)) {
             // 定义按钮名称
             $names = ['Front', 'Back', 'Left', 'Right'];
             $btn_name = isset($names[$index]) ? $names[$index] : 'View ' . ($index + 1);
-            echo '<button class="viewer-switch-btn" data-image-url="' . esc_attr($url) . '" style="margin: 5px;">' .
+            $active_class = ($index === 0) ? ' actived' : '';
+            echo '<button class="viewer-switch-btn' . $active_class . '" data-image-url="' . esc_attr($url) . '" style="margin: 5px;">' .
             $btn_name .
             '</button>';
         }
