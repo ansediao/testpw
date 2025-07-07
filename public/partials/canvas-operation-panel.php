@@ -85,7 +85,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                         const reviewTabPanes = document.querySelectorAll('#review-tab-content .review-tab-pane');
                         reviewTabs.forEach(t => {
                             t.classList.remove('active');
-                            t.style.background = '#f3f4f6';
+                            // t.style.background = '#f3f4f6';
                         });
                         reviewTabPanes.forEach(pane => {
                             pane.style.display = 'none';
