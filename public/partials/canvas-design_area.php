@@ -56,13 +56,13 @@ if ($product_id > 0 && $product) {
         $first_image_url = trim($image_urls[0]);
     }
     ?>
-    <canvas id="shadowLayer" width="<?php echo $pw_4_grid ? $canvas_width : '400'; ?>" height="<?php echo $pw_4_grid ? $canvas_height : (!empty($model_3d_url) ? '220' : '500'); ?>" data-color-image="<?php echo esc_attr($first_image_url); ?>"></canvas>
+    <canvas id="shadowLayer"  data-color-image="<?php echo esc_attr($first_image_url); ?>"></canvas>
 <?php endif; ?>
 
-<canvas id="colorLayer" width="<?php echo $pw_4_grid ? $canvas_width : '400'; ?>" height="<?php echo $pw_4_grid ? $canvas_height : (!empty($model_3d_url) ? '220' : '500'); ?>" data-product-image="<?php echo esc_attr($image_url); ?>"></canvas>
-<canvas id="mainCanvas" width="<?php echo $pw_4_grid ? $canvas_width : '400'; ?>" height="<?php echo $pw_4_grid ? $canvas_height : (!empty($model_3d_url) ? '220' : '500'); ?>"></canvas>
+<canvas id="colorLayer" data-product-image="<?php echo esc_attr($image_url); ?>"></canvas>
+<canvas id="mainCanvas"></canvas>
 
 <!-- 添加边缘限制层 -->
 <canvas id="boundaryLayer" <?php if ($pw_4_grid) {
                                 echo 'style="display:none;"';
-                            } ?> width="400" height="<?php echo !empty($model_3d_url) ? '220' : '500'; ?>"></canvas>
+                            } ?>></canvas>
