@@ -71,21 +71,21 @@ $plugin_url = plugin_dir_url(__FILE__);
             <a href="#" id="show-reviews-link">Customization Instructions</a>
 
             <!-- 评价弹窗 -->
-            <div id="reviews-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:9999; align-items:center; justify-content:center;">
+            <div id="reviews-modal" class="popup-modal">
 
-                <div style="background:#fff; border-radius:8px; max-width:500px; width:90vw; max-height:80vh; overflow:auto;  position:relative;">
-                    <button id="close-reviews-modal" style="position:absolute; right:1rem; top:1rem; background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                <div class="modal-box">
+                    <button id="close-reviews-modal">&times;</button>
                     <!-- 产品标题 -->
                     <div class="popup_header">
-                        <?php echo get_the_title($product_id); ?>
+                        <p><?php echo get_the_title($product_id); ?></p>
                     </div>
 
-                    <div class="popup_body" style="padding:2rem;">
+                    <div class="popup_body">
                         <!-- 评价/描述/定制说明 Tab 切换 -->
-                        <div id="review-tabs" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                            <div class="review-tab active" data-tab="reviews" style="cursor:pointer; padding:0.5rem 1rem; border-radius:0.375rem; border:1px solid #d1d5db; background:#f3f4f6;">产品评价</div>
-                            <div class="review-tab" data-tab="desc" style="cursor:pointer; padding:0.5rem 1rem; border-radius:0.375rem; border:1px solid #d1d5db; background:#f3f4f6;">产品描述</div>
-                            <div class="review-tab" data-tab="custom" style="cursor:pointer; padding:0.5rem 1rem; border-radius:0.375rem; border:1px solid #d1d5db; background:#f3f4f6;">定制说明</div>
+                        <div id="review-tabs">
+                            <div class="review-tab active" data-tab="reviews">产品评价</div>
+                            <div class="review-tab" data-tab="desc">产品描述</div>
+                            <div class="review-tab" data-tab="custom">定制说明</div>
                         </div>
                         <div id="review-tab-content">
                             <div class="review-tab-pane active" data-content="reviews">
