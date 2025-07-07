@@ -733,7 +733,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                 echo '<div class="category-item">';
                 echo '<div class="category-item-header">';
                 echo '<div class="category_name">' . esc_html($category->name) . '</div>';
-                echo '<button class="back-button" >返回</button>';
+                echo '<button class="back-button" >Back to Design Folders</button>';
                 echo '</div>';
                 echo '<div class="designs-grid">';
                 $designs = get_posts(array(
