@@ -130,20 +130,58 @@ $plugin_url = plugin_dir_url(__FILE__);
                         </div>
                         <div id="review-tab-content">
                             <div class="review-tab-pane active" data-content="desc">
-                                <h3 style="margin-top:0;">产品描述</h3>
                                 <div>
-                                    <?php
-                                    $product = wc_get_product($product_id);
-                                    if ($product) {
-                                        echo $product->get_description();
-                                    } else {
-                                        echo '<div style="color:#888;">暂无产品描述</div>';
-                                    }
-                                    ?>
+
+                                    
+                                    <div class="product-price-section">
+                                        <div class="section-title">Price</div>
+                                        <div class="product-price">
+                                            <?php
+                                            $product = wc_get_product($product_id);
+                                            if ($product) {
+                                                echo $product->get_price_html();
+                                            } else {
+                                                echo 'N/A';
+                                            }
+                                            ?>
+                                        </div>
+                                    </div>
+
+                                    <div class="product-description-section">
+                                        <div class="section-title">Description</div>
+                                        <div class="product-description">
+                                            <?php
+                                            if ($product) {
+                                                echo apply_filters('the_content', $product->get_description());
+                                                // 可选：显示简短描述
+                                                // echo apply_filters('the_content', $product->get_short_description());
+                                            }
+                                            ?>
+                                            <?php
+                                            // 产品属性（如材质、重量等）
+                                            if ($product) {
+                                                $attributes = $product->get_attributes();
+                                                if (!empty($attributes)) {
+                                                    echo '<ul class="product-features">';
+                                                    foreach ($attributes as $attribute) {
+                                                        if ($attribute->is_taxonomy()) {
+                                                            $values = wc_get_product_terms($product->get_id(), $attribute->get_name(), array('fields' => 'names'));
+                                                            echo '<li>' . wc_attribute_label($attribute->get_name()) . ': ' . implode(', ', $values) . '</li>';
+                                                        } else {
+                                                            echo '<li>' . wc_attribute_label($attribute->get_name()) . ': ' . esc_html($attribute->get_options()[0]) . '</li>';
+                                                        }
+                                                    }
+                                                    echo '</ul>';
+                                                }
+                                            }
+                                            ?>
+                                        </div>
+                                    </div>
+                                    
                                 </div>
                             </div>
                             <div class="review-tab-pane" data-content="reviews" style="display:none;">
-                                <h3 style="margin-top:0;">产品评价</h3>
+                               
                                 <div id="reviews-list">
                                     <?php
                                     // 获取该产品的所有评价（WooCommerce 评论/WordPress 评论）
@@ -175,7 +213,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                             </div>
 
                             <div class="review-tab-pane" data-content="custom" style="display:none;">
-                                <h3 style="margin-top:0;">定制说明</h3>
+                                
                                 <div>
                                     <?php
                                     // 你可以自定义定制说明字段，或用自定义字段
@@ -183,7 +221,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                                     if ($custom_note) {
                                         echo wpautop(esc_html($custom_note));
                                     } else {
-                                        echo '<div style="color:#888;">暂无定制说明</div>';
+                                        echo '<div style="color:#888;">No customization instructions available.</div>';
                                     }
                                     ?>
                                 </div>
