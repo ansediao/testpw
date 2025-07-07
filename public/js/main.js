@@ -71,11 +71,18 @@ function initializeCanvas() {
 }
 
 // 初始化Fabric.js画布
+
+const mainCanvasElem = document.getElementById('mainCanvas');
 const canvas = new fabric.Canvas('mainCanvas', {
   // 设置选中对象时的控制框样式
   selectionBorderColor: 'rgba(0,0,0,0.3)',
   selectionLineWidth: 1
 });
+// 修正fabric.Canvas尺寸为DOM实际尺寸
+if (mainCanvasElem) {
+  canvas.setWidth(mainCanvasElem.width);
+  canvas.setHeight(mainCanvasElem.height);
+}
 
 
 canvas.on('object:modified', () => {
