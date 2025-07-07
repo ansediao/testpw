@@ -75,8 +75,7 @@ function initializeCanvas() {
 const canvas = new fabric.Canvas('mainCanvas', {
   // 设置选中对象时的控制框样式
   selectionBorderColor: 'rgba(0,0,0,0.3)',
-  width: 800, // 设置画板宽度（像素）
-  height: 600, // 设置画板高度（像素）
+  
   selectionLineWidth: 1
 });
 
