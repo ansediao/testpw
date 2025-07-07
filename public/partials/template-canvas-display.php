@@ -67,7 +67,7 @@ if ($product_id > 0) {
           ?>
         </div>
 
-        <div class="canvas-container">
+        <div class="canvas-box">
           <div class="design_area">
             <?php
             // 加载同目录 canvas-design_area.php 文件

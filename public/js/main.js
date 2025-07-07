@@ -71,11 +71,11 @@ function initializeCanvas() {
 }
 
 // 初始化Fabric.js画布
-// const canvas = new fabric.Canvas('mainCanvas', {
-//   // 设置选中对象时的控制框样式
-//   selectionBorderColor: 'rgba(0,0,0,0.3)',
-//   selectionLineWidth: 1
-// });
+const canvas = new fabric.Canvas('mainCanvas', {
+  // 设置选中对象时的控制框样式
+  selectionBorderColor: 'rgba(0,0,0,0.3)',
+  selectionLineWidth: 1
+});
 
 
 canvas.on('object:modified', () => {
