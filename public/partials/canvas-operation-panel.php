@@ -231,7 +231,7 @@ $plugin_url = plugin_dir_url(__FILE__);
 
         <div class="color-section">
             <h3>Trim color</h3>
-            <div class="color-grid">
+            <div class="color-swatches-box">
                 <div class="color-swatch selected" style="background-color: #000;" data-color="#000000"></div>
                 <div class="color-swatch" style="background-color: #ef4444;" data-color="#ef4444"></div>
                 <div class="color-swatch" style="background-color: #14b8a6;" data-color="#14b8a6"></div>
