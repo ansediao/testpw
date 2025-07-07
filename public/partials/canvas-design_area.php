@@ -105,25 +105,28 @@ if ($product_id > 0 && $product) {
 <script>
     // 让所有canvas高度100%，宽度根据图片比例自适应
     document.addEventListener('DOMContentLoaded', function() {
-        var canvasIds = ['shadowLayer', 'colorLayer', 'boundaryLayer'];
-        canvasIds.forEach(function(id) {
-            var canvas_ele = document.getElementById(id);
-            if (canvas_ele) {
-                var imgW = parseInt(canvas.getAttribute('data-img-width'), 10);
-                var imgH = parseInt(canvas.getAttribute('data-img-height'), 10);
-                if (imgW > 0 && imgH > 0) {
-                    var parent = canvas.parentElement;
-                    var parentHeight = parent.clientHeight || 500;
-                    canvas_ele.height = parentHeight;
-                    canvas_ele.width = Math.round(parentHeight * imgW / imgH);
-                    canvas_ele.style.height = '100%';
-                    canvas_ele.style.width = 'auto';
-                    canvas.setWidth(canvas_ele.width);
-                    canvas.setHeight(canvas_ele.height);
+        // 只设置 mainCanvas 的宽高一次
+        var mainCanvasEle = document.getElementById('mainCanvas');
+        if (mainCanvasEle) {
+            var imgW = parseInt(mainCanvasEle.getAttribute('data-img-width'), 10);
+            var imgH = parseInt(mainCanvasEle.getAttribute('data-img-height'), 10);
+            if (imgW > 0 && imgH > 0) {
+                var parent = mainCanvasEle.parentElement;
+                var parentHeight = parent.clientHeight || 500;
+                mainCanvasEle.height = parentHeight;
+                mainCanvasEle.width = Math.round(parentHeight * imgW / imgH);
+                mainCanvasEle.style.height = '100%';
+                mainCanvasEle.style.width = 'auto';
+                if (window.fabric && window.fabric.Canvas) {
+                    var canvas = new fabric.Canvas('mainCanvas', {
+                        selectionBorderColor: 'rgba(0,0,0,0.3)',
+                        selectionLineWidth: 1
+                    });
+                    canvas.setWidth(mainCanvasEle.width);
+                    canvas.setHeight(mainCanvasEle.height);
                 }
-
             }
-        });
+        }
 
 
 
