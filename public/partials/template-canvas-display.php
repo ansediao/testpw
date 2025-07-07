@@ -87,17 +87,17 @@ if ($product_id > 0) {
         <div class="product-card">
         <div class="product-card__info">
           <div class="product-card__detail">
-            <span class="product-card__label">起订量</span>
-            <span class="product-card__value">100只/设计<br>25只/颜色</span>
+            <span class="product-card__label">Minimum Order Quantity</span>
+            <span class="product-card__value">100Pcs / Design<br>25Pcs / Color</span>
 
           </div>
           <div class="product-card__detail">
-            <span class="product-card__label">价格</span>
-            <span class="product-card__value">基础价格: $3.0<br>定制费用: $1.0</span>
+            <span class="product-card__label">Price</span>
+            <span class="product-card__value">Base Price: $3.0<br>Customization Price: $3.0</span>
 
           </div>
           <div class="product-card__detail">
-            <span class="product-card__label">发货日期:<br>到货日期:</span>
+            <span class="product-card__label">Estimated delivery date:<br>Estimated arrival date:</span>
             <span class="product-card__value">YYYY-MM-DD<br>YYYY-MM-DD</span>
 
           </div>
@@ -110,7 +110,7 @@ if ($product_id > 0) {
       </div>
       <!-- 添加画板缩放滑块 -->
       <div class="zoom-control" style="margin-top: 15px;">
-        <label for="zoomSlider" style="display: block; margin-bottom: 5px;">画板缩放: <span id="zoomValue">100%</span></label>
+        <label for="zoomSlider" style="display: block; margin-bottom: 5px;">Scale: <span id="zoomValue">100%</span></label>
         <input type="range" id="zoomSlider" min="50" max="200" value="100" style="width: 100%;">
       </div>
       <script>
@@ -145,7 +145,7 @@ if ($product_id > 0) {
       <?php if (!empty($pw_4_grid)) : ?>
         <!-- 添加滑块 控制arc参数 初始在中间 0，可以-1000 到 1000调节  -->
         <div class="arc-control" style="margin-top: 15px;">
-          <label for="arcSlider" style="display: block; margin-bottom: 5px;">圆弧参数: <span id="arcValue">0</span></label>
+          <label for="arcSlider" style="display: block; margin-bottom: 5px;">Arc: <span id="arcValue">0</span></label>
           <input type="range" id="arcSlider" min="-200" max="200" value="0" style="width: 100%;">
         </div>
         <script>
@@ -160,7 +160,7 @@ if ($product_id > 0) {
       <?php endif; ?>
       <div class="product-card-btn">
         
-        <button id="addToCartBtn" class="product-card__add-to-cart">加购物车</button>
+        <button id="addToCartBtn" class="product-card__add-to-cart">Add to Cart</button>
       </div>
     </footer>
   </div>
