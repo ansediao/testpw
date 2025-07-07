@@ -198,7 +198,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                                 tab.addEventListener('click', function() {
                                     reviewTabs.forEach(t => {
                                         t.classList.remove('active');
-                                        t.style.background = '#f3f4f6';
+                                        
                                     });
                                     tab.classList.add('active');
                                     tab.style.background = '#fff';
@@ -216,18 +216,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                             });
                         });
                     </script>
-                    <style>
-                        #review-tabs .review-tab.active {
-                            background: #fff !important;
-                            border-bottom: 2px solid #3b82f6;
-                            color: #1d4ed8;
-                            font-weight: 600;
-                        }
-
-                        #review-tabs .review-tab {
-                            transition: background 0.2s;
-                        }
-                    </style>
+                  
                 </div>
             </div>
             <script>
