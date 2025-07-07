@@ -60,10 +60,11 @@ if ($product_id > 0 && $product) {
     $first_image_width = 0;
     $first_image_height = 0;
     if ($first_image_url) {
-        $img_size = @getimagesize($first_image_url);
+        $img_size = getimagesize($first_image_url);
         if ($img_size) {
             $first_image_width = $img_size[0];
             $first_image_height = $img_size[1];
+            echo "123";
             echo $first_image_width;
             echo $first_image_height;
 
