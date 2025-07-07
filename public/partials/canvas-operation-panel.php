@@ -72,6 +72,10 @@ $plugin_url = plugin_dir_url(__FILE__);
 
             <!-- 评价弹窗 -->
             <div id="reviews-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:9999; align-items:center; justify-content:center;">
+                <!-- 产品标题 -->
+                <div class="popup_header">
+                    <?php echo get_the_title($product_id); ?>
+                </div>
                 <div style="background:#fff; border-radius:8px; max-width:500px; width:90vw; max-height:80vh; overflow:auto; padding:2rem; position:relative;">
                     <button id="close-reviews-modal" style="position:absolute; right:1rem; top:1rem; background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
                     <!-- 评价/描述/定制说明 Tab 切换 -->
