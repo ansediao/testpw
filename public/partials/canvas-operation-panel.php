@@ -66,10 +66,21 @@ $plugin_url = plugin_dir_url(__FILE__);
             }
             ?>
             <span style="margin-left: 5px;"><?php echo number_format($average_rating, 1); ?></span>
-            <!-- 显示多少评价 -->
-            <span style="margin-left: 5px; color: #888;"><?php echo $rating_count; ?> Reviews</span>
-            <a href="#" id="show-reviews-link">Customization Instructions</a>
-            <a href="#" id="show-reviews-link">Customization Instructions</a>
+            <!-- 显示多少评价 -->           
+            <a href="#" id="show-reviews-link"> <span style="margin-left: 5px; color: #888;"><?php echo $rating_count; ?> Reviews</span></a>
+            <a href="#" id="show-cuzInfo-link">Customization Instructions</a>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const showCuzInfoLink = document.getElementById('show-cuzInfo-link');
+                    if (showCuzInfoLink) {
+                        showCuzInfoLink.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            // 切换到第三个tab（定制说明）
+                            switchReviewTab(2);
+                        });
+                    }
+                });
+            </script>
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     const showReviewsLink = document.getElementById('show-reviews-link');
