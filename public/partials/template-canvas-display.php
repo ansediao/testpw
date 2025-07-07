@@ -83,7 +83,7 @@ if ($product_id > 0) {
         </div>
       </div>
     </main>
-    <footer class="footer" id="footer" style="padding: 0rem 1.5rem; ">
+    <footer class="footer" id="footer">
         <div class="product-card">
         <div class="product-card__info">
           <div class="product-card__detail">
