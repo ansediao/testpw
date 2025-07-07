@@ -75,12 +75,11 @@ $plugin_url = plugin_dir_url(__FILE__);
                     if (showReviewsLink) {
                         showReviewsLink.addEventListener('click', function(e) {
                             e.preventDefault();
-                            showReviewsAndSwitchTab();
+                            switchReviewTab(1); // 切换到第二个tab（产品描述）
                         });
                     }
 
-                    function showReviewsAndSwitchTab() {
-                        // 切换到第三个tab（定制说明）
+                    function switchReviewTab(tabIndex) {
                         const reviewTabs = document.querySelectorAll('#review-tabs .review-tab');
                         const reviewTabPanes = document.querySelectorAll('#review-tab-content .review-tab-pane');
                         reviewTabs.forEach(t => {
@@ -91,12 +90,11 @@ $plugin_url = plugin_dir_url(__FILE__);
                             pane.style.display = 'none';
                             pane.classList.remove('active');
                         });
-                        // 第三个tab索引为2
-                        if (reviewTabs[2] && reviewTabPanes[2]) {
-                            reviewTabs[2].classList.add('active');
-                            reviewTabs[2].style.background = '#fff';
-                            reviewTabPanes[2].style.display = '';
-                            reviewTabPanes[2].classList.add('active');
+                        if (reviewTabs[tabIndex] && reviewTabPanes[tabIndex]) {
+                            reviewTabs[tabIndex].classList.add('active');
+                            reviewTabs[tabIndex].style.background = '#fff';
+                            reviewTabPanes[tabIndex].style.display = '';
+                            reviewTabPanes[tabIndex].classList.add('active');
                         }
                         // 打开弹窗
                         const reviewsModal = document.getElementById('reviews-modal');
@@ -104,6 +102,10 @@ $plugin_url = plugin_dir_url(__FILE__);
                             reviewsModal.style.display = 'flex';
                         }
                     }
+
+                    function showReviewsAndSwitchTab() {
+                        // 切换到第三个tab（定制说明）
+                        switchReviewTab(2);
                 });
             </script>
 
