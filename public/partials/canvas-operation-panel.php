@@ -72,78 +72,83 @@ $plugin_url = plugin_dir_url(__FILE__);
 
             <!-- 评价弹窗 -->
             <div id="reviews-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:9999; align-items:center; justify-content:center;">
-                <!-- 产品标题 -->
-                <div class="popup_header">
-                    <?php echo get_the_title($product_id); ?>
-                </div>
-                <div style="background:#fff; border-radius:8px; max-width:500px; width:90vw; max-height:80vh; overflow:auto; padding:2rem; position:relative;">
+
+                <div style="background:#fff; border-radius:8px; max-width:500px; width:90vw; max-height:80vh; overflow:auto;  position:relative;">
                     <button id="close-reviews-modal" style="position:absolute; right:1rem; top:1rem; background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
-                    <!-- 评价/描述/定制说明 Tab 切换 -->
-                    <div id="review-tabs" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                        <div class="review-tab active" data-tab="reviews" style="cursor:pointer; padding:0.5rem 1rem; border-radius:0.375rem; border:1px solid #d1d5db; background:#f3f4f6;">产品评价</div>
-                        <div class="review-tab" data-tab="desc" style="cursor:pointer; padding:0.5rem 1rem; border-radius:0.375rem; border:1px solid #d1d5db; background:#f3f4f6;">产品描述</div>
-                        <div class="review-tab" data-tab="custom" style="cursor:pointer; padding:0.5rem 1rem; border-radius:0.375rem; border:1px solid #d1d5db; background:#f3f4f6;">定制说明</div>
+                    <!-- 产品标题 -->
+                    <div class="popup_header">
+                        <?php echo get_the_title($product_id); ?>
                     </div>
-                    <div id="review-tab-content">
-                        <div class="review-tab-pane active" data-content="reviews">
-                            <h3 style="margin-top:0;">产品评价</h3>
-                            <div id="reviews-list">
-                                <?php
-                                // 获取该产品的所有评价（WooCommerce 评论/WordPress 评论）
-                                $comments = get_comments(array(
-                                    'post_id' => $product_id,
-                                ));
-                                if ($comments) {
-                                    foreach ($comments as $comment) {
-                                        echo '<div style="border-bottom:1px solid #eee; margin-bottom:1rem; padding-bottom:1rem;">';
-                                        echo '<strong>' . esc_html($comment->comment_author) . '</strong> ';
-                                        echo '<span style="color:#888; font-size:0.9em;">' . esc_html(get_comment_date('', $comment)) . '</span><br>';
-                                        echo '<div style="margin:0.5em 0;">' . esc_html($comment->comment_content) . '</div>';
-                                        // 显示评分（如果有）
-                                        $rating = intval(get_comment_meta($comment->comment_ID, 'rating', true));
-                                        if ($rating) {
-                                            echo '<div style="color:#fbbf24;">';
-                                            for ($i = 1; $i <= 5; $i++) {
-                                                echo $i <= $rating ? '★' : '☆';
+
+                    <div class="popup_body" style="padding:2rem;">
+                        <!-- 评价/描述/定制说明 Tab 切换 -->
+                        <div id="review-tabs" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <div class="review-tab active" data-tab="reviews" style="cursor:pointer; padding:0.5rem 1rem; border-radius:0.375rem; border:1px solid #d1d5db; background:#f3f4f6;">产品评价</div>
+                            <div class="review-tab" data-tab="desc" style="cursor:pointer; padding:0.5rem 1rem; border-radius:0.375rem; border:1px solid #d1d5db; background:#f3f4f6;">产品描述</div>
+                            <div class="review-tab" data-tab="custom" style="cursor:pointer; padding:0.5rem 1rem; border-radius:0.375rem; border:1px solid #d1d5db; background:#f3f4f6;">定制说明</div>
+                        </div>
+                        <div id="review-tab-content">
+                            <div class="review-tab-pane active" data-content="reviews">
+                                <h3 style="margin-top:0;">产品评价</h3>
+                                <div id="reviews-list">
+                                    <?php
+                                    // 获取该产品的所有评价（WooCommerce 评论/WordPress 评论）
+                                    $comments = get_comments(array(
+                                        'post_id' => $product_id,
+                                    ));
+                                    if ($comments) {
+                                        foreach ($comments as $comment) {
+                                            echo '<div style="border-bottom:1px solid #eee; margin-bottom:1rem; padding-bottom:1rem;">';
+                                            echo '<strong>' . esc_html($comment->comment_author) . '</strong> ';
+                                            echo '<span style="color:#888; font-size:0.9em;">' . esc_html(get_comment_date('', $comment)) . '</span><br>';
+                                            echo '<div style="margin:0.5em 0;">' . esc_html($comment->comment_content) . '</div>';
+                                            // 显示评分（如果有）
+                                            $rating = intval(get_comment_meta($comment->comment_ID, 'rating', true));
+                                            if ($rating) {
+                                                echo '<div style="color:#fbbf24;">';
+                                                for ($i = 1; $i <= 5; $i++) {
+                                                    echo $i <= $rating ? '★' : '☆';
+                                                }
+                                                echo '</div>';
                                             }
                                             echo '</div>';
                                         }
-                                        echo '</div>';
+                                    } else {
+                                        echo '<div style="color:#888;">暂无评价</div>';
                                     }
-                                } else {
-                                    echo '<div style="color:#888;">暂无评价</div>';
-                                }
-                                ?>
+                                    ?>
+                                </div>
                             </div>
-                        </div>
-                        <div class="review-tab-pane" data-content="desc" style="display:none;">
-                            <h3 style="margin-top:0;">产品描述</h3>
-                            <div>
-                                <?php
-                                $product = wc_get_product($product_id);
-                                if ($product) {
-                                    echo $product->get_description();
-                                } else {
-                                    echo '<div style="color:#888;">暂无产品描述</div>';
-                                }
-                                ?>
+                            <div class="review-tab-pane" data-content="desc" style="display:none;">
+                                <h3 style="margin-top:0;">产品描述</h3>
+                                <div>
+                                    <?php
+                                    $product = wc_get_product($product_id);
+                                    if ($product) {
+                                        echo $product->get_description();
+                                    } else {
+                                        echo '<div style="color:#888;">暂无产品描述</div>';
+                                    }
+                                    ?>
+                                </div>
                             </div>
-                        </div>
-                        <div class="review-tab-pane" data-content="custom" style="display:none;">
-                            <h3 style="margin-top:0;">定制说明</h3>
-                            <div>
-                                <?php
-                                // 你可以自定义定制说明字段，或用自定义字段
-                                $custom_note = get_post_meta($product_id, 'custom_note', true);
-                                if ($custom_note) {
-                                    echo wpautop(esc_html($custom_note));
-                                } else {
-                                    echo '<div style="color:#888;">暂无定制说明</div>';
-                                }
-                                ?>
+                            <div class="review-tab-pane" data-content="custom" style="display:none;">
+                                <h3 style="margin-top:0;">定制说明</h3>
+                                <div>
+                                    <?php
+                                    // 你可以自定义定制说明字段，或用自定义字段
+                                    $custom_note = get_post_meta($product_id, 'custom_note', true);
+                                    if ($custom_note) {
+                                        echo wpautop(esc_html($custom_note));
+                                    } else {
+                                        echo '<div style="color:#888;">暂无定制说明</div>';
+                                    }
+                                    ?>
+                                </div>
                             </div>
                         </div>
                     </div>
+
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
                             const reviewTabs = document.querySelectorAll('#review-tabs .review-tab');
@@ -259,7 +264,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                 });
             });
         </script>
-        
+
         <div class="action-buttons">
             <button class="btn btn-gradient">Gradient</button>
             <button class="btn btn-custom">Custom Colors</button>
@@ -737,7 +742,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                 echo '<div class="category-item">';
                 echo '<div class="category-item-header">';
                 // 统一显示图片在标题上面
-                echo '<div class="category_name">' .'<img src="' . MY_PLUGIN_URL . 'assets/images/icons/design.svg" alt="Designs ICON" style="display:block;margin:0 auto 8px;max-width:40px;">' . esc_html($category->name) . '</div>';
+                echo '<div class="category_name">' . '<img src="' . MY_PLUGIN_URL . 'assets/images/icons/design.svg" alt="Designs ICON" style="display:block;margin:0 auto 8px;max-width:40px;">' . esc_html($category->name) . '</div>';
                 echo '<button class="back-button" >Back to Design Folders</button>';
                 echo '</div>';
                 echo '<div class="designs-grid">';
