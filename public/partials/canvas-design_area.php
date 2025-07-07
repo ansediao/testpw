@@ -47,6 +47,7 @@ if ($product_id > 0 && $product) {
 
 
 
+
 <?php if (empty($pw_4_grid)) : ?>
     <?php
     // 如果$color_image_url包含逗号，说明有多张图片，只取第一张
@@ -55,8 +56,22 @@ if ($product_id > 0 && $product) {
         $image_urls = explode(',', $color_image_url);
         $first_image_url = trim($image_urls[0]);
     }
+    // 获取图片尺寸
+    $first_image_width = 0;
+    $first_image_height = 0;
+    if ($first_image_url) {
+        $img_size = @getimagesize($first_image_url);
+        if ($img_size) {
+            $first_image_width = $img_size[0];
+            $first_image_height = $img_size[1];
+        }
+    }
     ?>
-    <canvas id="shadowLayer" data-color-image="<?php echo esc_attr($first_image_url); ?>"></canvas>
+    <canvas id="shadowLayer"
+        data-color-image="<?php echo esc_attr($first_image_url); ?>"
+        data-img-width="<?php echo esc_attr($first_image_width); ?>"
+        data-img-height="<?php echo esc_attr($first_image_height); ?>"
+        style="height:100%;width:auto;display:block;"></canvas>
 <?php endif; ?>
 
 <canvas id="colorLayer" data-product-image="<?php echo esc_attr($image_url); ?>"></canvas>
@@ -66,3 +81,23 @@ if ($product_id > 0 && $product) {
 <canvas id="boundaryLayer" <?php if ($pw_4_grid) {
                                 echo 'style="display:none;"';
                             } ?>></canvas>
+
+<script>
+// 让canvas高度100%，宽度根据图片比例自适应
+document.addEventListener('DOMContentLoaded', function() {
+    var shadowLayer = document.getElementById('shadowLayer');
+    if (shadowLayer) {
+        var imgW = parseInt(shadowLayer.getAttribute('data-img-width'), 10);
+        var imgH = parseInt(shadowLayer.getAttribute('data-img-height'), 10);
+        if (imgW > 0 && imgH > 0) {
+            // 获取父容器高度
+            var parent = shadowLayer.parentElement;
+            var parentHeight = parent.clientHeight || 500; // 默认500
+            shadowLayer.height = parentHeight;
+            shadowLayer.width = Math.round(parentHeight * imgW / imgH);
+            shadowLayer.style.height = '100%';
+            shadowLayer.style.width = 'auto';
+        }
+    }
+});
+</script>
