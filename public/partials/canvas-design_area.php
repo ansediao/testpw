@@ -56,7 +56,7 @@ if ($product_id > 0 && $product) {
         $first_image_url = trim($image_urls[0]);
     }
     ?>
-    <canvas id="shadowLayer"  data-color-image="<?php echo esc_attr($first_image_url); ?>"></canvas>
+    <canvas id="shadowLayer" data-color-image="<?php echo esc_attr($first_image_url); ?>"></canvas>
 <?php endif; ?>
 
 <canvas id="colorLayer" data-product-image="<?php echo esc_attr($image_url); ?>"></canvas>
