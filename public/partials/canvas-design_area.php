@@ -64,6 +64,9 @@ if ($product_id > 0 && $product) {
         if ($img_size) {
             $first_image_width = $img_size[0];
             $first_image_height = $img_size[1];
+            echo $first_image_width;
+            echo $first_image_height;
+
         }
     }
     ?>
