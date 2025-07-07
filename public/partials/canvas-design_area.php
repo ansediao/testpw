@@ -116,8 +116,13 @@ if ($product_id > 0 && $product) {
                     var canvas_height = shadowLayer_height;
                     var canvas_width = (first_image_width / first_image_height) * canvas_height;
                     
+                    // 输出日志
+                    console.log('shadowLayer height:', shadowLayer_height);
+                    console.log('first_image_width:', first_image_width);
+                    console.log('first_image_height:', first_image_height);
+                    console.log('canvas width:', canvas_width); 
+                    console.log('canvas height:', canvas_height);
 
-         
                     canvas.setHeight(canvas_height);
                     canvas.setWidth(canvas_width);
 
