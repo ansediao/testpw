@@ -124,12 +124,25 @@ $plugin_url = plugin_dir_url(__FILE__);
                     <div class="popup_body">
                         <!-- 评价/描述/定制说明 Tab 切换 -->
                         <div id="review-tabs">
-                            <div class="review-tab active" data-tab="reviews">产品评价</div>
-                            <div class="review-tab" data-tab="desc">产品描述</div>
-                            <div class="review-tab" data-tab="custom">定制说明</div>
+                            <div class="review-tab active" data-tab="desc">Info</div>
+                            <div class="review-tab" data-tab="reviews">Reviews</div>
+                            <div class="review-tab" data-tab="custom">Customization Instructions</div>
                         </div>
                         <div id="review-tab-content">
-                            <div class="review-tab-pane active" data-content="reviews">
+                            <div class="review-tab-pane active" data-content="desc">
+                                <h3 style="margin-top:0;">产品描述</h3>
+                                <div>
+                                    <?php
+                                    $product = wc_get_product($product_id);
+                                    if ($product) {
+                                        echo $product->get_description();
+                                    } else {
+                                        echo '<div style="color:#888;">暂无产品描述</div>';
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+                            <div class="review-tab-pane" data-content="reviews" style="display:none;">
                                 <h3 style="margin-top:0;">产品评价</h3>
                                 <div id="reviews-list">
                                     <?php
@@ -160,19 +173,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                                     ?>
                                 </div>
                             </div>
-                            <div class="review-tab-pane" data-content="desc" style="display:none;">
-                                <h3 style="margin-top:0;">产品描述</h3>
-                                <div>
-                                    <?php
-                                    $product = wc_get_product($product_id);
-                                    if ($product) {
-                                        echo $product->get_description();
-                                    } else {
-                                        echo '<div style="color:#888;">暂无产品描述</div>';
-                                    }
-                                    ?>
-                                </div>
-                            </div>
+
                             <div class="review-tab-pane" data-content="custom" style="display:none;">
                                 <h3 style="margin-top:0;">定制说明</h3>
                                 <div>
@@ -198,7 +199,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                                 tab.addEventListener('click', function() {
                                     reviewTabs.forEach(t => {
                                         t.classList.remove('active');
-                                        
+
                                     });
                                     tab.classList.add('active');
                                     tab.style.background = '#fff';
@@ -216,7 +217,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                             });
                         });
                     </script>
-                  
+
                 </div>
             </div>
             <script>
