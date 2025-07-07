@@ -105,29 +105,21 @@ if ($product_id > 0 && $product) {
 <script>
     // 让所有canvas高度100%，宽度根据图片比例自适应
     document.addEventListener('DOMContentLoaded', function() {
-        // 只设置 mainCanvas 的宽高一次
-        var mainCanvasEle = document.getElementById('mainCanvas');
-        if (mainCanvasEle) {
-            var imgW = parseInt(mainCanvasEle.getAttribute('data-img-width'), 10);
-            var imgH = parseInt(mainCanvasEle.getAttribute('data-img-height'), 10);
-            if (imgW > 0 && imgH > 0) {
-                var parent = mainCanvasEle.parentElement;
-                var parentHeight = parent.clientHeight || 500;
-                mainCanvasEle.height = parentHeight;
-                mainCanvasEle.width = Math.round(parentHeight * imgW / imgH);
-                mainCanvasEle.style.height = '100%';
-                mainCanvasEle.style.width = 'auto';
-                if (window.fabric && window.fabric.Canvas) {
-                    // var canvas = new fabric.Canvas('mainCanvas', {
-                    //     selectionBorderColor: 'rgba(0,0,0,0.3)',
-                    //     selectionLineWidth: 1
-                    // });
-                    canvas.setWidth(mainCanvasEle.width);
-                    canvas.setHeight(mainCanvasEle.height);
-                }
-            }
-        }
+                    //获取 shadowLayer元素 高度
+                    var shadowLayer = document.getElementById('shadowLayer');
+                    var shadowLayer_height = shadowLayer.offsetHeight;
 
+
+                    var first_image_width = shadowLayer.getAttribute('data-img-width');
+                    var first_image_height = shadowLayer.getAttribute('data-img-height');
+                    // 计算 canvas的宽度
+                    var canvas_height = shadowLayer_height;
+                    var canvas_width = (first_image_width / first_image_height) * canvas_height;
+                    
+
+         
+                    canvas.setHeight(canvas_height);
+                    canvas.setWidth(canvas_width);
 
 
 
