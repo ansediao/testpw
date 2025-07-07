@@ -118,10 +118,10 @@ if ($product_id > 0 && $product) {
                 mainCanvasEle.style.height = '100%';
                 mainCanvasEle.style.width = 'auto';
                 if (window.fabric && window.fabric.Canvas) {
-                    var canvas = new fabric.Canvas('mainCanvas', {
-                        selectionBorderColor: 'rgba(0,0,0,0.3)',
-                        selectionLineWidth: 1
-                    });
+                    // var canvas = new fabric.Canvas('mainCanvas', {
+                    //     selectionBorderColor: 'rgba(0,0,0,0.3)',
+                    //     selectionLineWidth: 1
+                    // });
                     canvas.setWidth(mainCanvasEle.width);
                     canvas.setHeight(mainCanvasEle.height);
                 }
