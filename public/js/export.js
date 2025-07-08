@@ -10,11 +10,11 @@ function captureCanvas(includeBoundary = false) {
     tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
     // 1. 首先绘制阴影层（颜色图片）
     if (shadowCanvas) {
-        tempCtx.drawImage(shadowCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.drawImage(shadowCanvas, 0, 0);
     }
     // 2. 然后绘制颜色层（产品图片）
     if (colorCanvas) {
-        tempCtx.drawImage(colorCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.drawImage(colorCanvas, 0, 0);
     }
     // 3. 最后绘制主画布内容（用户添加的文字和图片）
     // 强制fabric.js画布渲染，确保获取到最新的内容
