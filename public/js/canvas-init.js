@@ -13,7 +13,7 @@ function init() {
             const y = (colorCanvas.height - height) / 2;
             // 清除画布并绘制图片
             colorCtx.clearRect(0, 0, colorCanvas.width, colorCanvas.height);
-            colorCtx.drawImage(img, x, y, width, height);
+            colorCtx.drawImage(img, 0, 0, img.width, height);
         };
         img.src = productImageUrl;
     }
