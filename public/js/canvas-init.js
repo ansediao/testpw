@@ -13,7 +13,7 @@ function init() {
             const y = (colorCanvas.height - height) / 2;
             // 清除画布并绘制图片
             colorCtx.clearRect(0, 0, colorCanvas.width, colorCanvas.height);
-            colorCtx.drawImage(img, 0, 0, img.width, height);
+            colorCtx.drawImage(img, 0, 0, colorCanvas.width, colorCanvas.height);
         };
         img.src = productImageUrl;
     }
@@ -29,7 +29,7 @@ function init() {
             const y = (shadowCanvas.height - height) / 2;
             // 清除画布并绘制图片
             shadowCtx.clearRect(0, 0, shadowCanvas.width, shadowCanvas.height);
-            shadowCtx.drawImage(colorImg, 0, y, colorImg.width, height);
+            shadowCtx.drawImage(colorImg, 0, y, shadowCanvas.width, shadowCanvas.height);
         };
         colorImg.src = colorImageUrl;
     }
