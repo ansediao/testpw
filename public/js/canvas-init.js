@@ -61,7 +61,7 @@ function init() {
 }
 
 // 新增：加载并着色图片的函数
-function loadColorImage(imageUrl, color) {
+function loadColorImage1(imageUrl, color) {
     const colorImg = new Image();
     colorImg.onload = function () {
         const scale = Math.min(shadowCanvas.width / colorImg.width, shadowCanvas.height / colorImg.height);
@@ -149,13 +149,13 @@ function loadColorImage(imageUrl, color) {
     const colorImg = new Image();
     colorImg.onload = function () {
         const scale = Math.min(shadowCanvas.width / colorImg.width, shadowCanvas.height / colorImg.height);
-        const width = colorImg.width * scale;
-        const height = colorImg.height * scale;
-        const x = (shadowCanvas.width - width) / 2;
-        const y = (shadowCanvas.height - height) / 2;
+        const width = shadowCanvas.width;
+        const height = shadowCanvas.height;
+        // const x = (shadowCanvas.width - width) / 2;
+        // const y = (shadowCanvas.height - height) / 2;
         shadowCtx.clearRect(0, 0, shadowCanvas.width, shadowCanvas.height);
         // 绘制原始图片
-        shadowCtx.drawImage(colorImg, x, y, width, height);
+        shadowCtx.drawImage(colorImg, 0, 0, width, height);
         // 应用颜色
         shadowCtx.globalCompositeOperation = 'source-in';
         shadowCtx.fillStyle = color;

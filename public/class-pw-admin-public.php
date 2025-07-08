@@ -261,7 +261,7 @@ class Pw_Admin_Public
                     shadowCanvas.setAttribute('data-color-image', initialColorImageUrl);
                 }
 
-                function loadColorImage(imageUrl, color) {
+                function loadColorImage1(imageUrl, color) {
                     if (!shadowCanvas || !shadowCtx) return;
 
                     const colorImg = new Image();
