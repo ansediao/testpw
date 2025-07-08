@@ -4,32 +4,46 @@ function init() {
     const colorImageUrl = shadowCanvas.getAttribute('data-color-image');
     if (productImageUrl) {
         const img = new Image();
-        img.onload = function () { // 计算图片缩放比例以适应画布
-            const scale = Math.min(colorCanvas.width / img.width, colorCanvas.height / img.height);
-            const width = img.width * scale;
-            const height = img.height * scale;
-            // 居中显示图片
-            const x = (colorCanvas.width - width) / 2;
-            const y = (colorCanvas.height - height) / 2;
-            // 清除画布并绘制图片
+        img.onload = function () {
+            // 目标：图片以2倍画布尺寸绘制（高分辨率），但不超出图片本身尺寸
+            const targetW = colorCanvas.width * 2;
+            const targetH = colorCanvas.height * 2;
+            // 计算缩放比例，不能超出图片原始尺寸
+            const scale = Math.min(targetW / img.width, targetH / img.height, 1);
+            const drawW = img.width * scale;
+            const drawH = img.height * scale;
+            // 居中显示
+            const x = (colorCanvas.width - drawW / 2) / 2;
+            const y = (colorCanvas.height - drawH / 2) / 2;
             colorCtx.clearRect(0, 0, colorCanvas.width, colorCanvas.height);
-            colorCtx.drawImage(img, 0, 0, colorCanvas.width, colorCanvas.height);
+            // 先创建离屏canvas，绘制2倍分辨率图片，再缩放绘制到主canvas
+            const offCanvas = document.createElement('canvas');
+            offCanvas.width = drawW;
+            offCanvas.height = drawH;
+            const offCtx = offCanvas.getContext('2d');
+            offCtx.drawImage(img, 0, 0, drawW, drawH);
+            colorCtx.drawImage(offCanvas, 0, 0, drawW, drawH, 0, 0, colorCanvas.width, colorCanvas.height);
         };
         img.src = productImageUrl;
     }
     // 加载颜色图片到 shadowLayer
     if (colorImageUrl) {
         const colorImg = new Image();
-        colorImg.onload = function () { // 计算图片缩放比例以适应画布
-            const scale = Math.min(shadowCanvas.width / colorImg.width, shadowCanvas.height / colorImg.height);
-            const width = colorImg.width * scale;
-            const height = colorImg.height * scale;
-            // 居中显示图片
-            const x = (shadowCanvas.width - width) / 2;
-            const y = (shadowCanvas.height - height) / 2;
-            // 清除画布并绘制图片
+        colorImg.onload = function () {
+            const targetW = shadowCanvas.width * 2;
+            const targetH = shadowCanvas.height * 2;
+            const scale = Math.min(targetW / colorImg.width, targetH / colorImg.height, 1);
+            const drawW = colorImg.width * scale;
+            const drawH = colorImg.height * scale;
+            const x = (shadowCanvas.width - drawW / 2) / 2;
+            const y = (shadowCanvas.height - drawH / 2) / 2;
             shadowCtx.clearRect(0, 0, shadowCanvas.width, shadowCanvas.height);
-            shadowCtx.drawImage(colorImg, 0, y, shadowCanvas.width, shadowCanvas.height);
+            const offCanvas = document.createElement('canvas');
+            offCanvas.width = drawW;
+            offCanvas.height = drawH;
+            const offCtx = offCanvas.getContext('2d');
+            offCtx.drawImage(colorImg, 0, 0, drawW, drawH);
+            shadowCtx.drawImage(offCanvas, 0, 0, drawW, drawH, 0, 0, shadowCanvas.width, shadowCanvas.height);
         };
         colorImg.src = colorImageUrl;
     }
