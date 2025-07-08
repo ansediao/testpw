@@ -20,26 +20,26 @@ function init() {
     shadowCtx.setTransform(1, 0, 0, 1, 0, 0);
     shadowCtx.imageSmoothingEnabled = true;
 
+    // 如果存在产品图片URL，则加载并绘制到 colorCanvas
     if (productImageUrl) {
         const img = new Image();
         img.onload = function () {
-            // 让图片宽度撑满画布宽度，高度等比缩放，不超出画布
+            // 计算缩放比例，使图片宽度撑满画布宽度，高度等比缩放
             const scale = colorCanvas.width / img.width;
-            let drawW = colorCanvas.width;
-            let drawH = img.height * scale;
-            let x = 0;
-            let y = (colorCanvas.height - drawH) / 2;
-            // 如果高度超出画布，则以高度为准缩放
-            if (drawH > colorCanvas.height) {
-                const scaleH = colorCanvas.height / img.height;
-                drawH = colorCanvas.height;
-                drawW = img.width * scaleH;
-                x = (colorCanvas.width - drawW) / 2;
-                y = 0;
-            }
+            let drawW = img.width * scale; // 绘制宽度为画布宽度
+            let drawH = img.height * scale; // 绘制高度等比缩放           
+            // 清空画布
             colorCtx.clearRect(0, 0, colorCanvas.width, colorCanvas.height);
-            colorCtx.drawImage(img, 0, 0, img.width, img.height, x, y, drawW, drawH);
+            // 绘制图片到画布
+            // 参数说明：
+            // img: 要绘制的图片对象
+            // 0, 0: 源图片的起始坐标（左上角）
+            // img.width, img.height: 源图片的宽度和高度（全部绘制）
+            // x, y: 目标画布上的起始坐标（左上角，已计算居中）
+            // drawW, drawH: 绘制到画布上的宽度和高度（已按比例缩放）
+            colorCtx.drawImage(img, 0, 0, img.width, img.height, 0, 0, drawW, drawH);
         };
+        // 设置图片源地址，开始加载
         img.src = productImageUrl;
     }
     // 加载颜色图片到 shadowLayer
