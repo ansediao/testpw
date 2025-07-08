@@ -26,8 +26,8 @@ function init() {
         img.onload = function () {
             // 计算缩放比例，使图片宽度撑满画布宽度，高度等比缩放
             const scale = colorCanvas.width / img.width;
-            let drawW = img.width * scale; // 绘制宽度为画布宽度
-            let drawH = img.height * scale; // 绘制高度等比缩放           
+            let drawW = colorCanvas.width; // 绘制宽度为画布宽度
+            let drawH = colorCanvas.height; // 绘制高度等比缩放           
             // 清空画布
             colorCtx.clearRect(0, 0, colorCanvas.width, colorCanvas.height);
             // 绘制图片到画布
