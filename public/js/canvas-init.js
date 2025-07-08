@@ -5,9 +5,9 @@ function init() {
     if (productImageUrl) {
         const img = new Image();
         img.onload = function () {
-            // 目标：图片以2倍画布尺寸绘制（高分辨率），但不超出图片本身尺寸
-            const targetW = colorCanvas.width * 2;
-            const targetH = colorCanvas.height * 2;
+            // 目标：图片以4倍画布尺寸绘制（高分辨率），但不超出图片本身尺寸
+            const targetW = colorCanvas.width * 4;
+            const targetH = colorCanvas.height * 4;
             // 计算缩放比例，不能超出图片原始尺寸
             const scale = Math.min(targetW / img.width, targetH / img.height, 1);
             const drawW = img.width * scale;
@@ -30,8 +30,8 @@ function init() {
     if (colorImageUrl) {
         const colorImg = new Image();
         colorImg.onload = function () {
-            const targetW = shadowCanvas.width * 2;
-            const targetH = shadowCanvas.height * 2;
+            const targetW = shadowCanvas.width * 4;
+            const targetH = shadowCanvas.height * 4;
             const scale = Math.min(targetW / colorImg.width, targetH / colorImg.height, 1);
             const drawW = colorImg.width * scale;
             const drawH = colorImg.height * scale;
