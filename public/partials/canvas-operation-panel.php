@@ -820,7 +820,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                 echo '<div class="category-item">';
                 echo '<div class="category-item-header">';
                 // 统一显示图片在标题上面
-                echo '<div class="category_name">' . '<img src="' . MY_PLUGIN_URL . 'assets/images/icons/design.svg" alt="Designs ICON" style="display:block;margin:0 auto 8px;max-width:40px;">' . esc_html($category->name) . '</div>';
+                echo '<div class="category_name">' . '<img src="' . MY_PLUGIN_URL . 'assets/images/icons/design.svg" alt="Designs ICON">' . esc_html($category->name) . '</div>';
                 echo '<button class="back-button" >Back to Design Folders</button>';
                 echo '</div>';
                 echo '<div class="designs-grid">';
