@@ -23,12 +23,20 @@ function init() {
     if (productImageUrl) {
         const img = new Image();
         img.onload = function () {
-            // 计算缩放比例，保证图片不被拉伸且不超出
-            const scale = Math.min(colorCanvas.width / img.width, colorCanvas.height / img.height, 1);
-            const drawW = img.width * scale;
-            const drawH = img.height * scale;
-            const x = (colorCanvas.width - drawW) / 2;
-            const y = (colorCanvas.height - drawH) / 2;
+            // 让图片宽度撑满画布宽度，高度等比缩放，不超出画布
+            const scale = colorCanvas.width / img.width;
+            let drawW = colorCanvas.width;
+            let drawH = img.height * scale;
+            let x = 0;
+            let y = (colorCanvas.height - drawH) / 2;
+            // 如果高度超出画布，则以高度为准缩放
+            if (drawH > colorCanvas.height) {
+                const scaleH = colorCanvas.height / img.height;
+                drawH = colorCanvas.height;
+                drawW = img.width * scaleH;
+                x = (colorCanvas.width - drawW) / 2;
+                y = 0;
+            }
             colorCtx.clearRect(0, 0, colorCanvas.width, colorCanvas.height);
             colorCtx.drawImage(img, 0, 0, img.width, img.height, x, y, drawW, drawH);
         };
@@ -38,11 +46,19 @@ function init() {
     if (colorImageUrl) {
         const colorImg = new Image();
         colorImg.onload = function () {
-            const scale = Math.min(shadowCanvas.width / colorImg.width, shadowCanvas.height / colorImg.height, 1);
-            const drawW = colorImg.width * scale;
-            const drawH = colorImg.height * scale;
-            const x = (shadowCanvas.width - drawW) / 2;
-            const y = (shadowCanvas.height - drawH) / 2;
+            // 让图片宽度撑满画布宽度，高度等比缩放，不超出画布
+            const scale = shadowCanvas.width / colorImg.width;
+            let drawW = shadowCanvas.width;
+            let drawH = colorImg.height * scale;
+            let x = 0;
+            let y = (shadowCanvas.height - drawH) / 2;
+            if (drawH > shadowCanvas.height) {
+                const scaleH = shadowCanvas.height / colorImg.height;
+                drawH = shadowCanvas.height;
+                drawW = colorImg.width * scaleH;
+                x = (shadowCanvas.width - drawW) / 2;
+                y = 0;
+            }
             shadowCtx.clearRect(0, 0, shadowCanvas.width, shadowCanvas.height);
             shadowCtx.drawImage(colorImg, 0, 0, colorImg.width, colorImg.height, x, y, drawW, drawH);
         };
