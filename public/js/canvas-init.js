@@ -29,7 +29,7 @@ function init() {
             const y = (shadowCanvas.height - height) / 2;
             // 清除画布并绘制图片
             shadowCtx.clearRect(0, 0, shadowCanvas.width, shadowCanvas.height);
-            shadowCtx.drawImage(colorImg, x, y, width, height);
+            shadowCtx.drawImage(colorImg, 0, y, colorImg.width, height);
         };
         colorImg.src = colorImageUrl;
     }
