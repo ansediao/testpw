@@ -77,7 +77,7 @@ if ($product_id > 0 && $product) {
         data-color-image="<?php echo esc_attr($first_image_url); ?>"
         data-img-width="<?php echo esc_attr($first_image_width); ?>"
         data-img-height="<?php echo esc_attr($first_image_height); ?>"
-        style="display:block;"></canvas>
+        style="display:block;height:100%;"></canvas>
 
     <canvas id="colorLayer"
         data-img-width="<?php echo esc_attr($first_image_width); ?>"
@@ -87,7 +87,7 @@ if ($product_id > 0 && $product) {
     <canvas id="mainCanvas"
         data-img-width="<?php echo esc_attr($first_image_width); ?>"
         data-img-height="<?php echo esc_attr($first_image_height); ?>"
-        style="display:block;"></canvas>
+        style="display:block;height:100%;"></canvas>
 
     <!-- 添加边缘限制层 -->
     <canvas id="boundaryLayer"
@@ -136,7 +136,7 @@ if ($product_id > 0 && $product) {
             var boundaryLayer = document.getElementById('boundaryLayer');
             boundaryLayer.style.height = canvas_height + 'px';
             boundaryLayer.style.width = canvas_width + 'px';
-            
+
 
 
 
