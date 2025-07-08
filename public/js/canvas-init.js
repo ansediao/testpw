@@ -2,27 +2,35 @@
 function init() {
     const productImageUrl = colorCanvas.getAttribute('data-product-image');
     const colorImageUrl = shadowCanvas.getAttribute('data-color-image');
+    // 设置高分辨率画布（4倍像素密度）
+    const ratio = 4;
+    // colorCanvas
+    colorCanvas.width = colorCanvas.clientWidth * ratio;
+    colorCanvas.height = colorCanvas.clientHeight * ratio;
+    colorCanvas.style.width = colorCanvas.clientWidth + 'px';
+    colorCanvas.style.height = colorCanvas.clientHeight + 'px';
+    colorCtx.setTransform(1, 0, 0, 1, 0, 0);
+    colorCtx.imageSmoothingEnabled = true;
+
+    // shadowCanvas
+    shadowCanvas.width = shadowCanvas.clientWidth * ratio;
+    shadowCanvas.height = shadowCanvas.clientHeight * ratio;
+    shadowCanvas.style.width = shadowCanvas.clientWidth + 'px';
+    shadowCanvas.style.height = shadowCanvas.clientHeight + 'px';
+    shadowCtx.setTransform(1, 0, 0, 1, 0, 0);
+    shadowCtx.imageSmoothingEnabled = true;
+
     if (productImageUrl) {
         const img = new Image();
         img.onload = function () {
-            // 目标：图片以4倍画布尺寸绘制（高分辨率），但不超出图片本身尺寸
-            const targetW = colorCanvas.width * 4;
-            const targetH = colorCanvas.height * 4;
-            // 计算缩放比例，不能超出图片原始尺寸
-            const scale = Math.min(targetW / img.width, targetH / img.height, 1);
+            // 计算缩放比例，保证图片不被拉伸且不超出
+            const scale = Math.min(colorCanvas.width / img.width, colorCanvas.height / img.height, 1);
             const drawW = img.width * scale;
             const drawH = img.height * scale;
-            // 居中显示
-            const x = (colorCanvas.width - drawW / 2) / 2;
-            const y = (colorCanvas.height - drawH / 2) / 2;
+            const x = (colorCanvas.width - drawW) / 2;
+            const y = (colorCanvas.height - drawH) / 2;
             colorCtx.clearRect(0, 0, colorCanvas.width, colorCanvas.height);
-            // 先创建离屏canvas，绘制2倍分辨率图片，再缩放绘制到主canvas
-            const offCanvas = document.createElement('canvas');
-            offCanvas.width = drawW;
-            offCanvas.height = drawH;
-            const offCtx = offCanvas.getContext('2d');
-            offCtx.drawImage(img, 0, 0, drawW, drawH);
-            colorCtx.drawImage(offCanvas, 0, 0, drawW, drawH, 0, 0, colorCanvas.width, colorCanvas.height);
+            colorCtx.drawImage(img, 0, 0, img.width, img.height, x, y, drawW, drawH);
         };
         img.src = productImageUrl;
     }
@@ -30,20 +38,13 @@ function init() {
     if (colorImageUrl) {
         const colorImg = new Image();
         colorImg.onload = function () {
-            const targetW = shadowCanvas.width * 4;
-            const targetH = shadowCanvas.height * 4;
-            const scale = Math.min(targetW / colorImg.width, targetH / colorImg.height, 1);
+            const scale = Math.min(shadowCanvas.width / colorImg.width, shadowCanvas.height / colorImg.height, 1);
             const drawW = colorImg.width * scale;
             const drawH = colorImg.height * scale;
-            const x = (shadowCanvas.width - drawW / 2) / 2;
-            const y = (shadowCanvas.height - drawH / 2) / 2;
+            const x = (shadowCanvas.width - drawW) / 2;
+            const y = (shadowCanvas.height - drawH) / 2;
             shadowCtx.clearRect(0, 0, shadowCanvas.width, shadowCanvas.height);
-            const offCanvas = document.createElement('canvas');
-            offCanvas.width = drawW;
-            offCanvas.height = drawH;
-            const offCtx = offCanvas.getContext('2d');
-            offCtx.drawImage(colorImg, 0, 0, drawW, drawH);
-            shadowCtx.drawImage(offCanvas, 0, 0, drawW, drawH, 0, 0, shadowCanvas.width, shadowCanvas.height);
+            shadowCtx.drawImage(colorImg, 0, 0, colorImg.width, colorImg.height, x, y, drawW, drawH);
         };
         colorImg.src = colorImageUrl;
     }
