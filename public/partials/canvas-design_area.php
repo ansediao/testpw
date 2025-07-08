@@ -77,17 +77,17 @@ if ($product_id > 0 && $product) {
         data-color-image="<?php echo esc_attr($first_image_url); ?>"
         data-img-width="<?php echo esc_attr($first_image_width); ?>"
         data-img-height="<?php echo esc_attr($first_image_height); ?>"
-        style="height:100%;width:auto;display:block;"></canvas>
+        style="display:block;"></canvas>
 
     <canvas id="colorLayer"
         data-img-width="<?php echo esc_attr($first_image_width); ?>"
         data-img-height="<?php echo esc_attr($first_image_height); ?>"
         data-product-image="<?php echo esc_attr($image_url); ?>"
-        style="height:100%;width:auto;display:block;"></canvas>
+        style="display:block;"></canvas>
     <canvas id="mainCanvas"
         data-img-width="<?php echo esc_attr($first_image_width); ?>"
         data-img-height="<?php echo esc_attr($first_image_height); ?>"
-        style="height:100%;width:auto;display:block;"></canvas>
+        style="display:block;"></canvas>
 
     <!-- 添加边缘限制层 -->
     <canvas id="boundaryLayer"
@@ -126,7 +126,17 @@ if ($product_id > 0 && $product) {
                     canvas.setHeight(canvas_height);
                     canvas.setWidth(canvas_width);
 
-
+            // 设置 shadowLayer colorLayer  boundaryLayer 的宽高
+            var shadowLayer = document.getElementById('shadowLayer');
+            shadowLayer.style.height = canvas_height + 'px';
+            shadowLayer.style.width = canvas_width + 'px';  
+            var colorLayer = document.getElementById('colorLayer');
+            colorLayer.style.height = canvas_height + 'px';
+            colorLayer.style.width = canvas_width + 'px';
+            var boundaryLayer = document.getElementById('boundaryLayer');
+            boundaryLayer.style.height = canvas_height + 'px';
+            boundaryLayer.style.width = canvas_width + 'px';
+            
 
 
 
