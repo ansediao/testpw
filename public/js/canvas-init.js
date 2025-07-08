@@ -49,18 +49,10 @@ function init() {
             // 让图片宽度撑满画布宽度，高度等比缩放，不超出画布
             const scale = shadowCanvas.width / colorImg.width;
             let drawW = shadowCanvas.width;
-            let drawH = colorImg.height * scale;
-            let x = 0;
-            let y = (shadowCanvas.height - drawH) / 2;
-            if (drawH > shadowCanvas.height) {
-                const scaleH = shadowCanvas.height / colorImg.height;
-                drawH = shadowCanvas.height;
-                drawW = colorImg.width * scaleH;
-                x = (shadowCanvas.width - drawW) / 2;
-                y = 0;
-            }
+            let drawH = shadowCanvas.height;
+           
             shadowCtx.clearRect(0, 0, shadowCanvas.width, shadowCanvas.height);
-            shadowCtx.drawImage(colorImg, 0, 0, colorImg.width, colorImg.height, x, y, drawW, drawH);
+            shadowCtx.drawImage(colorImg, 0, 0, colorImg.width, colorImg.height, 0, 0, drawW, drawH);
         };
         colorImg.src = colorImageUrl;
     }
