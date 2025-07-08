@@ -477,7 +477,7 @@ $plugin_url = plugin_dir_url(__FILE__);
             });
         </script>
 
-        <div class="footer">
+        <div class="tab_footer">
             <div class="sample-check">
                 <input type="checkbox" id="sample">
                 <label for="sample">Sample Order</label>
