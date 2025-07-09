@@ -482,7 +482,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                 <input type="checkbox" id="sample">
                 <label for="sample">Sample Order</label>
             </div>
-            <button class="btn btn-inquiry">Inquiry</button>
+            <button class="btn btn-custom">Inquiry</button>
         </div>
     </div>
 
