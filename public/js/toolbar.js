@@ -31,7 +31,8 @@ function updateDynamicToolbar(obj) {
             const fontSelector = document.createElement('div');
             fontSelector.className = 'toolbar-item';
             fontSelector.innerHTML = `
-            <label for="fontFamily">字体：</label>
+            <label for="fontFamily" class="tab_control_title">Font：</label>
+            <br>
             <select id="fontFamily">
               <option value="Arial" ${obj.fontFamily === 'Arial' ? 'selected' : ''}>Arial</option>
               <option value="Times New Roman" ${obj.fontFamily === 'Times New Roman' ? 'selected' : ''}>Times New Roman</option>
@@ -45,7 +46,8 @@ function updateDynamicToolbar(obj) {
             const fontSizeSelector = document.createElement('div');
             fontSizeSelector.className = 'toolbar-item';
             fontSizeSelector.innerHTML = `
-            <label for="fontSize">字号：</label>
+            <label for="fontSize" class="tab_control_title">Font-Size：</label>
+            <br>
             <input type="number" id="fontSize" min="8" max="120" value="${obj.fontSize}">
           `;
             textToolbarArea.appendChild(fontSizeSelector);
@@ -56,7 +58,8 @@ function updateDynamicToolbar(obj) {
             const colorSelector = document.createElement('div');
             colorSelector.className = 'toolbar-item';
             colorSelector.innerHTML = `
-            <label for="textColor">颜色：</label>
+            <label for="textColor" class="tab_control_title">Color：</label>
+            <br>
             <input type="color" id="textColor" value="${obj.fill}">
           `;
             textToolbarArea.appendChild(colorSelector);
@@ -67,7 +70,8 @@ function updateDynamicToolbar(obj) {
             const rotationControl = document.createElement('div');
             rotationControl.className = 'toolbar-item';
             rotationControl.innerHTML = `
-            <label for="textRotation">旋转：</label>
+            <label for="textRotation" class="tab_control_title">Rotate：</label>
+            <br>
             <input type="number" id="textRotation" min="0" max="360" value="${obj.angle}">
           `;
             textToolbarArea.appendChild(rotationControl);
@@ -75,20 +79,21 @@ function updateDynamicToolbar(obj) {
 
         // 创建位置控制
         if (activeButtonId === 'text_position') {
-            const positionControl = document.createElement('div');
-            positionControl.className = 'toolbar-item';
-            positionControl.innerHTML = `
-            <label>位置：</label>
-            <input type="number" id="textPositionX" style="width: 60px;" value="${Math.round(obj.left)}">
-            <input type="number" id="textPositionY" style="width: 60px;" value="${Math.round(obj.top)}">
-          `;
-            textToolbarArea.appendChild(positionControl);
+        //     const positionControl = document.createElement('div');
+        //     positionControl.className = 'toolbar-item';
+        //     positionControl.innerHTML = `
+        //     <label class="tab_control_title">位置：</label>
+        //     <input type="number" id="textPositionX" style="width: 60px;" value="${Math.round(obj.left)}">
+        //     <input type="number" id="textPositionY" style="width: 60px;" value="${Math.round(obj.top)}">
+        //   `;
+        //     textToolbarArea.appendChild(positionControl);
 
             // 添加对齐按钮
             const alignmentControl = document.createElement('div');
             alignmentControl.className = 'toolbar-item';
             alignmentControl.innerHTML = `
-            <label>对齐：</label>
+            <label class="tab_control_title">Align：</label>
+            <br>
             <button id="textAlignCenterH">水平居中</button>
             <button id="textAlignCenterV">垂直居中</button>
             <button id="textAlignLeft">左对齐</button>
@@ -154,7 +159,8 @@ function updateDynamicToolbar(obj) {
             const distortControl = document.createElement('div');
             distortControl.className = 'toolbar-item';
             distortControl.innerHTML = `
-            <label for="textDistort">弯曲程度：</label>
+            <label for="textDistort" class="tab_control_title">Arc：</label>
+            <br>
             <input type="range" id="textDistort" min="-100" max="100" value="0">
             <span id="distortValue">0</span>
           `;
@@ -282,30 +288,31 @@ function updateDynamicToolbar(obj) {
         // 创建变形控制 (透明度、旋转、宽度、高度、反转)
         if (activeButtonId === 'img_input') {
             // 透明度控制
-            const opacityControl = document.createElement('div');
-            opacityControl.className = 'toolbar-item';
-            opacityControl.innerHTML = `
-            <label for="imageOpacity">透明度：</label>
-            <input type="range" id="imageOpacity" min="0" max="100" value="${obj.opacity * 100}">
-            <span id="opacityValue">${Math.round(obj.opacity * 100)}%</span>
-          `;
-            tempContainer.appendChild(opacityControl);
+        //     const opacityControl = document.createElement('div');
+        //     opacityControl.className = 'toolbar-item';
+        //     opacityControl.innerHTML = `
+        //     <label for="imageOpacity">透明度：</label>
+        //     <input type="range" id="imageOpacity" min="0" max="100" value="${obj.opacity * 100}">
+        //     <span id="opacityValue">${Math.round(obj.opacity * 100)}%</span>
+        //   `;
+        //     tempContainer.appendChild(opacityControl);
 
             // 添加透明度变化事件监听
-            const opacityInput = opacityControl.querySelector('#imageOpacity');
-            const opacityValue = opacityControl.querySelector('#opacityValue');
-            opacityInput.addEventListener('input', function () {
-                const value = this.value;
-                opacityValue.textContent = value + '%';
-                obj.set('opacity', value / 100);
-                canvas.renderAll();
-            });
+            // const opacityInput = opacityControl.querySelector('#imageOpacity');
+            // const opacityValue = opacityControl.querySelector('#opacityValue');
+            // opacityInput.addEventListener('input', function () {
+            //     const value = this.value;
+            //     opacityValue.textContent = value + '%';
+            //     obj.set('opacity', value / 100);
+            //     canvas.renderAll();
+            // });
 
             // 旋转控制
             const rotationControl = document.createElement('div');
             rotationControl.className = 'toolbar-item';
             rotationControl.innerHTML = `
-            <label for="imageRotation">旋转：</label>
+            <label for="imageRotation class="tab_control_title"">Transform：</label>
+            <br>
             <input type="number" id="imageRotation" min="0" max="360" value="${obj.angle}">
           `;
             tempContainer.appendChild(rotationControl);
@@ -323,7 +330,8 @@ function updateDynamicToolbar(obj) {
             const widthControl = document.createElement('div');
             widthControl.className = 'toolbar-item';
             widthControl.innerHTML = `
-            <label for="imageWidth">宽度：</label>
+            <label for="imageWidth" class="tab_control_title">Width：</label>
+            <br>
             <input type="number" id="imageWidth" min="10" value="${Math.round(obj.width * obj.scaleX)}">
           `;
             tempContainer.appendChild(widthControl);
@@ -341,7 +349,8 @@ function updateDynamicToolbar(obj) {
             const heightControl = document.createElement('div');
             heightControl.className = 'toolbar-item';
             heightControl.innerHTML = `
-            <label for="imageHeight">高度：</label>
+            <label for="imageHeight" class="tab_control_title">Height：</label>
+            <br>
             <input type="number" id="imageHeight" min="10" value="${Math.round(obj.height * obj.scaleY)}">
           `;
             tempContainer.appendChild(heightControl);
@@ -359,7 +368,9 @@ function updateDynamicToolbar(obj) {
             const flipXControl = document.createElement('div');
             flipXControl.className = 'toolbar-item';
             flipXControl.innerHTML = `
-            <button id="imageFlipX">横向反转</button>
+            <label for="imageHeight" class="tab_control_title">Flip：</label>
+            <br>
+            <button id="imageFlipX">Horizontally</button>
           `;
             tempContainer.appendChild(flipXControl);
 
@@ -376,7 +387,7 @@ function updateDynamicToolbar(obj) {
             const flipYControl = document.createElement('div');
             flipYControl.className = 'toolbar-item';
             flipYControl.innerHTML = `
-            <button id="imageFlipY">纵向反转</button>
+            <button id="imageFlipY">Vertically</button>
           `;
             tempContainer.appendChild(flipYControl);
 
@@ -392,34 +403,34 @@ function updateDynamicToolbar(obj) {
 
         // 创建位置控制
         if (activeButtonId === 'img_position') {
-            const positionControl = document.createElement('div');
-            positionControl.className = 'toolbar-item';
-            positionControl.innerHTML = `
-            <label>位置：</label>
-            <input type="number" id="imgPositionX" style="width: 60px;" value="${Math.round(obj.left)}">
-            <input type="number" id="imgPositionY" style="width: 60px;" value="${Math.round(obj.top)}">
-          `;
-            tempContainer.appendChild(positionControl);
+        //     const positionControl = document.createElement('div');
+        //     positionControl.className = 'toolbar-item';
+        //     positionControl.innerHTML = `
+        //     <label>位置：</label>
+        //     <input type="number" id="imgPositionX" style="width: 60px;" value="${Math.round(obj.left)}">
+        //     <input type="number" id="imgPositionY" style="width: 60px;" value="${Math.round(obj.top)}">
+        //   `;
+        //     tempContainer.appendChild(positionControl);
 
-            // 位置事件监听
-            document.getElementById('imgPositionX').addEventListener('change', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'image') {
-                    canvas.getActiveObject().set('left', parseInt(this.value, 10));
-                    canvas.requestRenderAll();
-                }
-            });
-            document.getElementById('imgPositionY').addEventListener('change', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'image') {
-                    canvas.getActiveObject().set('top', parseInt(this.value, 10));
-                    canvas.requestRenderAll();
-                }
-            });
+        //     // 位置事件监听
+        //     document.getElementById('imgPositionX').addEventListener('change', function () {
+        //         if (canvas.getActiveObject() && canvas.getActiveObject().type === 'image') {
+        //             canvas.getActiveObject().set('left', parseInt(this.value, 10));
+        //             canvas.requestRenderAll();
+        //         }
+        //     });
+        //     document.getElementById('imgPositionY').addEventListener('change', function () {
+        //         if (canvas.getActiveObject() && canvas.getActiveObject().type === 'image') {
+        //             canvas.getActiveObject().set('top', parseInt(this.value, 10));
+        //             canvas.requestRenderAll();
+        //         }
+        //     });
 
             // 添加对齐按钮
             const alignmentControl = document.createElement('div');
             alignmentControl.className = 'toolbar-item';
             alignmentControl.innerHTML = `
-            <label>对齐：</label>
+            <label class="tab_control_title">Align：</label>
             <button id="imgAlignCenterH">水平居中</button>
             <button id="imgAlignCenterV">垂直居中</button>
             <button id="imgAlignLeft">左对齐</button>
@@ -485,10 +496,10 @@ function updateDynamicToolbar(obj) {
             const cropControl = document.createElement('div');
             cropControl.className = 'toolbar-item';
             cropControl.innerHTML = `
-            <label>裁剪模式：</label>
-            <button id="startCrop">开始裁剪</button>
-            <button id="applyCrop" style="display: none;">确认裁剪</button>
-            <button id="cancelCrop" style="display: none;">取消裁剪</button>
+            <label class="tab_control_title">Crop：</label>
+            <button id="startCrop">Start</button>
+            <button id="applyCrop" style="display: none;">Done</button>
+            <button id="cancelCrop" style="display: none;">Esc</button>
           `;
             tempContainer.appendChild(cropControl);
 
@@ -578,25 +589,25 @@ function updateDynamicToolbar(obj) {
             const colorControl = document.createElement('div');
             colorControl.className = 'toolbar-item';
             colorControl.innerHTML = `
-            <label for="imgTint">色调：</label>
+            <label for="imgTint" class="tab_control_title">Color：</label>
             <input type="color" id="imgTint" value="#ffffff">
           `;
             tempContainer.appendChild(colorControl);
 
             // 添加预设色块
-            const colorPresets = document.createElement('div');
-            colorPresets.className = 'toolbar-item';
-            colorPresets.innerHTML = `
-            <label>预设颜色：</label>
-            <div style="display: flex; gap: 10px;">
-              <div style="width: 30px; height: 30px; background-color: #ff0000; cursor: pointer;" class="color-preset" data-color="#ff0000"></div>
-              <div style="width: 30px; height: 30px; background-color: #00ff00; cursor: pointer;" class="color-preset" data-color="#00ff00"></div>
-              <div style="width: 30px; height: 30px; background-color: #0000ff; cursor: pointer;" class="color-preset" data-color="#0000ff"></div>
-              <div style="width: 30px; height: 30px; background-color: #ffff00; cursor: pointer;" class="color-preset" data-color="#ffff00"></div>
-              <div style="width: 30px; height: 30px; background-color: #ff00ff; cursor: pointer;" class="color-preset" data-color="#ff00ff"></div>
-            </div>
-          `;
-            tempContainer.appendChild(colorPresets);
+        //     const colorPresets = document.createElement('div');
+        //     colorPresets.className = 'toolbar-item';
+        //     colorPresets.innerHTML = `
+        //     <label>预设颜色：</label>
+        //     <div style="display: flex; gap: 10px;">
+        //       <div style="width: 30px; height: 30px; background-color: #ff0000; cursor: pointer;" class="color-preset" data-color="#ff0000"></div>
+        //       <div style="width: 30px; height: 30px; background-color: #00ff00; cursor: pointer;" class="color-preset" data-color="#00ff00"></div>
+        //       <div style="width: 30px; height: 30px; background-color: #0000ff; cursor: pointer;" class="color-preset" data-color="#0000ff"></div>
+        //       <div style="width: 30px; height: 30px; background-color: #ffff00; cursor: pointer;" class="color-preset" data-color="#ffff00"></div>
+        //       <div style="width: 30px; height: 30px; background-color: #ff00ff; cursor: pointer;" class="color-preset" data-color="#ff00ff"></div>
+        //     </div>
+        //   `;
+        //     tempContainer.appendChild(colorPresets);
 
             // 色调事件监听
             document.getElementById('imgTint').addEventListener('input', function () {
@@ -626,36 +637,36 @@ function updateDynamicToolbar(obj) {
             });
 
             // 预设色块事件监听
-            document.querySelectorAll('.color-preset').forEach(preset => {
-                preset.addEventListener('click', function () {
-                    const color = this.getAttribute('data-color');
-                    const activeObject = canvas.getActiveObject();
-                    if (activeObject) {
-                        if (activeObject.type === 'image') {
-                            activeObject.filters = activeObject.filters || [];
-                            // 移除旧的色调滤镜
-                            activeObject.filters = activeObject.filters.filter(f => !(f instanceof fabric.Image.filters.BlendColor));
-                            // 添加新的色调滤镜
-                            activeObject.filters.push(new fabric.Image.filters.BlendColor({
-                                color: color,
-                                mode: 'tint',
-                                alpha: 0.5
-                            }));
-                            activeObject.applyFilters();
-                        } else if (activeObject.type === 'group' && activeObject._objects) {
-                            // 处理 SVG 图片，遍历子对象并设置颜色
-                            activeObject._objects.forEach(obj => {
-                                if (obj.type === 'path' || obj.type === 'circle' || obj.type === 'rect') {
-                                    obj.set('fill', color);
-                                }
-                            });
-                        }
-                        canvas.requestRenderAll();
-                        // 更新颜色选择器的值
-                        document.getElementById('imgTint').value = color;
-                    }
-                });
-            });
+            // document.querySelectorAll('.color-preset').forEach(preset => {
+            //     preset.addEventListener('click', function () {
+            //         const color = this.getAttribute('data-color');
+            //         const activeObject = canvas.getActiveObject();
+            //         if (activeObject) {
+            //             if (activeObject.type === 'image') {
+            //                 activeObject.filters = activeObject.filters || [];
+            //                 // 移除旧的色调滤镜
+            //                 activeObject.filters = activeObject.filters.filter(f => !(f instanceof fabric.Image.filters.BlendColor));
+            //                 // 添加新的色调滤镜
+            //                 activeObject.filters.push(new fabric.Image.filters.BlendColor({
+            //                     color: color,
+            //                     mode: 'tint',
+            //                     alpha: 0.5
+            //                 }));
+            //                 activeObject.applyFilters();
+            //             } else if (activeObject.type === 'group' && activeObject._objects) {
+            //                 // 处理 SVG 图片，遍历子对象并设置颜色
+            //                 activeObject._objects.forEach(obj => {
+            //                     if (obj.type === 'path' || obj.type === 'circle' || obj.type === 'rect') {
+            //                         obj.set('fill', color);
+            //                     }
+            //                 });
+            //             }
+            //             canvas.requestRenderAll();
+            //             // 更新颜色选择器的值
+            //             document.getElementById('imgTint').value = color;
+            //         }
+            //     });
+            // });
         }
 
 
