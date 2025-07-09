@@ -344,7 +344,7 @@ $plugin_url = plugin_dir_url(__FILE__);
         </script>
 
         <div class="action-buttons">
-            <button class="btn btn-gradient">Gradient</button>
+            <button class="btn btn-custom">Gradient</button>
             <button class="btn btn-custom">Custom Colors</button>
         </div>
         <div id="gradient-color-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:9999; align-items:center; justify-content:center;">
