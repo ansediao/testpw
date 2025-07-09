@@ -1,10 +1,10 @@
 <div class="text_toolbar" style="display: none;">
-    <button class="toolbar_button" id="text_input">输入</button>
-    <button class="toolbar_button" id="text_font_style">字体</button>
-    <button class="toolbar_button" id="text_rotate">旋转</button>
-    <button class="toolbar_button" id="text_position">位置</button>
-    <button class="toolbar_button" id="text_color">颜色</button>
-    <button class="toolbar_button" id="text_distort">扭曲</button>
+    <button class="toolbar_button" id="text_input">Text</button>
+    <button class="toolbar_button" id="text_font_style">Font</button>
+    <button class="toolbar_button" id="text_rotate">Transform</button>
+    <button class="toolbar_button" id="text_position">Position</button>
+    <button class="toolbar_button" id="text_distort">Arc</button>
+    <button class="toolbar_button" id="text_color">Color</button>    
 </div>
 <script>
 document.querySelectorAll('.toolbar_button').forEach(button => {
@@ -23,10 +23,10 @@ document.querySelectorAll('.toolbar_button').forEach(button => {
 });
 </script>
 <div class="img_toolbar" style="display:none">
-    <button class="toolbar_button" id="img_input">变形</button>
-    <button class="toolbar_button" id="img_position">位置</button>
-    <button class="toolbar_button" id="img_size">裁剪</button>
-    <button class="toolbar_button" id="img_color">颜色</button>   
+    <button class="toolbar_button" id="img_input">Transform</button>
+    <button class="toolbar_button" id="img_position">Position</button>
+    <button class="toolbar_button" id="img_size">Crop</button>
+    <button class="toolbar_button" id="img_color">Color</button>   
 </div>
 <script>
 document.querySelectorAll('.img_toolbar .toolbar_button').forEach(button => {
