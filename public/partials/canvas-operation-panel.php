@@ -759,7 +759,7 @@ $plugin_url = plugin_dir_url(__FILE__);
 
     <!-- 文字内容 (隐藏) -->
     <div id="content-wenzi" class="content-pane">
-        <textarea id="customText" rows="4" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="请输入要添加的文字..."></textarea>
+        <textarea id="customText" rows="4" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="Input Text..."></textarea>
         <button id="addTextBtn" class ="btn-custom" style="margin-top: 10px;" onclick="addText()">
             <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle;">
                 <path fill="currentColor"
