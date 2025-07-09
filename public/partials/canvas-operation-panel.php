@@ -67,7 +67,7 @@ $plugin_url = plugin_dir_url(__FILE__);
             ?>
             <span style="margin-left: 5px;"><?php echo number_format($average_rating, 1); ?></span>
             <!-- 显示多少评价 -->           
-            <a href="#" id="show-reviews-link"> <span style="margin-left: 5px; color: #888;"><?php echo $rating_count; ?> Reviews</span></a>
+            <a href="#" id="show-reviews-link"> <span style="margin-left: 5px;"><?php echo $rating_count; ?> Reviews</span></a>
             <a href="#" id="show-cuzInfo-link">Customization Instructions</a>
          
             <script>
