@@ -1604,37 +1604,104 @@ function pw_save_design_tags() {
     }
 }
 
-// AJAX handler for deleting selected designs
-add_action('wp_ajax_pw_delete_selected_designs', 'pw_delete_selected_designs');
-function pw_delete_selected_designs() {
-    check_ajax_referer('pw_delete_designs_nonce', 'nonce');
-
-    if ( ! isset( $_POST['design_ids'] ) || ! is_array( $_POST['design_ids'] ) || ! current_user_can( 'delete_posts' ) ) {
-        wp_send_json_error( 'Invalid request or permissions.' );
+// AJAX handler for adding new design
+add_action('wp_ajax_pw_add_design', 'pw_add_design');
+function pw_add_design() {
+    // 验证 nonce
+    if (!isset($_POST['pw_add_design_nonce_field']) || !wp_verify_nonce($_POST['pw_add_design_nonce_field'], 'pw_add_design_nonce')) {
+        wp_send_json_error('安全验证失败');
+        return;
     }
 
-    $design_ids = array_map( 'intval', $_POST['design_ids'] );
-    $deleted_count = 0;
-    $error_count = 0;
+    // 检查用户权限
+    if (!current_user_can('edit_posts')) {
+        wp_send_json_error('权限不足');
+        return;
+    }
 
-    foreach ( $design_ids as $design_id ) {
-        if ( current_user_can( 'delete_post', $design_id ) ) {
-            $result = wp_delete_post( $design_id, true ); // true to force delete, false to move to trash
-            if ($result) {
-                $deleted_count++;
-            } else {
-                $error_count++;
+    // 验证必需字段
+    if (empty($_POST['design_name'])) {
+        wp_send_json_error('设计名称不能为空');
+        return;
+    }
+
+    if (empty($_FILES['design_image'])) {
+        wp_send_json_error('请选择设计图片');
+        return;
+    }
+
+    $design_name = sanitize_text_field($_POST['design_name']);
+    $design_category = isset($_POST['design_category']) ? intval($_POST['design_category']) : 0;
+
+    // 处理文件上传
+    if (!function_exists('wp_handle_upload')) {
+        require_once(ABSPATH . 'wp-admin/includes/file.php');
+    }
+
+    $uploadedfile = $_FILES['design_image'];
+    
+    // 设置上传配置
+    $upload_overrides = array(
+        'test_form' => false,
+        'mimes' => array(
+            'jpg|jpeg|jpe' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'png' => 'image/png',
+        )
+    );
+
+    // 上传文件
+    $movefile = wp_handle_upload($uploadedfile, $upload_overrides);
+
+    if ($movefile && !isset($movefile['error'])) {
+        // 创建新的设计文章
+        $post_data = array(
+            'post_title'    => $design_name,
+            'post_content'  => '',
+            'post_status'   => 'publish',
+            'post_type'     => 'pw_design'
+        );
+
+        $post_id = wp_insert_post($post_data);
+
+        if ($post_id && !is_wp_error($post_id)) {
+            // 将上传的图片设置为特色图片
+            $attachment = array(
+                'post_mime_type' => $movefile['type'],
+                'post_title'     => $design_name,
+                'post_content'   => '',
+                'post_status'    => 'inherit'
+            );
+
+            $attach_id = wp_insert_attachment($attachment, $movefile['file'], $post_id);
+            
+            if ($attach_id && !is_wp_error($attach_id)) {
+                // 生成缩略图
+                if (!function_exists('wp_generate_attachment_metadata')) {
+                    require_once(ABSPATH . 'wp-admin/includes/image.php');
+                }
+                $attach_data = wp_generate_attachment_metadata($attach_id, $movefile['file']);
+                wp_update_attachment_metadata($attach_id, $attach_data);
+
+                // 设置为特色图片
+                set_post_thumbnail($post_id, $attach_id);
             }
-        } else {
-            $error_count++;
-        }
-    }
 
-    if ( $deleted_count > 0 && $error_count === 0 ) {
-        wp_send_json_success( "$deleted_count designs deleted successfully." );
-    } elseif ( $deleted_count > 0 && $error_count > 0 ) {
-        wp_send_json_error( "Deleted $deleted_count designs, but failed to delete $error_count designs due to permissions or errors." );
+            // 设置分类
+            if ($design_category > 0) {
+                wp_set_post_terms($post_id, array($design_category), 'pw_design_category');
+            }
+
+            wp_send_json_success(array(
+                'post_id' => $post_id,
+                'message' => '设计添加成功'
+            ));
+        } else {
+            // 删除已上传的文件，因为文章创建失败
+            unlink($movefile['file']);
+            wp_send_json_error('创建设计文章失败');
+        }
     } else {
-        wp_send_json_error( "Failed to delete any designs. Check permissions." );
+        wp_send_json_error('文件上传失败：' . (isset($movefile['error']) ? $movefile['error'] : '未知错误'));
     }
 }

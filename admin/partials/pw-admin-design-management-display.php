@@ -7,7 +7,7 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
 
     <div class="pw-design-controls">
         <div class="pw-design-actions">
-            <a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=pw_design' ) ); ?>" class="button button-primary">Add Design</a>
+            <button class="button button-primary" id="pw-add-design-btn">Add Design</button>
             <a href="<?php echo esc_url( admin_url( 'edit-tags.php?taxonomy=pw_design_category&post_type=pw_design' ) ); ?>" class="button">Add Category</a>
             <a href="<?php echo esc_url( admin_url( 'edit-tags.php?taxonomy=pw_design_category&post_type=pw_design' ) ); ?>" class="button">Manage Category</a>
         </div>
@@ -334,9 +334,234 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
     </div>
 </div>
 
+<!-- Add Design Modal -->
+<div id="pw-add-design-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1001;">
+    <div class="pw-modal-content" style="background:white; width:600px; margin:50px auto; padding:30px; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <h2 style="margin-top:0; margin-bottom:25px; color:#333;">添加新设计</h2>
+        
+        <form id="pw-add-design-form" enctype="multipart/form-data">
+            <?php wp_nonce_field('pw_add_design_nonce', 'pw_add_design_nonce_field'); ?>
+            
+            <!-- 图片上传区域 -->
+            <div class="pw-form-field" style="margin-bottom:25px;">
+                <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">设计图片</label>
+                <div id="pw-image-upload-area" style="border:2px dashed #ccc; border-radius:8px; padding:40px; text-align:center; background:#fafafa; cursor:pointer; transition:all 0.3s ease;">
+                    <div id="pw-upload-placeholder">
+                        <span class="dashicons dashicons-cloud-upload" style="font-size:48px; color:#999; display:block; margin-bottom:15px;"></span>
+                        <p style="margin:0; color:#666; font-size:16px;">点击或拖拽图片到此区域上传</p>
+                        <p style="margin:5px 0 0; color:#999; font-size:14px;">支持 JPG, PNG, GIF 格式</p>
+                    </div>
+                    <div id="pw-image-preview" style="display:none;">
+                        <img id="pw-preview-img" style="max-width:100%; max-height:200px; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                        <p style="margin:10px 0 0; color:#666;"><span id="pw-file-name"></span></p>
+                        <button type="button" id="pw-remove-image" class="button" style="margin-top:10px;">移除图片</button>
+                    </div>
+                </div>
+                <input type="file" id="pw-design-image" name="design_image" accept="image/*" style="display:none;">
+            </div>
+            
+            <!-- 名称字段 -->
+            <div class="pw-form-field" style="margin-bottom:25px;">
+                <label for="pw-design-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">设计名称</label>
+                <input type="text" id="pw-design-name" name="design_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+            </div>
+            
+            <!-- 分类选择 -->
+            <div class="pw-form-field" style="margin-bottom:30px;">
+                <label for="pw-design-category" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">设计分类</label>
+                <select id="pw-design-category" name="design_category" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                    <option value="">选择分类</option>
+                    <?php
+                    $categories = get_terms( array(
+                        'taxonomy'   => 'pw_design_category',
+                        'hide_empty' => false,
+                    ) );
+                    if ( ! empty( $categories ) && ! is_wp_error( $categories ) ) {
+                        foreach ( $categories as $category ) {
+                            printf(
+                                '<option value="%s">%s</option>',
+                                esc_attr( $category->term_id ),
+                                esc_html( $category->name )
+                            );
+                        }
+                    }
+                    ?>
+                </select>
+            </div>
+            
+            <div class="pw-modal-footer" style="text-align: right; border-top:1px solid #eee; padding-top:20px; margin-top:30px;">
+                <button type="button" class="button" id="pw-add-design-cancel">取消</button>
+                <button type="submit" class="button button-primary" id="pw-add-design-submit">添加设计</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script type="text/javascript">
 jQuery(document).ready(function($) {
     'use strict';
+
+    // --- Add Design Modal ---
+    
+    // 打开添加设计模态框
+    $('#pw-add-design-btn').on('click', function(e) {
+        e.preventDefault();
+        $('#pw-add-design-modal').show();
+    });
+    
+    // 关闭添加设计模态框
+    $('#pw-add-design-cancel').on('click', function(e) {
+        e.preventDefault();
+        $('#pw-add-design-modal').hide();
+        resetAddDesignForm();
+    });
+    
+    // 点击模态框外部关闭
+    $('#pw-add-design-modal').on('click', function(e) {
+        if (e.target === this) {
+            $(this).hide();
+            resetAddDesignForm();
+        }
+    });
+    
+    // 图片上传区域点击事件
+    $('#pw-image-upload-area').on('click', function(e) {
+        e.preventDefault();
+        $('#pw-design-image').click();
+    });
+    
+    // 文件选择事件
+    $('#pw-design-image').on('change', function(e) {
+        handleImageUpload(e.target.files[0]);
+    });
+    
+    // 拖拽上传
+    $('#pw-image-upload-area').on('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).css('border-color', '#007cba');
+        $(this).css('background-color', '#f0f6fc');
+    });
+    
+    $('#pw-image-upload-area').on('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).css('border-color', '#ccc');
+        $(this).css('background-color', '#fafafa');
+    });
+    
+    $('#pw-image-upload-area').on('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).css('border-color', '#ccc');
+        $(this).css('background-color', '#fafafa');
+        
+        var files = e.originalEvent.dataTransfer.files;
+        if (files.length > 0) {
+            handleImageUpload(files[0]);
+        }
+    });
+    
+    // 移除图片
+    $('#pw-remove-image').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $('#pw-design-image').val('');
+        $('#pw-upload-placeholder').show();
+        $('#pw-image-preview').hide();
+    });
+    
+    // 处理图片上传预览
+    function handleImageUpload(file) {
+        if (!file) return;
+        
+        // 验证文件类型
+        if (!file.type.match('image.*')) {
+            alert('请选择图片文件！');
+            return;
+        }
+        
+        // 验证文件大小 (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('图片文件不能超过 5MB！');
+            return;
+        }
+        
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            $('#pw-preview-img').attr('src', e.target.result);
+            $('#pw-file-name').text(file.name);
+            $('#pw-upload-placeholder').hide();
+            $('#pw-image-preview').show();
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    // 重置表单
+    function resetAddDesignForm() {
+        $('#pw-add-design-form')[0].reset();
+        $('#pw-upload-placeholder').show();
+        $('#pw-image-preview').hide();
+        $('#pw-add-design-submit').prop('disabled', false).text('添加设计');
+    }
+    
+    // 提交表单
+    $('#pw-add-design-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        var formData = new FormData();
+        var imageFile = $('#pw-design-image')[0].files[0];
+        var designName = $('#pw-design-name').val().trim();
+        var designCategory = $('#pw-design-category').val();
+        
+        // 验证
+        if (!imageFile) {
+            alert('请选择设计图片！');
+            return;
+        }
+        
+        if (!designName) {
+            alert('请输入设计名称！');
+            return;
+        }
+        
+        // 准备数据
+        formData.append('action', 'pw_add_design');
+        formData.append('design_image', imageFile);
+        formData.append('design_name', designName);
+        formData.append('design_category', designCategory);
+        formData.append('pw_add_design_nonce_field', $('#pw_add_design_nonce_field').val());
+        
+        // 提交
+        $.ajax({
+            url: "<?php echo admin_url('admin-ajax.php'); ?>",
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: function() {
+                $('#pw-add-design-submit').prop('disabled', true).text('添加中...');
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('设计添加成功！');
+                    $('#pw-add-design-modal').hide();
+                    resetAddDesignForm();
+                    // 刷新页面显示新添加的设计
+                    location.reload();
+                } else {
+                    alert('添加失败：' + (response.data || '未知错误'));
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('添加失败，请检查网络连接后重试。');
+                console.error('AJAX Error:', error);
+            },
+            complete: function() {
+                $('#pw-add-design-submit').prop('disabled', false).text('添加设计');
+            }
+        });
+    });
 
     // --- Tag Management Modal ---
 
