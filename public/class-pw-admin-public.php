@@ -223,6 +223,113 @@ class Pw_Admin_Public
             <button class="btn btn-gradient">Gradient</button>
             <button class="btn btn-custom">Custom Colors</button>
         </div>
+        
+        <!-- 添加勾选框 -->
+        <div class="product-options" style="margin-top: 20px;">
+            <div style="display: flex; gap: 20px; align-items: center;">
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                    <input type="checkbox" id="buy_sample" name="buy_sample" value="1" style="margin: 0;">
+                    <span>Buy Sample</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                    <input type="checkbox" id="blank_product" name="blank_product" value="1" style="margin: 0;">
+                    <span>Blank Product</span>
+                </label>
+            </div>
+        </div>
+        
+        <!-- 添加数量滑块 -->
+        <div class="quantity-slider-section" style="margin-top: 20px;">
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-weight: bold;">Quantity:</span>
+                    <span id="quantity-display" style="font-weight: bold; color: #007cba;">1</span>
+                </div>
+                <div style="position: relative; margin-bottom: 15px;">
+                    <input type="range" id="quantity-slider" min="1" max="100" value="1" class="custom-slider">
+                    <div class="slider-marks" style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 12px; color: #666;">
+                        <span>1</span>
+                        <span>25</span>
+                        <span>50</span>
+                        <span>75</span>
+                        <span>100</span>
+                    </div>
+                </div>
+                <style>
+                    .custom-slider {
+                        width: 100%;
+                        height: 6px;
+                        border-radius: 3px;
+                        background: #ddd;
+                        outline: none;
+                        -webkit-appearance: none;
+                        appearance: none;
+                    }
+                    
+                    .custom-slider::-webkit-slider-thumb {
+                        -webkit-appearance: none;
+                        appearance: none;
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        background: #007cba;
+                        cursor: pointer;
+                        border: 2px solid #fff;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    }
+                    
+                    .custom-slider::-moz-range-thumb {
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        background: #007cba;
+                        cursor: pointer;
+                        border: 2px solid #fff;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    }
+                    
+                    .slider-mark {
+                        position: absolute;
+                        top: 50%;
+                        transform: translate(-50%, -50%);
+                        width: 12px;
+                        height: 12px;
+                        background-color: #ccc;
+                        border-radius: 50%;
+                        cursor: pointer;
+                        transition: background-color 0.3s;
+                    }
+                    
+                    .slider-mark:hover {
+                        background-color: #999;
+                    }
+                    
+                    .slider-mark[data-value="1"] { left: 0%; }
+                    .slider-mark[data-value="25"] { left: 24.24%; }
+                    .slider-mark[data-value="50"] { left: 49.49%; }
+                    .slider-mark[data-value="75"] { left: 74.74%; }
+                    .slider-mark[data-value="100"] { left: 100%; }
+                    
+                    .custom-slider::-webkit-slider-track {
+                        width: 100%;
+                        height: 6px;
+                        cursor: pointer;
+                        background: #ddd;
+                        border-radius: 3px;
+                    }
+                    
+                    .custom-slider::-moz-range-track {
+                        width: 100%;
+                        height: 6px;
+                        cursor: pointer;
+                        background: #ddd;
+                        border-radius: 3px;
+                        border: none;
+                    }
+                </style>
+                <div id="discount-display" style="text-align: center; font-weight: bold; color: #28a745;">Discount: 0% off</div>
+            </div>
+        </div>
             </div>
             <canvas id="shadowLayer" width="600" height="600" style="display:none;"></canvas>
             <div id="gradient-color-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:9999; align-items:center; justify-content:center;">
@@ -261,7 +368,7 @@ class Pw_Admin_Public
                     shadowCanvas.setAttribute('data-color-image', initialColorImageUrl);
                 }
 
-                function loadColorImage1(imageUrl, color) {
+                function loadColorImage(imageUrl, color) {
                     if (!shadowCanvas || !shadowCtx) return;
 
                     const colorImg = new Image();
@@ -307,10 +414,16 @@ class Pw_Admin_Public
                                 gradientColorModal.style.display = 'none';
                             }
                         });
-                        applyGradientColorBtn.addEventListener('click', function() {
+                        applyGradientColorBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
                             const color1 = gradientColor1.value;
                             const color2 = gradientColor2.value;
                             const direction = gradientDirection.value;
+                            
+                            // 应用渐变色到PNG图片的非透明区域
+                            updateProductColor(color1);
+                            
+                            // 更新Canvas（如果存在）
                             if (shadowCanvas && shadowCtx) {
                                 const width = shadowCanvas.width;
                                 const height = shadowCanvas.height;
@@ -330,9 +443,16 @@ class Pw_Admin_Public
                                 shadowCtx.fillStyle = gradient;
                                 shadowCtx.fillRect(0, 0, width, height);
                                 shadowCtx.globalCompositeOperation = 'source-over';
-                                // 更新currentColor，以便loadColorImage可以正确使用它
-                                currentColor = `linear-gradient(${direction}, ${color1}, ${color2})`;
                             }
+                            
+                            // 保存渐变色信息（使用第一个颜色）
+                            currentColor = color1;
+                            if (!jQuery('#selected_color').length) {
+                                jQuery('form.cart').append('<input type="hidden" id="selected_color" name="selected_color" value="' + currentColor + '">');
+                            } else {
+                                jQuery('#selected_color').val(currentColor);
+                            }
+                            
                             gradientColorModal.style.display = 'none';
                         });
                     }
@@ -367,41 +487,147 @@ class Pw_Admin_Public
                                 customColorModal.style.display = 'none';
                             }
                         });
-                        applyCustomColorBtn.addEventListener('click', function() {
+                        applyCustomColorBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
                             const color = customColorPicker.value;
-                            if (shadowCanvas && typeof loadColorImage === 'function') {
-                                const colorImageUrl = shadowCanvas.getAttribute('data-color-image');
-                                if (colorImageUrl) {
-                                    loadColorImage(colorImageUrl, color);
-                                    currentColor = color; // 更新当前选中颜色
-                                }
-                            }
+                            currentColor = color;
+                            updateProductColor(color);
                             customColorModal.style.display = 'none';
                         });
                     }
                 });
             </script>
             <script>
-                // Consider moving this script to an enqueued JS file for better performance and organization.
+                // 统一的颜色更新函数
+                function updateProductColor(color) {
+                    // 更新叠加图片的颜色
+                    if (jQuery('img.custom-color-image-overlay').length > 0) {
+                        let filter = '';
+                        if (color === 'black') {
+                            filter = 'brightness(0) saturate(100%)';
+                        } else if (color === 'red') {
+                            filter = 'brightness(0) saturate(100%) invert(15%) sepia(95%) saturate(6932%) hue-rotate(359deg) brightness(100%) contrast(112%)';
+                        } else if (color === 'blue') {
+                            filter = 'brightness(0) saturate(100%) invert(8%) sepia(98%) saturate(7154%) hue-rotate(248deg) brightness(97%) contrast(143%)';
+                        } else if (color === 'white') {
+                            filter = 'brightness(0) saturate(100%) invert(100%)';
+                        } else if (color.startsWith('#')) {
+                            // 对于自定义颜色，使用hue-rotate和其他CSS滤镜
+                            const rgb = hexToRgb(color);
+                            if (rgb) {
+                                const hue = rgbToHue(rgb.r, rgb.g, rgb.b);
+                                filter = 'brightness(0) saturate(100%) hue-rotate(' + hue + 'deg) brightness(1.2)';
+                            }
+                        }
+                        jQuery('img.custom-color-image-overlay').css('filter', filter);
+                    }
+                    
+                    // 更新Canvas（如果存在）
+                    const colorImageUrl = shadowCanvas ? shadowCanvas.getAttribute('data-color-image') : null;
+                    if (colorImageUrl && typeof loadColorImage === 'function') {
+                        loadColorImage(colorImageUrl, color);
+                    }
+                    
+                    // 保存选中的颜色
+                    if (!jQuery('#selected_color').length) {
+                        jQuery('form.cart').append('<input type="hidden" id="selected_color" name="selected_color" value="' + color + '">');
+                    } else {
+                        jQuery('#selected_color').val(color);
+                    }
+                }
+                
+                // 颜色转换辅助函数
+                function hexToRgb(hex) {
+                    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                    return result ? {
+                        r: parseInt(result[1], 16),
+                        g: parseInt(result[2], 16),
+                        b: parseInt(result[3], 16)
+                    } : null;
+                }
+                
+                function rgbToHue(r, g, b) {
+                    r /= 255;
+                    g /= 255;
+                    b /= 255;
+                    const max = Math.max(r, g, b);
+                    const min = Math.min(r, g, b);
+                    let h = 0;
+                    if (max !== min) {
+                        const d = max - min;
+                        switch (max) {
+                            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                            case g: h = (b - r) / d + 2; break;
+                            case b: h = (r - g) / d + 4; break;
+                        }
+                        h /= 6;
+                    }
+                    return h * 360;
+                }
+                
                 jQuery(document).ready(function($) {
                     // 为所有颜色框添加点击事件
-                    $('.color-box').click(function() {
+                    $(document).on('click', '.color-box', function() {
                         var selectedColor = $(this).data('color');
-                        currentColor = selectedColor; // 更新当前选中颜色
-                        const colorImageUrl = shadowCanvas.getAttribute('data-color-image');
-                        if (colorImageUrl) {
-                            loadColorImage(colorImageUrl, currentColor);
-                        }
-                        // 移除所有颜色样本的选中状态，因为现在是通过 Canvas 更新，不再需要 CSS filter
+                        currentColor = selectedColor;
+                        updateProductColor(selectedColor);
+                        
+                        // 更新选中状态
                         $('.color-box').removeClass('selected');
                         $(this).addClass('selected');
-                        // 可选：保存选中的颜色到隐藏字段，用于后续处理
-                        if (!$('#selected_color').length) {
-                            $('form.cart').append('<input type="hidden" id="selected_color" name="selected_color" value="' + selectedColor + '">');
-                        } else {
-                            $('#selected_color').val(selectedColor);
-                        }
                     });
+                    
+                    // 数量滑块功能
+                    const quantitySlider = document.getElementById('quantity-slider');
+                    const quantityDisplay = document.getElementById('quantity-display');
+                    const discountDisplay = document.getElementById('discount-display');
+                    
+                    if (quantitySlider) {
+                        // 折扣规则
+                        function calculateDiscount(quantity) {
+                            if (quantity >= 75) return 15;
+                            if (quantity >= 50) return 10;
+                            if (quantity >= 25) return 5;
+                            if (quantity >= 10) return 2;
+                            return 0;
+                        }
+                        
+                        // 更新显示
+                        function updateQuantityDisplay() {
+                            const quantity = parseInt(quantitySlider.value);
+                            const discount = calculateDiscount(quantity);
+                            
+                            quantityDisplay.textContent = quantity;
+                            discountDisplay.textContent = 'Discount: ' + discount + '% off';
+                            
+                            // 更新隐藏字段
+                            if (!$('#selected_quantity').length) {
+                                $('form.cart').append('<input type="hidden" id="selected_quantity" name="selected_quantity" value="' + quantity + '">');
+                            } else {
+                                $('#selected_quantity').val(quantity);
+                            }
+                            
+                            if (!$('#selected_discount').length) {
+                                $('form.cart').append('<input type="hidden" id="selected_discount" name="selected_discount" value="' + discount + '">');
+                            } else {
+                                $('#selected_discount').val(discount);
+                            }
+                        }
+                        
+                        // 滑块事件
+                        quantitySlider.addEventListener('input', updateQuantityDisplay);
+                        quantitySlider.addEventListener('change', updateQuantityDisplay);
+                        
+                        // 滑块标记点击事件
+                        $('.slider-mark').click(function() {
+                            const value = $(this).data('value');
+                            quantitySlider.value = value;
+                            updateQuantityDisplay();
+                        });
+                        
+                        // 初始化显示
+                        updateQuantityDisplay();
+                    }
                 });
             </script>
             <?php
