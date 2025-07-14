@@ -157,6 +157,10 @@ class Pw_Admin {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
+		// Register AJAX handlers
+		$this->loader->add_action( 'wp_ajax_pw_add_category', $plugin_admin, 'handle_add_category' );
+		$this->loader->add_action( 'wp_ajax_nopriv_pw_add_category', $plugin_admin, 'handle_add_category' );
+
 	}
 
 	/**

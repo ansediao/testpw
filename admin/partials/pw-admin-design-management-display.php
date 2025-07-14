@@ -8,7 +8,7 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
     <div class="pw-design-controls">
         <div class="pw-design-actions">
             <button class="button button-primary" id="pw-add-design-btn">Add Design</button>
-            <a href="<?php echo esc_url( admin_url( 'edit-tags.php?taxonomy=pw_design_category&post_type=pw_design' ) ); ?>" class="button">Add Category</a>
+            <button class="button" id="pw-add-category-btn">Add Category</button>
             <a href="<?php echo esc_url( admin_url( 'edit-tags.php?taxonomy=pw_design_category&post_type=pw_design' ) ); ?>" class="button">Manage Category</a>
         </div>
        
@@ -397,10 +397,109 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
     </div>
 </div>
 
+<!-- Add Category Modal -->
+<div id="pw-add-category-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1002;">
+    <div class="pw-modal-content" style="background:white; width:500px; margin:100px auto; padding:30px; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <h2 style="margin-top:0; margin-bottom:25px; color:#333;">添加新分类</h2>
+        
+        <form id="pw-add-category-form">
+            <?php wp_nonce_field('pw_add_category_nonce', 'pw_add_category_nonce_field'); ?>
+            
+            <!-- 分类名称字段 -->
+            <div class="pw-form-field" style="margin-bottom:25px;">
+                <label for="pw-category-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">分类名称</label>
+                <input type="text" id="pw-category-name" name="category_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" placeholder="输入分类名称">
+            </div>
+            
+            <!-- 分类类型选择 -->
+            <div class="pw-form-field" style="margin-bottom:30px;">
+                <label for="pw-category-type" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">分类类型</label>
+                <select id="pw-category-type" name="category_type" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                    <option value="general">通用分类</option>
+                    <option value="product">产品分类</option>
+                    <option value="style">风格分类</option>
+                </select>
+            </div>
+            
+            <div class="pw-modal-footer" style="text-align: right; border-top:1px solid #eee; padding-top:20px; margin-top:30px;">
+                <button type="button" class="button" id="pw-add-category-cancel">取消</button>
+                <button type="submit" class="button button-primary" id="pw-add-category-submit">添加分类</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script type="text/javascript">
 jQuery(document).ready(function($) {
     'use strict';
 
+    // --- Add Category Modal ---
+    
+    // 打开添加分类模态框
+    $('#pw-add-category-btn').on('click', function(e) {
+        e.preventDefault();
+        $('#pw-add-category-modal').show();
+    });
+    
+    // 关闭添加分类模态框
+    $('#pw-add-category-cancel').on('click', function(e) {
+        e.preventDefault();
+        $('#pw-add-category-modal').hide();
+        resetAddCategoryForm();
+    });
+    
+    // 点击模态框外部关闭
+    $('#pw-add-category-modal').on('click', function(e) {
+        if (e.target === this) {
+            $(this).hide();
+            resetAddCategoryForm();
+        }
+    });
+    
+    // 提交添加分类表单
+    $('#pw-add-category-form').on('submit', function(e) {
+        e.preventDefault();
+        
+        var formData = {
+            action: 'pw_add_category',
+            category_name: $('#pw-category-name').val(),
+            category_type: $('#pw-category-type').val(),
+            nonce: $('#pw_add_category_nonce_field').val()
+        };
+        
+        // 禁用提交按钮
+        $('#pw-add-category-submit').prop('disabled', true).text('添加中...');
+        
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.success) {
+                    alert('分类添加成功！');
+                    $('#pw-add-category-modal').hide();
+                    resetAddCategoryForm();
+                    // 刷新页面以显示新分类
+                    location.reload();
+                } else {
+                    alert('添加失败：' + (response.data || '未知错误'));
+                }
+            },
+            error: function() {
+                alert('网络错误，请重试');
+            },
+            complete: function() {
+                $('#pw-add-category-submit').prop('disabled', false).text('添加分类');
+            }
+        });
+    });
+    
+    // 重置添加分类表单
+    function resetAddCategoryForm() {
+        $('#pw-add-category-form')[0].reset();
+        $('#pw-add-category-submit').prop('disabled', false).text('添加分类');
+    }
+    
     // --- Add Design Modal ---
     
     // 打开添加设计模态框

@@ -111,6 +111,61 @@ class Pw_Admin_Admin
         wp_enqueue_script($this->plugin_name, $js_file, array('jquery', 'jspdf'), $this->version, true);
 
     }
+    
+    /**
+     * Handle AJAX request to add new category
+     *
+     * @since    1.0.0
+     */
+    public function handle_add_category()
+    {
+        // 验证 nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'pw_add_category_nonce')) {
+            wp_send_json_error('安全验证失败');
+            return;
+        }
+        
+        // 验证用户权限
+        if (!current_user_can('manage_categories')) {
+            wp_send_json_error('权限不足');
+            return;
+        }
+        
+        // 获取并验证输入数据
+        $category_name = sanitize_text_field($_POST['category_name']);
+        $category_type = sanitize_text_field($_POST['category_type']);
+        
+        if (empty($category_name)) {
+            wp_send_json_error('分类名称不能为空');
+            return;
+        }
+        
+        // 创建分类
+        $term_data = wp_insert_term(
+            $category_name,
+            'pw_design_category',
+            array(
+                'description' => '分类类型: ' . $category_type,
+            )
+        );
+        
+        if (is_wp_error($term_data)) {
+            wp_send_json_error('创建分类失败: ' . $term_data->get_error_message());
+            return;
+        }
+        
+        // 保存分类类型作为 term meta
+        if (!is_wp_error($term_data) && isset($term_data['term_id'])) {
+            update_term_meta($term_data['term_id'], 'category_type', $category_type);
+        }
+        
+        wp_send_json_success(array(
+            'message' => '分类创建成功',
+            'term_id' => $term_data['term_id'],
+            'category_name' => $category_name,
+            'category_type' => $category_type
+        ));
+    }
 }
 
 
