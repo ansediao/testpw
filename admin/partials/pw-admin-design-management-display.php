@@ -9,7 +9,7 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
         <div class="pw-design-actions">
             <button class="button button-primary" id="pw-add-design-btn">Add Design</button>
             <button class="button" id="pw-add-category-btn">Add Category</button>
-            <a href="<?php echo esc_url( admin_url( 'edit-tags.php?taxonomy=pw_design_category&post_type=pw_design' ) ); ?>" class="button">Manage Category</a>
+            <button class="button" id="pw-manage-category-btn">Manage Category</button>
         </div>
        
         <div class="pw-design-filters">
@@ -429,511 +429,166 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
     </div>
 </div>
 
-<script type="text/javascript">
-jQuery(document).ready(function($) {
-    'use strict';
-
-    // --- Add Category Modal ---
-    
-    // 打开添加分类模态框
-    $('#pw-add-category-btn').on('click', function(e) {
-        e.preventDefault();
-        $('#pw-add-category-modal').show();
-    });
-    
-    // 关闭添加分类模态框
-    $('#pw-add-category-cancel').on('click', function(e) {
-        e.preventDefault();
-        $('#pw-add-category-modal').hide();
-        resetAddCategoryForm();
-    });
-    
-    // 点击模态框外部关闭
-    $('#pw-add-category-modal').on('click', function(e) {
-        if (e.target === this) {
-            $(this).hide();
-            resetAddCategoryForm();
-        }
-    });
-    
-    // 提交添加分类表单
-    $('#pw-add-category-form').on('submit', function(e) {
-        e.preventDefault();
+<!-- Manage Category Modal -->
+<div id="pw-manage-category-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1003;">
+    <div class="pw-modal-content" style="background:white; width:600px; margin:50px auto; padding:0; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height:80vh; overflow:hidden;">
+        <div class="pw-modal-header" style="padding:20px 30px; border-bottom:1px solid #eee; background:#f8f9fa;">
+            <h2 style="margin:0; color:#333; display:flex; align-items:center;">
+                <span class="dashicons dashicons-category" style="margin-right:10px; color:#0073aa;"></span>
+                Manage Category
+            </h2>
+            <button type="button" class="pw-modal-close" style="position:absolute; top:15px; right:20px; background:none; border:none; font-size:20px; cursor:pointer; color:#666;">&times;</button>
+        </div>
         
-        var formData = {
-            action: 'pw_add_category',
-            category_name: $('#pw-category-name').val(),
-            category_type: $('#pw-category-type').val(),
-            nonce: $('#pw_add_category_nonce_field').val()
-        };
+        <div class="pw-modal-body" style="padding:20px 30px; max-height:60vh; overflow-y:auto;">
+            <div class="pw-category-list">
+                <?php
+                $categories = get_terms(array(
+                    'taxonomy' => 'pw_design_category',
+                    'hide_empty' => false,
+                ));
+                
+                if (!empty($categories) && !is_wp_error($categories)) :
+                ?>
+                <div class="pw-category-items">
+                    <?php foreach ($categories as $category) : 
+                        // 获取该分类下的设计数量
+                        $design_count = wp_count_posts('pw_design');
+                        $category_design_count = get_posts(array(
+                            'post_type' => 'pw_design',
+                            'post_status' => 'publish',
+                            'numberposts' => -1,
+                            'tax_query' => array(
+                                array(
+                                    'taxonomy' => 'pw_design_category',
+                                    'field' => 'term_id',
+                                    'terms' => $category->term_id
+                                )
+                            ),
+                            'fields' => 'ids'
+                        ));
+                        $count = count($category_design_count);
+                    ?>
+                    <div class="pw-category-item" data-category-id="<?php echo esc_attr($category->term_id); ?>" style="display:flex; align-items:center; padding:12px 15px; border:1px solid #ddd; border-radius:4px; margin-bottom:10px; background:#fff;">
+                        <input type="text" class="pw-category-name-input" value="<?php echo esc_attr($category->name); ?>" style="flex:1; padding:8px 12px; border:1px solid #ddd; border-radius:4px; margin-right:10px; font-size:14px;" maxlength="60">
+                        <span class="pw-category-char-count" style="margin-right:10px; color:#666; font-size:12px;">(<?php echo strlen($category->name); ?>)</span>
+                        <span class="pw-category-design-count" style="margin-right:10px; color:#0073aa; font-size:12px; font-weight:600;"><?php echo $count; ?> designs</span>
+                        <button type="button" class="pw-category-settings-btn" data-category-id="<?php echo esc_attr($category->term_id); ?>" style="background:none; border:none; cursor:pointer; padding:5px; margin-right:5px;" title="Category Settings">
+                            <span class="dashicons dashicons-admin-generic" style="color:#0073aa; font-size:16px;"></span>
+                        </button>
+                        <button type="button" class="pw-category-delete-btn" data-category-id="<?php echo esc_attr($category->term_id); ?>" style="background:none; border:none; cursor:pointer; padding:5px;" title="Delete Category">
+                            <span class="dashicons dashicons-trash" style="color:#dc3232; font-size:16px;"></span>
+                        </button>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php else : ?>
+                <div class="pw-no-categories" style="text-align:center; padding:40px; color:#666;">
+                    <span class="dashicons dashicons-category" style="font-size:48px; margin-bottom:15px; color:#ccc;"></span>
+                    <p>No categories found. Create your first category!</p>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Settings Modal -->
+<div id="pw-category-settings-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1004;">
+    <div class="pw-modal-content" style="background:white; width:500px; margin:50px auto; padding:0; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height:80vh; overflow:hidden;">
+        <div class="pw-modal-header" style="padding:20px 30px; border-bottom:1px solid #eee; background:#f8f9fa;">
+            <h2 style="margin:0; color:#333;">Category Settings</h2>
+            <button type="button" class="pw-modal-close" style="position:absolute; top:15px; right:20px; background:none; border:none; font-size:20px; cursor:pointer; color:#666;">&times;</button>
+        </div>
         
-        // 禁用提交按钮
-        $('#pw-add-category-submit').prop('disabled', true).text('添加中...');
-        
-        $.ajax({
-            url: ajaxurl,
-            type: 'POST',
-            data: formData,
-            success: function(response) {
-                if (response.success) {
-                    alert('分类添加成功！');
-                    $('#pw-add-category-modal').hide();
-                    resetAddCategoryForm();
-                    // 刷新页面以显示新分类
-                    location.reload();
-                } else {
-                    alert('添加失败：' + (response.data || '未知错误'));
-                }
-            },
-            error: function() {
-                alert('网络错误，请重试');
-            },
-            complete: function() {
-                $('#pw-add-category-submit').prop('disabled', false).text('添加分类');
-            }
-        });
-    });
-    
-    // 重置添加分类表单
-    function resetAddCategoryForm() {
-        $('#pw-add-category-form')[0].reset();
-        $('#pw-add-category-submit').prop('disabled', false).text('添加分类');
-    }
-    
-    // --- Add Design Modal ---
-    
-    // 打开添加设计模态框
-    $('#pw-add-design-btn').on('click', function(e) {
-        e.preventDefault();
-        $('#pw-add-design-modal').show();
-    });
-    
-    // 关闭添加设计模态框
-    $('#pw-add-design-cancel').on('click', function(e) {
-        e.preventDefault();
-        $('#pw-add-design-modal').hide();
-        resetAddDesignForm();
-    });
-    
-    // 点击模态框外部关闭
-    $('#pw-add-design-modal').on('click', function(e) {
-        if (e.target === this) {
-            $(this).hide();
-            resetAddDesignForm();
-        }
-    });
-    
-    // 图片上传区域点击事件
-    $('#pw-image-upload-area').on('click', function(e) {
-        e.preventDefault();
-        $('#pw-design-image').click();
-    });
-    
-    // 文件选择事件
-    $('#pw-design-image').on('change', function(e) {
-        handleImageUpload(e.target.files[0]);
-    });
-    
-    // 拖拽上传
-    $('#pw-image-upload-area').on('dragover', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        $(this).css('border-color', '#007cba');
-        $(this).css('background-color', '#f0f6fc');
-    });
-    
-    $('#pw-image-upload-area').on('dragleave', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        $(this).css('border-color', '#ccc');
-        $(this).css('background-color', '#fafafa');
-    });
-    
-    $('#pw-image-upload-area').on('drop', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        $(this).css('border-color', '#ccc');
-        $(this).css('background-color', '#fafafa');
-        
-        var files = e.originalEvent.dataTransfer.files;
-        if (files.length > 0) {
-            handleImageUpload(files[0]);
-        }
-    });
-    
-    // 移除图片
-    $('#pw-remove-image').on('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        $('#pw-design-image').val('');
-        $('#pw-upload-placeholder').show();
-        $('#pw-image-preview').hide();
-    });
-    
-    // 处理图片上传预览
-    function handleImageUpload(file) {
-        if (!file) return;
-        
-        // 验证文件类型
-        if (!file.type.match('image.*')) {
-            alert('请选择图片文件！');
-            return;
-        }
-        
-        // 验证文件大小 (5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            alert('图片文件不能超过 5MB！');
-            return;
-        }
-        
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            $('#pw-preview-img').attr('src', e.target.result);
-            $('#pw-file-name').text(file.name);
-            $('#pw-upload-placeholder').hide();
-            $('#pw-image-preview').show();
-        };
-        reader.readAsDataURL(file);
-    }
-    
-    // 重置表单
-    function resetAddDesignForm() {
-        $('#pw-add-design-form')[0].reset();
-        $('#pw-upload-placeholder').show();
-        $('#pw-image-preview').hide();
-        $('#pw-add-design-submit').prop('disabled', false).text('添加设计');
-    }
-    
-    // 提交表单
-    $('#pw-add-design-form').on('submit', function(e) {
-        e.preventDefault();
-        
-        var formData = new FormData();
-        var imageFile = $('#pw-design-image')[0].files[0];
-        var designName = $('#pw-design-name').val().trim();
-        var designCategory = $('#pw-design-category').val();
-        
-        // 验证
-        if (!imageFile) {
-            alert('请选择设计图片！');
-            return;
-        }
-        
-        if (!designName) {
-            alert('请输入设计名称！');
-            return;
-        }
-        
-        // 准备数据
-        formData.append('action', 'pw_add_design');
-        formData.append('design_image', imageFile);
-        formData.append('design_name', designName);
-        formData.append('design_category', designCategory);
-        formData.append('pw_add_design_nonce_field', $('#pw_add_design_nonce_field').val());
-        
-        // 提交
-        $.ajax({
-            url: "<?php echo admin_url('admin-ajax.php'); ?>",
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            beforeSend: function() {
-                $('#pw-add-design-submit').prop('disabled', true).text('添加中...');
-            },
-            success: function(response) {
-                if (response.success) {
-                    alert('设计添加成功！');
-                    $('#pw-add-design-modal').hide();
-                    resetAddDesignForm();
-                    // 刷新页面显示新添加的设计
-                    location.reload();
-                } else {
-                    alert('添加失败：' + (response.data || '未知错误'));
-                }
-            },
-            error: function(xhr, status, error) {
-                alert('添加失败，请检查网络连接后重试。');
-                console.error('AJAX Error:', error);
-            },
-            complete: function() {
-                $('#pw-add-design-submit').prop('disabled', false).text('添加设计');
-            }
-        });
-    });
+        <div class="pw-modal-body" style="padding:30px;">
+            <form id="pw-category-settings-form">
+                <input type="hidden" id="pw-settings-category-id" name="category_id">
+                
+                <!-- Category Name -->
+                <div class="pw-form-field" style="margin-bottom:25px;">
+                    <label for="pw-settings-category-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category Name</label>
+                    <input type="text" id="pw-settings-category-name" name="category_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                </div>
+                
+                <!-- Category Type -->
+                <div class="pw-form-field" style="margin-bottom:25px;">
+                    <label for="pw-settings-category-type" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category Type</label>
+                    <select id="pw-settings-category-type" name="category_type" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                        <option value="general">General</option>
+                        <option value="product">Product</option>
+                        <option value="style">Style</option>
+                    </select>
+                </div>
+                
+                <!-- Tabs -->
+                <div class="pw-settings-tabs" style="margin-bottom:25px;">
+                    <div class="pw-tab-nav" style="display:flex; border-bottom:1px solid #ddd;">
+                        <button type="button" class="pw-tab-btn active" data-tab="initial-state" style="padding:10px 20px; border:none; background:#fff; cursor:pointer; border-bottom:2px solid #0073aa;">Initial State</button>
+                        <button type="button" class="pw-tab-btn" data-tab="operation-config" style="padding:10px 20px; border:none; background:#f8f9fa; cursor:pointer; color:#666;">Operation Config</button>
+                        <button type="button" class="pw-tab-btn" data-tab="price" style="padding:10px 20px; border:none; background:#f8f9fa; cursor:pointer; color:#666;">Price</button>
+                    </div>
+                    
+                    <div class="pw-tab-content">
+                        <!-- Initial State Tab -->
+                        <div class="pw-tab-pane active" data-tab="initial-state" style="padding:20px 0;">
+                            <div class="pw-form-field" style="margin-bottom:20px;">
+                                <label style="display:flex; align-items:center; cursor:pointer;">
+                                    <input type="checkbox" id="pw-exclude-from-export" name="exclude_from_export" style="margin-right:10px;">
+                                    <span>Exclude From Export</span>
+                                </label>
+                            </div>
+                            
+                            <div class="pw-form-field" style="margin-bottom:20px;">
+                                <label for="pw-layer-depth" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Layer Depth</label>
+                                <input type="number" id="pw-layer-depth" name="layer_depth" value="-1" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                            </div>
+                            
+                            <div class="pw-form-field" style="margin-bottom:20px;">
+                                <label for="pw-scale-mode" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Scale Mode</label>
+                                <select id="pw-scale-mode" name="scale_mode" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                                    <option value="fit">Fit</option>
+                                    <option value="fill">Fill</option>
+                                    <option value="stretch">Stretch</option>
+                                    <option value="center">Center</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Operation Config Tab -->
+                        <div class="pw-tab-pane" data-tab="operation-config" style="padding:20px 0; display:none;">
+                            <p style="color:#666; text-align:center; padding:40px 0;">Operation configuration options will be available here.</p>
+                        </div>
+                        
+                        <!-- Price Tab -->
+                        <div class="pw-tab-pane" data-tab="price" style="padding:20px 0; display:none;">
+                            <p style="color:#666; text-align:center; padding:40px 0;">Price configuration options will be available here.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pw-modal-footer" style="text-align:right; border-top:1px solid #eee; padding-top:20px; margin-top:30px;">
+                    <button type="button" class="button" id="pw-settings-cancel">Cancel</button>
+                    <button type="submit" class="button button-primary" id="pw-settings-save">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-    // --- Tag Management Modal ---
+<?php
+// 加载分类管理JavaScript文件
+wp_enqueue_script(
+    'pw-admin-category-management',
+    plugin_dir_url(__FILE__) . '../js/pw-admin-category-management.js',
+    array('jquery'),
+    '1.0.0',
+    true
+);
 
-    // Open Modal and load tags
-    $('.pw-design-grid').on('click', '.pw-add-tag-button', function(e) {
-        e.preventDefault();
-        console.log('Add Tag button clicked.'); // Debug log
-
-        var designId = $(this).data('design-id');
-        var modal = $('#pw-tag-modal');
-        var modalBody = $('#pw-tag-modal-body');
-
-        // Show modal immediately for better user feedback
-        $('#pw-tag-modal-design-id').val(designId);
-        modalBody.html('Loading...');
-        modal.show();
-
-        $.ajax({
-            url: "<?php echo admin_url('admin-ajax.php'); ?>",
-            type: 'POST',
-            data: {
-                action: 'pw_get_design_tags',
-                design_id: designId,
-                nonce: "<?php echo wp_create_nonce('pw_get_design_tags_nonce'); ?>"
-            },
-            success: function(response) {
-                if (response.success) {
-                    var tags = response.data.all_tags;
-                    var selected_tags = response.data.selected_tags;
-                    var html = '';
-                    if (tags.length > 0) {
-                        tags.forEach(function(tag) {
-                            var is_checked = selected_tags.includes(tag.term_id);
-                            html += '<p><label><input type="checkbox" name="pw_design_tags[]" value="' + tag.term_id + '" ' + (is_checked ? 'checked' : '') + '> ' + tag.name + '</label></p>';
-                        });
-                    } else {
-                        html = 'No tags available.';
-                    }
-                    modalBody.html(html);
-                } else {
-                    modalBody.html('Error: ' + (response.data || 'Unknown error'));
-                }
-            },
-            error: function() {
-                modalBody.html('AJAX error. Check browser console for more details.');
-            }
-        });
-    });
-
-    // Close Modal
-    $(document).on('click', '#pw-tag-modal-close', function(e) {
-        e.preventDefault();
-        $('#pw-tag-modal').hide();
-    });
-
-    // Save Tags
-    $(document).on('click', '#pw-tag-modal-save', function(e) {
-        e.preventDefault();
-        var button = $(this);
-        var designId = $('#pw-tag-modal-design-id').val();
-        var selectedTags = [];
-        $('#pw-tag-modal-body input[type="checkbox"]:checked').each(function() {
-            selectedTags.push($(this).val());
-        });
-
-        $.ajax({
-            url: "<?php echo admin_url('admin-ajax.php'); ?>",
-            type: 'POST',
-            data: {
-                action: 'pw_save_design_tags',
-                design_id: designId,
-                tags: selectedTags,
-                nonce: "<?php echo wp_create_nonce('pw_save_design_tags_nonce'); ?>"
-            },
-            beforeSend: function() {
-                button.prop('disabled', true).text('Saving...');
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('#pw-tag-modal').hide();
-                    location.reload();
-                } else {
-                    alert('Error saving tags: ' + response.data);
-                }
-            },
-            error: function() {
-                alert('AJAX error while saving tags.');
-            },
-            complete: function() {
-                button.prop('disabled', false).text('Save Changes');
-            }
-        });
-    });
-
-    // --- Bulk Delete Designs ---
-
-    const selectAllCheckbox = $('#pw-select-all-designs');
-    const deleteButton = $('#pw-delete-selected-designs');
-
-    /**
-     * Update the visibility of the "Delete Selected" button based on selections.
-     */
-    function updateDeleteButton() {
-        const anyChecked = $('.pw-design-checkbox:checked').length > 0;
-        deleteButton.toggle(anyChecked);
-    }
-
-    /**
-     * Update the "Select All" checkbox based on individual checkbox states.
-     */
-    function updateSelectAllState() {
-        const allCheckboxes = $('.pw-design-checkbox');
-        if (allCheckboxes.length === 0) {
-            selectAllCheckbox.prop('checked', false);
-            return;
-        }
-        const allChecked = allCheckboxes.not(':checked').length === 0;
-        selectAllCheckbox.prop('checked', allChecked);
-    }
-
-    // 1. Handle "Select All" checkbox change
-    selectAllCheckbox.on('change', function() {
-        $('.pw-design-checkbox').prop('checked', $(this).is(':checked'));
-        updateDeleteButton();
-    });
-
-    // 2. Handle individual design checkbox change
-    $('.pw-design-grid').on('change', '.pw-design-checkbox', function() {
-        updateSelectAllState();
-        updateDeleteButton();
-    });
-
-    // 3. Handle "Delete Selected" button click
-    $('#pw-delete-selected-designs').on('click', function(e) {
-        e.preventDefault();
-
-        const selectedIds = $('.pw-design-checkbox:checked').map(function() {
-            return $(this).val();
-        }).get();
-
-        if (selectedIds.length === 0) {
-            alert('Please select at least one design to delete.');
-            return;
-        }
-
-        if (!confirm('Are you sure you want to delete the selected designs? This action cannot be undone.')) {
-            return;
-        }
-
-        $.ajax({
-            url: "<?php echo admin_url('admin-ajax.php'); ?>",
-            type: 'POST',
-            data: {
-                action: 'pw_delete_selected_designs',
-                nonce: "<?php echo wp_create_nonce('pw_delete_designs_nonce'); ?>",
-                design_ids: selectedIds
-            },
-            beforeSend: function() {
-                $('#pw-delete-selected-designs').prop('disabled', true).text('Deleting...');
-            },
-            success: function(response) {
-                if (response.success) {
-                    alert(response.data);
-                    // Remove deleted items from the DOM
-                    selectedIds.forEach(function(id) {
-                        $('.pw-design-card[data-design-id="' + id + '"]').remove();
-                    });
-                } else {
-                    alert('Error: ' + response.data);
-                }
-            },
-            error: function() {
-                alert('An error occurred while trying to delete the designs. Please try again.');
-            },
-            complete: function() {
-                 // Always update state after AJAX, regardless of success or error
-                updateDeleteButton();
-                updateSelectAllState();
-                $('#pw-delete-selected-designs').prop('disabled', false).text('Delete Selected');
-            }
-        });
-    });
-
-    // Initial state check on page load
-    updateDeleteButton();
-    updateSelectAllState();
-
-    // --- Filter Modal Logic ---
-    const filterModal = $('#pw-filter-modal');
-    const openFilterModalBtn = $('#pw-open-filter-modal');
-
-    // Open modal
-    openFilterModalBtn.on('click', function() {
-        filterModal.show();
-    });
-
-    // Close modal if clicking outside of the content
-    filterModal.on('click', function(e) {
-        if ($(e.target).is(filterModal)) {
-            filterModal.hide();
-        }
-    });
-    
-    // Toggle filter sections
-    $('.pw-filter-toggle').on('click', function() {
-        $(this).toggleClass('collapsed');
-        $(this).next('.pw-filter-options').slideToggle(200);
-    });
-
-    // Toggle condition display based on checkbox
-    $('input[name="filter_field"]').on('change', function() {
-        $(this).parent().next('.pw-filter-condition').toggle($(this).is(':checked'));
-    });
-
-    // Clear search input
-    $('.pw-filter-search-field .dashicons-no-alt').on('click', function() {
-        $('#pw-filter-name-search').val('').trigger('keyup');
-    });
-
-    // Search filter fields
-    $('#pw-filter-name-search').on('keyup', function() {
-        const searchTerm = $(this).val().toLowerCase();
-        $('.pw-filter-options label').each(function() {
-            const labelText = $(this).text().toLowerCase();
-            if (labelText.includes(searchTerm)) {
-                $(this).show();
-            } else {
-                $(this).hide();
-            }
-        });
-    });
-
-    // Clear button
-    $('#pw-filter-clear').on('click', function() {
-        $('#pw-filter-modal input[type="text"]').val('');
-        $('#pw-filter-modal input[type="checkbox"]').prop('checked', false);
-        $('#pw-filter-modal select').prop('selectedIndex', 0);
-        $('.pw-filter-condition').hide();
-        // Restore default state for Product Name
-        $('input[value="product_name"]').prop('checked', true).trigger('change');
-    });
-
-    // Confirm button
-    $('#pw-filter-confirm').on('click', function() {
-        const baseUrl = window.location.href.split('?')[0];
-        const params = new URLSearchParams(window.location.search);
-        
-        // Clear old filter params
-        params.delete('s');
-        params.delete('category');
-        params.delete('product_name_condition');
-        params.delete('product_name_value');
-        params.delete('category_name_condition');
-        params.delete('category_name_value');
-
-        // Add new filter params
-        $('input[name="filter_field"]:checked').each(function() {
-            const field = $(this).val();
-            const condition = $('[name="' + field + '_condition"]').val();
-            const value = $('[name="' + field + '_value"]').val();
-
-            if (value) {
-                if (field === 'product_name') {
-                    params.set('s', value); // Use 's' for general search
-                    params.set('product_name_condition', condition);
-                } else if (field === 'category_name') {
-                     params.set('category', value); // Use 'category' for category filter
-                     params.set('category_name_condition', condition);
-                }
-            }
-        });
-
-        window.location.href = baseUrl + '?' + params.toString();
-    });
-});
-</script>
+// 传递必要的数据给JavaScript
+wp_localize_script('pw-admin-category-management', 'pw_admin_vars', array(
+    'nonce' => wp_create_nonce('pw_add_category_nonce'),
+    'ajaxurl' => admin_url('admin-ajax.php')
+));
+?>

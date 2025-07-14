@@ -166,6 +166,117 @@ class Pw_Admin_Admin
             'category_type' => $category_type
         ));
     }
+    
+    /**
+     * Handle AJAX request to update category settings
+     *
+     * @since    1.0.0
+     */
+    public function handle_update_category_settings()
+    {
+        // 验证 nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'pw_add_category_nonce')) {
+            wp_send_json_error('安全验证失败');
+            return;
+        }
+        
+        // 验证用户权限
+        if (!current_user_can('manage_categories')) {
+            wp_send_json_error('权限不足');
+            return;
+        }
+        
+        // 获取并验证输入数据
+        $category_id = intval($_POST['category_id']);
+        $category_name = sanitize_text_field($_POST['category_name']);
+        $category_type = sanitize_text_field($_POST['category_type']);
+        $exclude_from_export = isset($_POST['exclude_from_export']) ? (bool)$_POST['exclude_from_export'] : false;
+        $layer_depth = intval($_POST['layer_depth']);
+        $scale_mode = sanitize_text_field($_POST['scale_mode']);
+        
+        if (empty($category_name)) {
+            wp_send_json_error('分类名称不能为空');
+            return;
+        }
+        
+        if ($category_id <= 0) {
+            wp_send_json_error('无效的分类ID');
+            return;
+        }
+        
+        // 更新分类名称
+        $term_data = wp_update_term(
+            $category_id,
+            'pw_design_category',
+            array(
+                'name' => $category_name,
+                'description' => '分类类型: ' . $category_type,
+            )
+        );
+        
+        if (is_wp_error($term_data)) {
+            wp_send_json_error('更新分类失败: ' . $term_data->get_error_message());
+            return;
+        }
+        
+        // 更新分类元数据
+        update_term_meta($category_id, 'category_type', $category_type);
+        update_term_meta($category_id, 'exclude_from_export', $exclude_from_export);
+        update_term_meta($category_id, 'layer_depth', $layer_depth);
+        update_term_meta($category_id, 'scale_mode', $scale_mode);
+        
+        wp_send_json_success(array(
+            'message' => '分类设置更新成功',
+            'category_id' => $category_id,
+            'category_name' => $category_name
+        ));
+    }
+    
+    /**
+     * Handle AJAX request to delete category
+     *
+     * @since    1.0.0
+     */
+    public function handle_delete_category()
+    {
+        // 验证 nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'pw_add_category_nonce')) {
+            wp_send_json_error('安全验证失败');
+            return;
+        }
+        
+        // 验证用户权限
+        if (!current_user_can('manage_categories')) {
+            wp_send_json_error('权限不足');
+            return;
+        }
+        
+        // 获取并验证输入数据
+        $category_id = intval($_POST['category_id']);
+        
+        if ($category_id <= 0) {
+            wp_send_json_error('无效的分类ID');
+            return;
+        }
+        
+        // 删除分类
+        $result = wp_delete_term($category_id, 'pw_design_category');
+        
+        if (is_wp_error($result)) {
+            wp_send_json_error('删除分类失败: ' . $result->get_error_message());
+            return;
+        }
+        
+        if ($result === false) {
+            wp_send_json_error('删除分类失败: 分类不存在或无法删除');
+            return;
+        }
+        
+        wp_send_json_success(array(
+            'message' => '分类删除成功',
+            'category_id' => $category_id
+        ));
+    }
 }
 
 
