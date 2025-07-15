@@ -72,7 +72,7 @@ class Pw_Admin_Public
         add_filter('woocommerce_get_item_data', array($this, 'display_custom_product_image'), 10, 2);
         add_filter('woocommerce_order_item_name', array($this, 'display_custom_image_in_order'), 10, 2);
 
-        add_action('woocommerce_after_cart_item_name', 'add_custom_text_after_cart_item_name', 10, 2);
+        // add_action('woocommerce_after_cart_item_name', 'add_custom_text_after_cart_item_name', 10, 2);
 
         // Add custom color image overlay on product page
         add_action('woocommerce_before_single_product', array($this, 'add_custom_color_image'));
@@ -92,6 +92,10 @@ class Pw_Admin_Public
         
         // Mark Flamingo messages as read when viewed
         add_action('admin_init', array($this, 'mark_flamingo_message_as_read_on_view'));
+        
+        // Add custom cart column functionality
+        add_action('woocommerce_after_cart_item_name', array($this, 'add_custom_cart_column_data_revised'), 10, 2);
+        add_action('wp_footer', array($this, 'move_custom_cart_column_with_js_revised'));
 
         // --- END ADDED WOOCOMMERCE HOOKS ---
 
@@ -1589,6 +1593,82 @@ class Pw_Admin_Public
                 update_post_meta($post_id, '_flamingo_is_read', '1');
             }
         }
+    }
+
+    /**
+     * Add custom cart column data after cart item name
+     * Hooks into: woocommerce_after_cart_item_name
+     * @since    1.0.0
+     * @param array $cart_item Cart item data
+     * @param string $cart_item_key Cart item key
+     */
+    public function add_custom_cart_column_data_revised($cart_item, $cart_item_key)
+    {
+        $_product = $cart_item['data'];
+        $product_id = $cart_item['product_id'];
+
+        // 准备要显示的 HTML 内容
+        $custom_html = '';
+
+        // 检查是否存在自定义图片数据
+        if (isset($cart_item['custom_data']['custom_image']) && !empty($cart_item['custom_data']['custom_image'])) {
+            // 如果存在，创建 img 标签
+            $custom_html = '<img src="' . esc_url($cart_item['custom_data']['custom_image']) . '" style="max-width:100px; height:auto; border-radius: 4px;">';
+        } else {
+            // （可选）如果不存在，可以设置默认提示
+            $custom_html = '';
+        }
+
+        // 将准备好的 HTML 内容包裹在一个隐藏的 div 中
+        echo '<div class="hidden-custom-data" style="display:none;">' . $custom_html . '</div>';
+    }
+
+    /**
+     * Move custom cart column with JavaScript
+     * Hooks into: wp_footer
+     * @since    1.0.0
+     */
+    public function move_custom_cart_column_with_js_revised()
+    {
+        // 仅在购物车页面执行
+        if (!is_cart()) {
+            return;
+        }
+        ?>
+        <script type="text/javascript">
+        jQuery(function($) {
+            // --- 1. 添加表头 (这部分通常没问题) ---
+            var $headerRow = $('.woocommerce-cart-form .shop_table thead tr');
+            if ($headerRow.length && !$('.th-custom-column').length) {
+                $headerRow.find('.product-price').before('<th class="th-custom-column">Design</th>');
+            }
+
+            // --- 2. 修正后的逻辑：添加单元格并移动数据 ---
+            $('.woocommerce-cart-form .cart_item').each(function() {
+                var $row = $(this);
+                // 在当前行内部查找隐藏数据，这是更可靠的方法
+                var $hiddenData = $row.find('.hidden-custom-data');
+                // 检查是否已找到数据并且新单元格尚未创建
+                if ($hiddenData.length && !$row.find('.td-custom-column').length) {
+                    // 在"数量"单元格前添加新单元格
+                    var $newCell = $('<td class="td-custom-column" data-title="Design"></td>');
+                    $row.find('.product-price').before($newCell);
+                    // 将隐藏数据的内容移动到新单元格中
+                    $newCell.html($hiddenData.html());
+                    // （可选，但建议）将已经被使用的隐藏数据移除，保持DOM干净
+                    $hiddenData.remove();
+                }
+            });
+        });
+        </script>
+        <style>
+        /* 样式可以保持不变 */
+        .th-custom-column,
+        .td-custom-column {
+            text-align: center;
+        }
+        </style>
+        <?php
     }
 
     // --- END ADDED WOOCOMMERCE METHODS ---
