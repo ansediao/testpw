@@ -108,63 +108,16 @@
 
 ## 6. Vue.js 组件规范 (Vue.js Component Standards)
 
-- **引入方式:** 项目采用 CDN 方式在运行时加载 Vue.js 库。
-- **代码组织:**
-  - **必须**以单文件组件 (`.vue` 文件) 的形式组织代码，如 `product-card.vue`。这便于开发和维护，即使最终不通过构建工具编译。
-  - 每个 `.vue` 文件**必须**包含 `<template>`, `<script>`, `<style scoped>` 三个部分。`scoped` 属性可以防止组件样式污染全局。
-- **示例 (`public/partials/product-card.vue`):**
-  ```vue
-  <template>
-    <div class="product-card">
-      <img :src="product.imageUrl" :alt="product.name" class="product-card__image">
-      <h3 class="product-card__name">{{ product.name }}</h3>
-      <button @click="addToCart" class="product-card__button">Add to Cart</button>
-    </div>
-  </template>
+- 不使用任何 Vue 方法，如 created()、mounted()、watch 等
+- 不使用 Vue 特有的生命周期钩子
+- 不使用 Vue 指令，如 v-if、v-for、v-bind、v-on 等
+- 不使用 Vue 组件选项，如 props、data、methods 等
   
-  <script>
-  export default {
-    name: 'ProductCard',
-    props: {
-      product: {
-        type: Object,
-        required: true
-      }
-    },
-    methods: {
-      addToCart() {
-        this.$emit('add-to-cart', this.product.id);
-      }
-    }
-  };
-  </script>
-  
-  <style scoped>
-  .product-card {
-    border: 1px solid #eee;
-    padding: 16px;
-    text-align: center;
-  }
-  .product-card__image {
-    max-width: 100%;
-    height: auto;
-  }
-  .product-card__name {
-    margin: 10px 0;
-  }
-  </style>
-  ```
-
 ---
 
 ## 7. CSS/SCSS 开发规范 (CSS/SCSS Development Standards)
 
-- **方法论:** **推荐**采用 BEM (Block, Element, Modifier) 命名约定，与组件化思想保持一致。
-  - **示例:** `.product-card` (Block), `.product-card__image` (Element), `.product-card--featured` (Modifier)。
-
-- **前缀:** 为防止样式冲突，所有非局部的 CSS 类名**建议**添加项目前缀。
-  - **示例:** `.pw-button`, `.pw-modal`
-
-- **SCSS:** **鼓励**使用 SCSS 提升样式的可维护性，如使用变量、嵌套和 mixin。`public/css/template-canvas-display.scss` 是一个很好的例子。
-
-- **文件分离:** 通用样式、后台样式和前台样式**必须**分离在不同的文件中。
+- 直接在模板文件中生成 CSS 代码，不使用外部 CSS/SCSS 文件
+- 不使用 SCSS 特性，如变量、嵌套、混入等
+- 不使用 CSS Modules
+- 不使用任何 CSS-in-JS 解决方案
