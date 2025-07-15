@@ -364,6 +364,7 @@ class Pw_Admin_Public
                 // 确保 shadowCanvas 的 data-color-image 属性被设置
                 // 假设产品图片 URL 可以从 PHP 获取并设置到这里
                 const initialColorImageUrl = '<?php global $product; echo esc_url(get_post_meta($product->get_id(), 'pw_mainIMG_color', true)); ?>';
+                const currentColorImageUrl = initialColorImageUrl; // 为了兼容性，添加这个变量
                 if (shadowCanvas && initialColorImageUrl) {
                     shadowCanvas.setAttribute('data-color-image', initialColorImageUrl);
                 }
@@ -392,71 +393,7 @@ class Pw_Admin_Public
                     colorImg.src = imageUrl;
                 }
 
-                document.addEventListener('DOMContentLoaded', function() {
-                    const gradientColorBtn = document.querySelector('.btn-gradient');
-                    const gradientColorModal = document.getElementById('gradient-color-modal');
-                    const closeGradientColorModal = document.getElementById('close-gradient-color-modal');
-                    const applyGradientColorBtn = document.getElementById('applyGradientColor');
-                    const gradientColor1 = document.getElementById('gradientColor1');
-                    const gradientColor2 = document.getElementById('gradientColor2');
-                    const gradientDirection = document.getElementById('gradientDirection');
-
-                    if (gradientColorBtn && gradientColorModal && closeGradientColorModal && applyGradientColorBtn && gradientColor1 && gradientColor2 && gradientDirection) {
-                        gradientColorBtn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            gradientColorModal.style.display = 'flex';
-                        });
-                        closeGradientColorModal.addEventListener('click', function() {
-                            gradientColorModal.style.display = 'none';
-                        });
-                        gradientColorModal.addEventListener('click', function(e) {
-                            if (e.target === gradientColorModal) {
-                                gradientColorModal.style.display = 'none';
-                            }
-                        });
-                        applyGradientColorBtn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            const color1 = gradientColor1.value;
-                            const color2 = gradientColor2.value;
-                            const direction = gradientDirection.value;
-                            
-                            // 应用渐变色到PNG图片的非透明区域
-                            updateProductColor(color1);
-                            
-                            // 更新Canvas（如果存在）
-                            if (shadowCanvas && shadowCtx) {
-                                const width = shadowCanvas.width;
-                                const height = shadowCanvas.height;
-                                let gradient;
-                                if (direction === 'to right') {
-                                    gradient = shadowCtx.createLinearGradient(0, 0, width, 0);
-                                } else if (direction === 'to bottom') {
-                                    gradient = shadowCtx.createLinearGradient(0, 0, 0, height);
-                                } else if (direction === 'to bottom right') {
-                                    gradient = shadowCtx.createLinearGradient(0, 0, width, height);
-                                } else if (direction === 'to bottom left') {
-                                    gradient = shadowCtx.createLinearGradient(width, 0, 0, height);
-                                }
-                                gradient.addColorStop(0, color1);
-                                gradient.addColorStop(1, color2);
-                                shadowCtx.globalCompositeOperation = 'source-in';
-                                shadowCtx.fillStyle = gradient;
-                                shadowCtx.fillRect(0, 0, width, height);
-                                shadowCtx.globalCompositeOperation = 'source-over';
-                            }
-                            
-                            // 保存渐变色信息（使用第一个颜色）
-                            currentColor = color1;
-                            if (!jQuery('#selected_color').length) {
-                                jQuery('form.cart').append('<input type="hidden" id="selected_color" name="selected_color" value="' + currentColor + '">');
-                            } else {
-                                jQuery('#selected_color').val(currentColor);
-                            }
-                            
-                            gradientColorModal.style.display = 'none';
-                        });
-                    }
-                });
+                // 渐变色功能已移至 canvas-operation-panel.php 中实现
             </script>
             <div id="custom-color-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:9999; align-items:center; justify-content:center;">
                 <div style="background:#fff; border-radius:8px; max-width:300px; width:90vw; padding:1rem; position:relative;">
@@ -500,7 +437,53 @@ class Pw_Admin_Public
             <script>
                 // 统一的颜色更新函数
                 function updateProductColor(color) {
-                    // 更新叠加图片的颜色
+                    // 更新Canvas颜色叠加（新的canvas方式）
+                    if (window.colorCanvas && window.colorImageUrl) {
+                        const canvas = window.colorCanvas;
+                        const ctx = canvas.getContext('2d');
+                        
+                        // 重新加载原始图片
+                        const colorImage = new Image();
+                        colorImage.crossOrigin = 'anonymous';
+                        colorImage.onload = function() {
+                            // 清除canvas
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            
+                            // 绘制原始图片
+                            ctx.drawImage(colorImage, 0, 0, canvas.width, canvas.height);
+                            
+                            // 应用颜色叠加
+                            if (color && color !== 'original') {
+                                ctx.globalCompositeOperation = 'source-atop';
+                                
+                                // 根据颜色类型应用不同的叠加效果
+                                if (color === 'black') {
+                                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                                } else if (color === 'red') {
+                                    ctx.fillStyle = 'rgba(255, 0, 0, 0.6)';
+                                } else if (color === 'blue') {
+                                    ctx.fillStyle = 'rgba(0, 0, 255, 0.6)';
+                                } else if (color === 'white') {
+                                    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                                } else if (color.startsWith('#')) {
+                                    // 对于自定义颜色，转换为rgba
+                                    const rgb = hexToRgb(color);
+                                    if (rgb) {
+                                        ctx.fillStyle = 'rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', 0.6)';
+                                    }
+                                }
+                                
+                                // 填充颜色叠加
+                                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                
+                                // 恢复正常的合成操作
+                                ctx.globalCompositeOperation = 'source-over';
+                            }
+                        };
+                        colorImage.src = window.colorImageUrl;
+                    }
+                    
+                    // 兼容旧的img方式（如果仍然存在）
                     if (jQuery('img.custom-color-image-overlay').length > 0) {
                         let filter = '';
                         if (color === 'black') {
@@ -512,7 +495,6 @@ class Pw_Admin_Public
                         } else if (color === 'white') {
                             filter = 'brightness(0) saturate(100%) invert(100%)';
                         } else if (color.startsWith('#')) {
-                            // 对于自定义颜色，使用hue-rotate和其他CSS滤镜
                             const rgb = hexToRgb(color);
                             if (rgb) {
                                 const hue = rgbToHue(rgb.r, rgb.g, rgb.b);
@@ -522,7 +504,7 @@ class Pw_Admin_Public
                         jQuery('img.custom-color-image-overlay').css('filter', filter);
                     }
                     
-                    // 更新Canvas（如果存在）
+                    // 更新Canvas（如果存在shadowCanvas）
                     const colorImageUrl = shadowCanvas ? shadowCanvas.getAttribute('data-color-image') : null;
                     if (colorImageUrl && typeof loadColorImage === 'function') {
                         loadColorImage(colorImageUrl, color);
@@ -860,7 +842,7 @@ class Pw_Admin_Public
     }
 
     /**
-     * 在产品页面添加自定义颜色图片作为叠加层
+     * 在产品页面添加颜色图片作为底色
      * Hooks into: woocommerce_before_single_product
      * @since    X.X.X // Replace with your version
      */
@@ -906,22 +888,19 @@ class Pw_Admin_Public
                         /* Base image */
                     }
 
-                    .custom-color-image-overlay {
-                        /* Renamed class for clarity */
+                    .custom-color-canvas-overlay {
+                        /* Canvas overlay for color effects */
                         position: absolute;
                         top: 0;
                         left: 0;
                         width: 100%;
                         height: 100%;
-                        object-fit: cover;
-                        /* Or contain, depending on desired effect */
                         z-index: 1;
                         /* Overlay sits beneath base image details but above background */
                         mix-blend-mode: multiply;
                         /* Example blend mode, adjust as needed */
                         pointer-events: none;
                         /* Make overlay non-interactive */
-                        /* Initial filter will be set by JS */
                     }
 
                     /* Disable zoom trigger if needed */
@@ -941,18 +920,48 @@ class Pw_Admin_Public
                     // Consider moving this script to an enqueued JS file.
                     jQuery(document).ready(function($) {
                         var colorImageUrl = '<?php echo esc_url($color_image_url); ?>';
-                        // Find the first gallery image wrapper and append the overlay
-                        $('.woocommerce-product-gallery__image:first').append('<img src="' + colorImageUrl + '" class="custom-color-image custom-color-image-overlay" alt="Color Overlay" />');
-
-                        // Optional: Disable click/zoom on the main image link if interfering
-                        // $('.woocommerce-product-gallery__image:first > a').on('click', function(e) {
-                        //     e.preventDefault();
-                        //     return false;
-                        // });
-
-                        // Apply initial color filter if needed (e.g., based on a default selected color)
-                        // var initialFilter = $('.color-box[data-color="white"]').data('filter'); // Example: default to white
-                        // $('.custom-color-image-overlay').css('filter', initialFilter);
+                        
+                        // 创建canvas元素替代img
+                        var canvas = $('<canvas class="custom-color-canvas custom-color-canvas-overlay"></canvas>');
+                        $('.woocommerce-product-gallery__image:first').append(canvas);
+                        
+                        // 获取canvas上下文
+                        var canvasElement = canvas[0];
+                        var ctx = canvasElement.getContext('2d');
+                        
+                        // 获取父容器尺寸来设置canvas尺寸
+                        var container = $('.woocommerce-product-gallery__image:first');
+                        var containerWidth = container.width();
+                        var containerHeight = container.height();
+                        
+                        // 设置canvas尺寸
+                        canvasElement.width = containerWidth;
+                        canvasElement.height = containerHeight;
+                        
+                        // 加载颜色图片并绘制到canvas
+                        var colorImage = new Image();
+                        colorImage.crossOrigin = 'anonymous';
+                        colorImage.onload = function() {
+                            // 绘制颜色图片到canvas
+                            ctx.drawImage(colorImage, 0, 0, containerWidth, containerHeight);
+                        };
+                        colorImage.src = colorImageUrl;
+                        
+                        // 存储canvas引用和颜色图片URL，供颜色修改功能使用
+                        window.colorCanvas = canvasElement;
+                        window.colorImageUrl = colorImageUrl;
+                        
+                        // 监听窗口大小变化，重新调整canvas尺寸
+                        $(window).on('resize', function() {
+                            var newWidth = container.width();
+                            var newHeight = container.height();
+                            canvasElement.width = newWidth;
+                            canvasElement.height = newHeight;
+                            // 重新绘制图片
+                            if (colorImage.complete) {
+                                ctx.drawImage(colorImage, 0, 0, newWidth, newHeight);
+                            }
+                        });
                     });
                 </script>
 <?php
