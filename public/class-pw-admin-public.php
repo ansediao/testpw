@@ -393,7 +393,131 @@ class Pw_Admin_Public
                     colorImg.src = imageUrl;
                 }
 
-                // 渐变色功能已移至 canvas-operation-panel.php 中实现
+                // 渐变应用函数
+                function applyGradientToCanvas(canvas, color1, color2, direction) {
+                    if (!canvas || !window.colorImageUrl) return;
+                    
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 重新加载原始图片
+                    const colorImage = new Image();
+                    colorImage.crossOrigin = 'anonymous';
+                    colorImage.onload = function() {
+                        // 清除canvas
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        
+                        // 绘制原始图片
+                        ctx.drawImage(colorImage, 0, 0, canvas.width, canvas.height);
+                        
+                        // 创建渐变
+                        let gradient;
+                        const width = canvas.width;
+                        const height = canvas.height;
+                        
+                        if (direction === 'to right') {
+                            gradient = ctx.createLinearGradient(0, 0, width, 0);
+                        } else if (direction === 'to bottom') {
+                            gradient = ctx.createLinearGradient(0, 0, 0, height);
+                        } else if (direction === 'to bottom right') {
+                            gradient = ctx.createLinearGradient(0, 0, width, height);
+                        } else if (direction === 'to bottom left') {
+                            gradient = ctx.createLinearGradient(width, 0, 0, height);
+                        } else {
+                            // 默认从左到右
+                            gradient = ctx.createLinearGradient(0, 0, width, 0);
+                        }
+                        
+                        gradient.addColorStop(0, color1);
+                        gradient.addColorStop(1, color2);
+                        
+                        // 应用渐变叠加
+                        ctx.globalCompositeOperation = 'source-atop';
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(0, 0, width, height);
+                        
+                        // 恢复正常的合成操作
+                        ctx.globalCompositeOperation = 'source-over';
+                        
+                        console.log('Gradient applied to canvas successfully');
+                    };
+                    colorImage.src = window.colorImageUrl;
+                }
+                
+                // 渐变按钮事件处理
+                document.addEventListener('DOMContentLoaded', function() {
+                    const gradientColorBtn = document.querySelector('.btn-gradient');
+                    const gradientColorModal = document.getElementById('gradient-color-modal');
+                    const closeGradientColorModal = document.getElementById('close-gradient-color-modal');
+                    const applyGradientColorBtn = document.getElementById('applyGradientColor');
+                    const gradientColor1 = document.getElementById('gradientColor1');
+                    const gradientColor2 = document.getElementById('gradientColor2');
+                    const gradientDirection = document.getElementById('gradientDirection');
+
+                    if (gradientColorBtn && gradientColorModal && closeGradientColorModal && applyGradientColorBtn && gradientColor1 && gradientColor2 && gradientDirection) {
+                        gradientColorBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            gradientColorModal.style.display = 'flex';
+                        });
+                        closeGradientColorModal.addEventListener('click', function() {
+                            gradientColorModal.style.display = 'none';
+                        });
+                        gradientColorModal.addEventListener('click', function(e) {
+                            if (e.target === gradientColorModal) {
+                                gradientColorModal.style.display = 'none';
+                            }
+                        });
+                        applyGradientColorBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const color1 = gradientColor1.value;
+                            const color2 = gradientColor2.value;
+                            const direction = gradientDirection.value;
+                            
+                            console.log('Applying gradient:', color1, 'to', color2, 'direction:', direction);
+                            
+                            // 应用渐变到主要的颜色canvas
+                            if (window.colorCanvas && window.colorImageUrl) {
+                                applyGradientToCanvas(window.colorCanvas, color1, color2, direction);
+                            }
+                            
+                            // 更新Canvas中的颜色图片（如果存在shadowCanvas）
+                            if (shadowCanvas && shadowCtx) {
+                                const width = shadowCanvas.width;
+                                const height = shadowCanvas.height;
+                                let gradient;
+                                if (direction === 'to right') {
+                                    gradient = shadowCtx.createLinearGradient(0, 0, width, 0);
+                                } else if (direction === 'to bottom') {
+                                    gradient = shadowCtx.createLinearGradient(0, 0, 0, height);
+                                } else if (direction === 'to bottom right') {
+                                    gradient = shadowCtx.createLinearGradient(0, 0, width, height);
+                                } else if (direction === 'to bottom left') {
+                                    gradient = shadowCtx.createLinearGradient(width, 0, 0, height);
+                                }
+                                gradient.addColorStop(0, color1);
+                                gradient.addColorStop(1, color2);
+                                shadowCtx.globalCompositeOperation = 'source-in';
+                                shadowCtx.fillStyle = gradient;
+                                shadowCtx.fillRect(0, 0, width, height);
+                                shadowCtx.globalCompositeOperation = 'source-over';
+                            }
+                            
+                            // 保存渐变色信息（使用第一个颜色）
+                            currentColor = color1;
+                            if (!jQuery('#selected_color').length) {
+                                jQuery('form.cart').append('<input type="hidden" id="selected_color" name="selected_color" value="gradient(' + color1 + ',' + color2 + ',' + direction + ')">');
+                            } else {
+                                jQuery('#selected_color').val('gradient(' + color1 + ',' + color2 + ',' + direction + ')');
+                            }
+                            
+                            // 更新按钮选中状态
+                            jQuery('.color-box').removeClass('selected');
+                            jQuery('.btn-gradient, .btn-custom').removeClass('selected');
+                            jQuery('.btn-gradient').addClass('selected');
+                            
+                            gradientColorModal.style.display = 'none';
+                        });
+                    }
+                });
             </script>
             <div id="custom-color-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:9999; align-items:center; justify-content:center;">
                 <div style="background:#fff; border-radius:8px; max-width:300px; width:90vw; padding:1rem; position:relative;">
