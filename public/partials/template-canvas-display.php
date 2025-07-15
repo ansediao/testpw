@@ -23,7 +23,8 @@ if ($product_id > 0) {
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+  
+  <link rel="stylesheet" href="//at.alicdn.com/t/c/font_4970780_pfyts3fzl6.css?time=<?php echo  microtime(true); ?>" />
   <link rel="stylesheet" href="/wp-content/uploads/wpcodebox/203.css?time=<?php echo  microtime(true); ?>" />
 
   <!-- 加载 Three.js -->

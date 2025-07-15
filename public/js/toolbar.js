@@ -94,12 +94,12 @@ function updateDynamicToolbar(obj) {
             alignmentControl.innerHTML = `
             <label class="tab_control_title">Align：</label>
             <br>
-            <button id="textAlignCenterH">水平居中</button>
-            <button id="textAlignCenterV">垂直居中</button>
-            <button id="textAlignLeft">左对齐</button>
-            <button id="textAlignRight">右对齐</button>
-            <button id="textAlignTop">上对齐</button>
-            <button id="textAlignBottom">下对齐</button>
+            <button id="textAlignCenterH"><i class="iconfont icon-format-horizontal-align-center"></i></button>
+            <button id="textAlignCenterV"><i class="iconfont icon-vertical-align-middl"></i></button>
+            <button id="textAlignLeft"><i class="iconfont icon-format-horizontal-align-left"></i></button>
+            <button id="textAlignRight"><i class="iconfont icon-format-horizontal-align-right"></i></button>
+            <button id="textAlignTop"><i class="iconfont icon-vertical-align-top"></i></button>
+            <button id="textAlignBottom"><i class="iconfont icon-vertical-align-botto"></i></button>
           `;
             textToolbarArea.appendChild(alignmentControl);
 
@@ -431,12 +431,12 @@ function updateDynamicToolbar(obj) {
             alignmentControl.className = 'toolbar-item';
             alignmentControl.innerHTML = `
             <label class="tab_control_title">Align：</label>
-            <button id="imgAlignCenterH">水平居中</button>
-            <button id="imgAlignCenterV">垂直居中</button>
-            <button id="imgAlignLeft">左对齐</button>
-            <button id="imgAlignRight">右对齐</button>
-            <button id="imgAlignTop">上对齐</button>
-            <button id="imgAlignBottom">下对齐</button>
+            <button id="imgAlignCenterH"><i class="iconfont icon-format-horizontal-align-center"></i></button>
+            <button id="imgAlignCenterV"><i class="iconfont icon-vertical-align-middl"></i></button>
+            <button id="imgAlignLeft"><i class="iconfont icon-format-horizontal-align-left"></i></button>
+            <button id="imgAlignRight"><i class="iconfont icon-format-horizontal-align-right"></i></button>
+            <button id="imgAlignTop"><i class="iconfont icon-vertical-align-top"></i></button>
+            <button id="imgAlignBottom"><i class="iconfont icon-vertical-align-botto"></i></button>
           `;
             tempContainer.appendChild(alignmentControl);
 

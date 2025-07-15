@@ -1,10 +1,10 @@
 <div class="text_toolbar" style="display: none;">
-    <button class="toolbar_button" id="text_input">Text</button>
-    <button class="toolbar_button" id="text_font_style">Font</button>
-    <button class="toolbar_button" id="text_rotate">Transform</button>
-    <button class="toolbar_button" id="text_position">Position</button>
-    <button class="toolbar_button" id="text_distort">Arc</button>
-    <button class="toolbar_button" id="text_color">Color</button>    
+    <button class="toolbar_button" id="text_input"><i class="iconfont icon-wenbenshuru"></i>Text</button>
+    <button class="toolbar_button" id="text_font_style"><i class="iconfont icon-wenzi"></i>Font</button>
+    <button class="toolbar_button" id="text_rotate"><i class="iconfont icon-bianxing"></i>Transform</button>
+    <button class="toolbar_button" id="text_position"><i class="iconfont icon-yidongweizhi"></i>Position</button>
+    <button class="toolbar_button" id="text_distort"><i class="iconfont icon-wenzibianxing"></i>Arc</button>
+    <button class="toolbar_button" id="text_color"><i class="iconfont icon-yanse"></i>Color</button>    
 </div>
 <script>
 document.querySelectorAll('.toolbar_button').forEach(button => {
@@ -23,10 +23,14 @@ document.querySelectorAll('.toolbar_button').forEach(button => {
 });
 </script>
 <div class="img_toolbar" style="display:none">
-    <button class="toolbar_button" id="img_input">Transform</button>
-    <button class="toolbar_button" id="img_position">Position</button>
-    <button class="toolbar_button" id="img_size">Crop</button>
-    <button class="toolbar_button" id="img_color">Color</button>   
+    <button class="toolbar_button" id="img_input"><i class="iconfont icon-bianxing"></i>
+    Transform</button>
+    <button class="toolbar_button" id="img_position"><i class="iconfont icon-yidongweizhi"></i>
+    Position</button>
+    <button class="toolbar_button" id="img_size"><i class="iconfont icon-caijian"></i>
+    Crop</button>
+    <button class="toolbar_button" id="img_color"><i class="iconfont icon-yanse"></i>
+    Color</button>   
 </div>
 <script>
 document.querySelectorAll('.img_toolbar .toolbar_button').forEach(button => {

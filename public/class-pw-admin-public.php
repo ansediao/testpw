@@ -117,6 +117,9 @@ class Pw_Admin_Public
          * class.
          */
 
+        // 引入阿里图标库CSS
+        // wp_enqueue_style('pw-public-iconfont', '//at.alicdn.com/t/c/font_4970780_pfyts3fzl6.css', array(), $this->version, 'all');
+        
         wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/pw-admin-public.css', array(), $this->version, 'all');
     }
 
