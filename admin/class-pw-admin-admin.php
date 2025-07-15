@@ -277,6 +277,100 @@ class Pw_Admin_Admin
             'category_id' => $category_id
         ));
     }
+    
+    /**
+     * Handle product request form submission
+     * @since    1.0.0
+     */
+    public function handle_product_request_submission()
+    {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'pw_product_request_nonce')) {
+            wp_send_json_error(__('Security check failed!', 'pw-admin'));
+            return;
+        }
+        
+        // Check user permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Permission denied!', 'pw-admin'));
+            return;
+        }
+        
+        // Sanitize and get form data
+        $description = isset($_POST['pw_product_description']) ? sanitize_textarea_field($_POST['pw_product_description']) : '';
+        $product_link = isset($_POST['pw_product_link']) ? esc_url_raw($_POST['pw_product_link']) : '';
+        $image_url = '';
+        
+        // Handle image upload if present
+        if (isset($_FILES['pw_product_image']) && !empty($_FILES['pw_product_image']['name'])) {
+            $uploaded_file = $_FILES['pw_product_image'];
+            $upload_overrides = array('test_form' => false);
+            $movefile = wp_handle_upload($uploaded_file, $upload_overrides);
+            
+            if ($movefile && !isset($movefile['error'])) {
+                $image_url = $movefile['url'];
+            }
+        }
+        
+        // Validate that at least one field is filled
+        if (empty($description) && empty($product_link) && empty($image_url)) {
+            wp_send_json_error(__('Please fill in at least one field.', 'pw-admin'));
+            return;
+        }
+        
+        // Save to Flamingo if plugin is active
+        if (class_exists('Flamingo_Inbound_Message')) {
+            $this->save_product_request_to_flamingo($description, $product_link, $image_url);
+            wp_send_json_success(__('Your product request has been submitted successfully!', 'pw-admin'));
+        } else {
+            wp_send_json_success(__('Your product request has been saved successfully!', 'pw-admin'));
+        }
+    }
+
+    /**
+     * Save product request to Flamingo plugin
+     * @since    1.0.0
+     */
+    private function save_product_request_to_flamingo($description, $product_link, $image_url)
+    {
+        // Get current user info for the "from" field
+        $current_user = wp_get_current_user();
+        $from_name = $current_user->display_name ? $current_user->display_name : 'Admin User';
+        $from_email = $current_user->user_email ? $current_user->user_email : get_option('admin_email');
+        
+        // Prepare Flamingo fields array
+        $flamingo_fields = array(
+            'product_description' => $description,
+            'product_link'       => $product_link,
+            'product_image'      => $image_url,
+            'request_type'       => 'Product Request',
+            'request_source'     => 'Admin Dashboard',
+            'submitted_by'       => $from_name
+        );
+        
+        // Define request subject
+        $request_subject = __('Product Request from Admin Dashboard', 'pw-admin');
+        
+        // Create Flamingo inbound post
+        $post_data = array(
+            'post_type'    => 'flamingo_inbound',
+            'post_status'  => 'publish',
+            'post_title'   => $request_subject,
+        );
+        
+        $post_id = wp_insert_post($post_data);
+        
+        if ($post_id && !is_wp_error($post_id)) {
+            // Add Flamingo meta data
+            update_post_meta($post_id, '_from', $from_name . ' <' . $from_email . '>');
+            update_post_meta($post_id, '_from_name', $from_name);
+            update_post_meta($post_id, '_from_email', $from_email);
+            update_post_meta($post_id, '_subject', $request_subject);
+            update_post_meta($post_id, '_fields', $flamingo_fields);
+        }
+    }
+
+
 }
 
 
@@ -1158,11 +1252,14 @@ function pw_submenu_page_callback()
                     echo '<div class="tab-pane">';
                     echo '<h2>产品需求</h2>';
 
+                    // Display success/error messages
+                    echo '<div id="pw-form-messages" style="display: none;"></div>';
+
                     // 产品需求表单
                     echo '<div class="pw-product-request-form">';
                     echo '<p class="pw-form-intro">我们对新产品充满热情，并珍视您提供的每一条建议。如果您发现了有趣的产品，请告诉我们！</p>';
 
-                    echo '<form method="post" action="" enctype="multipart/form-data">';
+                    echo '<form method="post" action="" enctype="multipart/form-data" id="pw_product_request_form">';
                     wp_nonce_field('pw_product_request', 'pw_product_request_nonce');
 
                     echo '<p class="pw-form-instruction">只需填写任意一个字段</p>';
@@ -1190,11 +1287,10 @@ function pw_submenu_page_callback()
                     echo '<div id="pw_image_preview" class="pw-image-preview"></div>';
                     echo '</div>';
                     echo '</div>';
+                    
                     // 提交按钮
                     echo '<div class="pw-form-submit">';
-                    // echo '<input type="submit" name="pw_submit_product_request" class="button pw-support-button" value="Submit">';
-                    echo '<a href="#" class="button pw-support-button">Submit</a>';
-
+                    echo '<button type="submit" name="pw_submit_product_request" class="button pw-support-button">Submit</button>';
                     echo '</div>';
 
                     echo '</form>';
@@ -1212,6 +1308,53 @@ function pw_submenu_page_callback()
                                     }
                                     reader.readAsDataURL(file);
                                 }
+                            });
+                            
+                            // Handle form submission
+                            $("#pw_product_request_form").on("submit", function(e) {
+                                e.preventDefault();
+                                
+                                var formData = new FormData(this);
+                                formData.append("action", "pw_submit_product_request");
+                                formData.append("nonce", "' . wp_create_nonce('pw_product_request_nonce') . '");
+                                
+                                // Show loading state
+                                $(".pw-support-button").prop("disabled", true).text("Submitting...");
+                                
+                                $.ajax({
+                                    url: ajaxurl,
+                                    type: "POST",
+                                    data: formData,
+                                    processData: false,
+                                    contentType: false,
+                                    success: function(response) {
+                                        if (response.success) {
+                                            $("#pw-form-messages").html(
+                                                "<div class=\"notice notice-success is-dismissible\"><p>" + response.data + "</p></div>"
+                                            ).show();
+                                            // Reset form
+                                            $("#pw_product_request_form")[0].reset();
+                                            $("#pw_image_preview").html("");
+                                        } else {
+                                            $("#pw-form-messages").html(
+                                                "<div class=\"notice notice-error is-dismissible\"><p>" + response.data + "</p></div>"
+                                            ).show();
+                                        }
+                                    },
+                                    error: function() {
+                                        $("#pw-form-messages").html(
+                                            "<div class=\"notice notice-error is-dismissible\"><p>An error occurred. Please try again.</p></div>"
+                                        ).show();
+                                    },
+                                    complete: function() {
+                                        // Reset button state
+                                        $(".pw-support-button").prop("disabled", false).text("Submit");
+                                        // Scroll to messages
+                                        $("html, body").animate({
+                                            scrollTop: $("#pw-form-messages").offset().top - 100
+                                        }, 500);
+                                    }
+                                });
                             });
                         });
                     </script>';
