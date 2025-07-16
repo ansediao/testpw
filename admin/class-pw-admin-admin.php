@@ -1668,12 +1668,17 @@ function custom_product_column_content($column, $product_id)
 function add_custom_data_to_order_items($item, $cart_item_key, $values, $order)
 {
     if (isset($values['custom_data'])) {
-        $item->add_meta_data('_custom_image', $values['custom_data']['custom_image']);
-        $item->add_meta_data('_custom_color', $values['custom_data']['color']);
+        // $item->add_meta_data('_custom_image', $values['custom_data']['custom_image']);
+        // $item->add_meta_data('_custom_color', $values['custom_data']['color']);
 
         // 添加可见的元数据
         $item->add_meta_data('定制设计', '<img src="' . esc_url($values['custom_data']['custom_image']) . '" style="max-width:100px; height:auto;">', true);
         $item->add_meta_data('颜色', $values['custom_data']['color'], true);
+        
+        // 添加下载链接，只在邮件中显示，不在购物车中显示
+        $download_link = '<a href="' . esc_url($values['custom_data']['custom_image']) . '" target="_blank" download>下载设计图</a>';
+        $item->add_meta_data('_download_link', $download_link); // 隐藏元数据，不在购物车显示
+        $item->add_meta_data('设计下载', $download_link, false); // 只在邮件等后端显示
     }
 }
 add_action('woocommerce_checkout_create_order_line_item', 'add_custom_data_to_order_items', 10, 4);
