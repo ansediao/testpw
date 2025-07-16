@@ -691,13 +691,128 @@ function import_single_product($product)
         'post_type' => 'product',
     ));
 
-    if ($post_id) {
-        // 设置产品元数据
+    if ($post_id) { 
+        // 设置产品元数据 meta
+        update_post_meta($post_id, 'pw_id', $product['id']);
+        update_post_meta($post_id, 'pw_blank_item', $product['blank_item']);
+        update_post_meta($post_id, 'pw_inquiry_button', $product['inquiry_button']);
+
         update_post_meta($post_id, '_price', $product['price']);
         update_post_meta($post_id, '_regular_price', $product['anchor_price']);
         update_post_meta($post_id, '_sku', $product['sku']);
         update_post_meta($post_id, 'pw_isSyncProduct', true);
+        
+        // 设置封面图片
+        if (!empty($product['product_image'])) {
+            // pw_set_product_featured_image($post_id, $product['product_image']);
+        }
+        // 
     }
+    
+
+}
+
+/**
+ * Set product featured image from URL
+ * 
+ * @param int $product_id WooCommerce product ID
+ * @param string $image_url Image URL to set as featured image
+ * @return bool True on success, false on failure
+ */
+function pw_set_product_featured_image($product_id, $image_url) {
+    if (empty($image_url) || empty($product_id)) {
+        return false;
+    }
+    
+    // Check if image already exists in media library
+    $existing_attachment = pw_get_attachment_by_url($image_url);
+    if ($existing_attachment) {
+        set_post_thumbnail($product_id, $existing_attachment);
+        return true;
+    }
+    
+    // Download and upload the image
+    $image_data = wp_remote_get($image_url);
+    if (is_wp_error($image_data) || wp_remote_retrieve_response_code($image_data) !== 200) {
+        return false;
+    }
+    
+    $image_body = wp_remote_retrieve_body($image_data);
+    if (empty($image_body)) {
+        return false;
+    }
+    
+    // Get file info
+    $file_info = pathinfo($image_url);
+    $filename = sanitize_file_name($file_info['basename']);
+    
+    // If no extension, try to detect from content type
+    if (empty($file_info['extension'])) {
+        $content_type = wp_remote_retrieve_header($image_data, 'content-type');
+        $extension = '';
+        switch ($content_type) {
+            case 'image/jpeg':
+                $extension = '.jpg';
+                break;
+            case 'image/png':
+                $extension = '.png';
+                break;
+            case 'image/gif':
+                $extension = '.gif';
+                break;
+            case 'image/webp':
+                $extension = '.webp';
+                break;
+        }
+        $filename .= $extension;
+    }
+    
+    // Upload to WordPress media library
+    $upload = wp_upload_bits($filename, null, $image_body);
+    if ($upload['error']) {
+        return false;
+    }
+    
+    // Create attachment
+    $attachment = array(
+        'post_mime_type' => wp_check_filetype($upload['file'])['type'],
+        'post_title'     => sanitize_text_field($filename),
+        'post_content'   => '',
+        'post_status'    => 'inherit'
+    );
+    
+    $attachment_id = wp_insert_attachment($attachment, $upload['file']);
+    if (is_wp_error($attachment_id)) {
+        return false;
+    }
+    
+    // Generate attachment metadata
+    require_once(ABSPATH . 'wp-admin/includes/image.php');
+    $attachment_data = wp_generate_attachment_metadata($attachment_id, $upload['file']);
+    wp_update_attachment_metadata($attachment_id, $attachment_data);
+    
+    // Set as featured image
+    set_post_thumbnail($product_id, $attachment_id);
+    
+    return true;
+}
+
+/**
+ * Get attachment ID by URL
+ * 
+ * @param string $url Image URL
+ * @return int|false Attachment ID or false if not found
+ */
+function pw_get_attachment_by_url($url) {
+    global $wpdb;
+    
+    $attachment = $wpdb->get_col($wpdb->prepare("SELECT ID FROM {$wpdb->posts} WHERE guid='%s';", $url));
+    
+    if (!empty($attachment)) {
+        return $attachment[0];
+    }
+    
+    return false;
 }
 
 // 检查导入进度
