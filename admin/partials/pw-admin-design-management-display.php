@@ -12,8 +12,10 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
             <button class="button" id="pw-manage-category-btn">Manage Category</button>
         </div>
        
-        <div class="pw-design-filters">
-            按名搜索
+        <div class="pw-design-filters" style="    display: flex
+;
+    gap: 10px;
+    align-items: center;" >
             <form method="GET" action="">
                 <input type="hidden" name="page" value="<?php echo esc_attr( $_REQUEST['page'] ); ?>">
                 <input type="text" name="s" value="<?php echo esc_attr( $search_query ); ?>" placeholder="Search Designs">
@@ -50,7 +52,7 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
         <a href="#" class="nav-tab">Universal for Main View</a>
         <a href="#" class="nav-tab">Product Specific</a>
     </div>
-
+                    <br><br><br>
     <div class="pw-design-bulk-actions">
         <button class="button" id="pw-open-filter-modal">Filter</button>
         <label><input type="checkbox" id="pw-select-all-designs"> Select All</label>
