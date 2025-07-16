@@ -239,10 +239,25 @@ class Pw_Admin_Public
                     <div class="color-box" data-color="white" data-filter="brightness(0) saturate(100%) invert(100%)" style="width: 30px; height: 30px; background: white; cursor: pointer; border: 1px solid #ddd;"></div>
                 </div>
                 <p>or</p>
-                <div class="action-buttons">
-            <button class="btn btn-gradient">Gradient</button>
+        <div class="action-buttons">
+            <button class="btn btn-gradient" style="margin-right:10px;">Gradient</button>
+            
             <button class="btn btn-custom">Custom Colors</button>
+            <hr>
         </div>
+        <style>
+            .action-buttons .btn{
+                color:#fff;
+                background-color: rgba(17, 187, 245, 1);
+                border: none;
+    border-radius: 5px;
+    -moz-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.349019607843137);
+    -webkit-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.349019607843137);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.349019607843137);
+    padding:10px;
+    font-size: 16px;
+            }
+        </style>
         
         <!-- 添加勾选框 -->
         <div class="product-options" style="margin-top: 20px;">
@@ -251,18 +266,20 @@ class Pw_Admin_Public
                     <input type="checkbox" id="buy_sample" name="buy_sample" value="1" style="margin: 0;">
                     <span>Buy Sample</span>
                 </label>
+                <br>
                 <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
                     <input type="checkbox" id="blank_product" name="blank_product" value="1" style="margin: 0;">
                     <span>Blank Product</span>
                 </label>
             </div>
+            <hr>
         </div>
         
         <!-- 添加数量滑块 -->
         <div class="quantity-slider-section" style="margin-top: 20px;">
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;">
+            <div style="padding: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <span style="font-weight: bold;">Quantity:</span>
+                    <span style="font-weight: bold;"></span>
                     <span id="quantity-display" style="font-weight: bold; color: #007cba;">1</span>
                 </div>
                 <div style="position: relative; margin-bottom: 15px;">
@@ -347,7 +364,7 @@ class Pw_Admin_Public
                         border: none;
                     }
                 </style>
-                <div id="discount-display" style="text-align: center; font-weight: bold; color: #28a745;">Discount: 0% off</div>
+                <div id="discount-display" style="">Discount: 0% off</div>
             </div>
         </div>
             </div>
@@ -725,6 +742,12 @@ class Pw_Admin_Public
                             
                             quantityDisplay.textContent = quantity;
                             discountDisplay.textContent = 'Discount: ' + discount + '% off';
+                            
+                            // 更新产品数量输入框
+                            const quantityInput = $('input[name="quantity"]').first();
+                            if (quantityInput.length) {
+                                quantityInput.val(quantity);
+                            }
                             
                             // 更新隐藏字段
                             if (!$('#selected_quantity').length) {
