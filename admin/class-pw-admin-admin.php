@@ -1677,7 +1677,7 @@ function add_custom_data_to_order_items($item, $cart_item_key, $values, $order)
         
         // 添加下载链接，只在邮件中显示，不在购物车中显示
         $download_link = '<a href="' . esc_url($values['custom_data']['custom_image']) . '" target="_blank" download>下载设计图</a>';
-        $item->add_meta_data('_download_link', $download_link); // 隐藏元数据，不在购物车显示
+        // $item->add_meta_data('_download_link', $download_link); // 隐藏元数据，不在购物车显示
         $item->add_meta_data('设计下载', $download_link, false); // 只在邮件等后端显示
     }
 }
