@@ -662,7 +662,7 @@ function get_products_from_api()
     $body = wp_remote_retrieve_body($response);
     $data = json_decode($body, true);
 
-    return $data['data']['list'];
+    return $data['data']['list']['single_products'];
 }
 
 // 调度产品导入任务
