@@ -704,7 +704,7 @@ function import_single_product($product)
         
         // 设置封面图片
         if (!empty($product['product_image'])) {
-            // pw_set_product_featured_image($post_id, $product['product_image']);
+             pw_set_product_featured_image($post_id, $product['product_image']);
         }
         // 
     }

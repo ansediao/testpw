@@ -370,7 +370,7 @@ function updateDynamicToolbar(obj) {
             flipXControl.innerHTML = `
             <label for="imageHeight" class="tab_control_title">Flip：</label>
             <br>
-            <button id="imageFlipX">Horizontally</button>
+            <button id="imageFlipX"><i class="iconfont icon-jingxiang"></i></button>
           `;
             tempContainer.appendChild(flipXControl);
 
@@ -387,7 +387,7 @@ function updateDynamicToolbar(obj) {
             const flipYControl = document.createElement('div');
             flipYControl.className = 'toolbar-item';
             flipYControl.innerHTML = `
-            <button id="imageFlipY">Vertically</button>
+            <button id="imageFlipY"><i class="iconfont icon-jingxiang1"></i></button>
           `;
             tempContainer.appendChild(flipYControl);
 
