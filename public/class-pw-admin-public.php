@@ -58,11 +58,11 @@ class Pw_Admin_Public
         // --- BEGIN ADDED WOOCOMMERCE HOOKS ---
 
         // Add custom button and color selection after add to cart button
-        add_action('woocommerce_after_add_to_cart_button', array($this, 'add_custom_button_after_cart'));
-        add_action('woocommerce_before_add_to_cart_button', array($this, 'add_color_selection_after_cart'));
+        add_action('pw_admin_single_product_custom_content', array($this, 'add_custom_button_after_cart'));
+        add_action('pw_admin_single_product_custom_content', array($this, 'add_color_selection_after_cart'));
         
         // Add content between quantity selector and add to cart button
-        add_action('woocommerce_before_add_to_cart_button', array($this, 'add_content_between_quantity_and_cart'), 25);
+        add_action('pw_admin_single_product_custom_content', array($this, 'add_content_between_quantity_and_cart'), 25);
 
         // Validate cart contents before adding new items
         add_filter('woocommerce_add_to_cart_validation', array($this, 'validate_cart_products_before_add'), 10, 2);
@@ -107,6 +107,9 @@ class Pw_Admin_Public
 
         // Remove add to cart actions for sync products
         add_action('wp', array($this, 'conditionally_remove_simple_add_to_cart_button'));
+
+        // Add custom hook within single product summary (after default content)
+        add_action('woocommerce_single_product_summary', array($this, 'trigger_pw_custom_product_hook'), 25);
 
         // --- END ADDED WOOCOMMERCE HOOKS ---
 
@@ -1852,6 +1855,35 @@ class Pw_Admin_Public
         // 只有当条件满足时，才执行 remove_action
         if ( '1' == $is_sync_product ) {
             remove_action( 'woocommerce_simple_add_to_cart', 'woocommerce_simple_add_to_cart', 30 );
+
+            // 添加自定义钩子，允许其他插件或主题在同步产品处理后执行操作
+            do_action( 'pw_admin_after_sync_product_processed', $product_id, $is_sync_product );
+        }
+
+
+    }
+
+    /**
+     * 触发自定义产品钩子
+     * 在 woocommerce_after_single_product_summary 后触发，允许其他代码挂载自定义内容
+     * 
+     * @since    1.0.0
+     */
+    public function trigger_pw_custom_product_hook()
+    {
+        global $product;
+        
+        // 确保在产品页面且产品对象存在
+        if (is_product() && is_a($product, 'WC_Product')) {
+            /**
+             * 自定义产品钩子
+             * 
+             * 允许其他插件或主题在产品详情页面添加自定义内容
+             * 
+             * @param WC_Product $product 当前产品对象
+             * @param int $product_id 产品ID
+             */
+            do_action('pw_admin_single_product_custom_content', $product, $product->get_id());
         }
     }
 
