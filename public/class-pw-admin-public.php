@@ -97,6 +97,11 @@ class Pw_Admin_Public
         add_action('woocommerce_after_cart_item_name', array($this, 'add_custom_cart_column_data_revised'), 10, 2);
         add_action('wp_footer', array($this, 'move_custom_cart_column_with_js_revised'));
 
+        // Hide price for sync products
+        add_filter('woocommerce_get_price_html', array($this, 'hide_sync_product_price'), 10, 2);
+        add_filter('woocommerce_variable_price_html', array($this, 'hide_sync_product_price'), 10, 2);
+        add_filter('woocommerce_variable_sale_price_html', array($this, 'hide_sync_product_price'), 10, 2);
+
         // --- END ADDED WOOCOMMERCE HOOKS ---
 
     }
@@ -1692,6 +1697,32 @@ class Pw_Admin_Public
         }
         </style>
         <?php
+    }
+
+    /**
+     * 隐藏同步产品的价格显示
+     * Hooks into: woocommerce_get_price_html, woocommerce_variable_price_html, woocommerce_variable_sale_price_html
+     * @since    X.X.X
+     */
+    public function hide_sync_product_price($price, $product)
+    {
+        // 确保 $product 是有效的产品对象
+        if (!is_a($product, 'WC_Product')) {
+            return $price;
+        }
+
+        // 获取产品ID
+        $product_id = $product->get_id();
+
+        // 检查是否为同步产品
+        $pw_isSyncProduct = get_post_meta($product_id, 'pw_isSyncProduct', true);
+
+        // 如果是同步产品，隐藏价格
+        if ($pw_isSyncProduct == '1') {
+            return '';
+        }
+
+        return $price;
     }
 
     // --- END ADDED WOOCOMMERCE METHODS ---
