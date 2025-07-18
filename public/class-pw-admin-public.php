@@ -105,6 +105,9 @@ class Pw_Admin_Public
         add_filter('woocommerce_variable_price_html', array($this, 'hide_sync_product_price'), 10, 2);
         add_filter('woocommerce_variable_sale_price_html', array($this, 'hide_sync_product_price'), 10, 2);
 
+        // Remove add to cart actions for sync products
+        // add_action('wp', array($this, 'remove_add_to_cart_for_sync_products'));
+
         // --- END ADDED WOOCOMMERCE HOOKS ---
 
     }
@@ -1819,6 +1822,39 @@ class Pw_Admin_Public
         }
 
         return $price;
+    }
+
+    /**
+     * Remove add to cart actions for sync products
+     * Hooks into: wp
+     * @since    1.0.0
+     */
+    public function remove_add_to_cart_for_sync_products()
+    {
+        // Only run on single product pages
+        if (!is_product()) {
+            return;
+        }
+
+        global $product;
+
+        // Ensure $product is a valid product object
+        if (!is_a($product, 'WC_Product')) {
+            return;
+        }
+
+        // Get product ID
+        $product_id = $product->get_id();
+
+        // Check if this is a sync product
+        $pw_isSyncProduct = get_post_meta($product_id, 'pw_isSyncProduct', true);
+
+        // If it's NOT a sync product, remove add to cart actions
+        if ($pw_isSyncProduct == '1') {
+            remove_action('woocommerce_simple_add_to_cart', 'woocommerce_simple_add_to_cart', 30);
+            remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart');
+            remove_action('woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30);
+        }
     }
 
     // --- END ADDED WOOCOMMERCE METHODS ---
