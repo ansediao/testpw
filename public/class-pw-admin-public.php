@@ -59,7 +59,10 @@ class Pw_Admin_Public
 
         // Add custom button and color selection after add to cart button
         add_action('woocommerce_after_add_to_cart_button', array($this, 'add_custom_button_after_cart'));
-        add_action('woocommerce_after_add_to_cart_button', array($this, 'add_color_selection_after_cart'));
+        add_action('woocommerce_before_add_to_cart_button', array($this, 'add_color_selection_after_cart'));
+        
+        // Add content between quantity selector and add to cart button
+        add_action('woocommerce_before_add_to_cart_button', array($this, 'add_content_between_quantity_and_cart'), 25);
 
         // Validate cart contents before adding new items
         add_filter('woocommerce_add_to_cart_validation', array($this, 'validate_cart_products_before_add'), 10, 2);
@@ -1697,6 +1700,99 @@ class Pw_Admin_Public
         }
         </style>
         <?php
+    }
+
+    /**
+     * 在数量选择器和加入购物车按钮之间添加内容
+     * Hooks into: woocommerce_before_add_to_cart_button (priority 25)
+     * @since    X.X.X
+     */
+    public function add_content_between_quantity_and_cart()
+    {
+        global $product;
+
+        // 确保 $product 是有效的产品对象
+        if (!is_a($product, 'WC_Product')) {
+            return;
+        }
+
+        // 获取产品ID
+        $product_id = $product->get_id();
+
+        // 检查是否为同步产品（可选：只对特定产品显示）
+        $pw_isSyncProduct = get_post_meta($product_id, 'pw_isSyncProduct', true);
+
+        // 你可以根据需要调整这个条件，或者移除它来对所有产品显示
+        if ($pw_isSyncProduct == '1') {
+            ?>
+            <div class="custom-content-between-quantity-cart" style="margin: 15px 0;">
+                <div class="product-customization-options">
+                    <h4 style="margin-bottom: 10px; color: #333;">产品定制选项</h4>
+                    
+                    <!-- 示例内容：定制选项 -->
+                    <div class="customization-row" style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                        <label style="font-weight: bold; min-width: 80px;">尺寸:</label>
+                        <select name="custom_size" style="padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="">选择尺寸</option>
+                            <option value="small">小号</option>
+                            <option value="medium">中号</option>
+                            <option value="large">大号</option>
+                        </select>
+                    </div>
+                    
+                    <div class="customization-row" style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                        <label style="font-weight: bold; min-width: 80px;">材质:</label>
+                        <select name="custom_material" style="padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="">选择材质</option>
+                            <option value="cotton">棉质</option>
+                            <option value="polyester">聚酯纤维</option>
+                            <option value="blend">混纺</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 示例内容：个性化文字 -->
+                    <div class="customization-row" style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                        <label style="font-weight: bold; min-width: 80px;">个性文字:</label>
+                        <input type="text" name="custom_text" placeholder="输入个性化文字" style="padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px; flex: 1;">
+                    </div>
+                    
+                    <!-- 示例内容：特殊说明 -->
+                    <div class="customization-note" style="background: #f8f9fa; padding: 10px; border-radius: 4px; border-left: 4px solid #007cba;">
+                        <small style="color: #666;">
+                            <strong>提示:</strong> 定制产品需要额外 3-5 个工作日制作时间
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <style>
+                .custom-content-between-quantity-cart {
+                    border: 1px solid #e0e0e0;
+                    border-radius: 6px;
+                    padding: 15px;
+                    background: #fafafa;
+                }
+                
+                .custom-content-between-quantity-cart h4 {
+                    margin-top: 0;
+                    color: #333;
+                    font-size: 16px;
+                }
+                
+                .customization-row select,
+                .customization-row input {
+                    transition: border-color 0.3s ease;
+                }
+                
+                .customization-row select:focus,
+                .customization-row input:focus {
+                    outline: none;
+                    border-color: #007cba;
+                    box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.1);
+                }
+            </style>
+            <?php
+        }
     }
 
     /**
