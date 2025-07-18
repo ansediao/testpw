@@ -76,6 +76,7 @@ class Pw_Admin {
 
 		$this->load_dependencies();
 		$this->set_locale();
+		$this->register_custom_post_types();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 
@@ -224,6 +225,128 @@ class Pw_Admin {
 	 */
 	public function get_version() {
 		return $this->version;
+	}
+
+	/**
+	 * Register custom post types and taxonomies for the plugin.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 */
+	private function register_custom_post_types() {
+		$this->loader->add_action( 'init', $this, 'pw_design_post_type_and_taxonomies' );
+	}
+
+	/**
+	 * Register custom post type 'pw_design' and its taxonomies.
+	 *
+	 * @since    1.0.0
+	 */
+	public function pw_design_post_type_and_taxonomies() {
+		// 注册 pw_design 文章类型
+		$post_type_labels = array(
+			'name'                  => _x( 'PW Designs', 'Post type general name', 'pw-admin' ),
+			'singular_name'         => _x( 'PW Design', 'Post type singular name', 'pw-admin' ),
+			'menu_name'             => _x( 'PW Designs', 'Admin Menu text', 'pw-admin' ),
+			'name_admin_bar'        => _x( 'PW Design', 'Add New on Toolbar', 'pw-admin' ),
+			'add_new'               => __( '添加新的', 'pw-admin' ),
+			'add_new_item'          => __( '添加新的 PW Design', 'pw-admin' ),
+			'new_item'              => __( '新的 PW Design', 'pw-admin' ),
+			'edit_item'             => __( '编辑 PW Design', 'pw-admin' ),
+			'view_item'             => __( '查看 PW Design', 'pw-admin' ),
+			'all_items'             => __( '所有 PW Designs', 'pw-admin' ),
+			'search_items'          => __( '搜索 PW Designs', 'pw-admin' ),
+			'parent_item_colon'     => __( '父级 PW Design:', 'pw-admin' ),
+			'not_found'             => __( '未找到 PW Designs。', 'pw-admin' ),
+			'not_found_in_trash'    => __( '回收站中未找到 PW Designs。', 'pw-admin' ),
+			'featured_image'        => _x( 'PW Design 封面图片', 'Overrides the "Featured Image" phrase for this post type. Added in 4.3', 'pw-admin' ),
+			'set_featured_image'    => _x( '设置封面图片', 'Overrides the "Set featured image" phrase for this post type. Added in 4.3', 'pw-admin' ),
+			'remove_featured_image' => _x( '移除封面图片', 'Overrides the "Remove featured image" phrase for this post type. Added in 4.3', 'pw-admin' ),
+			'use_featured_image'    => _x( '用作封面图片', 'Overrides the "Use as featured image" phrase for this post type. Added in 4.3', 'pw-admin' ),
+			'archives'              => _x( 'PW Design 归档', 'The post type archive label used in nav menus. Default "Post Archives". Added in 4.4', 'pw-admin' ),
+			'insert_into_item'      => _x( '插入到 PW Design', 'Overrides the "Insert into post"/"Insert into page" phrase (used when inserting media into a post). Added in 4.4', 'pw-admin' ),
+			'uploaded_to_this_item' => _x( '上传到此 PW Design', 'Overrides the "Uploaded to this post"/"Uploaded to this page" phrase (used when viewing media attached to a post). Added in 4.4', 'pw-admin' ),
+			'filter_items_list'     => _x( '筛选 PW Designs 列表', 'Screen reader text for the filter links heading on the post type listing screen. Default "Filter posts list"/"Filter pages list". Added in 4.4', 'pw-admin' ),
+			'items_list_navigation' => _x( 'PW Designs 列表导航', 'Screen reader text for the pagination heading on the post type listing screen. Default "Posts list navigation"/"Pages list navigation". Added in 4.4', 'pw-admin' ),
+			'items_list'            => _x( 'PW Designs 列表', 'Screen reader text for the items list heading on the post type listing screen. Default "Posts list"/"Pages list". Added in 4.4', 'pw-admin' ),
+		);
+
+		$post_type_args = array(
+			'labels'             => $post_type_labels,
+			'public'             => true,
+			'publicly_queryable' => true,
+			'show_ui'            => true,
+			'show_in_menu'       => false, // 不在主菜单中显示
+			'query_var'          => true,
+			'rewrite'            => array( 'slug' => 'pw-design' ),
+			'capability_type'    => 'post',
+			'has_archive'        => true,
+			'hierarchical'       => false,
+			'menu_position'      => null,
+			'supports'           => array( 'title', 'editor', 'thumbnail', 'excerpt', 'comments', 'custom-fields', 'revisions' ),
+			'show_in_rest'       => false,
+		);
+
+		register_post_type( 'pw_design', $post_type_args );
+
+		// 注册 pw_design_category (类似文章分类)
+		$category_labels = array(
+			'name'              => _x( 'PW Design 分类', 'taxonomy general name', 'pw-admin' ),
+			'singular_name'     => _x( 'PW Design 分类', 'taxonomy singular name', 'pw-admin' ),
+			'search_items'      => __( '搜索 PW Design 分类', 'pw-admin' ),
+			'all_items'         => __( '所有 PW Design 分类', 'pw-admin' ),
+			'parent_item'       => __( '父级 PW Design 分类', 'pw-admin' ),
+			'parent_item_colon' => __( '父级 PW Design 分类:', 'pw-admin' ),
+			'edit_item'         => __( '编辑 PW Design 分类', 'pw-admin' ),
+			'update_item'       => __( '更新 PW Design 分类', 'pw-admin' ),
+			'add_new_item'      => __( '添加新的 PW Design 分类', 'pw-admin' ),
+			'new_item_name'     => __( '新的 PW Design 分类名称', 'pw-admin' ),
+			'menu_name'         => __( 'Design 分类', 'pw-admin' ),
+		);
+
+		$category_args = array(
+			'hierarchical'      => true,
+			'labels'            => $category_labels,
+			'show_ui'           => true,
+			'show_admin_column' => true,
+			'query_var'         => true,
+			'rewrite'           => array( 'slug' => 'pw-design-category' ),
+			'show_in_rest'      => true,
+		);
+
+		register_taxonomy( 'pw_design_category', array( 'pw_design' ), $category_args );
+
+		// 注册 pw_design_tag (类似文章标签)
+		$tag_labels = array(
+			'name'                       => _x( 'PW Design 标签', 'taxonomy general name', 'pw-admin' ),
+			'singular_name'              => _x( 'PW Design 标签', 'taxonomy singular name', 'pw-admin' ),
+			'search_items'               => __( '搜索 PW Design 标签', 'pw-admin' ),
+			'popular_items'              => __( '热门 PW Design 标签', 'pw-admin' ),
+			'all_items'                  => __( '所有 PW Design 标签', 'pw-admin' ),
+			'parent_item'                => null,
+			'parent_item_colon'          => null,
+			'edit_item'                  => __( '编辑 PW Design 标签', 'pw-admin' ),
+			'update_item'                => __( '更新 PW Design 标签', 'pw-admin' ),
+			'add_new_item'               => __( '添加新的 PW Design 标签', 'pw-admin' ),
+			'new_item_name'              => __( '新的 PW Design 标签名称', 'pw-admin' ),
+			'separate_items_with_commas' => __( '用逗号分隔 PW Design 标签', 'pw-admin' ),
+			'add_or_remove_items'        => __( '添加或移除 PW Design 标签', 'pw-admin' ),
+			'choose_from_most_used'      => __( '从最常用的 PW Design 标签中选择', 'pw-admin' ),
+			'not_found'                  => __( '未找到 PW Design 标签。', 'pw-admin' ),
+			'menu_name'                  => __( 'Design 标签', 'pw-admin' ),
+		);
+
+		$tag_args = array(
+			'hierarchical'          => false,
+			'labels'                => $tag_labels,
+			'show_ui'               => true,
+			'show_admin_column'     => true,
+			'query_var'             => true,
+			'rewrite'               => array( 'slug' => 'pw-design-tag' ),
+			'show_in_rest'          => true,
+		);
+
+		register_taxonomy( 'pw_design_tag', array( 'pw_design' ), $tag_args );
 	}
 
 }

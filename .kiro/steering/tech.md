@@ -67,3 +67,32 @@ Get-ChildItem -Force (PowerShell)
 - 外部 API: `https://dev.promowares.com/api/v1/`
 - 认证方式: JWT 令牌
 - 自定义 REST 端点: `/wp-json/pw/v1/`
+
+## 设计管理系统技术规范
+
+### 自定义文章类型实现
+- **注册方法**: 通过 `Pw_Admin_Loader` 系统在 `init` 钩子上注册
+- **文本域**: 统一使用 `pw-admin` 文本域进行国际化
+- **权限系统**: 使用标准 WordPress `post` 权限类型
+- **URL 结构**: 
+  - 设计: `/pw-design/{post-name}/`
+  - 分类: `/pw-design-category/{category-slug}/`
+  - 标签: `/pw-design-tag/{tag-slug}/`
+
+### 数据库结构
+- **文章表**: 使用标准 `wp_posts` 表，`post_type = 'pw_design'`
+- **分类表**: 使用标准 `wp_terms` 和 `wp_term_taxonomy` 表
+- **关系表**: 使用标准 `wp_term_relationships` 表
+- **元数据**: 支持 `wp_postmeta` 表存储自定义字段
+
+### REST API 支持
+- **分类法 REST**: `pw_design_category` 和 `pw_design_tag` 启用 REST API
+- **文章类型 REST**: `pw_design` 默认不启用 REST API (可根据需要启用)
+- **端点访问**:
+  - 分类: `/wp-json/wp/v2/pw_design_category`
+  - 标签: `/wp-json/wp/v2/pw_design_tag`
+
+### 性能优化
+- **查询优化**: 使用 WordPress 标准查询缓存
+- **分类法查询**: 支持 `WP_Query` 和 `get_terms()` 标准函数
+- **归档页面**: 启用归档页面缓存支持
