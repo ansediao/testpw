@@ -54,7 +54,7 @@ class Pw_Admin_Promowares_Api {
      */
     public function __construct() {
         $this->api_base_url = 'https://dev.promowares.com/api/v1/';
-        $this->hardcoded_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NDE4MTYxMjgsInRlYW0iOiIxIiwidXNlcl9pZCI6MX0.60D-NUbUBa_n3KXyNrhnoN964IjwIFJtGUVDCSnKYFM';
+        $this->hardcoded_token = get_option('pw_api_token', '');
     }
 
     /**
