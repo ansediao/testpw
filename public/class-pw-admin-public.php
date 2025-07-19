@@ -69,7 +69,7 @@ class Pw_Admin_Public
         $this->initialize_modules();
 
         // Add custom hook for modular components
-        add_action('woocommerce_single_product_summary', array($this, 'trigger_pw_custom_product_hook'), 25);
+        add_action('woocommerce_product_meta_end', array($this, 'trigger_pw_custom_product_hook'), 100);
     }
 
     /**
