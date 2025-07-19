@@ -20,6 +20,9 @@ require_once plugin_dir_path(__FILE__) . 'modules/class-pw-api-data-display.php'
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-auxiliary-functions.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-template-handler.php';
 
+// Load partial components
+require_once plugin_dir_path(__FILE__) . 'partials/pw-product-cart-handler.php';
+
 /**
  * The public-facing functionality of the plugin.
  *
@@ -158,6 +161,8 @@ class Pw_Admin_Public
             do_action('pw_admin_single_product_custom_content', $product, $product->get_id());
         }
     }
+
+
 }
 
 /**
