@@ -2010,12 +2010,12 @@ class Pw_Admin_Public
                                 $('#pw-sync-content').html('<div class="pw-api-error" style="background: #ffebee; border: 1px solid #f44336; padding: 10px; border-radius: 4px;"><strong>API 错误:</strong> <?php echo esc_js($error_message); ?></div>').show();
                                 <?php
                             } else {
-                                // 生成HTML内容
-                                $html = $this->generate_sync_product_html($api_response);
+                                // 直接格式化显示JSON数据
+                                $json_html = '<pre style="background: #fff; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px; line-height: 1.4; border: 1px solid #e0e0e0; white-space: pre-wrap; word-wrap: break-word;">' . esc_html(json_encode($api_response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . '</pre>';
                                 ?>
-                                // 隐藏加载图片并显示内容
+                                // 隐藏加载图片并显示JSON内容
                                 $('#pw-sync-loading').hide();
-                                $('#pw-sync-content').html(<?php echo wp_json_encode($html); ?>).show();
+                                $('#pw-sync-content').html(<?php echo wp_json_encode($json_html); ?>).show();
                                 <?php
                             }
                             ?>
@@ -2039,78 +2039,7 @@ class Pw_Admin_Public
 
 
 
-    /**
-     * 生成同步产品数据的HTML
-     * 
-     * @param array $api_response API响应数据
-     * @return string HTML内容
-     */
-    private function generate_sync_product_html($api_response) {
-        if (empty($api_response)) {
-            return '<p>暂无产品信息</p>';
-        }
 
-        $html = '';
-        
-        // 显示产品数据的主要信息
-        if (isset($api_response['data'])) {
-            $product_data = $api_response['data'];
-            
-            // 显示产品名称
-            if (isset($product_data['name'])) {
-                $html .= '<p><strong>产品名称:</strong> ' . esc_html($product_data['name']) . '</p>';
-            }
-            
-            // 显示产品描述
-            if (isset($product_data['description'])) {
-                $html .= '<p><strong>描述:</strong> ' . esc_html($product_data['description']) . '</p>';
-            }
-            
-            // 显示产品价格
-            if (isset($product_data['price'])) {
-                $html .= '<p><strong>价格:</strong> ¥' . esc_html($product_data['price']) . '</p>';
-            }
-            
-            // 显示产品SKU
-            if (isset($product_data['sku'])) {
-                $html .= '<p><strong>SKU:</strong> ' . esc_html($product_data['sku']) . '</p>';
-            }
-            
-            // 显示产品分类
-            if (isset($product_data['category'])) {
-                $html .= '<p><strong>分类:</strong> ' . esc_html($product_data['category']) . '</p>';
-            }
-            
-            // 显示产品图片
-            if (isset($product_data['images']) && is_array($product_data['images'])) {
-                $html .= '<div class="pw-product-images" style="margin-top: 10px;">';
-                $html .= '<strong>产品图片:</strong><br>';
-                foreach ($product_data['images'] as $image) {
-                    if (is_string($image)) {
-                        $html .= '<img src="' . esc_url($image) . '" alt="产品图片" style="max-width: 100px; height: auto; margin: 5px; border: 1px solid #ddd; border-radius: 4px;">';
-                    } elseif (isset($image['url'])) {
-                        $html .= '<img src="' . esc_url($image['url']) . '" alt="产品图片" style="max-width: 100px; height: auto; margin: 5px; border: 1px solid #ddd; border-radius: 4px;">';
-                    }
-                }
-                $html .= '</div>';
-            }
-            
-            // 显示其他可用的数据
-            $displayed_fields = array('name', 'description', 'price', 'sku', 'category', 'images');
-            foreach ($product_data as $key => $value) {
-                if (!in_array($key, $displayed_fields) && !is_array($value) && !is_object($value)) {
-                    $html .= '<p><strong>' . esc_html(ucfirst(str_replace('_', ' ', $key))) . ':</strong> ' . esc_html($value) . '</p>';
-                }
-            }
-        } else {
-            // 如果没有data字段，显示整个响应（调试用）
-            $html .= '<pre style="background: #fff; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px;">';
-            $html .= esc_html(print_r($api_response, true));
-            $html .= '</pre>';
-        }
-        
-        return $html;
-    }
 
     // --- END ADDED WOOCOMMERCE METHODS ---
 
