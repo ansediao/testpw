@@ -111,6 +111,9 @@ class Pw_Admin_Public
         // Add custom hook within single product summary (after default content)
         add_action('woocommerce_single_product_summary', array($this, 'trigger_pw_custom_product_hook'), 25);
 
+        // Add sync product API data display
+        add_action('pw_admin_single_product_custom_content', array($this, 'display_sync_product_api_data'));
+
         // --- END ADDED WOOCOMMERCE HOOKS ---
 
     }
@@ -1885,6 +1888,228 @@ class Pw_Admin_Public
              */
             do_action('pw_admin_single_product_custom_content', $product, $product->get_id());
         }
+    }
+
+    /**
+     * 显示同步产品的API数据（仅超级管理员可见）
+     * 当产品的 pw_isSyncProduct 为真时，直接调用API并显示返回内容
+     * 此功能仅对超级管理员显示，作为调试信息
+     * 
+     * @since 1.0.0
+     */
+    public function display_sync_product_api_data() {
+        // 只有超级管理员才能看到此调试信息
+        if (!is_super_admin()) {
+            return;
+        }
+
+        global $product;
+
+        // 确保 $product 是有效的产品对象
+        if (!is_a($product, 'WC_Product')) {
+            return;
+        }
+
+        $product_id = $product->get_id();
+        
+        // 检查是否为同步产品
+        $pw_isSyncProduct = get_post_meta($product_id, 'pw_isSyncProduct', true);
+        
+        if ($pw_isSyncProduct !== '1') {
+            return;
+        }
+
+        // 输出折叠容器和加载界面
+        ?>
+        <div id="pw-sync-product-container" class="pw-sync-product-data" style="background: #f9f9f9; border: 1px solid #ddd; margin: 15px 0; border-radius: 4px;">
+            <!-- 折叠标题栏 -->
+            <div id="pw-sync-header" style="padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd;">
+                <h4 style="margin: 0; color: #333;">产品详细信息</h4>
+                <span id="pw-sync-toggle" style="font-size: 18px; color: #666; transition: transform 0.3s ease;">▼</span>
+            </div>
+            
+            <!-- 折叠内容区域 -->
+            <div id="pw-sync-body" style="display: none; padding: 15px;">
+                <div id="pw-sync-loading" style="text-align: center; padding: 20px; display: none;">
+                    <img src="<?php echo esc_url(plugin_dir_url(__FILE__) . '../assets/images/icons/spinner.gif'); ?>" alt="加载中..." style="width: 32px; height: 32px;">
+                    <p style="margin-top: 10px; color: #666;">正在获取产品信息...</p>
+                </div>
+                <div id="pw-sync-content" style="display: none;"></div>
+            </div>
+        </div>
+
+        <style>
+        #pw-sync-header:hover {
+            background-color: #f0f0f0;
+        }
+        
+        #pw-sync-toggle.expanded {
+            transform: rotate(180deg);
+        }
+        
+        .pw-sync-slide-down {
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .pw-sync-slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 500px;
+            }
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 1;
+                max-height: 500px;
+            }
+            to {
+                opacity: 0;
+                max-height: 0;
+            }
+        }
+        </style>
+
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            var isExpanded = false;
+            var isLoaded = false;
+            
+            // 折叠/展开功能
+            $('#pw-sync-header').click(function() {
+                if (!isExpanded) {
+                    // 展开
+                    $('#pw-sync-body').removeClass('pw-sync-slide-up').addClass('pw-sync-slide-down').show();
+                    $('#pw-sync-toggle').addClass('expanded');
+                    isExpanded = true;
+                    
+                    // 如果还没有加载数据，则开始加载
+                    if (!isLoaded) {
+                        $('#pw-sync-loading').show();
+                        
+                        // 模拟异步加载效果，然后直接调用PHP API
+                        setTimeout(function() {
+                            <?php
+                            // 直接在这里调用API
+                            $api = new Pw_Admin_Promowares_Api();
+                            $api_response = $api->get_product_by_woo_id($product_id);
+                            
+                            if (is_wp_error($api_response)) {
+                                $error_message = $api_response->get_error_message();
+                                ?>
+                                // 隐藏加载图片并显示错误
+                                $('#pw-sync-loading').hide();
+                                $('#pw-sync-content').html('<div class="pw-api-error" style="background: #ffebee; border: 1px solid #f44336; padding: 10px; border-radius: 4px;"><strong>API 错误:</strong> <?php echo esc_js($error_message); ?></div>').show();
+                                <?php
+                            } else {
+                                // 生成HTML内容
+                                $html = $this->generate_sync_product_html($api_response);
+                                ?>
+                                // 隐藏加载图片并显示内容
+                                $('#pw-sync-loading').hide();
+                                $('#pw-sync-content').html(<?php echo wp_json_encode($html); ?>).show();
+                                <?php
+                            }
+                            ?>
+                            isLoaded = true;
+                        }, 500); // 延迟500ms以显示加载效果
+                    }
+                } else {
+                    // 收起
+                    $('#pw-sync-body').removeClass('pw-sync-slide-down').addClass('pw-sync-slide-up');
+                    setTimeout(function() {
+                        $('#pw-sync-body').hide();
+                    }, 300);
+                    $('#pw-sync-toggle').removeClass('expanded');
+                    isExpanded = false;
+                }
+            });
+        });
+        </script>
+        <?php
+    }
+
+
+
+    /**
+     * 生成同步产品数据的HTML
+     * 
+     * @param array $api_response API响应数据
+     * @return string HTML内容
+     */
+    private function generate_sync_product_html($api_response) {
+        if (empty($api_response)) {
+            return '<p>暂无产品信息</p>';
+        }
+
+        $html = '';
+        
+        // 显示产品数据的主要信息
+        if (isset($api_response['data'])) {
+            $product_data = $api_response['data'];
+            
+            // 显示产品名称
+            if (isset($product_data['name'])) {
+                $html .= '<p><strong>产品名称:</strong> ' . esc_html($product_data['name']) . '</p>';
+            }
+            
+            // 显示产品描述
+            if (isset($product_data['description'])) {
+                $html .= '<p><strong>描述:</strong> ' . esc_html($product_data['description']) . '</p>';
+            }
+            
+            // 显示产品价格
+            if (isset($product_data['price'])) {
+                $html .= '<p><strong>价格:</strong> ¥' . esc_html($product_data['price']) . '</p>';
+            }
+            
+            // 显示产品SKU
+            if (isset($product_data['sku'])) {
+                $html .= '<p><strong>SKU:</strong> ' . esc_html($product_data['sku']) . '</p>';
+            }
+            
+            // 显示产品分类
+            if (isset($product_data['category'])) {
+                $html .= '<p><strong>分类:</strong> ' . esc_html($product_data['category']) . '</p>';
+            }
+            
+            // 显示产品图片
+            if (isset($product_data['images']) && is_array($product_data['images'])) {
+                $html .= '<div class="pw-product-images" style="margin-top: 10px;">';
+                $html .= '<strong>产品图片:</strong><br>';
+                foreach ($product_data['images'] as $image) {
+                    if (is_string($image)) {
+                        $html .= '<img src="' . esc_url($image) . '" alt="产品图片" style="max-width: 100px; height: auto; margin: 5px; border: 1px solid #ddd; border-radius: 4px;">';
+                    } elseif (isset($image['url'])) {
+                        $html .= '<img src="' . esc_url($image['url']) . '" alt="产品图片" style="max-width: 100px; height: auto; margin: 5px; border: 1px solid #ddd; border-radius: 4px;">';
+                    }
+                }
+                $html .= '</div>';
+            }
+            
+            // 显示其他可用的数据
+            $displayed_fields = array('name', 'description', 'price', 'sku', 'category', 'images');
+            foreach ($product_data as $key => $value) {
+                if (!in_array($key, $displayed_fields) && !is_array($value) && !is_object($value)) {
+                    $html .= '<p><strong>' . esc_html(ucfirst(str_replace('_', ' ', $key))) . ':</strong> ' . esc_html($value) . '</p>';
+                }
+            }
+        } else {
+            // 如果没有data字段，显示整个响应（调试用）
+            $html .= '<pre style="background: #fff; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px;">';
+            $html .= esc_html(print_r($api_response, true));
+            $html .= '</pre>';
+        }
+        
+        return $html;
     }
 
     // --- END ADDED WOOCOMMERCE METHODS ---

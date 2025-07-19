@@ -246,6 +246,26 @@ class Pw_Admin_Promowares_Api {
     }
 
     /**
+     * Get product data from Promowares API using WooCommerce product's pw_id meta.
+     *
+     * @since    1.0.0
+     * @param    int       $woo_product_id    The WooCommerce product ID.
+     * @param    string    $token             Optional. Custom token to use.
+     * @return   array|WP_Error              The product data or error.
+     */
+    public function get_product_by_woo_id($woo_product_id, $token = null) {
+        // Get the pw_id from WooCommerce product meta
+        $pw_id = get_post_meta($woo_product_id, 'pw_id', true);
+        
+        if (empty($pw_id)) {
+            return new WP_Error('missing_pw_id', 'Product does not have a pw_id meta field');
+        }
+
+        // Use the existing get_product method
+        return $this->get_product($pw_id, $token);
+    }
+
+    /**
      * Check API connection status.
      *
      * @since    1.0.0
