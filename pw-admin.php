@@ -184,7 +184,7 @@ add_action('manage_product_posts_custom_column', function ($column, $post_id) {
                 </div>';
         }
     }
-}, 10, 2);
+}, 20, 2);
 
 
 
