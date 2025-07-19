@@ -64,9 +64,51 @@ Get-ChildItem -Force (PowerShell)
 
 ## API 集成
 
-- 外部 API: `https://dev.promowares.com/api/v1/`
-- 认证方式: JWT 令牌
-- 自定义 REST 端点: `/wp-json/pw/v1/`
+### 外部 Promowares API
+- **基础地址**: `https://dev.promowares.com/api/v1/`
+- **认证方式**: JWT 令牌
+- **主要端点**:
+  - `GET /products` - 获取产品列表
+  - `GET /auth/user-info` - 验证用户令牌
+
+### WordPress REST API 端点
+- **命名空间**: `pw/v1`
+- **基础地址**: `/wp-json/pw/v1/`
+- **端点列表**:
+  - `GET /getPwDesignImages` - 获取设计图片列表
+
+### WordPress AJAX 端点
+- **管理后台 AJAX**:
+  - `pw_proxy_api_request` - API代理请求
+  - `pw_save_token` - 保存API令牌
+  - `pw_get_design_tags` - 获取设计标签
+  - `pw_save_design_tags` - 保存设计标签
+  - `pw_add_design` - 添加新设计
+  - `check_import_progress` - 检查导入进度
+  - `generate_production_pdf` - 生成生产单PDF
+  - `pw_add_category` - 添加分类
+  - `pw_update_category_settings` - 更新分类设置
+  - `pw_delete_category` - 删除分类
+  - `pw_submit_product_request` - 提交产品请求
+
+- **前台 AJAX**:
+  - `add_customized_product_to_cart` - 添加自定义产品到购物车（支持未登录用户）
+
+## WordPress 选项配置
+
+### 插件选项名称
+- **pw_api_token**: API 认证令牌
+- **pw_api_key**: API 密钥
+- **pw_api_secret**: API 密钥
+- **pw_disable_ssl**: SSL 禁用设置
+- **pw_customize_text**: 自定义按钮文本
+- **pw_customize_color**: 自定义按钮颜色
+
+### 选项使用规范
+- 使用 `get_option()` 获取选项值，提供合理的默认值
+- 使用 `update_option()` 更新选项值
+- 所有选项名称使用 `pw_` 前缀保持一致性
+- 在表单中使用 `esc_attr()` 转义选项值
 
 ## 设计管理系统技术规范
 
