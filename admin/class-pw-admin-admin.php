@@ -534,7 +534,7 @@ function pw_main_menu_page()
         <?php wp_nonce_field('pw_dashboard_settings', 'pw_dashboard_nonce'); ?>
 
         <p>
-            <input type="text" name="pw_token" id="pw_token" class="regular-text" placeholder="Enter API Token">
+            <input type="text" name="pw_token" id="pw_token" class="regular-text" placeholder="Enter API Token" value="<?php echo esc_attr(get_option('pw_api_token', '')); ?>">
             <input type="button" name="pw_check" id="pw_check" class="button" value="Connect">
         </p>
         <div id="pw_loading" style="display:none;"><span class="spinner is-active"></span> Verifying...</div>
@@ -627,7 +627,26 @@ function pw_main_menu_page()
                         $('#pw_loading').hide();
                         if (response.code === 200 && response.message === 'success' &&
                             response.data && response.data.user_id === 1 && response.data.team === "1") {
-                            $('#pw_result').html('<div class="notice notice-success"><p>验证成功</p></div>');
+                            // 验证成功，保存token
+                            $.ajax({
+                                url: ajaxurl,
+                                type: 'POST',
+                                data: {
+                                    action: 'pw_save_token',
+                                    token: token,
+                                    nonce: '<?php echo wp_create_nonce("pw_save_token_nonce"); ?>'
+                                },
+                                success: function(saveResponse) {
+                                    if (saveResponse.success) {
+                                        $('#pw_result').html('<div class="notice notice-success"><p>验证成功，Token已保存</p></div>');
+                                    } else {
+                                        $('#pw_result').html('<div class="notice notice-warning"><p>验证成功，但Token保存失败</p></div>');
+                                    }
+                                },
+                                error: function() {
+                                    $('#pw_result').html('<div class="notice notice-warning"><p>验证成功，但Token保存失败</p></div>');
+                                }
+                            });
                         } else {
                             $('#pw_result').html('<div class="notice notice-error"><p>验证失败: 无效的响应格式</p></div>');
                         }
@@ -1954,6 +1973,37 @@ add_action('wp_ajax_pw_proxy_api_request', function () {
     $api = new Pw_Admin_Promowares_Api();
     $api->handle_proxy_api_request();
 });
+
+// AJAX handler for saving token
+add_action('wp_ajax_pw_save_token', 'pw_save_token');
+function pw_save_token() {
+    // 验证 nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'pw_save_token_nonce')) {
+        wp_send_json_error('安全验证失败');
+        return;
+    }
+    
+    // 检查用户权限
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('权限不足');
+        return;
+    }
+    
+    $token = sanitize_text_field($_POST['token']);
+    if (empty($token)) {
+        wp_send_json_error('Token不能为空');
+        return;
+    }
+    
+    // 保存token到WordPress选项
+    $result = update_option('pw_api_token', $token);
+    
+    if ($result) {
+        wp_send_json_success('Token保存成功');
+    } else {
+        wp_send_json_error('Token保存失败');
+    }
+}
 
 // AJAX handler for getting design tags
 add_action('wp_ajax_pw_get_design_tags', 'pw_get_design_tags');
