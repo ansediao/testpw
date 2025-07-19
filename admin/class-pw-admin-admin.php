@@ -645,24 +645,11 @@ function pw_main_menu_page()
 }
 
 
-// 获取API数据
+// 获取API数据 - 使用新的API类
 function get_products_from_api()
 {
-    $response = wp_remote_get('https://dev.promowares.com/api/v1/products', array(
-        'headers' => array(
-            'accept' => 'application/json',
-            'Authorization' => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NDE4MTYxMjgsInRlYW0iOiIxIiwidXNlcl9pZCI6MX0.60D-NUbUBa_n3KXyNrhnoN964IjwIFJtGUVDCSnKYFM',
-        ),
-    ));
-
-    if (is_wp_error($response)) {
-        return false;
-    }
-
-    $body = wp_remote_retrieve_body($response);
-    $data = json_decode($body, true);
-
-    return $data['data']['list']['single_products'];
+    $api = new Pw_Admin_Promowares_Api();
+    return $api->get_products_from_api();
 }
 
 // 调度产品导入任务
@@ -1962,23 +1949,10 @@ function generate_production_pdf($order, $item_id, $product_name, $product_id, $
     );
 }
 
+// AJAX handler moved to Pw_Admin_Promowares_Api class
 add_action('wp_ajax_pw_proxy_api_request', function () {
-    $endpoint = sanitize_text_field($_POST['endpoint']);
-    $token = sanitize_text_field($_POST['token']);
-
-    $response = wp_remote_get('https://dev.promowares.com/api/v1/' . $endpoint, [
-        'headers' => [
-            'Accept' => 'application/json',
-            'Authorization' => $token
-        ],
-        'timeout' => 30
-    ]);
-
-    if (is_wp_error($response)) {
-        wp_send_json_error($response->get_error_message());
-    } else {
-        wp_send_json(json_decode(wp_remote_retrieve_body($response), true));
-    }
+    $api = new Pw_Admin_Promowares_Api();
+    $api->handle_proxy_api_request();
 });
 
 // AJAX handler for getting design tags

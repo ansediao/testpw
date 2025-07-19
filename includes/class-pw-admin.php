@@ -123,6 +123,11 @@ class Pw_Admin {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-pw-admin-public.php';
 
+		/**
+		 * The class responsible for Promowares API communication.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-pw-admin-promowares-api.php';
+
 		$this->loader = new Pw_Admin_Loader();
 
 	}
