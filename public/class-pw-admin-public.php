@@ -1919,6 +1919,46 @@ class Pw_Admin_Public
             return;
         }
 
+        // 获取API数据（只调用一次）
+        $api = new Pw_Admin_Promowares_Api();
+        $api_response = $api->get_product_by_woo_id($product_id);
+        
+        // 显示accessories模块（如果存在）
+        if (!is_wp_error($api_response) && isset($api_response['data']['accessories']) && is_array($api_response['data']['accessories']) && !empty($api_response['data']['accessories'])) {
+            ?>
+            <div id="pw-accessories-container" class="pw-accessories-data" style="background: #f9f9f9; border: 1px solid #ddd; margin: 15px 0; border-radius: 4px;">
+                <div style="padding: 15px; border-bottom: 1px solid #ddd;">
+                    <h4 style="margin: 0; color: #333;">产品配件</h4>
+                </div>
+                <div style="padding: 15px;">
+                    <div class="accessories-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+                        <?php foreach ($api_response['data']['accessories'] as $accessory): ?>
+                            <div class="accessory-item" style="border: 1px solid #e0e0e0; border-radius: 4px; padding: 10px; background: #fff;">
+                                <?php if (!empty($accessory['product_image'])): ?>
+                                    <div class="accessory-image" style="text-align: center; margin-bottom: 10px;">
+                                        <img src="<?php echo esc_url($accessory['product_image']); ?>" alt="<?php echo esc_attr($accessory['name']); ?>" style="max-width: 100%; height: 80px; object-fit: cover; border-radius: 4px;">
+                                    </div>
+                                <?php endif; ?>
+                                <div class="accessory-info">
+                                    <h5 style="margin: 0 0 5px 0; font-size: 14px; color: #333;"><?php echo esc_html($accessory['name']); ?></h5>
+                                    <?php if (!empty($accessory['sku'])): ?>
+                                        <p style="margin: 0 0 5px 0; font-size: 12px; color: #666;">SKU: <?php echo esc_html($accessory['sku']); ?></p>
+                                    <?php endif; ?>
+                                    <div class="accessory-price" style="font-weight: bold; color: #007cba;">
+                                        <?php if ($accessory['anchor_price'] > 0 && $accessory['anchor_price'] > $accessory['price']): ?>
+                                            <span style="text-decoration: line-through; color: #999; font-size: 12px;">$<?php echo number_format($accessory['anchor_price'], 2); ?></span>
+                                        <?php endif; ?>
+                                        <span>$<?php echo number_format($accessory['price'], 2); ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+            <?php
+        }
+
         // 输出折叠容器和加载界面
         ?>
         <div id="pw-sync-product-container" class="pw-sync-product-data" style="background: #f9f9f9; border: 1px solid #ddd; margin: 15px 0; border-radius: 4px;">
@@ -1995,13 +2035,9 @@ class Pw_Admin_Public
                     if (!isLoaded) {
                         $('#pw-sync-loading').show();
                         
-                        // 模拟异步加载效果，然后直接调用PHP API
+                        // 模拟异步加载效果，然后使用已获取的API数据
                         setTimeout(function() {
                             <?php
-                            // 直接在这里调用API
-                            $api = new Pw_Admin_Promowares_Api();
-                            $api_response = $api->get_product_by_woo_id($product_id);
-                            
                             if (is_wp_error($api_response)) {
                                 $error_message = $api_response->get_error_message();
                                 ?>
@@ -2010,7 +2046,7 @@ class Pw_Admin_Public
                                 $('#pw-sync-content').html('<div class="pw-api-error" style="background: #ffebee; border: 1px solid #f44336; padding: 10px; border-radius: 4px;"><strong>API 错误:</strong> <?php echo esc_js($error_message); ?></div>').show();
                                 <?php
                             } else {
-                                // 直接格式化显示JSON数据
+                                // 直接格式化显示JSON数据（重用已获取的API响应）
                                 $json_html = '<pre style="background: #fff; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px; line-height: 1.4; border: 1px solid #e0e0e0; white-space: pre-wrap; word-wrap: break-word;">' . esc_html(json_encode($api_response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) . '</pre>';
                                 ?>
                                 // 隐藏加载图片并显示JSON内容
