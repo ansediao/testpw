@@ -798,14 +798,141 @@ $plugin_url = plugin_dir_url(__FILE__);
 
     <!-- 设计内容 (隐藏) -->
     <div id="content-sheji" class="content-pane">
+        <!-- List.js CDN -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/2.3.1/list.min.js"></script>
+        
         <div class="search-filter-container">
-            <input type="text" id="design-search-input" placeholder="搜索设计..." class="search-input">
-            <button id="filter-designs-btn" class="filter-button">
-                <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle;">
-                    <path fill="currentColor" d="M10,18c1.846,0,3.543-0.635,4.897-1.688l4.396,4.396l1.414-1.414l-4.396-4.396C17.365,13.543,18,11.846,18,10 c0-4.411-3.589-8-8-8s-8,3.589-8,8S5.589,18,10,18z M10,4c3.309,0,6,2.691,6,6s-2.691,6-6,6s-6-2.691-6-6S6.691,4,10,4z" />
-                </svg>
-            </button>
+            <!-- 快速搜索输入框 -->
+            <div class="quick-search-row">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="#9ca3af" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    <input type="text" class="search" placeholder="Search Design Folders" id="quick-search-input">
+                </div>
+                <button id="filter-toggle-btn" class="filter-toggle-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="white" d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+                    </svg>
+                    Filter
+                </button>
+            </div>
+            
+            <!-- 高级搜索行 (默认隐藏) -->
+            <div class="advanced-search-row" id="advanced-search-row" style="display: none;">
+                <div class="advanced-search-field">
+                    <label>Folder</label>
+                    <select id="filter-operator" class="filter-operator">
+                        <option value="is">is</option>
+                        <option value="isnot">is not</option>
+                        <option value="contains">contains</option>
+                        <option value="notcontains">not contains</option>
+                    </select>
+                    <input type="text" id="advanced-search-input" class="advanced-search-input" placeholder="">
+                </div>
+            </div>
         </div>
+        
+        <style>
+            .search-filter-container {
+                padding: 16px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                margin-bottom: 16px;
+            }
+            
+            .quick-search-row {
+                display: flex;
+                gap: 12px;
+                align-items: center;
+            }
+            
+            .search-input-wrapper {
+                flex: 1;
+                position: relative;
+            }
+            
+            .search-icon {
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                pointer-events: none;
+            }
+            
+            .search, .advanced-search-input {
+                width: 100%;
+                padding: 12px 12px 12px 44px;
+                border: 2px solid #e5e7eb;
+                border-radius: 8px;
+                font-size: 16px;
+                background: white;
+                box-sizing: border-box;
+            }
+            
+            .search:focus, .advanced-search-input:focus {
+                outline: none;
+                border-color: #3b82f6;
+            }
+            
+            .filter-toggle-btn {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 20px;
+                background: #22d3ee;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+            
+            .filter-toggle-btn:hover {
+                background: #0891b2;
+            }
+            
+            .advanced-search-row {
+                margin-top: 16px;
+                padding-top: 16px;
+                border-top: 1px solid #e5e7eb;
+            }
+            
+            .advanced-search-field {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            
+            .advanced-search-field label {
+                font-weight: 500;
+                color: #374151;
+                min-width: 100px;
+            }
+            
+            .filter-operator {
+                padding: 8px 12px;
+                border: 2px solid #e5e7eb;
+                border-radius: 6px;
+                background: white;
+                font-size: 14px;
+                min-width: 120px;
+            }
+            
+            .filter-operator:focus {
+                outline: none;
+                border-color: #3b82f6;
+            }
+            
+            .advanced-search-input {
+                flex: 1;
+                padding: 8px 12px;
+                margin: 0;
+            }
+        </style>
+        
         <hr>
         <?php
         // 获取所有自定义分类数据
@@ -815,12 +942,13 @@ $plugin_url = plugin_dir_url(__FILE__);
         ));
 
         if (!is_wp_error($categories) && !empty($categories)) {
-            echo '<div class="content-sheji">';
+            echo '<div id="design-categories-list" class="content-sheji">';
+            echo '<div class="list">';
             foreach ($categories as $category) {
                 echo '<div class="category-item">';
                 echo '<div class="category-item-header">';
                 // 统一显示图片在标题上面
-                echo '<div class="category_name">' . '<img src="' . MY_PLUGIN_URL . 'assets/images/icons/design.svg" alt="Designs ICON">' . esc_html($category->name) . '</div>';
+                echo '<div class="category_name name">' . '<img src="' . MY_PLUGIN_URL . 'assets/images/icons/design.svg" alt="Designs ICON">' . esc_html($category->name) . '</div>';
                 echo '<button class="back-button" >Back to Design Folders</button>';
                 echo '</div>';
                 echo '<div class="designs-grid">';
@@ -849,21 +977,120 @@ $plugin_url = plugin_dir_url(__FILE__);
                 echo '</div>';
             }
             echo '</div>';
+            echo '</div>';
         }
         ?>
     </div>
 </div>
 
 <script>
-    // 分类项点击功能
+    // List.js 和过滤功能
     document.addEventListener('DOMContentLoaded', () => {
+        // 初始化 List.js
+        let designCategoriesList = null;
+        
+        // 等待 List.js 库加载完成
+        function initializeListJS() {
+            if (typeof List !== 'undefined') {
+                const options = {
+                    valueNames: ['name'],
+                    searchClass: 'search'
+                };
+                
+                designCategoriesList = new List('design-categories-list', options);
+                
+                // 设置初始搜索功能
+                setupSearchFunctionality();
+            } else {
+                // 如果 List.js 还没加载完成，等待一下再试
+                setTimeout(initializeListJS, 100);
+            }
+        }
+        
+        initializeListJS();
+        
+        function setupSearchFunctionality() {
+            const filterToggleBtn = document.getElementById('filter-toggle-btn');
+            const advancedSearchRow = document.getElementById('advanced-search-row');
+            const quickSearchInput = document.getElementById('quick-search-input');
+            const advancedSearchInput = document.getElementById('advanced-search-input');
+            const filterOperator = document.getElementById('filter-operator');
+            
+            // 切换高级搜索显示/隐藏
+            filterToggleBtn.addEventListener('click', () => {
+                const isVisible = advancedSearchRow.style.display !== 'none';
+                advancedSearchRow.style.display = isVisible ? 'none' : 'block';
+                
+                // 如果隐藏高级搜索，清空高级搜索输入
+                if (isVisible) {
+                    advancedSearchInput.value = '';
+                    applyAdvancedFilter();
+                }
+            });
+            
+            // 快速搜索功能 (自定义搜索以处理纯文本)
+            quickSearchInput.addEventListener('input', (e) => {
+                if (designCategoriesList) {
+                    const searchTerm = e.target.value.toLowerCase().trim();
+                    
+                    if (searchTerm === '') {
+                        designCategoriesList.filter();
+                        return;
+                    }
+                    
+                    designCategoriesList.filter((item) => {
+                        const nameElement = item.elm.querySelector('.name');
+                        const categoryName = nameElement ? nameElement.textContent.toLowerCase().trim() : '';
+                        return categoryName.includes(searchTerm);
+                    });
+                }
+            });
+            
+            // 高级搜索功能
+            function applyAdvancedFilter() {
+                const searchTerm = advancedSearchInput.value.toLowerCase();
+                const operator = filterOperator.value;
+                
+                if (!designCategoriesList) return;
+                
+                if (searchTerm === '') {
+                    // 如果搜索词为空，显示所有项目
+                    designCategoriesList.filter();
+                    return;
+                }
+                
+                designCategoriesList.filter((item) => {
+                    // 获取纯文本内容，去除HTML标签
+                    const nameElement = item.elm.querySelector('.name');
+                    const categoryName = nameElement ? nameElement.textContent.toLowerCase().trim() : '';
+                    
+                    switch (operator) {
+                        case 'is':
+                            return categoryName === searchTerm;
+                        case 'isnot':
+                            return categoryName !== searchTerm;
+                        case 'contains':
+                            return categoryName.includes(searchTerm);
+                        case 'notcontains':
+                            return !categoryName.includes(searchTerm);
+                        default:
+                            return true;
+                    }
+                });
+            }
+            
+            // 高级搜索输入事件
+            advancedSearchInput.addEventListener('input', applyAdvancedFilter);
+            filterOperator.addEventListener('change', applyAdvancedFilter);
+        }
+        
+        // 分类项点击功能
         const categoryItems = document.querySelectorAll('.category-item');
         const contentSheji = document.querySelector('.content-sheji');
 
         if (categoryItems && contentSheji) {
             categoryItems.forEach(item => {
                 item.addEventListener('click', (e) => {
-
                     // 移除所有分类项的active类
                     categoryItems.forEach(i => i.classList.remove('active'));
                     // 给当前点击的分类项添加active类
@@ -888,7 +1115,6 @@ $plugin_url = plugin_dir_url(__FILE__);
                 }
             });
         });
-
     });
 
 
