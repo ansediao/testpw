@@ -103,59 +103,7 @@ class Pw_Product_Customization {
             <hr>
         </div>
 
-        <!-- 添加数量滑块 -->
-        <div class="quantity-slider-section" style="margin-top: 20px;">
-            <div style="padding: 15px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <span style="font-weight: bold;"></span>
-                    <span id="quantity-display" style="font-weight: bold; color: #007cba;">1</span>
-                </div>
-                <div style="position: relative; margin-bottom: 15px;">
-                    <input type="range" id="quantity-slider" min="1" max="100" value="1" class="custom-slider">
-                    <div class="slider-marks" style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 12px; color: #666;">
-                        <span>1</span>
-                        <span>25</span>
-                        <span>50</span>
-                        <span>75</span>
-                        <span>100</span>
-                    </div>
-                </div>
-                <style>
-                    .custom-slider {
-                        width: 100%;
-                        height: 6px;
-                        border-radius: 3px;
-                        background: #ddd;
-                        outline: none;
-                        -webkit-appearance: none;
-                        appearance: none;
-                    }
-                    
-                    .custom-slider::-webkit-slider-thumb {
-                        -webkit-appearance: none;
-                        appearance: none;
-                        width: 20px;
-                        height: 20px;
-                        border-radius: 50%;
-                        background: #007cba;
-                        cursor: pointer;
-                        border: 2px solid #fff;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                    }
-                    
-                    .custom-slider::-moz-range-thumb {
-                        width: 20px;
-                        height: 20px;
-                        border-radius: 50%;
-                        background: #007cba;
-                        cursor: pointer;
-                        border: 2px solid #fff;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                    }
-                </style>
-                <div id="discount-display" style="">Discount: 0% off</div>
-            </div>
-        </div>
+       
 
         <canvas id="shadowLayer" width="600" height="600" style="display:none;"></canvas>
         
