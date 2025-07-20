@@ -171,20 +171,22 @@ class Pw_Admin_Public
         }
     }
 
+    /**
+     * Handle canvas request
+     * 
+     * @since    1.0.0
+     */
+    public function pw_canvas_handle_request()
+    {
+        global $wp;
+        $current_url = home_url($wp->request);
+        $target_path = '/pwcanvas/';
 
-}
-
-/**
- * Handle canvas request
- */
-function pw_canvas_handle_request()
-{
-    global $wp;
-    $current_url = home_url($wp->request);
-    $target_path = '/pwcanvas/';
-
-    if (untrailingslashit($current_url) === untrailingslashit(home_url($target_path))) {
-        include(plugin_dir_path(__FILE__) . 'partials/template-canvas-display.php');
-        exit; // 阻止 WordPress 加载默认模板
+        if (untrailingslashit($current_url) === untrailingslashit(home_url($target_path))) {
+            include(plugin_dir_path(__FILE__) . 'partials/template-canvas-display.php');
+            exit; // 阻止 WordPress 加载默认模板
+        }
     }
+
+
 }

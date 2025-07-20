@@ -189,6 +189,9 @@ class Pw_Admin {
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+		
+		// Register canvas template handler
+		$this->loader->add_action( 'template_redirect', $plugin_public, 'pw_canvas_handle_request' );
 
 	}
 
