@@ -20,6 +20,7 @@ require_once plugin_dir_path(__FILE__) . 'modules/class-pw-api-data-display.php'
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-auxiliary-functions.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-template-handler.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-options.php';
+require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-action-buttons.php';
 
 // Load partial components
 require_once plugin_dir_path(__FILE__) . 'partials/pw-product-cart-handler.php';
@@ -87,6 +88,7 @@ class Pw_Admin_Public
         new Pw_Auxiliary_Functions();
         new Pw_Template_Handler();
         new Pw_Product_Options();
+        new Pw_Product_Action_Buttons();
     }
 
     /**
@@ -108,6 +110,11 @@ class Pw_Admin_Public
     {
         wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/pw-admin-public.js', array('jquery'), $this->version, false);
 
+        // 确保WooCommerce脚本可用
+        if (class_exists('WooCommerce')) {
+            wp_enqueue_script('wc-add-to-cart');
+        }
+
         // 添加内联脚本处理购物车图片
         $script = '
             (function($) {
@@ -117,7 +124,7 @@ class Pw_Admin_Public
                         var container = $(this);
                         var imageUrl = container.data("image-url");
                         if (imageUrl) {
-                            container.html(\'<img src="\' + imageUrl + \'" alt="定制设计" style="max-width: 100px; height: auto; display: block; border: 1px solid #ddd; padding: 5px; background: #fff;">\');
+                            container(\'<img src="\' + imageUrl + \'" alt="定制设计" style="max-width: 100px; height: auto; display: block; border: 1px solid #ddd; padding: 5px; background: #fff;">\');
                         }
                     });
                 }
