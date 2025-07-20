@@ -43,277 +43,436 @@ class Pw_Quantity_Discount {
         $api = new Pw_Admin_Promowares_Api();
         $api_response = $api->get_product_by_woo_id($product_id);
 
+        $use_demo_data = false;
+        $quantity_discounts = [];
+
         if (is_wp_error($api_response) || !isset($api_response['data']['quantity_discount']) || 
             !is_array($api_response['data']['quantity_discount']) || empty($api_response['data']['quantity_discount'])) {
-            return;
+            $use_demo_data = true;
+        } else {
+            $quantity_discounts = $api_response['data']['quantity_discount'];
+            
+            // 检查是否有range_to为0的情况
+            foreach ($quantity_discounts as $discount) {
+                if (isset($discount['range_to']) && $discount['range_to'] == 0) {
+                    $use_demo_data = true;
+                    break;
+                }
+            }
         }
 
-        $quantity_discounts = $api_response['data']['quantity_discount'];
-        
-        // 过滤掉无效的折扣数据
-        $valid_discounts = array_filter($quantity_discounts, function($discount) {
-            return !($discount['range_from'] == 0 && $discount['range_to'] == 0);
-        });
-
-        // 如果没有有效的折扣数据，使用演示数据
-        if (empty($valid_discounts)) {
-            $valid_discounts = [
+        // 如果需要使用demo数据或API数据无效
+        if ($use_demo_data || empty($quantity_discounts)) {
+            $quantity_discounts = [
                 [
-                    'range_from' => 1,
-                    'range_to' => 49,
+                    'range_from' => 6,
+                    'range_to' => 10,
                     'discount' => 0,
                     'extra_processing_time' => 0
                 ],
                 [
-                    'range_from' => 50,
-                    'range_to' => 99,
-                    'discount' => 0.05,
+                    'range_from' => 11,
+                    'range_to' => 15,
+                    'discount' => 0.1,
                     'extra_processing_time' => 1
                 ],
                 [
-                    'range_from' => 100,
-                    'range_to' => 499,
-                    'discount' => 0.1,
+                    'range_from' => 16,
+                    'range_to' => 20,
+                    'discount' => 0.15,
                     'extra_processing_time' => 2
                 ],
                 [
-                    'range_from' => 500,
-                    'range_to' => 999,
-                    'discount' => 0.15,
+                    'range_from' => 21,
+                    'range_to' => 25,
+                    'discount' => 0.2,
                     'extra_processing_time' => 3
                 ],
                 [
-                    'range_from' => 1000,
+                    'range_from' => 26,
+                    'range_to' => 30,
+                    'discount' => 0.25,
+                    'extra_processing_time' => 4
+                ],
+                [
+                    'range_from' => 31,
                     'range_to' => 0,
-                    'discount' => 0.2,
+                    'discount' => 0.3,
                     'extra_processing_time' => 5
                 ]
             ];
         }
+
+        // 过滤掉无效的折扣数据
+        $valid_discounts = array_filter($quantity_discounts, function($discount) {
+            return !($discount['range_from'] == 0 && $discount['range_to'] == 0);
+        });
 
         // 按数量范围排序
         usort($valid_discounts, function($a, $b) {
             return $a['range_from'] - $b['range_from'];
         });
 
+        // 准备配置数据
+        $config = [
+            'initialQuantity' => 6,
+            'step' => 5,
+            'maxStock' => 9999,
+            'discountTiers' => []
+        ];
+
+        foreach ($valid_discounts as $discount) {
+            $discount_text = ($discount['discount'] * 100) . '% OFF';
+            $config['discountTiers'][] = [
+                'quantity' => $discount['range_from'],
+                'discountText' => $discount_text
+            ];
+        }
+
         ?>
         
-        <div id="pw-quantity-discount-container" class="pw-quantity-discount-data">
-            <h3>数量折扣</h3>
-            <div class="discount-table-wrapper">
-                <table class="quantity-discount-table">
-                    <thead>
-                        <tr>
-                            <th>数量范围</th>
-                            <th>折扣</th>
-                            <th>额外处理时间</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($valid_discounts as $discount): ?>
-                            <tr>
-                                <td>
-                                    <?php 
-                                    if ($discount['range_to'] == 0 || $discount['range_to'] == 999999) {
-                                        echo esc_html($discount['range_from']) . '+';
-                                    } else {
-                                        echo esc_html($discount['range_from']) . ' - ' . esc_html($discount['range_to']);
-                                    }
-                                    ?>
-                                </td>
-                                <td class="discount-cell">
-                                    <?php 
-                                    $discount_percentage = $discount['discount'] * 100;
-                                    if ($discount_percentage > 0) {
-                                        echo '<span class="discount-badge">' . number_format($discount_percentage, 1) . '% OFF</span>';
-                                    } else {
-                                        echo '<span class="no-discount">无折扣</span>';
-                                    }
-                                    ?>
-                                </td>
-                                <td>
-                                    <?php 
-                                    if ($discount['extra_processing_time'] > 0) {
-                                        echo '+' . esc_html($discount['extra_processing_time']) . ' 天';
-                                    } else {
-                                        echo '标准';
-                                    }
-                                    ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-            <div class="discount-note">
-                <p><strong>注意：</strong> 折扣将根据您选择的数量自动应用。更大的订单量可能需要额外的处理时间。</p>
+        <div class="container-wrapper">
+            <div class="quantity-selector">
+                <div class="quantity-control">
+                    <label for="quantity-input">Quantity:</label>
+                    <div class="stepper">
+                        <button class="stepper-btn minus" aria-label="减少数量">-</button>
+                        <input
+                            type="text"
+                            id="quantity-input"
+                            class="quantity-input"
+                            value="6"
+                            readonly
+                        />
+                        <button class="stepper-btn plus" aria-label="增加数量">+</button>
+                    </div>
+                </div>
+
+                <div id="discount-scale-container" class="discount-scale-container">
+                    <div id="quantity-tooltip" class="quantity-tooltip">6</div>
+                    <div class="scale-line"></div>
+                    <div id="scale-dots" class="scale-dots"></div>
+                </div>
+
+                <p id="discount-display-text" class="discount-display"></p>
             </div>
         </div>
 
         <style>
-        #pw-quantity-discount-container {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            margin: 15px 0;
-            border-radius: 4px;
-            padding: 15px;
+        /* --- 全局和容器样式 --- */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
-        #pw-quantity-discount-container h3 {
-            margin: 0 0 15px 0;
-            color: #333;
-            font-size: 1.2em;
-            font-weight: 600;
-        }
-
-        .discount-table-wrapper {
-            overflow-x: auto;
-            margin-bottom: 15px;
-        }
-
-        .quantity-discount-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #fff;
-            border-radius: 4px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .quantity-discount-table th {
-            background: #007cba;
-            color: #fff;
-            padding: 12px 15px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .quantity-discount-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-        }
-
-        .quantity-discount-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .quantity-discount-table tbody tr:hover {
-            background: #f8f9fa;
-        }
-
-        .quantity-discount-table tbody tr.highlight {
-            background: #fff3cd !important;
-            border-left: 4px solid #ffc107;
-        }
-
-        .discount-cell {
-            text-align: center;
-        }
-
-        .discount-badge {
-            background: #28a745;
-            color: #fff;
-            padding: 4px 8px;
+        .container-wrapper {
+            background-color: #ffffff;
+            padding: 30px 40px;
             border-radius: 12px;
-            font-size: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 420px;
+            margin: 20px 0;
+        }
+
+        .quantity-selector {
+            color: #333;
+        }
+
+        /* --- 数量控制区域 --- */
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            margin-bottom: 50px;
+        }
+
+        .quantity-control label {
+            margin-right: 15px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        /* --- 步进器 (加减号和输入框) --- */
+        .stepper {
+            display: flex;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 38px;
+        }
+
+        .stepper-btn {
+            background-color: #f8fafc;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            width: 38px;
+            color: #718096;
+            transition: background-color 0.2s, color 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1;
+        }
+
+        .stepper-btn:hover {
+            background-color: #edf2f7;
+            color: #2d3748;
+        }
+
+        .quantity-input {
+            width: 60px;
+            text-align: center;
+            border: none;
+            border-left: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            font-size: 16px;
+            font-weight: 500;
+            color: #1a202c;
+            -moz-appearance: textfield;
+            outline: none;
+        }
+
+        /* --- 折扣刻度尺区域 --- */
+        .discount-scale-container {
+            position: relative;
+            height: 40px;
+            padding: 0 8px;
+            margin-bottom: 20px;
+        }
+
+        .scale-line {
+            position: absolute;
+            top: 50%;
+            left: 8px;
+            right: 8px;
+            height: 3px;
+            background-color: #e2e8f0;
+            border-radius: 2px;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+        .scale-dots {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            height: 100%;
+            z-index: 2;
+        }
+
+        .scale-dot {
+            width: 14px;
+            height: 14px;
+            background-color: #cbd5e0;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s ease-out;
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .scale-dot.active {
+            background-color: #38b2ac;
+            transform: translate(-50%, -50%) scale(1.4);
+            box-shadow: 0 0 0 3px rgba(56, 178, 172, 0.3);
+        }
+
+        /* --- 数量提示框 (Tooltip) --- */
+        .quantity-tooltip {
+            position: absolute;
+            background-color: #2d3748;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: 600;
-            display: inline-block;
+            top: -30px;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s, top 0.3s;
+            z-index: 10;
         }
 
-        .no-discount {
-            color: #6c757d;
-            font-style: italic;
+        .quantity-tooltip.visible {
+            opacity: 1;
+            visibility: visible;
+            top: -35px;
         }
 
-        .discount-note {
-            background: #e7f3ff;
-            border: 1px solid #b3d9ff;
-            border-radius: 4px;
-            padding: 10px;
-            font-size: 13px;
+        .quantity-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -6px;
+            border-width: 6px;
+            border-style: solid;
+            border-color: #2d3748 transparent transparent transparent;
         }
 
-        .discount-note p {
-            margin: 0;
-            color: #0066cc;
+        /* --- 新增：下方折扣显示文字 --- */
+        .discount-display {
+            margin-top: 25px;
+            text-align: center;
+            color: #4a5568;
+            font-size: 16px;
+            font-weight: 500;
+            height: 24px;
+            transition: color 0.3s;
         }
 
         /* 响应式设计 */
         @media (max-width: 768px) {
-            .quantity-discount-table {
-                font-size: 12px;
-            }
-            
-            .quantity-discount-table th,
-            .quantity-discount-table td {
-                padding: 8px 10px;
-            }
-            
-            #pw-quantity-discount-container h3 {
-                font-size: 1.1em;
+            .container-wrapper {
+                padding: 20px;
+                margin: 10px 0;
             }
         }
         </style>
 
         <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 数量折扣数据
-            const quantityDiscounts = <?php echo wp_json_encode($valid_discounts); ?>;
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 1. 配置和初始化 ---
+            const config = <?php echo wp_json_encode($config); ?>;
             
-            // 监听数量滑块变化
-            const quantitySlider = document.getElementById('quantity-slider');
-            const discountDisplay = document.getElementById('discount-display');
-            
-            if (quantitySlider && discountDisplay) {
-                function updateDiscountDisplay(quantity) {
-                    let currentDiscount = 0;
-                    let extraTime = 0;
-                    
-                    // 找到适用的折扣
-                    for (let discount of quantityDiscounts) {
-                        if (quantity >= discount.range_from && 
-                            (discount.range_to == 0 || quantity <= discount.range_to)) {
-                            currentDiscount = discount.discount;
-                            extraTime = discount.extra_processing_time;
-                            break;
-                        }
-                    }
-                    
-                    const discountPercentage = (currentDiscount * 100).toFixed(1);
-                    let displayText = `折扣: ${discountPercentage}% OFF`;
-                    
-                    if (extraTime > 0) {
-                        displayText += ` (额外处理时间: +${extraTime}天)`;
-                    }
-                    
-                    discountDisplay.textContent = displayText;
-                    
-                    // 高亮对应的表格行
-                    const tableRows = document.querySelectorAll('.quantity-discount-table tbody tr');
-                    tableRows.forEach(row => row.classList.remove('highlight'));
-                    
-                    for (let i = 0; i < quantityDiscounts.length; i++) {
-                        const discount = quantityDiscounts[i];
-                        if (quantity >= discount.range_from && 
-                            (discount.range_to == 0 || quantity <= discount.range_to)) {
-                            if (tableRows[i]) {
-                                tableRows[i].classList.add('highlight');
-                            }
-                            break;
-                        }
+            // 确保discountTiers使用API数据
+            if (config.discountTiers.length === 0) {
+                config.discountTiers = [
+                    { quantity: 6,  discountText: "0% OFF" },
+                    { quantity: 11, discountText: "10% OFF" },
+                    { quantity: 16, discountText: "15% OFF" },
+                    { quantity: 21, discountText: "20% OFF" },
+                    { quantity: 26, discountText: "25% OFF" },
+                    { quantity: 31, discountText: "30% OFF" }
+                ];
+            }
+
+            // --- 2. 获取 DOM 元素 ---
+            const quantityInput = document.getElementById('quantity-input');
+            const minusBtn = document.querySelector('.stepper-btn.minus');
+            const plusBtn = document.querySelector('.stepper-btn.plus');
+            const scaleDotsContainer = document.getElementById('scale-dots');
+            const quantityTooltip = document.getElementById('quantity-tooltip');
+            const scaleContainer = document.getElementById('discount-scale-container');
+            const discountDisplayText = document.getElementById('discount-display-text');
+
+            let currentQuantity = config.initialQuantity;
+
+            // --- 3. 核心功能函数 ---
+
+            function createScaleDots() {
+                if (!config.step || config.step <= 0) {
+                    scaleContainer.style.display = 'none';
+                    return;
+                }
+
+                scaleDotsContainer.innerHTML = '';
+                const quantities = config.discountTiers.map(tier => tier.quantity);
+                const totalDots = quantities.length;
+
+                quantities.forEach((qty, index) => {
+                    if (qty > config.maxStock) return;
+
+                    const dot = document.createElement('div');
+                    dot.className = 'scale-dot';
+                    dot.dataset.quantity = qty;
+
+                    const positionPercent = (index / (totalDots - 1)) * 100;
+                    dot.style.left = `${positionPercent}%`;
+
+                    dot.addEventListener('click', () => {
+                        updateAll(qty);
+                    });
+
+                    scaleDotsContainer.appendChild(dot);
+                });
+            }
+
+            function getDiscountForQuantity(qty) {
+                let currentDiscount = null;
+                for (let i = config.discountTiers.length - 1; i >= 0; i--) {
+                    const tier = config.discountTiers[i];
+                    if (qty >= tier.quantity) {
+                        currentDiscount = tier.discountText;
+                        break;
                     }
                 }
-                
-                quantitySlider.addEventListener('input', function() {
-                    const quantity = parseInt(this.value);
-                    updateDiscountDisplay(quantity);
-                });
-                
-                // 初始化显示
-                updateDiscountDisplay(parseInt(quantitySlider.value));
+                return currentDiscount;
             }
+
+            function findClosestDotQuantity(qty) {
+                return config.discountTiers
+                    .map(tier => tier.quantity)
+                    .reduce((prev, curr) => {
+                        return (Math.abs(curr - qty) < Math.abs(prev - qty) ? curr : prev);
+                    });
+            }
+
+            function updateAll(newQuantity) {
+                currentQuantity = Math.max(config.initialQuantity, Math.min(newQuantity, config.maxStock));
+
+                // 1. 更新输入框的值
+                quantityInput.value = currentQuantity;
+
+                // 2. 找到最接近的刻度点并激活
+                const closestDotQty = findClosestDotQuantity(currentQuantity);
+                const dots = document.querySelectorAll('.scale-dot');
+                let activeDot = null;
+
+                dots.forEach(dot => {
+                    if (parseInt(dot.dataset.quantity) === closestDotQty) {
+                        dot.classList.add('active');
+                        activeDot = dot;
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                });
+
+                // 3. 更新上方的数量提示框
+                if (activeDot) {
+                    quantityTooltip.textContent = closestDotQty;
+                    const dotPosition = activeDot.offsetLeft + (activeDot.offsetWidth / 2);
+                    quantityTooltip.style.left = `${dotPosition}px`;
+                    quantityTooltip.classList.add('visible');
+                } else {
+                    quantityTooltip.classList.remove('visible');
+                }
+
+                // 4. 更新下方的折扣文字
+                const discountText = getDiscountForQuantity(currentQuantity);
+                if (discountText && discountText !== "0% OFF") {
+                    discountDisplayText.textContent = `Discount: ${discountText}`;
+                } else {
+                    discountDisplayText.textContent = '';
+                }
+
+                // 5. 更新数量输入框（如果存在）
+                const productQuantityInput = document.querySelector('input[name="quantity"]');
+                if (productQuantityInput) {
+                    productQuantityInput.value = currentQuantity;
+                    // 触发change事件
+                    const event = new Event('change', { bubbles: true });
+                    productQuantityInput.dispatchEvent(event);
+                }
+            }
+
+            // --- 4. 绑定事件监听 ---
+            minusBtn.addEventListener('click', () => {
+                updateAll(parseInt(quantityInput.value) - config.step);
+            });
+
+            plusBtn.addEventListener('click', () => {
+                updateAll(parseInt(quantityInput.value) + config.step);
+            });
+
+            // --- 5. 初始加载 ---
+            createScaleDots();
+            updateAll(config.initialQuantity);
         });
         </script>
         <?php
