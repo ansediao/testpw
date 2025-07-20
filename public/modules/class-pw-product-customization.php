@@ -87,21 +87,7 @@ class Pw_Product_Customization {
             return;
         }
         ?>
-        <!-- 添加勾选框 -->
-        <div class="product-options" style="margin-top: 20px;">
-            <div style="display: flex; gap: 20px; align-items: center;">
-                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                    <input type="checkbox" id="buy_sample" name="buy_sample" value="1" style="margin: 0;">
-                    <span>Buy Sample</span>
-                </label>
-                <br>
-                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                    <input type="checkbox" id="blank_product" name="blank_product" value="1" style="margin: 0;">
-                    <span>Blank Product</span>
-                </label>
-            </div>
-            <hr>
-        </div>
+       
 
        
 

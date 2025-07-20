@@ -19,6 +19,7 @@ require_once plugin_dir_path(__FILE__) . 'modules/class-pw-quantity-discount.php
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-api-data-display.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-auxiliary-functions.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-template-handler.php';
+require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-options.php';
 
 // Load partial components
 require_once plugin_dir_path(__FILE__) . 'partials/pw-product-cart-handler.php';
@@ -85,6 +86,7 @@ class Pw_Admin_Public
         new Pw_Api_Data_Display();
         new Pw_Auxiliary_Functions();
         new Pw_Template_Handler();
+        new Pw_Product_Options();
     }
 
     /**
