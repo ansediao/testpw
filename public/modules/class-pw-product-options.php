@@ -66,14 +66,14 @@ class Pw_Product_Options
         ob_start();
         ?>
         <!-- 添加勾选框 -->
-        <div class="product-options" style="margin-top: 20px;">
-            <div style="display: flex; gap: 20px; align-items: center;">
-                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                    <input type="checkbox" id="buy_sample" name="buy_sample" value="1" style="margin: 0;">
+        <div class="product-options">
+            <div class="product-options__checkboxes">
+                <label class="product-options__label">
+                    <input type="checkbox" id="buy_sample" name="buy_sample" value="1">
                     <span><?php _e('Buy Sample', 'pw-admin'); ?></span>
                 </label>
-                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                    <input type="checkbox" id="blank_product" name="blank_product" value="1" style="margin: 0;" <?php echo $blank_product_checked ? 'checked' : ''; ?>>
+                <label class="product-options__label">
+                    <input type="checkbox" id="blank_product" name="blank_product" value="1" <?php echo $blank_product_checked ? 'checked' : ''; ?>>
                     <span><?php _e('Blank Product', 'pw-admin'); ?></span>
                 </label>
             </div>
