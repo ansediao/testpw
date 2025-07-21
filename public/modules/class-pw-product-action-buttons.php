@@ -52,22 +52,15 @@ class Pw_Product_Action_Buttons {
         
         <div class="pw-product-action-buttons">
             <div class="action-buttons-container">
-                <button type="button" class="btn-customize" onclick="window.open('<?php echo esc_url($customize_url); ?>', '_blank')">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 20h9"></path>
-                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                    </svg>
-                    在线定制
-                </button>
+                
                 
                 <button type="button" class="btn-add-to-cart" data-product-id="<?php echo esc_attr($product_id); ?>" data-product-name="<?php echo esc_attr($product_name); ?>" data-product-price="<?php echo esc_attr($product_price); ?>">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="9" cy="21" r="1"></circle>
-                        <circle cx="20" cy="21" r="1"></circle>
-                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                    </svg>
-                    加入购物车
-                </button>
+                    
+                Add to Car
+
+</button>
+<button type="button" class="btn-customize" onclick="window.open('<?php echo esc_url($customize_url); ?>', '_blank')">
+                Customizing Now                </button>
             </div>
         </div>
         <script>
@@ -84,7 +77,7 @@ class Pw_Product_Action_Buttons {
                 }
 
                 // 显示加载状态
-                $button.addClass('loading').text('处理中...');
+                $button.addClass('loading').text('In progress');
 
                 // 获取当前数量
                 let quantity = 1;
@@ -110,14 +103,14 @@ class Pw_Product_Action_Buttons {
                     success: function(response) {
                         if (response.error && response.error === true) {
                             // 显示错误信息
-                            alert('添加到购物车失败：' + (response.message || '未知错误'));
-                            $button.removeClass('loading').html('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>加入购物车');
+                            alert('Add to Car：' + (response.message || 'Error'));
+                            $button.removeClass('loading').html('Add to Car');
                         } else {
                             // 成功添加到购物车
-                            $button.removeClass('loading').addClass('success').html('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>已加入购物车');
+                            $button.removeClass('loading').addClass('success').html('Done');
                             
                             // 触发购物车更新事件
-                            $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $button]);
+                            // $(document.body).trigger('added_to_cart', [response.fragments, response.cart_hash, $button]);
                             
                             // 更新购物车小计
                             if (response.fragments) {
@@ -128,13 +121,13 @@ class Pw_Product_Action_Buttons {
 
                             // 2秒后恢复原状态
                             setTimeout(function() {
-                                $button.removeClass('success').html('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>加入购物车');
+                                $button.removeClass('success').html('Add to Car');
                             }, 2000);
                         }
                     },
                     error: function() {
-                        alert('网络错误，请稍后重试');
-                        $button.removeClass('loading').html('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>加入购物车');
+                        alert('error');
+                        $button.removeClass('loading').html('Add to Car');
                     }
                 });
             });
