@@ -1,0 +1,253 @@
+// 配件选择器样式 SCSS 版本
+
+// 主容器样式
+#pw-accessories-container {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  margin: 15px 0;
+  border-radius: 4px;
+  padding: 15px;
+}
+
+// 下拉菜单包装器
+.dropdown-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  
+  // 标签样式
+  label {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    white-space: nowrap;
+  }
+}
+
+// 下拉容器
+.dropdown-container {
+  position: relative;
+  width: 100%;
+}
+
+// 下拉按钮样式
+#accessory-dropdown-button {
+  width: 100%;
+  background-color: #f9fafb;
+  border: 1px solid #d1d5db;
+  color: #1f2937;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  
+  // 按钮焦点状态
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #3b82f6;
+    border-color: #3b82f6;
+  }
+  
+  // SVG 图标样式
+  svg {
+    width: 1rem;
+    height: 1rem;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  // 打开状态下的图标旋转
+  &.open svg {
+    transform: rotate(180deg);
+  }
+}
+
+// 配件列表下拉菜单
+#accessory-list {
+  position: absolute;
+  z-index: 10;
+  margin-top: 0.5rem;
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  max-height: 20rem;
+  overflow-y: auto;
+}
+
+// 产品项目样式
+.product-item {
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #e5e7eb;
+  
+  // 最后一个项目无底部边框
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  // 悬停效果
+  &:hover {
+    background-color: #f3f4f6;
+  }
+  
+  // 产品图片
+  img {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.375rem;
+    object-fit: cover;
+  }
+  
+  // 产品信息容器
+  .info {
+    flex-grow: 1;
+    
+    // 产品名称
+    .name {
+      font-weight: 600;
+      color: #1f2937;
+      margin: 0 0 4px 0;
+    }
+    
+    // 产品价格
+    .price {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin: 0 0 4px 0;
+    }
+    
+    // 产品SKU
+    .sku {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin: 0;
+    }
+  }
+}
+
+// 已选择配件容器
+#selected-accessories-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+  min-height: 120px;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px dashed #d1d5db;
+}
+
+// 已选择的配件项目
+.selected-accessory-item {
+  position: relative;
+  padding: 0.5rem;
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: transform 0.2s ease-in-out;
+  
+  // 悬停效果
+  &:hover {
+    transform: scale(1.05);
+  }
+  
+  // 配件图片
+  img {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 0.375rem;
+    object-fit: cover;
+  }
+  
+  // 配件信息
+  .info {
+    // 配件名称
+    .name {
+      font-weight: 500;
+      color: #1f2937;
+      margin: 0 0 4px 0;
+    }
+    
+    // 配件价格
+    .price {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin: 0;
+    }
+  }
+}
+
+// 移除按钮
+.remove-btn {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: #ef4444;
+  color: white;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: background-color 0.2s;
+  
+  // 悬停效果
+  &:hover {
+    background-color: #dc2626;
+  }
+}
+
+// 图片预览容器
+#accessory-image-preview-container {
+  position: absolute;
+  display: none;
+  z-index: 1000;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+  
+  // 预览图片
+  img {
+    width: 250px;
+    height: 250px;
+    border: 4px solid white;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border-radius: 0.5rem;
+  }
+}
+
+// 隐藏元素
+.hidden {
+  display: none;
+}
+
+// 自定义警告框
+.custom-alert {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 10px 20px;
+  border-radius: 5px;
+  z-index: 2000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}

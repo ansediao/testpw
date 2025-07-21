@@ -39,34 +39,22 @@ class Pw_Product_Customization {
             return;
         }
         ?>
-        <div class="color-selection" style="margin-top: 20px;">
-            <p>Select Color:</p>
-            <div class="color-options" style="display: flex; gap: 10px;">
-                <div class="color-box" data-color="black" data-filter="brightness(0) saturate(100%)" style="width: 30px; height: 30px; background: black; cursor: pointer; border: 1px solid #ddd;"></div>
-                <div class="color-box" data-color="red" data-filter="brightness(0) saturate(100%) invert(15%) sepia(95%) saturate(6932%) hue-rotate(359deg) brightness(100%) contrast(112%)" style="width: 30px; height: 30px; background: red; cursor: pointer; border: 1px solid #ddd;"></div>
-                <div class="color-box" data-color="blue" data-filter="brightness(0) saturate(100%) invert(8%) sepia(98%) saturate(7154%) hue-rotate(248deg) brightness(97%) contrast(143%)" style="width: 30px; height: 30px; background: blue; cursor: pointer; border: 1px solid #ddd;"></div>
-                <div class="color-box" data-color="white" data-filter="brightness(0) saturate(100%) invert(100%)" style="width: 30px; height: 30px; background: white; cursor: pointer; border: 1px solid #ddd;"></div>
-            </div>
-            <p>or</p>
-            <div class="action-buttons">
-                <button class="btn btn-gradient" style="margin-right:10px;">Gradient</button>
-                <button class="btn btn-custom">Custom Colors</button>
-                <hr>
-            </div>
-            <style>
-                .action-buttons .btn{
-                    color:#fff;
-                    background-color: rgba(17, 187, 245, 1);
-                    border: none;
-                    border-radius: 5px;
-                    -moz-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.349019607843137);
-                    -webkit-box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.349019607843137);
-                    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.349019607843137);
-                    padding:10px;
-                    font-size: 16px;
-                }
-            </style>
-        </div>
+        <div class="color-selection">
+    <p>Select Color:</p>
+    <div class="color-options">
+        <div class="color-box" data-color="black" data-filter="brightness(0) saturate(100%)"></div>
+        <div class="color-box" data-color="red" data-filter="brightness(0) saturate(100%) invert(15%) sepia(95%) saturate(6932%) hue-rotate(359deg) brightness(100%) contrast(112%)"></div>
+        <div class="color-box" data-color="blue" data-filter="brightness(0) saturate(100%) invert(8%) sepia(98%) saturate(7154%) hue-rotate(248deg) brightness(97%) contrast(143%)"></div>
+        <div class="color-box" data-color="white" data-filter="brightness(0) saturate(100%) invert(100%)"></div>
+    </div>
+    <p>or</p>
+    <div class="action-buttons">
+        <button class="btn btn-gradient">Gradient</button>
+        <button class="btn btn-custom">Custom Colors</button>
+        <hr>
+    </div>
+</div>
+
         <?php
     }
 

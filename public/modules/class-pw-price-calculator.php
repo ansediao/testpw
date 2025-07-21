@@ -20,6 +20,16 @@ class Pw_Price_Calculator {
      */
     public function __construct() {
         add_action('pw_admin_single_product_custom_content', array($this, 'display_price_calculator'), 48);
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_styles'));
+    }
+    
+    /**
+     * Enqueue price calculator styles
+     */
+    public function enqueue_styles() {
+        if (is_product()) {
+            wp_enqueue_style('pw-price-calculator-styles', plugin_dir_url(__FILE__) . '../css/pw-price-calculator.css', array(), PW_ADMIN_VERSION, 'all');
+        }
     }
 
     /**
@@ -75,44 +85,44 @@ class Pw_Price_Calculator {
         }
         ?>
         
-        <div id="pw-price-calculator-container" class="pw-price-calculator" style="background: #fff; border: 2px solid #007cba; margin: 15px 0; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,123,186,0.1);">
-            <h4 style="margin: 0 0 15px 0; color: #007cba; font-size: 18px; font-weight: 600;">预计总价</h4>
+        <div id="pw-price-calculator-container" class="pw-price-calculator">
+            <h4>预计总价</h4>
             
-            <div class="price-breakdown" style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
-                <div class="price-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="color: #666;">产品单价:</span>
-                    <span id="unit-price" style="font-weight: 500;">$<?php echo number_format($product_price, 2); ?></span>
+            <div class="price-breakdown">
+                <div class="price-row">
+                    <span>产品单价:</span>
+                    <span id="unit-price">$<?php echo number_format($product_price, 2); ?></span>
                 </div>
                 
-                <div class="price-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="color: #666;">数量:</span>
-                    <span id="selected-quantity" style="font-weight: 500;">6</span>
+                <div class="price-row">
+                    <span>数量:</span>
+                    <span id="selected-quantity">6</span>
                 </div>
                 
-                <div class="price-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="color: #666;">小计:</span>
-                    <span id="subtotal-price" style="font-weight: 500;">$<?php echo number_format($product_price * 6, 2); ?></span>
+                <div class="price-row">
+                    <span>小计:</span>
+                    <span id="subtotal-price">$<?php echo number_format($product_price * 6, 2); ?></span>
                 </div>
                 
-                <div class="price-row" id="discount-row" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="color: #28a745;">折扣:</span>
-                    <span id="discount-amount" style="font-weight: 500; color: #28a745;">-$0.00</span>
+                <div class="price-row" id="discount-row">
+                    <span>折扣:</span>
+                    <span id="discount-amount">-$0.00</span>
                 </div>
                 
-                <div class="price-row" id="accessories-row" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="color: #666;">配件费用:</span>
-                    <span id="accessories-total" style="font-weight: 500;">$0.00</span>
+                <div class="price-row" id="accessories-row">
+                    <span>配件费用:</span>
+                    <span id="accessories-total">$0.00</span>
                 </div>
                 
-                <hr style="margin: 12px 0; border: none; border-top: 1px solid #dee2e6;">
+                <hr>
                 
-                <div class="price-row" style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="color: #333; font-weight: 600; font-size: 16px;">总计:</span>
-                    <span id="total-price" style="font-weight: 700; font-size: 18px; color: #007cba;">$<?php echo number_format($product_price * 6, 2); ?></span>
+                <div class="price-row">
+                    <span>总计:</span>
+                    <span id="total-price">$<?php echo number_format($product_price * 6, 2); ?></span>
                 </div>
             </div>
             
-            <div class="price-note" style="font-size: 12px; color: #6c757d; text-align: center;">
+            <div class="price-note">
                 * 此为预估价格，最终价格以结算时为准
             </div>
         </div>
