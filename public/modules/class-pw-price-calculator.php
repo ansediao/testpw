@@ -29,6 +29,35 @@ class Pw_Price_Calculator {
     public function enqueue_styles() {
         if (is_product()) {
             wp_enqueue_style('pw-price-calculator-styles', plugin_dir_url(__FILE__) . '../css/pw-price-calculator.css', array(), PW_ADMIN_VERSION, 'all');
+            
+            // Add inline styles for the new design
+            $custom_css = "
+                .pw-price-calculator {
+                    margin: 20px 0;
+                    padding: 15px;
+                    border-radius: 8px;
+                    background-color: #f9f9f9;
+                }
+                .estimation-row {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 10px;
+                    font-size: 16px;
+                }
+                .strikethrough {
+                    text-decoration: line-through;
+                    color: #999;
+                    margin-right: 10px;
+                }
+                #total-price {
+                    font-weight: bold;
+                    color: #0066cc;
+                }
+                #delivery-date, #arrival-date {
+                    font-weight: 500;
+                }
+            ";
+            wp_add_inline_style('pw-price-calculator-styles', $custom_css);
         }
     }
 
@@ -86,44 +115,24 @@ class Pw_Price_Calculator {
         ?>
         
         <div id="pw-price-calculator-container" class="pw-price-calculator">
-            <h4>预计总价</h4>
-            
-            <div class="price-breakdown">
-                <div class="price-row">
-                    <span>产品单价:</span>
-                    <span id="unit-price">$<?php echo number_format($product_price, 2); ?></span>
+            <div class="price-estimation">
+                <div class="estimation-row">
+                    <span>Estimated delivery date:</span>
+                    <span id="delivery-date"><?php echo date('F j, Y'); ?></span>
                 </div>
                 
-                <div class="price-row">
-                    <span>数量:</span>
-                    <span id="selected-quantity">6</span>
+                <div class="estimation-row">
+                    <span>Estimated price:</span>
+                    <span>
+                        <span id="original-price" class="strikethrough">$<?php echo number_format($product_price * 6, 2); ?></span>
+                        <span id="total-price">$<?php echo number_format($product_price * 6, 2); ?></span>
+                    </span>
                 </div>
                 
-                <div class="price-row">
-                    <span>小计:</span>
-                    <span id="subtotal-price">$<?php echo number_format($product_price * 6, 2); ?></span>
+                <div class="estimation-row">
+                    <span>Estimated arrival date:</span>
+                    <span id="arrival-date"></span>
                 </div>
-                
-                <div class="price-row" id="discount-row">
-                    <span>折扣:</span>
-                    <span id="discount-amount">-$0.00</span>
-                </div>
-                
-                <div class="price-row" id="accessories-row">
-                    <span>配件费用:</span>
-                    <span id="accessories-total">$0.00</span>
-                </div>
-                
-                <hr>
-                
-                <div class="price-row">
-                    <span>总计:</span>
-                    <span id="total-price">$<?php echo number_format($product_price * 6, 2); ?></span>
-                </div>
-            </div>
-            
-            <div class="price-note">
-                * 此为预估价格，最终价格以结算时为准
             </div>
         </div>
 
@@ -165,26 +174,21 @@ class Pw_Price_Calculator {
                 const finalTotal = discountedSubtotal + accessoriesTotal;
                 
                 // Update display
-                $('#selected-quantity').text(currentQuantity);
-                $('#subtotal-price').text('$' + subtotal.toFixed(2));
+                // Calculate original price (without discount)
+                const originalTotal = subtotal + accessoriesTotal;
                 
-                // Show/hide discount row
-                if (discountAmount > 0) {
-                    $('#discount-row').show();
-                    $('#discount-amount').text('-$' + discountAmount.toFixed(2));
-                } else {
-                    $('#discount-row').hide();
-                }
-                
-                // Show/hide accessories row
-                if (accessoriesTotal > 0) {
-                    $('#accessories-row').show();
-                    $('#accessories-total').text('$' + accessoriesTotal.toFixed(2));
-                } else {
-                    $('#accessories-row').hide();
-                }
-                
+                // Update the prices
+                $('#original-price').text('$' + originalTotal.toFixed(2));
                 $('#total-price').text('$' + finalTotal.toFixed(2));
+                
+                // Update delivery date (today's date is already set in PHP)
+                
+                // If there's a significant discount, show the original price, otherwise hide it
+                if (discountAmount > 0) {
+                    $('#original-price').show();
+                } else {
+                    $('#original-price').hide();
+                }
             }
             
             // Monitor quantity changes
