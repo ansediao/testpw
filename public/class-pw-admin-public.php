@@ -16,6 +16,7 @@ require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cart-handler.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-inquiry.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-accessory-selector.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-quantity-discount.php';
+require_once plugin_dir_path(__FILE__) . 'modules/class-pw-price-calculator.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-api-data-display.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-auxiliary-functions.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-template-handler.php';
@@ -85,6 +86,7 @@ class Pw_Admin_Public
         new Pw_Product_Inquiry();
         new Pw_Accessory_Selector();
         new Pw_Quantity_Discount();
+        new Pw_Price_Calculator();
         new Pw_Api_Data_Display();
         new Pw_Auxiliary_Functions();
         new Pw_Template_Handler();
