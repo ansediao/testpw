@@ -17,7 +17,7 @@ class Pw_Product_Customization {
      * Initialize hooks
      */
     public function __construct() {
-        add_action('pw_admin_single_product_custom_content', array($this, 'add_color_selection_after_cart'), 30);
+        add_action('pw_admin_single_product_custom_content', array($this, 'add_color_selection_after_cart'), 10);
         add_action('pw_admin_single_product_custom_content', array($this, 'add_customization_options'), 35);
         add_action('woocommerce_before_single_product', array($this, 'add_custom_color_image'));
     }

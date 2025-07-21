@@ -17,7 +17,7 @@ class Pw_Product_Action_Buttons {
      * Initialize hooks
      */
     public function __construct() {
-        add_action('pw_admin_single_product_custom_content', array($this, 'display_action_buttons'), 5);
+        add_action('pw_admin_single_product_custom_content', array($this, 'display_action_buttons'), 100);
     }
 
     /**

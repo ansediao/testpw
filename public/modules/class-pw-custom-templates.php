@@ -18,7 +18,7 @@ class Pw_Custom_Templates
     public function __construct()
     {
         // Hook into product display - right after product details (priority 51)
-        add_action('pw_admin_single_product_custom_content', array($this, 'display_custom_templates'), 51);
+        add_action('pw_admin_single_product_custom_content', array($this, 'display_custom_templates'), 999);
         
         // AJAX handler for loading templates
         add_action('wp_ajax_pw_load_custom_templates', array($this, 'ajax_load_custom_templates'));

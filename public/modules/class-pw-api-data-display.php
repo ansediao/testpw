@@ -17,7 +17,7 @@ class Pw_Api_Data_Display {
      * Initialize hooks
      */
     public function __construct() {
-        add_action('pw_admin_single_product_custom_content', array($this, 'display_sync_product_api_data'), 50);
+        add_action('pw_admin_single_product_custom_content', array($this, 'display_sync_product_api_data'), 999);
     }
 
     /**

@@ -17,7 +17,7 @@ class Pw_Product_Options
     public function __construct()
     {
         // Hook into product display
-        add_action('pw_admin_single_product_custom_content', array($this, 'display_product_options'), 10, 2);
+        add_action('pw_admin_single_product_custom_content', array($this, 'display_product_options'), 20, 2);
         
         // Add to cart data processing
         add_filter('woocommerce_add_cart_item_data', array($this, 'add_product_options_to_cart'), 10, 3);

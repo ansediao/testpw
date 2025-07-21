@@ -17,7 +17,7 @@ class Pw_Quantity_Discount {
      * Initialize hooks
      */
     public function __construct() {
-        add_action('pw_admin_single_product_custom_content', array($this, 'display_quantity_discount'), 45);
+        add_action('pw_admin_single_product_custom_content', array($this, 'display_quantity_discount'), 30);
     }
 
     /**
