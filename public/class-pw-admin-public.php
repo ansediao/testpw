@@ -21,6 +21,7 @@ require_once plugin_dir_path(__FILE__) . 'modules/class-pw-auxiliary-functions.p
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-template-handler.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-options.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-action-buttons.php';
+require_once plugin_dir_path(__FILE__) . 'modules/class-pw-custom-templates.php';
 
 // Load partial components
 require_once plugin_dir_path(__FILE__) . 'partials/pw-product-cart-handler.php';
@@ -89,6 +90,7 @@ class Pw_Admin_Public
         new Pw_Template_Handler();
         new Pw_Product_Options();
         new Pw_Product_Action_Buttons();
+        new Pw_Custom_Templates();
     }
 
     /**
