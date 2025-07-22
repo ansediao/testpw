@@ -74,6 +74,12 @@ class Pw_Admin_Public
 
         // Add custom hook for modular components
         add_action('woocommerce_product_meta_end', array($this, 'trigger_pw_custom_product_hook'), 100);
+        
+        // 添加重写规则
+        add_action('init', array($this, 'add_pw_canvas_rewrite_rules'));
+        
+        // 注册查询变量
+        add_filter('query_vars', array($this, 'add_pw_canvas_query_vars'));
     }
 
     /**
@@ -181,12 +187,50 @@ class Pw_Admin_Public
     }
 
     /**
+     * 添加自定义重写规则
+     * 
+     * @since    1.0.0
+     */
+    public function add_pw_canvas_rewrite_rules() {
+        add_rewrite_rule(
+            '^pwcanvas/?$',
+            'index.php?pw_canvas=1',
+            'top'
+        );
+        
+        // 仅在插件激活时刷新重写规则
+        if (get_option('pw_canvas_flush_rewrite') != true) {
+            flush_rewrite_rules();
+            update_option('pw_canvas_flush_rewrite', true);
+        }
+    }
+    
+    /**
+     * 添加自定义查询变量
+     * 
+     * @since    1.0.0
+     * @param    array    $vars    查询变量数组
+     * @return   array             修改后的查询变量数组
+     */
+    public function add_pw_canvas_query_vars($vars) {
+        $vars[] = 'pw_canvas';
+        return $vars;
+    }
+
+    /**
      * Handle canvas request
      * 
      * @since    1.0.0
      */
     public function pw_canvas_handle_request()
     {
+        // 检查查询变量
+        if (get_query_var('pw_canvas') == 1) {
+            include(plugin_dir_path(__FILE__) . 'partials/template-canvas-display.php');
+            exit; // 阻止 WordPress 加载默认模板
+        }
+        
+        // 保留原有逻辑作为备用
         global $wp;
         $current_url = home_url($wp->request);
         $target_path = '/pwcanvas/';

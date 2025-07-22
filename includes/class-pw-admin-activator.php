@@ -23,14 +23,15 @@
 class Pw_Admin_Activator {
 
 	/**
-	 * Short Description. (use period)
+	 * 插件激活时执行的代码
 	 *
-	 * Long Description.
+	 * 设置重写规则刷新标志，确保自定义URL能够正常工作
 	 *
 	 * @since    1.0.0
 	 */
 	public static function activate() {
-
+		// 设置标志，表示需要刷新重写规则
+		update_option('pw_canvas_flush_rewrite', false);
 	}
 
 }

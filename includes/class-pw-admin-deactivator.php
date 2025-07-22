@@ -23,14 +23,18 @@
 class Pw_Admin_Deactivator {
 
 	/**
-	 * Short Description. (use period)
+	 * 插件停用时执行的代码
 	 *
-	 * Long Description.
+	 * 清理插件相关的选项和设置
 	 *
 	 * @since    1.0.0
 	 */
 	public static function deactivate() {
-
+		// 删除重写规则刷新标志
+		delete_option('pw_canvas_flush_rewrite');
+		
+		// 刷新重写规则，移除我们的自定义规则
+		flush_rewrite_rules();
 	}
 
 }
