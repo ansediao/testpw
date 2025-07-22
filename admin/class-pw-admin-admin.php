@@ -731,11 +731,11 @@ function pw_set_product_featured_image($product_id, $image_url) {
     }
     
     // Check if image already exists in media library
-    $existing_attachment = pw_get_attachment_by_url($image_url);
-    if ($existing_attachment) {
-        set_post_thumbnail($product_id, $existing_attachment);
-        return true;
-    }
+    // $existing_attachment = pw_get_attachment_by_url($image_url);
+    // if ($existing_attachment) {
+    //     set_post_thumbnail($product_id, $existing_attachment);
+    //     return true;
+    // }
     
     // Download and upload the image
     $image_data = wp_remote_get($image_url);
