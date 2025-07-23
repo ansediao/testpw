@@ -113,6 +113,7 @@ class Pw_Admin_Public
         // Add canvas CSS to product pages with timestamp to prevent caching
         if (is_product()) {
             wp_enqueue_style('pw-canvas-css', 'https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/224.css', array(), microtime(true), 'all');
+            wp_enqueue_style('pw-view-switcher-css', plugin_dir_url(__FILE__) . 'css/pw-view-switcher.css', array(), $this->version, 'all');
         }
     }
 
@@ -128,6 +129,11 @@ class Pw_Admin_Public
         // 确保WooCommerce脚本可用
         if (class_exists('WooCommerce')) {
             wp_enqueue_script('wc-add-to-cart');
+        }
+        
+        // 在产品页面加载视图切换器脚本
+        if (is_product()) {
+            wp_enqueue_script('pw-view-switcher', plugin_dir_url(__FILE__) . 'js/pw-view-switcher.js', array('jquery'), $this->version, true);
         }
 
         // 添加内联脚本处理购物车图片

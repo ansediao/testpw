@@ -23,6 +23,39 @@ class Pw_Custom_Templates
         // AJAX handler for loading templates
         add_action('wp_ajax_pw_load_custom_templates', array($this, 'ajax_load_custom_templates'));
         add_action('wp_ajax_nopriv_pw_load_custom_templates', array($this, 'ajax_load_custom_templates'));
+        
+        // Add API settings to frontend
+        add_action('wp_enqueue_scripts', array($this, 'localize_api_settings'));
+    }
+    
+    /**
+     * Localize API settings for frontend use
+     */
+    public function localize_api_settings() {
+        if (is_product()) {
+            // Get API settings
+            $api_token = get_option('pw_api_token', '');
+            $api_url = 'https://dev.promowares.com/api/v1';
+            
+            // Localize script
+            wp_localize_script('pw-view-switcher', 'pwApiSettings', array(
+                'apiUrl' => $api_url,
+                'apiToken' => $api_token,
+                'nonce' => wp_create_nonce('pw_custom_templates_nonce')
+            ));
+            
+            // Add inline script for browsers that don't support wp_localize_script
+            $inline_script = "
+                if (typeof pwApiSettings === 'undefined') {
+                    window.pwApiSettings = {
+                        apiUrl: '{$api_url}',
+                        apiToken: '{$api_token}',
+                        nonce: '" . wp_create_nonce('pw_custom_templates_nonce') . "'
+                    };
+                }
+            ";
+            wp_add_inline_script('pw-view-switcher', $inline_script, 'before');
+        }
     }
 
 
@@ -46,6 +79,21 @@ class Pw_Custom_Templates
             return;
         }
         
+        // Get the API product ID from WooCommerce product meta
+        $api_product_id = get_post_meta($product_id, 'pw_id', true);
+        
+        // Pre-fetch template data for use in canvas customization
+        $template_data = null;
+        if (!empty($api_product_id)) {
+            $template_data = $this->fetch_custom_templates($api_product_id);
+            
+            // Make template data available for canvas customization area
+            if (!is_wp_error($template_data)) {
+                // Store template data in a global variable for use in canvas-customization-area.php
+                $GLOBALS['pw_custom_template_data'] = $template_data;
+            }
+        }
+        
         ?>
         <div id="pw-custom-templates-container" class="pw-custom-templates-data" style="background: #f9f9f9; border: 1px solid #ddd; margin: 15px 0; border-radius: 4px;">
             <!-- Collapsible header -->
@@ -56,11 +104,21 @@ class Pw_Custom_Templates
             
             <!-- Collapsible content area -->
             <div id="pw-templates-body" style="display: none; padding: 15px;">
-                <div id="pw-templates-loading" style="text-align: center; padding: 20px; display: none;">
+                <div id="pw-templates-loading" style="text-align: center; padding: 20px; <?php echo (!is_wp_error($template_data) && !empty($template_data)) ? 'display: none;' : ''; ?>">
                     <img src="<?php echo esc_url(MY_PLUGIN_URL . 'assets/images/icons/spinner.gif'); ?>" alt="加载中..." style="width: 32px; height: 32px;">
                     <p style="margin-top: 10px; color: #666;">正在获取自定义模板...</p>
                 </div>
-                <div id="pw-templates-content" style="display: none;" data-product-id="<?php echo esc_attr($product_id); ?>"></div>
+                <div id="pw-templates-content" style="<?php echo (!is_wp_error($template_data) && !empty($template_data)) ? '' : 'display: none;'; ?>" data-product-id="<?php echo esc_attr($product_id); ?>">
+                    <?php
+                    // If we already have template data, display it
+                    if (!is_wp_error($template_data) && !empty($template_data)) {
+                        echo '<pre style="background: #fff; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px; line-height: 1.4; border: 1px solid #e0e0e0; white-space: pre-wrap; word-wrap: break-word;">' . 
+                            json_encode($template_data, JSON_PRETTY_PRINT) . '</pre>';
+                    } elseif (is_wp_error($template_data)) {
+                        echo '<div class="pw-api-error" style="background: #ffebee; border: 1px solid #f44336; padding: 10px; border-radius: 4px;"><strong>API 错误:</strong> ' . esc_html($template_data->get_error_message()) . '</div>';
+                    }
+                    ?>
+                </div>
             </div>
         </div>
 
@@ -105,60 +163,90 @@ class Pw_Custom_Templates
         </style>
 
         <script type="text/javascript">
-        jQuery(document).ready(function($) {
+        document.addEventListener('DOMContentLoaded', function() {
             var isExpanded = false;
-            var isLoaded = false;
+            var isLoaded = <?php echo (!is_wp_error($template_data) && !empty($template_data)) ? 'true' : 'false'; ?>;
             
             // Collapsible/expandable functionality
-            $('#pw-templates-header').click(function() {
+            document.getElementById('pw-templates-header').addEventListener('click', function() {
+                var templatesBody = document.getElementById('pw-templates-body');
+                var templatesToggle = document.getElementById('pw-templates-toggle');
+                
                 if (!isExpanded) {
                     // Expand
-                    $('#pw-templates-body').removeClass('pw-templates-slide-up').addClass('pw-templates-slide-down').show();
-                    $('#pw-templates-toggle').addClass('expanded');
+                    templatesBody.classList.remove('pw-templates-slide-up');
+                    templatesBody.classList.add('pw-templates-slide-down');
+                    templatesBody.style.display = 'block';
+                    templatesToggle.classList.add('expanded');
                     isExpanded = true;
                     
                     // Load data if not already loaded
                     if (!isLoaded) {
-                        $('#pw-templates-loading').show();
+                        var templatesLoading = document.getElementById('pw-templates-loading');
+                        var templatesContent = document.getElementById('pw-templates-content');
                         
-                        var productId = $('#pw-templates-content').data('product-id');
+                        templatesLoading.style.display = 'block';
+                        
+                        var productId = templatesContent.getAttribute('data-product-id');
                         
                         // AJAX call to load templates
-                        $.ajax({
-                            url: '<?php echo admin_url('admin-ajax.php'); ?>',
-                            type: 'POST',
-                            data: {
-                                action: 'pw_load_custom_templates',
-                                product_id: productId,
-                                nonce: '<?php echo wp_create_nonce('pw_custom_templates_nonce'); ?>'
-                            },
-                            success: function(response) {
-                                $('#pw-templates-loading').hide();
-                                
-                                if (response.success) {
-                                    // Display JSON data in formatted way
-                                    var jsonHtml = '<pre style="background: #fff; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px; line-height: 1.4; border: 1px solid #e0e0e0; white-space: pre-wrap; word-wrap: break-word;">' + 
-                                        JSON.stringify(response.data, null, 2) + '</pre>';
-                                    $('#pw-templates-content').html(jsonHtml).show();
-                                } else {
-                                    $('#pw-templates-content').html('<div class="pw-api-error" style="background: #ffebee; border: 1px solid #f44336; padding: 10px; border-radius: 4px;"><strong>API 错误:</strong> ' + response.data + '</div>').show();
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('POST', '<?php echo admin_url('admin-ajax.php'); ?>', true);
+                        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                        
+                        xhr.onload = function() {
+                            templatesLoading.style.display = 'none';
+                            
+                            if (xhr.status >= 200 && xhr.status < 400) {
+                                try {
+                                    var response = JSON.parse(xhr.responseText);
+                                    
+                                    if (response.success) {
+                                        // Display JSON data in formatted way
+                                        var jsonHtml = '<pre style="background: #fff; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px; line-height: 1.4; border: 1px solid #e0e0e0; white-space: pre-wrap; word-wrap: break-word;">' + 
+                                            JSON.stringify(response.data, null, 2) + '</pre>';
+                                        templatesContent.innerHTML = jsonHtml;
+                                        templatesContent.style.display = 'block';
+                                        
+                                        // Refresh the page to apply template data to canvas
+                                        // Only if we need to reload the canvas with new data
+                                        if (document.getElementById('pw-canvas-container')) {
+                                            location.reload();
+                                        }
+                                    } else {
+                                        templatesContent.innerHTML = '<div class="pw-api-error" style="background: #ffebee; border: 1px solid #f44336; padding: 10px; border-radius: 4px;"><strong>API 错误:</strong> ' + response.data + '</div>';
+                                        templatesContent.style.display = 'block';
+                                    }
+                                    
+                                    isLoaded = true;
+                                } catch (e) {
+                                    console.error('Error parsing JSON response:', e);
+                                    templatesContent.innerHTML = '<div class="pw-api-error" style="background: #ffebee; border: 1px solid #f44336; padding: 10px; border-radius: 4px;"><strong>解析错误:</strong> 无法解析API响应</div>';
+                                    templatesContent.style.display = 'block';
                                 }
-                                
-                                isLoaded = true;
-                            },
-                            error: function(xhr, status, error) {
-                                $('#pw-templates-loading').hide();
-                                $('#pw-templates-content').html('<div class="pw-api-error" style="background: #ffebee; border: 1px solid #f44336; padding: 10px; border-radius: 4px;"><strong>加载错误:</strong> 请稍后重试</div>').show();
+                            } else {
+                                templatesContent.innerHTML = '<div class="pw-api-error" style="background: #ffebee; border: 1px solid #f44336; padding: 10px; border-radius: 4px;"><strong>加载错误:</strong> 请稍后重试</div>';
+                                templatesContent.style.display = 'block';
                             }
-                        });
+                        };
+                        
+                        xhr.onerror = function() {
+                            templatesLoading.style.display = 'none';
+                            templatesContent.innerHTML = '<div class="pw-api-error" style="background: #ffebee; border: 1px solid #f44336; padding: 10px; border-radius: 4px;"><strong>网络错误:</strong> 请检查您的网络连接</div>';
+                            templatesContent.style.display = 'block';
+                        };
+                        
+                        // Send the request
+                        xhr.send('action=pw_load_custom_templates&product_id=' + encodeURIComponent(productId) + '&nonce=<?php echo wp_create_nonce('pw_custom_templates_nonce'); ?>');
                     }
                 } else {
                     // Collapse
-                    $('#pw-templates-body').removeClass('pw-templates-slide-down').addClass('pw-templates-slide-up');
+                    templatesBody.classList.remove('pw-templates-slide-down');
+                    templatesBody.classList.add('pw-templates-slide-up');
                     setTimeout(function() {
-                        $('#pw-templates-body').hide();
+                        templatesBody.style.display = 'none';
                     }, 300);
-                    $('#pw-templates-toggle').removeClass('expanded');
+                    templatesToggle.classList.remove('expanded');
                     isExpanded = false;
                 }
             });
@@ -197,6 +285,9 @@ class Pw_Custom_Templates
         if (is_wp_error($templates_data)) {
             wp_send_json_error($templates_data->get_error_message());
         }
+        
+        // Store template data in a transient for use in canvas customization
+        set_transient('pw_custom_template_data_' . $woo_product_id, $templates_data, HOUR_IN_SECONDS);
         
         // Return raw JSON data for display
         wp_send_json_success($templates_data);
