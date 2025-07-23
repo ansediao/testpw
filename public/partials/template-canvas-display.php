@@ -1,6 +1,6 @@
 <?php
 // 获取产品ID参数
-$product_id = isset($_GET['product_id']) ? intval($_GET['product_id']) : 0;
+$product_id = isset($_GET['product_id']) ? intval($_GET['product_id']) : 258;
 
 // 获取产品名称
 $product_name = '';
