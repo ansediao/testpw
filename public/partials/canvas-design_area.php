@@ -9,8 +9,7 @@ if ($product_id > 0 && $product) {
         $image_url = wp_get_attachment_image_url($image_id, 'full');
     }
     // 获取base 图层
-    $color_image_url = get_post_meta($product_id, 'pw_mainIMG_color', true);
-
+    $color_image_url = get_post_meta($product_id, 'pw_mainIMG_color', true) ?: 'https://stage.canvas.939666.xyz/wp-content/uploads/2025/03/衣服-底色.png';
     // 获取3D模型文件
     $model_3d_url = get_post_meta($product_id, 'pw_3d_file', true);
 
