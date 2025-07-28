@@ -11,6 +11,7 @@
  */
 
 // Load modular components
+require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cdn-loader.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-customization.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cart-handler.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-inquiry.php';
@@ -94,6 +95,9 @@ class Pw_Admin_Public
      */
     private function initialize_modules()
     {
+        new Pw_CDN_Loader();
+        new Pw_Vue_Example();
+        new Pw_Vue_Simple();
         new Pw_Product_Customization();
         new Pw_Cart_Handler();
         new Pw_Product_Inquiry();
