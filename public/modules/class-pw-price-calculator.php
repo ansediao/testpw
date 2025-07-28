@@ -84,12 +84,14 @@ class Pw_Price_Calculator {
         // Get product price
         $product_price = $product->get_price();
         
-        // Get API data for accessories and discounts
+        // Get API data for accessories, discounts, and arrival date
         $api = new Pw_Admin_Promowares_Api();
         $api_response = $api->get_product_by_woo_id($product_id);
         
         $accessories = [];
         $quantity_discounts = [];
+        $arrival_date_enabled = false;
+        $avg_shipping_time = 0;
         
         if (!is_wp_error($api_response)) {
             if (isset($api_response['data']['accessories']) && is_array($api_response['data']['accessories'])) {
@@ -98,6 +100,17 @@ class Pw_Price_Calculator {
             
             if (isset($api_response['data']['quantity_discount']) && is_array($api_response['data']['quantity_discount'])) {
                 $quantity_discounts = $api_response['data']['quantity_discount'];
+            }
+            
+            // Check arrival_date setting
+            if (isset($api_response['data']['arrival_date'])) {
+                $arrival_date_setting = $api_response['data']['arrival_date'];
+                $arrival_date_enabled = ($arrival_date_setting === true || $arrival_date_setting === 'true' || $arrival_date_setting === 1 || $arrival_date_setting === '1');
+            }
+            
+            // Get average shipping time
+            if (isset($api_response['data']['avg_shipping_time'])) {
+                $avg_shipping_time = intval($api_response['data']['avg_shipping_time']);
             }
         }
 
@@ -129,10 +142,12 @@ class Pw_Price_Calculator {
                     </span>
                 </div>
                 
+                <?php if ($arrival_date_enabled && $avg_shipping_time > 0): ?>
                 <div class="estimation-row">
                     <span>Estimated arrival date:</span>
-                    <span id="arrival-date"></span>
+                    <span id="arrival-date"><?php echo date('F j, Y', strtotime('+' . $avg_shipping_time . ' days')); ?></span>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
 

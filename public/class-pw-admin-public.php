@@ -96,8 +96,6 @@ class Pw_Admin_Public
     private function initialize_modules()
     {
         new Pw_CDN_Loader();
-        new Pw_Vue_Example();
-        new Pw_Vue_Simple();
         new Pw_Product_Customization();
         new Pw_Cart_Handler();
         new Pw_Product_Inquiry();
