@@ -65,8 +65,20 @@ class Pw_CDN_Loader {
             
             <!-- 引入 Axios -->
             <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+            
+            <!-- 引入 Pinia Store -->
+            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/stores/productStore.js?v=' . time(); ?>"></script>
+            
+            <!-- 引入 Vue 组件 -->
+            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductInfo.js?v=' . time(); ?>"></script>
+            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductQuantity.js?v=' . time(); ?>"></script>
+            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/AddToCart.js?v=' . time(); ?>"></script>
+            
+            <!-- 引入产品页面主脚本 -->
+            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/main.js?v=' . time(); ?>"></script>
         </div>
-        <div id="vue-dynamic-product-area" data-product-id="<?php echo esc_attr( $product->get_id() ); ?>"></div>    
+        <div id="vue-dynamic-product-area" 
+             data-product-id="<?php echo esc_attr( $product->get_id() ); ?>"></div>    
         
         <?php
     }
