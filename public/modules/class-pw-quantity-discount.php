@@ -153,215 +153,268 @@ class Pw_Quantity_Discount {
 
         ?>
         
-        <div class="container-wrapper">
-            <div class="quantity-selector">
-                <div class="quantity-control">
-                    <label for="quantity-input">Quantity:</label>
-                    <div class="stepper">
-                        <button class="stepper-btn minus" aria-label="Decrease quantity">-</button>
-                        <input
-                            type="text"
-                            id="quantity-input"
-                            class="quantity-input"
-                            value="<?php echo max($minimum_order_quantity, 6); ?>"                            
-                        />
-                        <button class="stepper-btn plus" aria-label="Increase quantity">+</button>
-                    </div>
-                </div>
-
-                <div id="discount-scale-container" class="discount-scale-container">
-                    <div id="quantity-tooltip" class="quantity-tooltip"><?php echo max($minimum_order_quantity, 6); ?></div>
-                    <div class="scale-line"></div>
-                    <div id="scale-dots" class="scale-dots"></div>
-                </div>
-
-                <p id="discount-display-text" class="discount-display"></p>
-            </div>
-        </div>     
+        <div id="quantity-discount-app"></div>
 
         <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- 1. Configuration and Initialization ---
-            const config = <?php echo wp_json_encode($config); ?>;
+        document.addEventListener('pwCdnLoaded', function(event) {
+            const { vue: Vue, pinia, defineStore } = event.detail;
+            const { createApp, ref, computed, onMounted, nextTick } = Vue;
             
-            // Ensure discountTiers uses API data
-            if (config.discountTiers.length === 0) {
-                config.discountTiers = [
-                    { quantity: 6,  discountText: "0% OFF" },
-                    { quantity: 11, discountText: "10% OFF" },
-                    { quantity: 16, discountText: "15% OFF" },
-                    { quantity: 21, discountText: "20% OFF" },
-                    { quantity: 26, discountText: "25% OFF" },
-                    { quantity: 31, discountText: "30% OFF" }
-                ];
-            }
-
-            // --- 2. Get DOM Elements ---
-            const quantityInput = document.getElementById('quantity-input');
-            const minusBtn = document.querySelector('.stepper-btn.minus');
-            const plusBtn = document.querySelector('.stepper-btn.plus');
-            const scaleDotsContainer = document.getElementById('scale-dots');
-            const quantityTooltip = document.getElementById('quantity-tooltip');
-            const scaleContainer = document.getElementById('discount-scale-container');
-            const discountDisplayText = document.getElementById('discount-display-text');
-
-            let currentQuantity = config.initialQuantity;
-
-            // --- 3. Core Functions ---
-
-            // Quantity auto-correction function
-            function correctQuantity(inputQuantity) {
-                const minQty = config.minimumOrderQuantity;
-                const batchQty = config.batchQuantity;
-                const sellInBatch = config.sellInBatch;
+            // --- 1. Pinia Store Definition ---
+            const useQuantityDiscountStore = defineStore('quantityDiscount', {
+                state: () => ({
+                    config: <?php echo wp_json_encode($config); ?>,
+                    currentQuantity: <?php echo max($minimum_order_quantity, 6); ?>,
+                    activeDotQuantity: null
+                }),
                 
-                // Ensure not below minimum order quantity
-                if (inputQuantity < minQty) {
-                    return minQty;
-                }
+                getters: {
+                    correctedQuantity: (state) => {
+                        return (inputQuantity) => {
+                            const minQty = state.config.minimumOrderQuantity;
+                            const batchQty = state.config.batchQuantity;
+                            const sellInBatch = state.config.sellInBatch;
+                            
+                            if (inputQuantity < minQty) {
+                                return minQty;
+                            }
+                            
+                            if (sellInBatch === true) {
+                                if (batchQty > 0) {
+                                    const excessQuantity = inputQuantity - minQty;
+                                    const batchCount = Math.round(excessQuantity / batchQty);
+                                    return minQty + (batchCount * batchQty);
+                                }
+                            }
+                            
+                            return inputQuantity;
+                        };
+                    },
+                    
+                    discountForQuantity: (state) => {
+                        return (qty) => {
+                            for (let i = state.config.discountTiers.length - 1; i >= 0; i--) {
+                                const tier = state.config.discountTiers[i];
+                                if (qty >= tier.quantity) {
+                                    return tier.discountText;
+                                }
+                            }
+                            return null;
+                        };
+                    },
+                    
+                    closestDotQuantity: (state) => {
+                        return (qty) => {
+                            return state.config.discountTiers
+                                .map(tier => tier.quantity)
+                                .reduce((prev, curr) => {
+                                    return (Math.abs(curr - qty) < Math.abs(prev - qty) ? curr : prev);
+                                });
+                        };
+                    },
+                    
+                    discountDisplayText: (state) => {
+                        const discountText = state.discountForQuantity(state.currentQuantity);
+                        if (discountText !== null) {
+                            if (discountText !== "0% OFF") {
+                                return `Discount: ${discountText}`;
+                            }
+                        }
+                        return '';
+                    }
+                },
                 
-                // If batch selling is enabled, adjust to nearest batch multiple
-                if (sellInBatch === true) {
-                    if (batchQty > 0) {
-                        // Calculate batch multiples from minimum order quantity
-                        const excessQuantity = inputQuantity - minQty;
-                        const batchCount = Math.round(excessQuantity / batchQty);
-                        return minQty + (batchCount * batchQty);
+                actions: {
+                    initializeConfig() {
+                        if (this.config.discountTiers.length === 0) {
+                            this.config.discountTiers = [
+                                { quantity: 6,  discountText: "0% OFF" },
+                                { quantity: 11, discountText: "10% OFF" },
+                                { quantity: 16, discountText: "15% OFF" },
+                                { quantity: 21, discountText: "20% OFF" },
+                                { quantity: 26, discountText: "25% OFF" },
+                                { quantity: 31, discountText: "30% OFF" }
+                            ];
+                        }
+                    },
+                    
+                    updateQuantity(newQuantity) {
+                        const correctedQuantity = this.correctedQuantity(newQuantity);
+                        this.currentQuantity = Math.max(
+                            this.config.minimumOrderQuantity, 
+                            Math.min(correctedQuantity, this.config.maxStock)
+                        );
+                        
+                        this.activeDotQuantity = this.closestDotQuantity(this.currentQuantity);
+                        
+                        // Update external quantity input
+                        const productQuantityInput = document.querySelector('input[name="quantity"]');
+                        if (productQuantityInput) {
+                            productQuantityInput.value = this.currentQuantity;
+                            const event = new Event('change', { bubbles: true });
+                            productQuantityInput.dispatchEvent(event);
+                        }
+                    },
+                    
+                    incrementQuantity() {
+                        this.updateQuantity(this.currentQuantity + this.config.step);
+                    },
+                    
+                    decrementQuantity() {
+                        this.updateQuantity(this.currentQuantity - this.config.step);
                     }
                 }
-                
-                return inputQuantity;
-            }
+            });
 
-            function createScaleDots() {
-                if (!config.step || config.step <= 0) {
-                    scaleContainer.style.display = 'none';
-                    return;
-                }
-
-                scaleDotsContainer.innerHTML = '';
-                const quantities = config.discountTiers.map(tier => tier.quantity);
-                const totalDots = quantities.length;
-
-                quantities.forEach((qty, index) => {
-                    if (qty > config.maxStock) return;
-
-                    const dot = document.createElement('div');
-                    dot.className = 'scale-dot';
-                    dot.dataset.quantity = qty;
-
-                    const positionPercent = (index / (totalDots - 1)) * 100;
-                    dot.style.left = `${positionPercent}%`;
-
-                    dot.addEventListener('click', () => {
-                        updateAll(qty);
+            // --- 2. Vue Component Definition ---
+            const QuantityDiscountApp = {
+                setup() {
+                    const store = useQuantityDiscountStore();
+                    const quantityInputRef = ref(null);
+                    const scaleDotsRef = ref(null);
+                    const tooltipRef = ref(null);
+                    
+                    // Initialize store
+                    store.initializeConfig();
+                    
+                    const scaleDots = computed(() => {
+                        if (!store.config.step || store.config.step <= 0) {
+                            return [];
+                        }
+                        
+                        const quantities = store.config.discountTiers.map(tier => tier.quantity);
+                        const totalDots = quantities.length;
+                        
+                        return quantities.map((qty, index) => {
+                            if (qty > store.config.maxStock) return null;
+                            
+                            const positionPercent = (index / (totalDots - 1)) * 100;
+                            return {
+                                quantity: qty,
+                                position: positionPercent,
+                                isActive: qty === store.activeDotQuantity
+                            };
+                        }).filter(Boolean);
                     });
-
-                    scaleDotsContainer.appendChild(dot);
-                });
-            }
-
-            function getDiscountForQuantity(qty) {
-                let currentDiscount = null;
-                for (let i = config.discountTiers.length - 1; i >= 0; i--) {
-                    const tier = config.discountTiers[i];
-                    if (qty >= tier.quantity) {
-                        currentDiscount = tier.discountText;
-                        break;
-                    }
-                }
-                return currentDiscount;
-            }
-
-            function findClosestDotQuantity(qty) {
-                return config.discountTiers
-                    .map(tier => tier.quantity)
-                    .reduce((prev, curr) => {
-                        return (Math.abs(curr - qty) < Math.abs(prev - qty) ? curr : prev);
+                    
+                    const handleQuantityInput = (event) => {
+                        const inputValue = parseInt(event.target.value) || store.config.minimumOrderQuantity;
+                        store.updateQuantity(inputValue);
+                    };
+                    
+                    const handleKeyPress = (event) => {
+                        if (event.key === 'Enter') {
+                            const inputValue = parseInt(event.target.value) || store.config.minimumOrderQuantity;
+                            store.updateQuantity(inputValue);
+                            event.target.blur();
+                        }
+                    };
+                    
+                    const handleDotClick = (quantity) => {
+                        store.updateQuantity(quantity);
+                    };
+                    
+                    const updateTooltipPosition = () => {
+                        nextTick(() => {
+                            if (tooltipRef.value && scaleDotsRef.value) {
+                                const activeDot = scaleDotsRef.value.querySelector('.scale-dot.active');
+                                if (activeDot) {
+                                    const dotPosition = activeDot.offsetLeft + (activeDot.offsetWidth / 2);
+                                    tooltipRef.value.style.left = `${dotPosition}px`;
+                                }
+                            }
+                        });
+                    };
+                    
+                    onMounted(() => {
+                        store.updateQuantity(store.config.initialQuantity);
+                        updateTooltipPosition();
                     });
-            }
+                    
+                    // Watch for active dot changes to update tooltip position
+                    Vue.watch(() => store.activeDotQuantity, () => {
+                        updateTooltipPosition();
+                    });
+                    
+                    return {
+                        store,
+                        quantityInputRef,
+                        scaleDotsRef,
+                        tooltipRef,
+                        scaleDots,
+                        handleQuantityInput,
+                        handleKeyPress,
+                        handleDotClick
+                    };
+                },
+                
+                template: `
+                    <div class="container-wrapper">
+                        <div class="quantity-selector">
+                            <div class="quantity-control">
+                                <label for="quantity-input">Quantity:</label>
+                                <div class="stepper">
+                                    <button 
+                                        class="stepper-btn minus" 
+                                        aria-label="Decrease quantity"
+                                        @click="store.decrementQuantity"
+                                    >-</button>
+                                    <input
+                                        ref="quantityInputRef"
+                                        type="text"
+                                        id="quantity-input"
+                                        class="quantity-input"
+                                        :value="store.currentQuantity"
+                                        @blur="handleQuantityInput"
+                                        @keypress="handleKeyPress"
+                                    />
+                                    <button 
+                                        class="stepper-btn plus" 
+                                        aria-label="Increase quantity"
+                                        @click="store.incrementQuantity"
+                                    >+</button>
+                                </div>
+                            </div>
 
-            function updateAll(newQuantity) {
-                // Apply quantity auto-correction
-                const correctedQuantity = correctQuantity(newQuantity);
-                currentQuantity = Math.max(config.minimumOrderQuantity, Math.min(correctedQuantity, config.maxStock));
+                            <div 
+                                v-if="scaleDots.length > 0"
+                                id="discount-scale-container" 
+                                class="discount-scale-container"
+                            >
+                                <div 
+                                    ref="tooltipRef"
+                                    id="quantity-tooltip" 
+                                    class="quantity-tooltip"
+                                    :class="{ visible: store.activeDotQuantity }"
+                                >{{ store.activeDotQuantity }}</div>
+                                <div class="scale-line"></div>
+                                <div ref="scaleDotsRef" id="scale-dots" class="scale-dots">
+                                    <div
+                                        v-for="dot in scaleDots"
+                                        :key="dot.quantity"
+                                        class="scale-dot"
+                                        :class="{ active: dot.isActive }"
+                                        :style="{ left: dot.position + '%' }"
+                                        :data-quantity="dot.quantity"
+                                        @click="handleDotClick(dot.quantity)"
+                                    ></div>
+                                </div>
+                            </div>
 
-                // 1. Update input field value
-                quantityInput.value = currentQuantity;
+                            <p 
+                                v-if="store.discountDisplayText"
+                                id="discount-display-text" 
+                                class="discount-display"
+                            >{{ store.discountDisplayText }}</p>
+                        </div>
+                    </div>
+                `
+            };
 
-                // 2. Find and activate the closest scale point
-                const closestDotQty = findClosestDotQuantity(currentQuantity);
-                const dots = document.querySelectorAll('.scale-dot');
-                let activeDot = null;
-
-                dots.forEach(dot => {
-                    if (parseInt(dot.dataset.quantity) === closestDotQty) {
-                        dot.classList.add('active');
-                        activeDot = dot;
-                    } else {
-                        dot.classList.remove('active');
-                    }
-                });
-
-                // 3. Update the quantity tooltip above
-                if (activeDot) {
-                    quantityTooltip.textContent = closestDotQty;
-                    const dotPosition = activeDot.offsetLeft + (activeDot.offsetWidth / 2);
-                    quantityTooltip.style.left = `${dotPosition}px`;
-                    quantityTooltip.classList.add('visible');
-                } else {
-                    quantityTooltip.classList.remove('visible');
-                }
-
-                // 4. Update the discount text below
-                const discountText = getDiscountForQuantity(currentQuantity);
-                if (discountText !== null) {
-                    if (discountText !== "0% OFF") {
-                        discountDisplayText.textContent = `Discount: ${discountText}`;
-                    } else {
-                        discountDisplayText.textContent = '';
-                    }
-                } else {
-                    discountDisplayText.textContent = '';
-                }
-
-                // 5. Update quantity input field (if exists)
-                const productQuantityInput = document.querySelector('input[name="quantity"]');
-                if (productQuantityInput) {
-                    productQuantityInput.value = currentQuantity;
-                    // Trigger change event
-                    const event = new Event('change', { bubbles: true });
-                    productQuantityInput.dispatchEvent(event);
-                }
-            }
-
-            // --- 4. Bind Event Listeners ---
-            minusBtn.addEventListener('click', () => {
-                updateAll(parseInt(quantityInput.value) - config.step);
-            });
-
-            plusBtn.addEventListener('click', () => {
-                updateAll(parseInt(quantityInput.value) + config.step);
-            });
-
-            // Auto-correct quantity when input loses focus
-            quantityInput.addEventListener('blur', () => {
-                const inputValue = parseInt(quantityInput.value) || config.minimumOrderQuantity;
-                updateAll(inputValue);
-            });
-
-            // Auto-correct quantity when Enter is pressed in input
-            quantityInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    const inputValue = parseInt(quantityInput.value) || config.minimumOrderQuantity;
-                    updateAll(inputValue);
-                    quantityInput.blur(); // Remove focus
-                }
-            });
-
-            // --- 5. Initial Load ---
-            createScaleDots();
-            updateAll(config.initialQuantity);
+            // --- 3. Create and Mount Vue App ---
+            const app = createApp(QuantityDiscountApp);
+            app.use(pinia);
+            app.mount('#quantity-discount-app');
         });
         </script>
         <?php
