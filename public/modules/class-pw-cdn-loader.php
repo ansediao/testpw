@@ -20,6 +20,7 @@ class Pw_CDN_Loader {
      */
     public function __construct() {
         add_action('pw_admin_single_product_custom_content', array($this, 'load_cdn_scripts'), 5);
+        add_action('wp_footer', array($this, 'add_product_data_helper'));
     }
 
     /**
@@ -66,6 +67,9 @@ class Pw_CDN_Loader {
             <!-- 引入 Axios -->
             <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
             
+            <!-- 引入数据获取模块 -->
+            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/api/productDataAPI.js?v=' . time(); ?>"></script>
+            
             <!-- 引入 Pinia Store -->
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/stores/productStore.js?v=' . time(); ?>"></script>
             
@@ -80,6 +84,40 @@ class Pw_CDN_Loader {
         <div id="vue-dynamic-product-area" 
              data-product-id="<?php echo esc_attr( $product->get_id() ); ?>"></div>    
         
+        <?php
+    }
+
+    /**
+     * Add product data helper for Vue components
+     * 
+     * Provides product meta information for API calls
+     */
+    public function add_product_data_helper() {
+        global $product;
+        
+        // Only add on product pages with synchronized products
+        if (!is_a($product, 'WC_Product')) {
+            return;
+        }
+
+        $product_id = $product->get_id();
+        $pw_isSyncProduct = get_post_meta($product_id, 'pw_isSyncProduct', true);
+        $pw_id = get_post_meta($product_id, 'pw_id', true);
+        
+        if ($pw_isSyncProduct !== '1' || empty($pw_id)) {
+            return;
+        }
+
+        ?>
+        <script>
+        // 为 Vue/Pinia 提供产品基础信息
+        window.pwProductConfig = {
+            pwId: '<?php echo esc_js($pw_id); ?>',
+            productId: <?php echo intval($product_id); ?>,
+            restApiUrl: '<?php echo rest_url('pw/v1/product-data/'); ?>',
+            nonce: '<?php echo wp_create_nonce('wp_rest'); ?>'
+        };
+        </script>
         <?php
     }
 }
