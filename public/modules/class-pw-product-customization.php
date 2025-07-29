@@ -204,16 +204,50 @@ class Pw_Product_Customization {
         <script>
         document.addEventListener('pwCdnLoaded', function(event) {
             const { vue: Vue, pinia, axios, defineStore } = event.detail;
-            const { createApp, ref, onMounted } = Vue;
+            const { createApp, ref, onMounted, computed } = Vue;
 
-            // 创建颜色变体 Store
-            const useColorVariantStore = defineStore('colorVariantDisplay', {
+            // 创建统一的颜色变体 Store
+            const useColorVariantStore = defineStore('colorVariant', {
                 state: () => ({
                     variants: [],
                     loading: false,
                     error: null,
-                    rawApiData: null
+                    rawApiData: null,
+                    selectedVariant: null,
+                    // 默认颜色选项
+                    defaultColors: [
+                        {
+                            id: 'default-black',
+                            variant_name: 'black',
+                            variant_color: '#000000',
+                            filter: 'brightness(0) saturate(100%)'
+                        },
+                        {
+                            id: 'default-red',
+                            variant_name: 'red',
+                            variant_color: '#FF0000',
+                            filter: 'brightness(0) saturate(100%) invert(15%) sepia(95%) saturate(6932%) hue-rotate(359deg) brightness(100%) contrast(112%)'
+                        },
+                        {
+                            id: 'default-blue',
+                            variant_name: 'blue',
+                            variant_color: '#0000FF',
+                            filter: 'brightness(0) saturate(100%) invert(8%) sepia(98%) saturate(7154%) hue-rotate(248deg) brightness(97%) contrast(143%)'
+                        },
+                        {
+                            id: 'default-white',
+                            variant_name: 'white',
+                            variant_color: '#FFFFFF',
+                            filter: 'brightness(0) saturate(100%) invert(100%)'
+                        }
+                    ]
                 }),
+                getters: {
+                    // 如果有 API 数据就使用 API 数据，否则使用默认数据
+                    displayColors: (state) => {
+                        return state.variants.length > 0 ? state.variants : state.defaultColors;
+                    }
+                },
                 actions: {
                     async fetchVariants(pwId) {
                         if (!pwId) {
@@ -243,10 +277,16 @@ class Pw_Product_Customization {
                             this.rawApiData = response.data;
                             
                             if (response.data && response.data.success && response.data.data && response.data.data.code === 200) {
-                                this.variants = response.data.data.data;
+                                this.variants = response.data.data.data.map(variant => ({
+                                    ...variant,
+                                    filter: this.generateColorFilter(variant.variant_color)
+                                }));
                                 console.log('颜色变体数据加载成功:', this.variants);
                             } else if (response.data && response.data.code === 200 && response.data.data) {
-                                this.variants = response.data.data;
+                                this.variants = response.data.data.map(variant => ({
+                                    ...variant,
+                                    filter: this.generateColorFilter(variant.variant_color)
+                                }));
                                 console.log('颜色变体数据加载成功:', this.variants);
                             } else {
                                 this.error = response.data.data || 'API 返回数据格式错误';
@@ -257,12 +297,35 @@ class Pw_Product_Customization {
                         } finally {
                             this.loading = false;
                         }
+                    },
+                    
+                    selectVariant(variant) {
+                        this.selectedVariant = variant;
+                        // 更新产品颜色
+                        if (window.updateProductColor) {
+                            window.updateProductColor(variant.variant_color || variant.variant_name);
+                        }
+                    },
+                    
+                    // 根据颜色生成 CSS 滤镜
+                    generateColorFilter(hexColor) {
+                        if (!hexColor) return 'brightness(0) saturate(100%)';
+                        
+                        // 简单的颜色到滤镜映射
+                        const colorFilters = {
+                            '#000000': 'brightness(0) saturate(100%)',
+                            '#FF0000': 'brightness(0) saturate(100%) invert(15%) sepia(95%) saturate(6932%) hue-rotate(359deg) brightness(100%) contrast(112%)',
+                            '#0000FF': 'brightness(0) saturate(100%) invert(8%) sepia(98%) saturate(7154%) hue-rotate(248deg) brightness(97%) contrast(143%)',
+                            '#FFFFFF': 'brightness(0) saturate(100%) invert(100%)'
+                        };
+                        
+                        return colorFilters[hexColor.toUpperCase()] || 'brightness(0) saturate(100%)';
                     }
                 }
             });
 
-            // 创建 Vue 应用
-            const app = createApp({
+            // 创建颜色变体数据显示应用
+            const variantDisplayApp = createApp({
                 setup() {
                     const store = useColorVariantStore();
                     
@@ -295,8 +358,60 @@ class Pw_Product_Customization {
                 `
             });
             
-            app.use(pinia);
-            app.mount('#pw-variants-content');
+            variantDisplayApp.use(pinia);
+            variantDisplayApp.mount('#pw-variants-content');
+
+            // 创建颜色选择应用
+            const colorSelectionApp = createApp({
+                setup() {
+                    const store = useColorVariantStore();
+                    
+                    onMounted(() => {
+                        const pwId = '<?php echo esc_js($pw_id); ?>';
+                        if (pwId) {
+                            store.fetchVariants(pwId);
+                        }
+                    });
+                    
+                    const handleColorClick = (variant) => {
+                        store.selectVariant(variant);
+                        
+                        // 更新 UI 选中状态
+                        document.querySelectorAll('.color-box').forEach(box => {
+                            box.classList.remove('selected');
+                        });
+                        event.target.classList.add('selected');
+                    };
+                    
+                    return {
+                        store,
+                        handleColorClick
+                    };
+                },
+                template: `
+                    <div v-if="store.loading" class="loading-message">
+                        加载颜色选项中...
+                    </div>
+                    <div v-else-if="store.error" class="error-message">
+                        {{ store.error }}
+                    </div>
+                    <div v-else>
+                        <div 
+                            v-for="variant in store.displayColors" 
+                            :key="variant.id || variant.variant_name"
+                            class="color-box" 
+                            :data-color="variant.variant_name"
+                            :data-filter="variant.filter"
+                            :style="{ backgroundColor: variant.variant_color }"
+                            :title="variant.variant_name"
+                            @click="handleColorClick(variant)"
+                        ></div>
+                    </div>
+                `
+            });
+            
+            colorSelectionApp.use(pinia);
+            colorSelectionApp.mount('#color-options-container');
         });
 
         // 添加折叠/展开功能
@@ -358,175 +473,7 @@ class Pw_Product_Customization {
 
 
 
-        <script>
-        document.addEventListener('pwCdnLoaded', function(event) {
-            const { vue: Vue, pinia, axios, defineStore } = event.detail;
-            const { createApp, ref, onMounted, computed } = Vue;
 
-            // 创建颜色变体 Store
-            const useColorVariantStore = defineStore('colorVariant', {
-                state: () => ({
-                    variants: [],
-                    loading: false,
-                    error: null,
-                    selectedVariant: null,
-                    // 默认颜色选项
-                    defaultColors: [
-                        {
-                            id: 'default-black',
-                            variant_name: 'black',
-                            variant_color: '#000000',
-                            filter: 'brightness(0) saturate(100%)'
-                        },
-                        {
-                            id: 'default-red',
-                            variant_name: 'red',
-                            variant_color: '#FF0000',
-                            filter: 'brightness(0) saturate(100%) invert(15%) sepia(95%) saturate(6932%) hue-rotate(359deg) brightness(100%) contrast(112%)'
-                        },
-                        {
-                            id: 'default-blue',
-                            variant_name: 'blue',
-                            variant_color: '#0000FF',
-                            filter: 'brightness(0) saturate(100%) invert(8%) sepia(98%) saturate(7154%) hue-rotate(248deg) brightness(97%) contrast(143%)'
-                        },
-                        {
-                            id: 'default-white',
-                            variant_name: 'white',
-                            variant_color: '#FFFFFF',
-                            filter: 'brightness(0) saturate(100%) invert(100%)'
-                        }
-                    ]
-                }),
-                getters: {
-                    // 如果有 API 数据就使用 API 数据，否则使用默认数据
-                    displayColors: (state) => {
-                        return state.variants.length > 0 ? state.variants : state.defaultColors;
-                    }
-                },
-                actions: {
-                    async fetchVariants(pwId) {
-                        if (!pwId) return;
-                        
-                        this.loading = true;
-                        this.error = null;
-                        
-                        try {
-                            const formData = new URLSearchParams();
-                            formData.append('action', 'pw_get_color_variants');
-                            formData.append('pw_id', pwId);
-                            formData.append('nonce', '<?php echo wp_create_nonce('pw_color_variants_nonce'); ?>');
-                            
-                            const response = await axios.post(
-                                '<?php echo admin_url('admin-ajax.php'); ?>',
-                                formData,
-                                {
-                                    headers: {
-                                        'Content-Type': 'application/x-www-form-urlencoded'
-                                    }
-                                }
-                            );
-                            
-                            if (response.data && response.data.success && response.data.data && response.data.data.code === 200) {
-                                this.variants = response.data.data.data.map(variant => ({
-                                    ...variant,
-                                    filter: this.generateColorFilter(variant.variant_color)
-                                }));
-                                console.log('API 变体数据加载成功:', this.variants);
-                            } else if (response.data && response.data.code === 200 && response.data.data) {
-                                this.variants = response.data.data.map(variant => ({
-                                    ...variant,
-                                    filter: this.generateColorFilter(variant.variant_color)
-                                }));
-                                console.log('API 变体数据加载成功:', this.variants);
-                            }
-                        } catch (error) {
-                            console.error('获取变体数据失败:', error);
-                            this.error = error.response?.data?.data || error.message;
-                            // 发生错误时使用默认颜色
-                        } finally {
-                            this.loading = false;
-                        }
-                    },
-                    
-                    selectVariant(variant) {
-                        this.selectedVariant = variant;
-                        // 更新产品颜色
-                        if (window.updateProductColor) {
-                            window.updateProductColor(variant.variant_color || variant.variant_name);
-                        }
-                    },
-                    
-                    // 根据颜色生成 CSS 滤镜
-                    generateColorFilter(hexColor) {
-                        if (!hexColor) return 'brightness(0) saturate(100%)';
-                        
-                        // 简单的颜色到滤镜映射
-                        const colorFilters = {
-                            '#000000': 'brightness(0) saturate(100%)',
-                            '#FF0000': 'brightness(0) saturate(100%) invert(15%) sepia(95%) saturate(6932%) hue-rotate(359deg) brightness(100%) contrast(112%)',
-                            '#0000FF': 'brightness(0) saturate(100%) invert(8%) sepia(98%) saturate(7154%) hue-rotate(248deg) brightness(97%) contrast(143%)',
-                            '#FFFFFF': 'brightness(0) saturate(100%) invert(100%)'
-                        };
-                        
-                        return colorFilters[hexColor.toUpperCase()] || 'brightness(0) saturate(100%)';
-                    }
-                }
-            });
-
-            // 创建 Vue 应用
-            const app = createApp({
-                setup() {
-                    const store = useColorVariantStore();
-                    
-                    onMounted(() => {
-                        const pwId = '<?php echo esc_js($pw_id); ?>';
-                        if (pwId) {
-                            store.fetchVariants(pwId);
-                        }
-                    });
-                    
-                    const handleColorClick = (variant) => {
-                        store.selectVariant(variant);
-                        
-                        // 更新 UI 选中状态
-                        document.querySelectorAll('.color-box').forEach(box => {
-                            box.classList.remove('selected');
-                        });
-                        event.target.classList.add('selected');
-                    };
-                    
-                    return {
-                        store,
-                        handleColorClick
-                    };
-                },
-                template: `
-                    <div v-if="store.loading" class="loading-message">
-                        加载颜色选项中...
-                    </div>
-                    <div v-else-if="store.error" class="error-message">
-                        {{ store.error }}
-                    </div>
-                    <div v-else>
-                        <div 
-                            v-for="variant in store.displayColors" 
-                            :key="variant.id || variant.variant_name"
-                            class="color-box" 
-                            :data-color="variant.variant_name"
-                            :data-filter="variant.filter"
-                            :style="{ backgroundColor: variant.variant_color }"
-                            :title="variant.variant_name"
-                            @click="handleColorClick(variant)"
-                        ></div>
-                    </div>
-                `
-            });
-            
-            app.use(pinia);
-            app.mount('#color-options-container');
-        });
-        </script>
         <?php
     }
 

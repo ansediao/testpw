@@ -191,11 +191,15 @@ class Pw_Price_Calculator {
                 }
                 
                 // 如果启用批量销售，需要调整到最接近的批量倍数
-                if (sellInBatch && batchQty > 0) {
+                if (sellInBatch) {
+                    if(batchQty > 0){
+
+                    
                     // 计算从最小订购量开始的批量倍数
                     const excessQuantity = inputQuantity - minQty;
                     const batchCount = Math.round(excessQuantity / batchQty);
                     return minQty + (batchCount * batchQty);
+                }
                 }
                 
                 return inputQuantity;
