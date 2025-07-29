@@ -66,57 +66,8 @@ class Pw_CDN_Loader {
             <!-- 引入 Axios -->
             <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
         </div>
+        <div id="vue-dynamic-product-area" data-product-id="<?php echo esc_attr( $product->get_id() ); ?>"></div>    
         
-        <script>
-        // Initialize Vue and Pinia when DOM is ready
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('PW Canvas: Checking CDN script availability...');
-            console.log('Vue:', typeof Vue, Vue);
-            console.log('Pinia:', typeof Pinia, Pinia);
-            console.log('axios:', typeof axios, axios);
-            
-            // Ensure all CDN scripts are loaded
-            if (typeof Vue !== 'undefined' && typeof Pinia !== 'undefined' && typeof axios !== 'undefined') {
-                console.log('PW Canvas: Vue 3, Pinia, and Axios loaded successfully');
-                
-                // Debug Pinia object
-                console.log('Pinia object properties:', Object.keys(Pinia));
-                console.log('Pinia.defineStore:', typeof Pinia.defineStore);
-                console.log('Pinia.createPinia:', typeof Pinia.createPinia);
-                
-                // Create Pinia instance
-                const pinia = Pinia.createPinia();
-                console.log('Pinia instance created:', pinia);
-                
-                // Make global instances available
-                window.pwVue = Vue;
-                window.pwPinia = pinia;
-                window.pwAxios = axios;
-                window.PiniaDefineStore = Pinia.defineStore;
-                
-                // Trigger custom event to notify other scripts
-                const event = new CustomEvent('pwCdnLoaded', {
-                    detail: {
-                        vue: Vue,
-                        pinia: pinia,
-                        axios: axios,
-                        Pinia: Pinia,
-                        defineStore: Pinia.defineStore
-                    }
-                });
-                document.dispatchEvent(event);
-                
-                console.log('PW Canvas: pwCdnLoaded event dispatched');
-            } else {
-                console.error('PW Canvas: Failed to load CDN scripts');
-                console.log('Available globals:', {
-                    Vue: typeof Vue,
-                    Pinia: typeof Pinia,
-                    axios: typeof axios
-                });
-            }
-        });
-        </script>
         <?php
     }
 }
