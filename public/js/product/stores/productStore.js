@@ -11,6 +11,10 @@ const useProductStore = Pinia.defineStore('product', {
         loading: false,
         error: null,
         
+        // Variants
+        selectedVariant: null,
+        variants: [],
+        
         // Cart related
         quantity: 1,
         selectedOptions: {},
@@ -25,11 +29,21 @@ const useProductStore = Pinia.defineStore('product', {
         isLoading: (state) => state.loading,
         hasError: (state) => state.error !== null,
         totalPrice: (state) => {
+            // 如果有选中的变体，使用变体价格
+            if (state.selectedVariant && state.selectedVariant.price) {
+                return parseFloat(state.selectedVariant.price) * state.quantity;
+            }
+            // 否则使用产品默认价格
             if (!state.productData || !state.productData.price) return 0;
             return state.productData.price * state.quantity;
         },
         canAddToCart: (state) => {
             return state.productData && state.quantity > 0 && !state.loading;
+        },
+        // 变体相关的 getters
+        hasVariants: (state) => state.variants.length > 0,
+        selectedVariantPrice: (state) => {
+            return state.selectedVariant ? parseFloat(state.selectedVariant.price) : 0;
         }
     },
 
@@ -67,6 +81,16 @@ const useProductStore = Pinia.defineStore('product', {
             this.activeTab = tab;
         },
 
+        // 变体相关的 actions
+        setSelectedVariant(variant) {
+            this.selectedVariant = variant;
+            console.log('Store: 设置选中变体', variant);
+        },
+
+        setVariants(variants) {
+            this.variants = variants;
+        },
+
         // Async actions
         async fetchProductData() {
             if (!this.productId) return;
@@ -94,7 +118,8 @@ const useProductStore = Pinia.defineStore('product', {
                 const cartData = {
                     productId: this.productId,
                     quantity: this.quantity,
-                    options: this.selectedOptions
+                    options: this.selectedOptions,
+                    variant: this.selectedVariant // 包含选中的变体信息
                 };
                 
                 // Mock API call - replace with actual endpoint

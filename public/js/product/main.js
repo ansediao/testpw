@@ -26,7 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
         store: !!window.useProductStore,
         productInfo: !!window.ProductInfo,
         productQuantity: !!window.ProductQuantity,
-        addToCart: !!window.AddToCart
+        addToCart: !!window.AddToCart,
+        colorVariants: !!window.ColorVariants
     };
 
     console.log('Module loading status:', modulesLoaded);
@@ -64,7 +65,8 @@ function initializeModularApp(productId) {
         components: {
             ProductInfo: window.ProductInfo,
             ProductQuantity: window.ProductQuantity,
-            AddToCart: window.AddToCart
+            AddToCart: window.AddToCart,
+            ColorVariants: window.ColorVariants
         },
         
         template: `
@@ -77,6 +79,10 @@ function initializeModularApp(productId) {
                 <div class="app-content">
                     <div class="product-section">
                         <ProductInfo />
+                    </div>
+                    
+                    <div class="color-variants-section">
+                        <ColorVariants />
                     </div>
                     
                     <div class="quantity-section">
