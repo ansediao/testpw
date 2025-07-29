@@ -68,14 +68,22 @@ Get-ChildItem -Force (PowerShell)
 - **基础地址**: `https://dev.promowares.com/api/v1/`
 - **认证方式**: JWT 令牌
 - **主要端点**:
-  - `GET /products` - 获取产品列表
+  - `GET /products/{id}` - 获取产品详情
+  - `GET /custom-templates/product/{id}` - 获取产品模板
+  - `GET /plugin/variant_product/{id}` - 获取产品变体
   - `GET /auth/user-info` - 验证用户令牌
+
+### 外部 Mock API
+- **基础地址**: `https://mock.apipost.net/mock/2adf9164a465000/mock/2adf9164a465000/`
+- **认证方式**: 无需认证
+- **用途**: 提供模拟数据用于测试和功能增强
 
 ### WordPress REST API 端点
 - **命名空间**: `pw/v1`
 - **基础地址**: `/wp-json/pw/v1/`
 - **端点列表**:
   - `GET /getPwDesignImages` - 获取设计图片列表
+  - `GET /product-data/{id}` - 聚合产品数据端点（BFF模式）
 
 ### WordPress AJAX 端点
 - **管理后台 AJAX**:
