@@ -45,6 +45,11 @@ class Pw_Quantity_Discount {
 
         $use_demo_data = false;
         $quantity_discounts = [];
+        
+        // Get quantity limits and batch settings
+        $minimum_order_quantity = 6; // Default minimum order quantity
+        $batch_quantity = 5; // Default step value
+        $sell_in_batch = false;
 
         if (is_wp_error($api_response) || !isset($api_response['data']['quantity_discount']) || 
             !is_array($api_response['data']['quantity_discount']) || empty($api_response['data']['quantity_discount'])) {
@@ -52,7 +57,21 @@ class Pw_Quantity_Discount {
         } else {
             $quantity_discounts = $api_response['data']['quantity_discount'];
             
-            // 检查是否有range_to为0的情况
+            // Get minimum order quantity setting
+            if (isset($api_response['data']['moq_setting']['minimum_order_quantity'])) {
+                $minimum_order_quantity = intval($api_response['data']['moq_setting']['minimum_order_quantity']);
+            }
+            
+            // Get batch selling settings
+            if (isset($api_response['data']['sell_in_batch'])) {
+                $sell_in_batch = $api_response['data']['sell_in_batch'] === true || $api_response['data']['sell_in_batch'] === 'true';
+            }
+            
+            if ($sell_in_batch && isset($api_response['data']['sell_in_batch_info']['batch_quantity'])) {
+                $batch_quantity = intval($api_response['data']['sell_in_batch_info']['batch_quantity']);
+            }
+            
+            // Check if there are cases where range_to is 0
             foreach ($quantity_discounts as $discount) {
                 if (isset($discount['range_to']) && $discount['range_to'] == 0) {
                     $use_demo_data = true;
@@ -61,7 +80,7 @@ class Pw_Quantity_Discount {
             }
         }
 
-        // 如果需要使用demo数据或API数据无效
+        // If demo data is needed or API data is invalid
         if ($use_demo_data || empty($quantity_discounts)) {
             $quantity_discounts = [
                 [
@@ -103,21 +122,24 @@ class Pw_Quantity_Discount {
             ];
         }
 
-        // 过滤掉无效的折扣数据
+        // Filter out invalid discount data
         $valid_discounts = array_filter($quantity_discounts, function($discount) {
             return !($discount['range_from'] == 0 && $discount['range_to'] == 0);
         });
 
-        // 按数量范围排序
+        // Sort by quantity range
         usort($valid_discounts, function($a, $b) {
             return $a['range_from'] - $b['range_from'];
         });
 
-        // 准备配置数据
+        // Prepare configuration data
         $config = [
-            'initialQuantity' => 6,
-            'step' => 5,
+            'initialQuantity' => max($minimum_order_quantity, 6),
+            'step' => $batch_quantity,
             'maxStock' => 9999,
+            'minimumOrderQuantity' => $minimum_order_quantity,
+            'batchQuantity' => $batch_quantity,
+            'sellInBatch' => $sell_in_batch,
             'discountTiers' => []
         ];
 
@@ -136,20 +158,19 @@ class Pw_Quantity_Discount {
                 <div class="quantity-control">
                     <label for="quantity-input">Quantity:</label>
                     <div class="stepper">
-                        <button class="stepper-btn minus" aria-label="减少数量">-</button>
+                        <button class="stepper-btn minus" aria-label="Decrease quantity">-</button>
                         <input
                             type="text"
                             id="quantity-input"
                             class="quantity-input"
-                            value="6"
-                            readonly
+                            value="<?php echo max($minimum_order_quantity, 6); ?>"                            
                         />
-                        <button class="stepper-btn plus" aria-label="增加数量">+</button>
+                        <button class="stepper-btn plus" aria-label="Increase quantity">+</button>
                     </div>
                 </div>
 
                 <div id="discount-scale-container" class="discount-scale-container">
-                    <div id="quantity-tooltip" class="quantity-tooltip">6</div>
+                    <div id="quantity-tooltip" class="quantity-tooltip"><?php echo max($minimum_order_quantity, 6); ?></div>
                     <div class="scale-line"></div>
                     <div id="scale-dots" class="scale-dots"></div>
                 </div>
@@ -158,12 +179,12 @@ class Pw_Quantity_Discount {
             </div>
         </div>     
 
-        <script>
+        <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', () => {
-            // --- 1. 配置和初始化 ---
+            // --- 1. Configuration and Initialization ---
             const config = <?php echo wp_json_encode($config); ?>;
             
-            // 确保discountTiers使用API数据
+            // Ensure discountTiers uses API data
             if (config.discountTiers.length === 0) {
                 config.discountTiers = [
                     { quantity: 6,  discountText: "0% OFF" },
@@ -175,7 +196,7 @@ class Pw_Quantity_Discount {
                 ];
             }
 
-            // --- 2. 获取 DOM 元素 ---
+            // --- 2. Get DOM Elements ---
             const quantityInput = document.getElementById('quantity-input');
             const minusBtn = document.querySelector('.stepper-btn.minus');
             const plusBtn = document.querySelector('.stepper-btn.plus');
@@ -186,7 +207,31 @@ class Pw_Quantity_Discount {
 
             let currentQuantity = config.initialQuantity;
 
-            // --- 3. 核心功能函数 ---
+            // --- 3. Core Functions ---
+
+            // Quantity auto-correction function
+            function correctQuantity(inputQuantity) {
+                const minQty = config.minimumOrderQuantity;
+                const batchQty = config.batchQuantity;
+                const sellInBatch = config.sellInBatch;
+                
+                // Ensure not below minimum order quantity
+                if (inputQuantity < minQty) {
+                    return minQty;
+                }
+                
+                // If batch selling is enabled, adjust to nearest batch multiple
+                if (sellInBatch === true) {
+                    if (batchQty > 0) {
+                        // Calculate batch multiples from minimum order quantity
+                        const excessQuantity = inputQuantity - minQty;
+                        const batchCount = Math.round(excessQuantity / batchQty);
+                        return minQty + (batchCount * batchQty);
+                    }
+                }
+                
+                return inputQuantity;
+            }
 
             function createScaleDots() {
                 if (!config.step || config.step <= 0) {
@@ -237,12 +282,14 @@ class Pw_Quantity_Discount {
             }
 
             function updateAll(newQuantity) {
-                currentQuantity = Math.max(config.initialQuantity, Math.min(newQuantity, config.maxStock));
+                // Apply quantity auto-correction
+                const correctedQuantity = correctQuantity(newQuantity);
+                currentQuantity = Math.max(config.minimumOrderQuantity, Math.min(correctedQuantity, config.maxStock));
 
-                // 1. 更新输入框的值
+                // 1. Update input field value
                 quantityInput.value = currentQuantity;
 
-                // 2. 找到最接近的刻度点并激活
+                // 2. Find and activate the closest scale point
                 const closestDotQty = findClosestDotQuantity(currentQuantity);
                 const dots = document.querySelectorAll('.scale-dot');
                 let activeDot = null;
@@ -256,7 +303,7 @@ class Pw_Quantity_Discount {
                     }
                 });
 
-                // 3. 更新上方的数量提示框
+                // 3. Update the quantity tooltip above
                 if (activeDot) {
                     quantityTooltip.textContent = closestDotQty;
                     const dotPosition = activeDot.offsetLeft + (activeDot.offsetWidth / 2);
@@ -266,25 +313,29 @@ class Pw_Quantity_Discount {
                     quantityTooltip.classList.remove('visible');
                 }
 
-                // 4. 更新下方的折扣文字
+                // 4. Update the discount text below
                 const discountText = getDiscountForQuantity(currentQuantity);
-                if (discountText && discountText !== "0% OFF") {
-                    discountDisplayText.textContent = `Discount: ${discountText}`;
+                if (discountText !== null) {
+                    if (discountText !== "0% OFF") {
+                        discountDisplayText.textContent = `Discount: ${discountText}`;
+                    } else {
+                        discountDisplayText.textContent = '';
+                    }
                 } else {
                     discountDisplayText.textContent = '';
                 }
 
-                // 5. 更新数量输入框（如果存在）
+                // 5. Update quantity input field (if exists)
                 const productQuantityInput = document.querySelector('input[name="quantity"]');
                 if (productQuantityInput) {
                     productQuantityInput.value = currentQuantity;
-                    // 触发change事件
+                    // Trigger change event
                     const event = new Event('change', { bubbles: true });
                     productQuantityInput.dispatchEvent(event);
                 }
             }
 
-            // --- 4. 绑定事件监听 ---
+            // --- 4. Bind Event Listeners ---
             minusBtn.addEventListener('click', () => {
                 updateAll(parseInt(quantityInput.value) - config.step);
             });
@@ -293,7 +344,22 @@ class Pw_Quantity_Discount {
                 updateAll(parseInt(quantityInput.value) + config.step);
             });
 
-            // --- 5. 初始加载 ---
+            // Auto-correct quantity when input loses focus
+            quantityInput.addEventListener('blur', () => {
+                const inputValue = parseInt(quantityInput.value) || config.minimumOrderQuantity;
+                updateAll(inputValue);
+            });
+
+            // Auto-correct quantity when Enter is pressed in input
+            quantityInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const inputValue = parseInt(quantityInput.value) || config.minimumOrderQuantity;
+                    updateAll(inputValue);
+                    quantityInput.blur(); // Remove focus
+                }
+            });
+
+            // --- 5. Initial Load ---
             createScaleDots();
             updateAll(config.initialQuantity);
         });

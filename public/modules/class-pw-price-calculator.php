@@ -92,6 +92,9 @@ class Pw_Price_Calculator {
         $quantity_discounts = [];
         $arrival_date_enabled = false;
         $avg_shipping_time = 0;
+        $minimum_order_quantity = 6; // 默认最小订购量
+        $batch_quantity = 5; // 默认步进值
+        $sell_in_batch = false;
         
         if (!is_wp_error($api_response)) {
             if (isset($api_response['data']['accessories']) && is_array($api_response['data']['accessories'])) {
@@ -100,6 +103,20 @@ class Pw_Price_Calculator {
             
             if (isset($api_response['data']['quantity_discount']) && is_array($api_response['data']['quantity_discount'])) {
                 $quantity_discounts = $api_response['data']['quantity_discount'];
+            }
+            
+            // 获取最小订购量设置
+            if (isset($api_response['data']['moq_setting']['minimum_order_quantity'])) {
+                $minimum_order_quantity = intval($api_response['data']['moq_setting']['minimum_order_quantity']);
+            }
+            
+            // 获取批量销售设置
+            if (isset($api_response['data']['sell_in_batch'])) {
+                $sell_in_batch = $api_response['data']['sell_in_batch'] === true || $api_response['data']['sell_in_batch'] === 'true';
+            }
+            
+            if ($sell_in_batch && isset($api_response['data']['sell_in_batch_info']['batch_quantity'])) {
+                $batch_quantity = intval($api_response['data']['sell_in_batch_info']['batch_quantity']);
             }
             
             // Check arrival_date setting
@@ -137,8 +154,8 @@ class Pw_Price_Calculator {
                 <div class="estimation-row">
                     <span>Estimated price:</span>
                     <span>
-                        <span id="original-price" class="strikethrough">$<?php echo number_format($product_price * 6, 2); ?></span>
-                        <span id="total-price">$<?php echo number_format($product_price * 6, 2); ?></span>
+                        <span id="original-price" class="strikethrough">$<?php echo number_format($product_price * max($minimum_order_quantity, 6), 2); ?></span>
+                        <span id="total-price">$<?php echo number_format($product_price * max($minimum_order_quantity, 6), 2); ?></span>
                     </span>
                 </div>
                 
@@ -156,9 +173,33 @@ class Pw_Price_Calculator {
             const productPrice = <?php echo $product_price; ?>;
             const accessories = <?php echo wp_json_encode($accessories); ?>;
             const quantityDiscounts = <?php echo wp_json_encode($quantity_discounts); ?>;
+            const minimumOrderQuantity = <?php echo $minimum_order_quantity; ?>;
+            const batchQuantity = <?php echo $batch_quantity; ?>;
+            const sellInBatch = <?php echo $sell_in_batch ? 'true' : 'false'; ?>;
             
-            let currentQuantity = 6;
+            let currentQuantity = Math.max(minimumOrderQuantity, 6);
             let selectedAccessories = [];
+            
+            // Function to correct quantity based on API settings
+            function correctQuantity(inputQuantity) {
+                const minQty = minimumOrderQuantity;
+                const batchQty = batchQuantity;
+                
+                // 确保不低于最小订购量
+                if (inputQuantity < minQty) {
+                    return minQty;
+                }
+                
+                // 如果启用批量销售，需要调整到最接近的批量倍数
+                if (sellInBatch && batchQty > 0) {
+                    // 计算从最小订购量开始的批量倍数
+                    const excessQuantity = inputQuantity - minQty;
+                    const batchCount = Math.round(excessQuantity / batchQty);
+                    return minQty + (batchCount * batchQty);
+                }
+                
+                return inputQuantity;
+            }
             
             // Function to get discount for quantity
             function getDiscountForQuantity(qty) {
@@ -210,9 +251,10 @@ class Pw_Price_Calculator {
             function monitorQuantityChanges() {
                 const quantityInput = $('#quantity-input');
                 if (quantityInput.length) {
-                    const newQuantity = parseInt(quantityInput.val()) || 6;
-                    if (newQuantity !== currentQuantity) {
-                        currentQuantity = newQuantity;
+                    const inputQuantity = parseInt(quantityInput.val()) || minimumOrderQuantity;
+                    const correctedQuantity = correctQuantity(inputQuantity);
+                    if (correctedQuantity !== currentQuantity) {
+                        currentQuantity = correctedQuantity;
                         updatePriceCalculation();
                     }
                 }
