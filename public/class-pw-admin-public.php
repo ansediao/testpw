@@ -12,22 +12,25 @@
 
 // Load modular components
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cdn-loader.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-customization.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cart-handler.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-inquiry.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-accessory-selector.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-quantity-discount.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-price-calculator.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-api-data-display.php';
+
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-auxiliary-functions.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-template-handler.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-options.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-action-buttons.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-custom-templates.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cart-admin-actions.php';
-
 // Load partial components
 require_once plugin_dir_path(__FILE__) . 'partials/pw-product-cart-handler.php';
+
+
+// 之前php 实现的 产品页模块
+// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-customization.php';
+// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-accessory-selector.php';
+// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-quantity-discount.php';
+// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-price-calculator.php';
+// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-api-data-display.php';
+// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-options.php';
+// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-action-buttons.php';
+// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-custom-templates.php';
 
 /**
  * The public-facing functionality of the plugin.
@@ -76,16 +79,16 @@ class Pw_Admin_Public
 
         // Add custom hook for modular components
         add_action('woocommerce_product_meta_end', array($this, 'trigger_pw_custom_product_hook'), 100);
-        
+
         // 添加重写规则
         add_action('init', array($this, 'add_pw_canvas_rewrite_rules'));
-        
+
         // 注册查询变量
         add_filter('query_vars', array($this, 'add_pw_canvas_query_vars'));
-        
+
         // 添加购物车重定向功能
         add_action('template_redirect', array($this, 'custom_cart_redirect_based_on_product_meta'));
-        
+
         // 添加支付页面重定向功能
         add_action('template_redirect', array($this, 'custom_checkout_redirect_based_on_product_meta'));
     }
@@ -96,19 +99,21 @@ class Pw_Admin_Public
     private function initialize_modules()
     {
         new Pw_CDN_Loader();
-        new Pw_Product_Customization();
         new Pw_Cart_Handler();
         new Pw_Product_Inquiry();
-        new Pw_Accessory_Selector();
-        new Pw_Quantity_Discount();
-        new Pw_Price_Calculator();
-        new Pw_Api_Data_Display();
         new Pw_Auxiliary_Functions();
         new Pw_Template_Handler();
-        new Pw_Product_Options();
-        new Pw_Product_Action_Buttons();
-        new Pw_Custom_Templates();
         new Pw_Cart_Admin_Actions();
+
+        // 之前php 实现的 产品页模块
+        // new Pw_Product_Customization();
+        // new Pw_Accessory_Selector();
+        // new Pw_Quantity_Discount();
+        // new Pw_Price_Calculator();
+        // new Pw_Api_Data_Display();
+        // new Pw_Product_Options();
+        // new Pw_Product_Action_Buttons();
+        // new Pw_Custom_Templates();
     }
 
     /**
@@ -119,7 +124,7 @@ class Pw_Admin_Public
     public function enqueue_styles()
     {
         wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/pw-admin-public.css', array(), $this->version, 'all');
-        
+
         // Add canvas CSS to product pages with timestamp to prevent caching
         if (is_product()) {
             wp_enqueue_style('pw-canvas-css', 'https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/224.css', array(), microtime(true), 'all');
@@ -140,7 +145,7 @@ class Pw_Admin_Public
         if (class_exists('WooCommerce')) {
             wp_enqueue_script('wc-add-to-cart');
         }
-        
+
         // 在产品页面加载视图切换器脚本
         if (is_product()) {
             wp_enqueue_script('pw-view-switcher', plugin_dir_url(__FILE__) . 'js/pw-view-switcher.js', array('jquery'), $this->version, true);
@@ -187,7 +192,7 @@ class Pw_Admin_Public
     public function trigger_pw_custom_product_hook()
     {
         global $product;
-        
+
         // 确保在产品页面且产品对象存在
         if (is_product() && is_a($product, 'WC_Product')) {
             /**
@@ -207,20 +212,21 @@ class Pw_Admin_Public
      * 
      * @since    1.0.0
      */
-    public function add_pw_canvas_rewrite_rules() {
+    public function add_pw_canvas_rewrite_rules()
+    {
         add_rewrite_rule(
             '^pwcanvas/?$',
             'index.php?pw_canvas=1',
             'top'
         );
-        
+
         // 仅在插件激活时刷新重写规则
         if (get_option('pw_canvas_flush_rewrite') != true) {
             flush_rewrite_rules();
             update_option('pw_canvas_flush_rewrite', true);
         }
     }
-    
+
     /**
      * 添加自定义查询变量
      * 
@@ -228,7 +234,8 @@ class Pw_Admin_Public
      * @param    array    $vars    查询变量数组
      * @return   array             修改后的查询变量数组
      */
-    public function add_pw_canvas_query_vars($vars) {
+    public function add_pw_canvas_query_vars($vars)
+    {
         $vars[] = 'pw_canvas';
         return $vars;
     }
@@ -245,7 +252,7 @@ class Pw_Admin_Public
             include(plugin_dir_path(__FILE__) . 'partials/template-canvas-display.php');
             exit; // 阻止 WordPress 加载默认模板
         }
-        
+
         // 保留原有逻辑作为备用
         global $wp;
         $current_url = home_url($wp->request);
@@ -265,47 +272,48 @@ class Pw_Admin_Public
      *
      * @since    1.0.0
      */
-    public function custom_cart_redirect_based_on_product_meta() {
+    public function custom_cart_redirect_based_on_product_meta()
+    {
         // 1. 仅在标准购物车页面执行，并排除 AJAX 请求
-        if ( ! is_cart() || wp_doing_ajax() ) {
+        if (! is_cart() || wp_doing_ajax()) {
             return;
         }
 
         // 2. 确保 WooCommerce 功能可用
-        if ( ! function_exists('WC') || ! WC()->cart ) {
+        if (! function_exists('WC') || ! WC()->cart) {
             return;
         }
 
         // 3. 定义要检查的 meta key 和 value，以及重定向的目标 URL
         $meta_key_to_check   = 'pw_isSyncProduct';
         $meta_value_to_check = '1';
-        $redirect_url        = home_url( '/custom-cart/' ); // 自定义购物车页面的路径
+        $redirect_url        = home_url('/custom-cart/'); // 自定义购物车页面的路径
         $should_redirect = false;
 
         // 4. 遍历购物车中的所有商品
-        foreach ( WC()->cart->get_cart() as $cart_item ) {
+        foreach (WC()->cart->get_cart() as $cart_item) {
             // 获取产品 ID ($cart_item['variation_id'] 可能是 0)
             $product_id = $cart_item['product_id'];
 
             // 获取产品的 meta 值
-            $meta_value = get_post_meta( $product_id, $meta_key_to_check, true );
+            $meta_value = get_post_meta($product_id, $meta_key_to_check, true);
 
             // 5. 检查 meta 值是否匹配
-            if ( $meta_value === $meta_value_to_check ) {
+            if ($meta_value === $meta_value_to_check) {
                 $should_redirect = true;
                 break; // 找到一个匹配项就足够了，跳出循环以提高效率
             }
         }
 
         // 6. 如果需要重定向，并且当前页面不是目标页面（防止无限循环）
-        if ( $should_redirect ) {
+        if ($should_redirect) {
             global $wp;
             // 获取当前页面的完整 URL
-            $current_url = home_url( add_query_arg( [], $wp->request ) );
+            $current_url = home_url(add_query_arg([], $wp->request));
 
             // 比较当前 URL 和目标 URL，如果不同则安全重定向
-            if ( rtrim($current_url, '/') !== rtrim($redirect_url, '/') ) {
-                wp_safe_redirect( $redirect_url );
+            if (rtrim($current_url, '/') !== rtrim($redirect_url, '/')) {
+                wp_safe_redirect($redirect_url);
                 exit();
             }
         }
@@ -319,51 +327,50 @@ class Pw_Admin_Public
      *
      * @since    1.0.0
      */
-    public function custom_checkout_redirect_based_on_product_meta() {
+    public function custom_checkout_redirect_based_on_product_meta()
+    {
         // 1. 仅在标准支付页面执行，并排除 AJAX 请求
-        if ( ! is_checkout() || wp_doing_ajax() ) {
+        if (! is_checkout() || wp_doing_ajax()) {
             return;
         }
 
         // 2. 确保 WooCommerce 功能可用
-        if ( ! function_exists('WC') || ! WC()->cart ) {
+        if (! function_exists('WC') || ! WC()->cart) {
             return;
         }
 
         // 3. 定义要检查的 meta key 和 value，以及重定向的目标 URL
         $meta_key_to_check   = 'pw_isSyncProduct';
         $meta_value_to_check = '1';
-        $redirect_url        = home_url( '/custom-checkout/' ); // 自定义支付页面的路径
+        $redirect_url        = home_url('/custom-checkout/'); // 自定义支付页面的路径
         $should_redirect = false;
 
         // 4. 遍历购物车中的所有商品
-        foreach ( WC()->cart->get_cart() as $cart_item ) {
+        foreach (WC()->cart->get_cart() as $cart_item) {
             // 获取产品 ID ($cart_item['variation_id'] 可能是 0)
             $product_id = $cart_item['product_id'];
 
             // 获取产品的 meta 值
-            $meta_value = get_post_meta( $product_id, $meta_key_to_check, true );
+            $meta_value = get_post_meta($product_id, $meta_key_to_check, true);
 
             // 5. 检查 meta 值是否匹配
-            if ( $meta_value === $meta_value_to_check ) {
+            if ($meta_value === $meta_value_to_check) {
                 $should_redirect = true;
                 break; // 找到一个匹配项就足够了，跳出循环以提高效率
             }
         }
 
         // 6. 如果需要重定向，并且当前页面不是目标页面（防止无限循环）
-        if ( $should_redirect ) {
+        if ($should_redirect) {
             global $wp;
             // 获取当前页面的完整 URL
-            $current_url = home_url( add_query_arg( [], $wp->request ) );
+            $current_url = home_url(add_query_arg([], $wp->request));
 
             // 比较当前 URL 和目标 URL，如果不同则安全重定向
-            if ( rtrim($current_url, '/') !== rtrim($redirect_url, '/') ) {
-                wp_safe_redirect( $redirect_url );
+            if (rtrim($current_url, '/') !== rtrim($redirect_url, '/')) {
+                wp_safe_redirect($redirect_url);
                 exit();
             }
         }
     }
-
-
 }
