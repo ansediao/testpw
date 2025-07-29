@@ -20,22 +20,28 @@
  * @subpackage Pw_Admin/includes
  * @author     PW <pw@pwcom>
  */
-class Pw_Admin_Activator {
+class Pw_Admin_Activator
+{
 
 	/**
 	 * 插件激活时执行的代码
 	 *
 	 * 设置重写规则刷新标志，确保自定义URL能够正常工作
 	 * 创建必要的自定义页面
+	 * 刷新重写规则以确保REST API端点正常工作
 	 *
 	 * @since    1.0.0
 	 */
-	public static function activate() {
+	public static function activate()
+	{
 		// 设置标志，表示需要刷新重写规则
 		update_option('pw_canvas_flush_rewrite', false);
-		
+
 		// 创建自定义页面
 		self::create_custom_pages();
+
+		// 刷新重写规则以确保REST API端点正常工作
+		flush_rewrite_rules();
 	}
 
 	/**
@@ -46,9 +52,10 @@ class Pw_Admin_Activator {
 	 *
 	 * @since    1.0.0
 	 */
-	private static function create_custom_pages() {
+	private static function create_custom_pages()
+	{
 		// 检查自定义购物车页面是否存在，不存在则创建
-		if ( ! get_page_by_path('custom-cart') ) {
+		if (! get_page_by_path('custom-cart')) {
 			wp_insert_post(array(
 				'post_title'   => __('Custom Cart', 'pw-admin'),
 				'post_name'    => 'custom-cart',
@@ -59,7 +66,7 @@ class Pw_Admin_Activator {
 		}
 
 		// 检查自定义结算页面是否存在，不存在则创建
-		if ( ! get_page_by_path('custom-checkout') ) {
+		if (! get_page_by_path('custom-checkout')) {
 			wp_insert_post(array(
 				'post_title'   => __('Custom Checkout', 'pw-admin'),
 				'post_name'    => 'custom-checkout',
@@ -69,5 +76,4 @@ class Pw_Admin_Activator {
 			));
 		}
 	}
-
 }
