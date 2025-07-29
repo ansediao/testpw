@@ -1,138 +1,160 @@
 /**
  * Product Store - Shared state management
- * Using Pinia for state management
+ * Using Pinia for state management with Composition API
  */
 
-const useProductStore = Pinia.defineStore('product', {
-    state: () => ({
-        // Product basic info
-        productId: null,
-        productData: null,
-        loading: false,
-        error: null,
-        
-        // Variants
-        selectedVariant: null,
-        variants: [],
-        
-        // Cart related
-        quantity: 1,
-        selectedOptions: {},
-        
-        // UI state
-        showDetails: false,
-        activeTab: 'description'
-    }),
+const useProductStore = Pinia.defineStore('product', () => {
+    // State
+    const productId = Vue.ref(null);
+    const productData = Vue.ref(null);
+    const loading = Vue.ref(false);
+    const error = Vue.ref(null);
+    const selectedVariant = Vue.ref(null);
+    const variants = Vue.ref([]);
+    const quantity = Vue.ref(1);
+    const selectedOptions = Vue.reactive({});
+    const showDetails = Vue.ref(false);
+    const activeTab = Vue.ref('description');
 
-    getters: {
-        // Computed properties
-        isLoading: (state) => state.loading,
-        hasError: (state) => state.error !== null,
-        totalPrice: (state) => {
-            // 如果有选中的变体，使用变体价格
-            if (state.selectedVariant && state.selectedVariant.price) {
-                return parseFloat(state.selectedVariant.price) * state.quantity;
-            }
-            // 否则使用产品默认价格
-            if (!state.productData || !state.productData.price) return 0;
-            return state.productData.price * state.quantity;
-        },
-        canAddToCart: (state) => {
-            return state.productData && state.quantity > 0 && !state.loading;
-        },
-        // 变体相关的 getters
-        hasVariants: (state) => state.variants.length > 0,
-        selectedVariantPrice: (state) => {
-            return state.selectedVariant ? parseFloat(state.selectedVariant.price) : 0;
+    // Getters (computed)
+    const isLoading = Vue.computed(() => loading.value);
+    const hasError = Vue.computed(() => error.value !== null);
+    const totalPrice = Vue.computed(() => {
+        // 如果有选中的变体，使用变体价格
+        if (selectedVariant.value && selectedVariant.value.price) {
+            return parseFloat(selectedVariant.value.price) * quantity.value;
         }
-    },
+        // 否则使用产品默认价格
+        if (!productData.value || !productData.value.price) return 0;
+        return productData.value.price * quantity.value;
+    });
+    const canAddToCart = Vue.computed(() => {
+        return productData.value && quantity.value > 0 && !loading.value;
+    });
+    const hasVariants = Vue.computed(() => variants.value.length > 0);
+    const selectedVariantPrice = Vue.computed(() => {
+        return selectedVariant.value ? parseFloat(selectedVariant.value.price) : 0;
+    });
 
-    actions: {
-        // Methods to modify state
-        setProductId(id) {
-            this.productId = id;
-        },
+    // Actions (methods)
+    const setProductId = (id) => {
+        productId.value = id;
+    };
 
-        setProductData(data) {
-            this.productData = data;
-        },
+    const setProductData = (data) => {
+        productData.value = data;
+    };
 
-        setLoading(status) {
-            this.loading = status;
-        },
+    const setLoading = (status) => {
+        loading.value = status;
+    };
 
-        setError(error) {
-            this.error = error;
-        },
+    const setError = (err) => {
+        error.value = err;
+    };
 
-        updateQuantity(qty) {
-            this.quantity = Math.max(1, qty);
-        },
+    const updateQuantity = (qty) => {
+        quantity.value = Math.max(1, qty);
+    };
 
-        setSelectedOption(key, value) {
-            this.selectedOptions[key] = value;
-        },
+    const setSelectedOption = (key, value) => {
+        selectedOptions[key] = value;
+    };
 
-        toggleDetails() {
-            this.showDetails = !this.showDetails;
-        },
+    const toggleDetails = () => {
+        showDetails.value = !showDetails.value;
+    };
 
-        setActiveTab(tab) {
-            this.activeTab = tab;
-        },
+    const setActiveTab = (tab) => {
+        activeTab.value = tab;
+    };
 
-        // 变体相关的 actions
-        setSelectedVariant(variant) {
-            this.selectedVariant = variant;
-            console.log('Store: 设置选中变体', variant);
-        },
+    const setSelectedVariant = (variant) => {
+        selectedVariant.value = variant;
+        console.log('Store: 设置选中变体', variant);
+    };
 
-        setVariants(variants) {
-            this.variants = variants;
-        },
+    const setVariants = (vars) => {
+        variants.value = vars;
+    };
 
-        // Async actions
-        async fetchProductData() {
-            if (!this.productId) return;
-            
-            this.setLoading(true);
-            this.setError(null);
-            
-            try {
-                // Mock API call - replace with actual API endpoint
-                const response = await axios.get(`/api/product/${this.productId}`);
-                this.setProductData(response.data);
-            } catch (error) {
-                this.setError(error.message);
-                console.error('Failed to fetch product data:', error);
-            } finally {
-                this.setLoading(false);
-            }
-        },
-
-        async addToCart() {
-            if (!this.canAddToCart) return;
-            
-            this.setLoading(true);
-            try {
-                const cartData = {
-                    productId: this.productId,
-                    quantity: this.quantity,
-                    options: this.selectedOptions,
-                    variant: this.selectedVariant // 包含选中的变体信息
-                };
-                
-                // Mock API call - replace with actual endpoint
-                await axios.post('/api/cart/add', cartData);
-                console.log('Added to cart:', cartData);
-            } catch (error) {
-                this.setError(error.message);
-                console.error('Failed to add to cart:', error);
-            } finally {
-                this.setLoading(false);
-            }
+    const fetchProductData = async () => {
+        if (!productId.value) return;
+        
+        setLoading(true);
+        setError(null);
+        
+        try {
+            // Mock API call - replace with actual API endpoint
+            const response = await axios.get(`/api/product/${productId.value}`);
+            setProductData(response.data);
+        } catch (err) {
+            setError(err.message);
+            console.error('Failed to fetch product data:', err);
+        } finally {
+            setLoading(false);
         }
-    }
+    };
+
+    const addToCart = async () => {
+        if (!canAddToCart.value) return;
+        
+        setLoading(true);
+        try {
+            const cartData = {
+                productId: productId.value,
+                quantity: quantity.value,
+                options: selectedOptions,
+                variant: selectedVariant.value // 包含选中的变体信息
+            };
+            
+            // Mock API call - replace with actual endpoint
+            await axios.post('/api/cart/add', cartData);
+            console.log('Added to cart:', cartData);
+        } catch (err) {
+            setError(err.message);
+            console.error('Failed to add to cart:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Return state, getters, and actions
+    return {
+        // State
+        productId,
+        productData,
+        loading,
+        error,
+        selectedVariant,
+        variants,
+        quantity,
+        selectedOptions,
+        showDetails,
+        activeTab,
+        
+        // Getters
+        isLoading,
+        hasError,
+        totalPrice,
+        canAddToCart,
+        hasVariants,
+        selectedVariantPrice,
+        
+        // Actions
+        setProductId,
+        setProductData,
+        setLoading,
+        setError,
+        updateQuantity,
+        setSelectedOption,
+        toggleDetails,
+        setActiveTab,
+        setSelectedVariant,
+        setVariants,
+        fetchProductData,
+        addToCart
+    };
 });
 
 // Export for module usage

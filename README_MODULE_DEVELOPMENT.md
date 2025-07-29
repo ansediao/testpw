@@ -266,34 +266,159 @@ template: \`
 如果需要与其他组件共享状态，修改 `public/js/product/stores/productStore.js`：
 
 ```javascript
-// 在 state 中添加
-state: () => ({
-    // ... 现有状态
-    newModuleData: null,
-    newModuleSettings: {}
-}),
-
-// 在 getters 中添加
-getters: {
-    // ... 现有 getters
-    hasNewModuleData: (state) => state.newModuleData !== null,
-    formattedNewModuleData: (state) => {
-        return state.newModuleData ? /* 格式化逻辑 */ : null;
-    }
-},
-
-// 在 actions 中添加
-actions: {
-    // ... 现有 actions
-    setNewModuleData(data) {
-        this.newModuleData = data;
-        console.log('Store: 设置新模块数据', data);
-    },
+// 使用 Vue 3 Composition API 的 Pinia store
+const useProductStore = Pinia.defineStore('product', () => {
+    // State - 使用 ref 和 reactive 定义响应式数据
+    const productId = Vue.ref(null);
+    const productData = Vue.ref(null);
+    const loading = Vue.ref(false);
+    const error = Vue.ref(null);
+    const selectedVariant = Vue.ref(null);
+    const variants = Vue.ref([]);
+    const quantity = Vue.ref(1);
+    const selectedOptions = Vue.reactive({});
+    const showDetails = Vue.ref(false);
+    const activeTab = Vue.ref('description');
     
-    updateNewModuleSettings(settings) {
-        this.newModuleSettings = { ...this.newModuleSettings, ...settings };
-    }
-}
+    // Getters - 使用 computed 定义计算属性
+    const isLoading = Vue.computed(() => loading.value);
+    const hasError = Vue.computed(() => error.value !== null);
+    const totalPrice = Vue.computed(() => {
+        if (selectedVariant.value && selectedVariant.value.price) {
+            return parseFloat(selectedVariant.value.price) * quantity.value;
+        }
+        if (!productData.value || !productData.value.price) return 0;
+        return productData.value.price * quantity.value;
+    });
+    const canAddToCart = Vue.computed(() => {
+        return productData.value && quantity.value > 0 && !loading.value;
+    });
+    const hasVariants = Vue.computed(() => variants.value.length > 0);
+    const selectedVariantPrice = Vue.computed(() => {
+        return selectedVariant.value ? parseFloat(selectedVariant.value.price) : 0;
+    });
+    
+    // Actions - 使用普通函数定义方法
+    const setProductId = (id) => {
+        productId.value = id;
+    };
+    
+    const setProductData = (data) => {
+        productData.value = data;
+    };
+    
+    const setLoading = (status) => {
+        loading.value = status;
+    };
+    
+    const setError = (err) => {
+        error.value = err;
+    };
+    
+    const updateQuantity = (qty) => {
+        quantity.value = Math.max(1, qty);
+    };
+    
+    const setSelectedOption = (key, value) => {
+        selectedOptions[key] = value;
+    };
+    
+    const toggleDetails = () => {
+        showDetails.value = !showDetails.value;
+    };
+    
+    const setActiveTab = (tab) => {
+        activeTab.value = tab;
+    };
+    
+    const setSelectedVariant = (variant) => {
+        selectedVariant.value = variant;
+        console.log('Store: 设置选中变体', variant);
+    };
+    
+    const setVariants = (vars) => {
+        variants.value = vars;
+    };
+    
+    const fetchProductData = async () => {
+        if (!productId.value) return;
+        
+        setLoading(true);
+        setError(null);
+        
+        try {
+            const response = await axios.get(`/api/product/${productId.value}`);
+            setProductData(response.data);
+        } catch (err) {
+            setError(err.message);
+            console.error('Failed to fetch product data:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    const addToCart = async () => {
+        if (!canAddToCart.value) return;
+        
+        setLoading(true);
+        try {
+            const cartData = {
+                productId: productId.value,
+                quantity: quantity.value,
+                options: selectedOptions,
+                variant: selectedVariant.value
+            };
+            
+            await axios.post('/api/cart/add', cartData);
+            console.log('Added to cart:', cartData);
+        } catch (err) {
+            setError(err.message);
+            console.error('Failed to add to cart:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    // 返回所有需要在组件中访问的状态、计算属性和方法
+    return {
+        // State
+        productId,
+        productData,
+        loading,
+        error,
+        selectedVariant,
+        variants,
+        quantity,
+        selectedOptions,
+        showDetails,
+        activeTab,
+        
+        // Getters
+        isLoading,
+        hasError,
+        totalPrice,
+        canAddToCart,
+        hasVariants,
+        selectedVariantPrice,
+        
+        // Actions
+        setProductId,
+        setProductData,
+        setLoading,
+        setError,
+        updateQuantity,
+        setSelectedOption,
+        toggleDetails,
+        setActiveTab,
+        setSelectedVariant,
+        setVariants,
+        fetchProductData,
+        addToCart
+    };
+});
+
+// 导出以供模块使用
+window.useProductStore = useProductStore;
 ```
 
 ## 📋 开发规范
@@ -480,3 +605,4 @@ A: 检查：
 ## 🔄 更新记录
 
 - **v1.0.0** (2025-01-29): 初始版本，包含基础架构和 ColorVariants 模块示例
+- **v1.1.0** (2025-01-30): 更新 Pinia store 为 Vue 3 Composition API 语法
