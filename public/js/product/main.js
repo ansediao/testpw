@@ -3,8 +3,32 @@
  * Product page main entry file - initialization only
  */
 
+// CSS 加载器函数
+function loadCSS(href, id) {
+    if (document.getElementById(id)) {
+        return; // CSS 已经加载
+    }
+    
+    const link = document.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = href;
+    document.head.appendChild(link);
+}
+
+// 加载组件样式
+function loadComponentStyles() {
+    const baseUrl = '/wp-content/plugins/pw-admin/public/js/product/components/';
+    
+    loadCSS(baseUrl + 'ProductQuantity.css', 'product-quantity-css');
+    loadCSS(baseUrl + 'ProductPriceInfo.css', 'product-price-info-css');
+}
+
 // Wait for DOM and all scripts to load
 document.addEventListener('DOMContentLoaded', function () {
+    // 加载组件样式
+    loadComponentStyles();
 
 
     // Check if required dependencies are loaded

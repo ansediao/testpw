@@ -84,6 +84,7 @@ class Pw_CDN_Loader {
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ColorVariants.css?v=' . time(); ?>">
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/CheckboxOptions.css?v=' . time(); ?>">
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductPriceInfo.css?v=' . time(); ?>">
+            <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductQuantity.css?v=' . time(); ?>">
             
             <!-- 引入产品页面主脚本 -->
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/main.js?v=' . time(); ?>"></script>
@@ -91,6 +92,8 @@ class Pw_CDN_Loader {
             <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>
             <!-- 开发环境：组件验证器 -->
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/component-validator.js?v=' . time(); ?>"></script>
+            <!-- 开发环境：MOQ调试工具 -->
+            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/debug/moq-debugger.js?v=' . time(); ?>"></script>
             <?php endif; ?>
         </div>
         <div id="vue-dynamic-product-area" 

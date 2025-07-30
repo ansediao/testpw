@@ -16,6 +16,16 @@ const useProductStore = Pinia.defineStore('product', () => {
     const showDetails = Vue.ref(false);
     const activeTab = Vue.ref('description');
 
+    // MOQ (Minimum Order Quantity) related state
+    const moqSettings = Vue.ref({
+        minimum_order_quantity: 1,
+        batch_quantity: 1,
+        sell_in_batch: false
+    });
+    const minQuantity = Vue.ref(1);
+    const maxQuantity = Vue.ref(9999);
+    const stepQuantity = Vue.ref(1);
+
     // Getters (computed)
     const isLoading = Vue.computed(() => loading.value);
     const hasError = Vue.computed(() => error.value !== null);
@@ -33,7 +43,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         return productData.value.price * quantity.value;
     });
     const canAddToCart = Vue.computed(() => {
-        return productData.value && quantity.value > 0 && !loading.value;
+        return productData.value && quantity.value >= minQuantity.value && !loading.value;
     });
     const hasVariants = Vue.computed(() => variants.value.length > 0);
     const selectedVariantPrice = Vue.computed(() => {
@@ -41,6 +51,34 @@ const useProductStore = Pinia.defineStore('product', () => {
             return parseFloat(selectedVariant.value.anchor_price);
         }
         return selectedVariant.value ? parseFloat(selectedVariant.value.price) : 0;
+    });
+
+    // MOQ related computed properties
+    const correctedQuantity = Vue.computed(() => {
+        return (inputQuantity) => {
+            const minQty = minQuantity.value;
+            const batchQty = stepQuantity.value;
+            const sellInBatch = moqSettings.value.sell_in_batch;
+
+            // 确保不低于最小数量
+            if (inputQuantity < minQty) {
+                return minQty;
+            }
+
+            // 如果需要按批次销售，调整到最近的批次数量
+            if (sellInBatch && batchQty > 1) {
+                const remainder = (inputQuantity - minQty) % batchQty;
+                if (remainder !== 0) {
+                    return inputQuantity - remainder + batchQty;
+                }
+            }
+
+            return inputQuantity;
+        };
+    });
+
+    const isValidQuantity = Vue.computed(() => {
+        return quantity.value >= minQuantity.value && quantity.value <= maxQuantity.value;
     });
 
     // Actions (methods)
@@ -61,7 +99,27 @@ const useProductStore = Pinia.defineStore('product', () => {
     };
 
     const updateQuantity = (qty) => {
-        quantity.value = Math.max(1, qty);
+        const corrected = correctedQuantity.value(qty);
+        quantity.value = Math.max(minQuantity.value, Math.min(corrected, maxQuantity.value));
+    };
+
+    const setMoqSettings = (settings) => {
+        if (settings) {
+            moqSettings.value = {
+                minimum_order_quantity: settings.minimum_order_quantity || 1,
+                batch_quantity: settings.batch_quantity || 1,
+                sell_in_batch: settings.sell_in_batch || false
+            };
+
+            // 更新相关的响应式状态
+            minQuantity.value = moqSettings.value.minimum_order_quantity;
+            stepQuantity.value = moqSettings.value.batch_quantity;
+
+            // 如果当前数量小于最小数量，自动调整
+            if (quantity.value < minQuantity.value) {
+                quantity.value = minQuantity.value;
+            }
+        }
     };
 
     const setSelectedOption = (key, value) => {
@@ -131,6 +189,16 @@ const useProductStore = Pinia.defineStore('product', () => {
                     });
                 }
 
+                // 处理 MOQ 设置数据
+                if (apiData.has_product_data && apiData.product && apiData.product.data) {
+                    const productApiData = apiData.product.data;
+
+                    // 提取 MOQ 设置（仅支持嵌套结构）
+                    if (productApiData.moq_setting) {
+                        setMoqSettings(productApiData.moq_setting);
+                    }
+                }
+
                 // 处理颜色变体数据
                 if (apiData.has_variants && apiData.variants && apiData.variants.data) {
                     setVariants(apiData.variants.data);
@@ -192,6 +260,10 @@ const useProductStore = Pinia.defineStore('product', () => {
         showDetails,
         activeTab,
         isDataFetched,
+        moqSettings,
+        minQuantity,
+        maxQuantity,
+        stepQuantity,
 
         // Getters
         isLoading,
@@ -200,6 +272,8 @@ const useProductStore = Pinia.defineStore('product', () => {
         canAddToCart,
         hasVariants,
         selectedVariantPrice,
+        correctedQuantity,
+        isValidQuantity,
 
         // Actions
         setProductId,
@@ -212,6 +286,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         setActiveTab,
         setSelectedVariant,
         setVariants,
+        setMoqSettings,
         fetchProductData,
         addToCart
     };
