@@ -24,6 +24,7 @@ function loadComponentStyles() {
     loadCSS(baseUrl + 'ProductQuantity.css', 'product-quantity-css');
     loadCSS(baseUrl + 'ProductPriceInfo.css', 'product-price-info-css');
     loadCSS(baseUrl + 'QuantityDiscountSlider.css', 'quantity-discount-slider-css');
+    loadCSS(baseUrl + 'ProductAccessories.css', 'product-accessories-css');
 }
 
 // Wait for DOM and all scripts to load
@@ -56,12 +57,13 @@ document.addEventListener('DOMContentLoaded', function () {
         addToCart: !!window.AddToCart,
         colorVariants: !!window.ColorVariants,
         checkboxOptions: !!window.CheckboxOptions,
-        quantityDiscountSlider: !!window.QuantityDiscountSlider
+        quantityDiscountSlider: !!window.QuantityDiscountSlider,
+        productAccessories: !!window.ProductAccessories
     };
 
 
 
-    // Initialize application
+    // Initialize application - make ProductAccessories optional
     if (modulesLoaded.store && modulesLoaded.productQuantity && modulesLoaded.productPriceInfo && modulesLoaded.addToCart && modulesLoaded.colorVariants && modulesLoaded.checkboxOptions && modulesLoaded.quantityDiscountSlider) {
         initializeModularApp(productId);
     } else {
@@ -101,7 +103,8 @@ function initializeModularApp(productId) {
             AddToCart: window.AddToCart,
             ColorVariants: window.ColorVariants,
             CheckboxOptions: window.CheckboxOptions,
-            QuantityDiscountSlider: window.QuantityDiscountSlider
+            QuantityDiscountSlider: window.QuantityDiscountSlider,
+            ...(window.ProductAccessories && { ProductAccessories: window.ProductAccessories })
         },
 
         template: `
@@ -119,6 +122,11 @@ function initializeModularApp(productId) {
                     
                     <div class="quantity-section">
                         <ProductQuantity />
+                    </div>
+                    
+                    <!-- 添加配件组件到ProductQuantity下面 -->
+                    <div class="accessories-section" v-if="$options.components.ProductAccessories">
+                        <ProductAccessories />
                     </div>
                     
                     <div class="price-info-section">
@@ -158,6 +166,9 @@ function initializeBasicApp(productId, modulesLoaded) {
     if (modulesLoaded.quantityDiscountSlider && window.QuantityDiscountSlider) {
         components.QuantityDiscountSlider = window.QuantityDiscountSlider;
     }
+    if (modulesLoaded.productAccessories && window.ProductAccessories) {
+        components.ProductAccessories = window.ProductAccessories;
+    }
 
     const app = createApp({
         data() {
@@ -177,6 +188,10 @@ function initializeBasicApp(productId, modulesLoaded) {
                 <div v-if="$options.components && $options.components.CheckboxOptions">
                     <h4>Checkbox Options (Basic):</h4>
                     <CheckboxOptions />
+                </div>
+                <div v-if="$options.components && $options.components.ProductAccessories">
+                    <h4>Product Accessories (Basic):</h4>
+                    <ProductAccessories />
                 </div>
             </div>
         `

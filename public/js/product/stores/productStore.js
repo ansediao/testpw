@@ -360,6 +360,19 @@ const useProductStore = Pinia.defineStore('product', () => {
                     if (productApiData.quantity_discount) {
                         setQuantityDiscounts(productApiData.quantity_discount);
                     }
+
+                    // 处理配件数据
+                    if (productApiData.accessories && Array.isArray(productApiData.accessories)) {
+                        // 将配件数据存储到产品数据中
+                        if (productData.value) {
+                            productData.value.accessories = productApiData.accessories.map(accessory => ({
+                                id: accessory.id,
+                                testname: accessory.testname || accessory.name || 'Unknown Accessory',
+                                product_image: accessory.product_image || accessory.image || '',
+                                price: parseFloat(accessory.price) || 0
+                            }));
+                        }
+                    }
                 }
 
                 // 处理颜色变体数据
