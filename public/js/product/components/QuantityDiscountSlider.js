@@ -10,10 +10,6 @@ const QuantityDiscountSlider = {
         // Access shared store
         const store = useProductStore();
         
-        // 使用 toRefs 保持响应式
-        const { toRefs } = Vue;
-        const storeRefs = toRefs(store);
-        
         // 计算滑块的刻度点
         const discountTiers = Vue.computed(() => {
             if (!store.hasQuantityDiscounts) return [];
@@ -68,12 +64,8 @@ const QuantityDiscountSlider = {
         };
         
         return {
-            // Store 响应式数据
-            quantity: storeRefs.quantity,
-            quantityDiscounts: storeRefs.quantityDiscounts,
-            hasQuantityDiscounts: storeRefs.hasQuantityDiscounts,
-            getCurrentDiscount: storeRefs.getCurrentDiscount,
-            getDiscountText: storeRefs.getDiscountText,
+            // 直接返回 store
+            store,
             
             // 计算属性
             discountTiers,
@@ -87,7 +79,7 @@ const QuantityDiscountSlider = {
     },
     
     template: `
-        <div v-if="hasQuantityDiscounts" class="quantity-discount-slider">
+        <div v-if="store.hasQuantityDiscounts" class="quantity-discount-slider">
             <div class="slider-container">
                 <!-- 滑块轨道 -->
                 <div class="slider-track">
@@ -97,7 +89,7 @@ const QuantityDiscountSlider = {
                         :style="{ left: currentPosition + '%' }"
                     >
                         <div class="quantity-bubble">
-                            {{ quantity }}
+                            {{ store.quantity }}
                         </div>
                     </div>
                     
@@ -117,9 +109,9 @@ const QuantityDiscountSlider = {
             </div>
             
             <!-- 当前折扣显示 -->
-            <div v-if="getDiscountText" class="current-discount">
+            <div v-if="store.getDiscountText" class="current-discount">
                 <span class="discount-label">Discount: </span>
-                <span class="discount-value">{{ getDiscountText }}</span>
+                <span class="discount-value">{{ store.getDiscountText }}</span>
             </div>
         </div>
     `

@@ -14,17 +14,17 @@ const ColorVariants = {
 
             
             <div class="pw-color-variants-grid">
-                <div v-if="loading" class="pw-loading-variants">
+                <div v-if="store.loading" class="pw-loading-variants">
                     <img src="../assets/images/icons/spinner.gif" alt="Loading..." class="pw-loading-spinner">
                 </div>
-                <div v-else-if="error" class="pw-loading-variants error">{{ error }}</div>
-                <div v-else-if="!variants || variants.length === 0" class="pw-loading-variants">该产品暂无颜色变体</div>
+                <div v-else-if="store.error" class="pw-loading-variants error">{{ store.error }}</div>
+                <div v-else-if="!store.variants || store.variants.length === 0" class="pw-loading-variants">该产品暂无颜色变体</div>
                 <div v-else class="pw-variants-container">
                     <div 
-                        v-for="(variant, index) in variants" 
+                        v-for="(variant, index) in store.variants" 
                         :key="variant.id"
                         class="pw-color-variant-item"
-                        :class="{ selected: selectedVariant?.id === variant.id }"
+                        :class="{ selected: store.selectedVariant?.id === variant.id }"
                         @click="selectVariant(variant)"
                     >
                         <div 
@@ -39,11 +39,8 @@ const ColorVariants = {
     `,
 
     setup() {
-        const { computed, onMounted, toRefs, watch } = Vue;
+        const { computed, onMounted, watch } = Vue;
         const productStore = useProductStore();
-
-        // 使用 toRefs 确保响应式
-        const storeRefs = toRefs(productStore);
 
         onMounted(() => {
         });
@@ -67,11 +64,8 @@ const ColorVariants = {
         };
 
         return {
-            // 使用 toRefs 的响应式引用
-            loading: storeRefs.loading,
-            error: storeRefs.error,
-            variants: storeRefs.variants,
-            selectedVariant: storeRefs.selectedVariant,
+            // 直接返回 store 而不是使用 toRefs
+            store: productStore,
             showVariants,
             selectVariant
         };

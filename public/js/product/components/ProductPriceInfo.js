@@ -10,9 +10,6 @@ const ProductPriceInfo = {
         const { computed, toRefs } = Vue;
         const store = useProductStore();
         
-        // 使用 toRefs 保持响应式
-        const storeRefs = toRefs(store);
-        
         // 计算原始单价 - 优先使用选中变体的 anchor_price，否则使用产品默认价格
         const originalUnitPrice = computed(() => {
             if (store.selectedVariant && store.selectedVariant.anchor_price) {
@@ -77,14 +74,8 @@ const ProductPriceInfo = {
         });
         
         return {
-            // Store 响应式数据
-            loading: storeRefs.loading,
-            productData: storeRefs.productData,
-            selectedVariant: storeRefs.selectedVariant,
-            quantity: storeRefs.quantity,
-            hasQuantityDiscounts: storeRefs.hasQuantityDiscounts,
-            getCurrentDiscount: storeRefs.getCurrentDiscount,
-            getDiscountText: storeRefs.getDiscountText,
+            // 直接返回 store 而不是使用 toRefs
+            store,
             
             // 计算属性
             originalUnitPrice,
@@ -106,21 +97,21 @@ const ProductPriceInfo = {
                 <div class="price-item">
                     <label class="price-label">Unit Price:</label>
                     <div class="price-display">
-                        <span v-if="hasQuantityDiscounts && getCurrentDiscount > 0" class="original-price">{{ formatPrice(originalUnitPrice) }}</span>
-                        <span class="price-value unit-price" :class="{ 'discounted': hasQuantityDiscounts && getCurrentDiscount > 0 }">{{ formatPrice(unitPrice) }}</span>
-                        <span v-if="hasQuantityDiscounts && getCurrentDiscount > 0" class="discount-badge">{{ getDiscountText }}</span>
+                        <span v-if="store.hasQuantityDiscounts && store.getCurrentDiscount > 0" class="original-price">{{ formatPrice(originalUnitPrice) }}</span>
+                        <span class="price-value unit-price" :class="{ 'discounted': store.hasQuantityDiscounts && store.getCurrentDiscount > 0 }">{{ formatPrice(unitPrice) }}</span>
+                        <span v-if="store.hasQuantityDiscounts && store.getCurrentDiscount > 0" class="discount-badge">{{ store.getDiscountText }}</span>
                     </div>
                 </div>
                 
                 <div class="price-item">
                     <label class="price-label">Total Price:</label>
                     <div class="price-display">
-                        <span v-if="hasQuantityDiscounts && getCurrentDiscount > 0" class="original-price">{{ formatPrice(originalTotalPrice) }}</span>
-                        <span class="price-value total-price" :class="{ 'discounted': hasQuantityDiscounts && getCurrentDiscount > 0 }">{{ formatPrice(totalPrice) }}</span>
+                        <span v-if="store.hasQuantityDiscounts && store.getCurrentDiscount > 0" class="original-price">{{ formatPrice(originalTotalPrice) }}</span>
+                        <span class="price-value total-price" :class="{ 'discounted': store.hasQuantityDiscounts && store.getCurrentDiscount > 0 }">{{ formatPrice(totalPrice) }}</span>
                     </div>
                 </div>
                 
-                <div v-if="hasQuantityDiscounts && getCurrentDiscount > 0" class="discount-summary">
+                <div v-if="store.hasQuantityDiscounts && store.getCurrentDiscount > 0" class="discount-summary">
                     <div class="price-item discount-item">
                         <label class="price-label">You Save:</label>
                         <span class="price-value savings-amount">{{ formatPrice(totalDiscountAmount) }}</span>

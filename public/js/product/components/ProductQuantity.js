@@ -10,9 +10,6 @@ const ProductQuantity = {
         // Access shared store
         const store = useProductStore();
         
-        // 使用 toRefs 保持响应式
-        const { toRefs } = Vue;
-        const storeRefs = toRefs(store);
         
         // Methods
         const increaseQuantity = () => {
@@ -87,12 +84,8 @@ const ProductQuantity = {
 
         return {
             // Store 响应式数据
-            quantity: storeRefs.quantity,
-            minQuantity: storeRefs.minQuantity,
-            maxQuantity: storeRefs.maxQuantity,
-            stepQuantity: storeRefs.stepQuantity,
-            moqSettings: storeRefs.moqSettings,
-            isValidQuantity: storeRefs.isValidQuantity,
+            // 直接返回 store 而不是使用 toRefs
+            store,
             
             // 计算属性
             canDecrease,
@@ -123,13 +116,13 @@ const ProductQuantity = {
                 
                 <input 
                     type="number" 
-                    :value="quantity"
+                    :value="store.quantity"
                     @input="handleInput"
-                    :min="minQuantity"
-                    :max="maxQuantity"
-                    :step="stepQuantity"
+                    :min="store.minQuantity"
+                    :max="store.maxQuantity"
+                    :step="store.stepQuantity"
                     class="qty-input"
-                    :class="{ 'invalid': !isValidQuantity }"
+                    :class="{ 'invalid': !store.isValidQuantity }"
                 />
                 
                 <button 
@@ -144,16 +137,16 @@ const ProductQuantity = {
             <QuantityDiscountSlider v-if="hasDiscountSlider"></QuantityDiscountSlider>
             
             <div class="quantity-info">
-                <p class="moq-info" v-if="minQuantity > 1">
+                <p class="moq-info" v-if="store.minQuantity > 1">
                     {{ moqInfo }}
                 </p>
-                <p class="batch-info" v-if="moqSettings.sell_in_batch === true">
-                    Sold in batches of {{ stepQuantity }}
+                <p class="batch-info" v-if="store.moqSettings.sell_in_batch === true">
+                    Sold in batches of {{ store.stepQuantity }}
                 </p>
-                <p class="validation-error" v-if="!isValidQuantity">
-                    Please enter a valid quantity ({{ minQuantity }} - {{ maxQuantity }})
+                <p class="validation-error" v-if="!store.isValidQuantity">
+                    Please enter a valid quantity ({{ store.minQuantity }} - {{ store.maxQuantity }})
                 </p>
-                <p class="batch-warning" v-if="moqSettings.sell_in_batch === true && !isQuantityValidForBatch" 
+                <p class="batch-warning" v-if="store.moqSettings.sell_in_batch === true && !isQuantityValidForBatch" 
                    style="color: #ff9800; font-size: 12px;">
                     Suggested quantity: {{ suggestedQuantity }} (Use +/- buttons to auto-correct)
                 </p>
