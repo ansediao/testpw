@@ -74,7 +74,6 @@ class Pw_CDN_Loader {
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/stores/productStore.js?v=' . time(); ?>"></script>
             
             <!-- 引入 Vue 组件 -->
-            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductInfo.js?v=' . time(); ?>"></script>
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductQuantity.js?v=' . time(); ?>"></script>
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/AddToCart.js?v=' . time(); ?>"></script>
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ColorVariants.js?v=' . time(); ?>"></script>

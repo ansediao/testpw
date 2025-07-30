@@ -26,7 +26,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Check if all modules are loaded
     const modulesLoaded = {
         store: !!window.useProductStore,
-        productInfo: !!window.ProductInfo,
         productQuantity: !!window.ProductQuantity,
         addToCart: !!window.AddToCart,
         colorVariants: !!window.ColorVariants,
@@ -36,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // Initialize application
-    if (modulesLoaded.store && modulesLoaded.productInfo && modulesLoaded.productQuantity && modulesLoaded.addToCart && modulesLoaded.colorVariants && modulesLoaded.checkboxOptions) {
+    if (modulesLoaded.store && modulesLoaded.productQuantity && modulesLoaded.addToCart && modulesLoaded.colorVariants && modulesLoaded.checkboxOptions) {
         initializeModularApp(productId);
     } else {
         initializeBasicApp(productId, modulesLoaded);
@@ -70,11 +69,10 @@ function initializeModularApp(productId) {
         },
 
         components: {
-            ProductInfo: window.ProductInfo,
             ProductQuantity: window.ProductQuantity,
             AddToCart: window.AddToCart,
             ColorVariants: window.ColorVariants,
-            CheckboxOptions: window.CheckboxOptions  // 添加这行
+            CheckboxOptions: window.CheckboxOptions
         },
 
         template: `
@@ -85,10 +83,6 @@ function initializeModularApp(productId) {
                 </div>
                 
                 <div class="app-content">
-                    <div class="product-section">
-                        <ProductInfo />
-                    </div>
-                    
                     <div class="color-variants-section">
                         <ColorVariants />
                     </div>

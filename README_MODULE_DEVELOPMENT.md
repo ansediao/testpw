@@ -11,7 +11,6 @@ cuz_cart_checkout/
 │   │   ├── api/
 │   │   │   └── productDataAPI.js          # API 通信模块
 │   │   ├── components/
-│   │   │   ├── ProductInfo.js             # 产品信息组件
 │   │   │   ├── ProductQuantity.js         # 数量选择组件
 │   │   │   ├── AddToCart.js               # 加购物车组件
 │   │   │   ├── ColorVariants.js           # 颜色变体组件
@@ -207,7 +206,6 @@ window.NewModule = NewModule;
 // 1. 在模块检查中添加
 const modulesLoaded = {
     store: !!window.useProductStore,
-    productInfo: !!window.ProductInfo,
     productQuantity: !!window.ProductQuantity,
     addToCart: !!window.AddToCart,
     colorVariants: !!window.ColorVariants,
@@ -216,7 +214,6 @@ const modulesLoaded = {
 
 // 2. 在组件注册中添加
 components: {
-    ProductInfo: window.ProductInfo,
     ProductQuantity: window.ProductQuantity,
     AddToCart: window.AddToCart,
     ColorVariants: window.ColorVariants,
@@ -232,10 +229,6 @@ template: \`
         </div>
         
         <div class="app-content">
-            <div class="product-section">
-                <ProductInfo />
-            </div>
-            
             <div class="color-variants-section">
                 <ColorVariants />
             </div>
@@ -426,7 +419,7 @@ window.useProductStore = useProductStore;
 ### Vue 组件规范
 
 1. **命名规范**
-   - 组件名使用 PascalCase: `ColorVariants`, `ProductInfo`
+   - 组件名使用 PascalCase: `ColorVariants`, `ProductQuantity`
    - 文件名与组件名一致: `ColorVariants.js`
    - CSS 类名使用 kebab-case: `pw-color-variants`
 
@@ -560,11 +553,6 @@ const loadData = async () => {
 - **触发条件**: `has_variants: true`
 - **状态管理**: 选中变体存储在 store 中
 - **文件**: `components/ColorVariants.js` + `ColorVariants.css`
-
-### ProductInfo 组件
-- **功能**: 基础产品信息显示
-- **状态管理**: 产品数据存储在 store 中
-- **文件**: `components/ProductInfo.js`
 
 ## 🚨 常见问题
 

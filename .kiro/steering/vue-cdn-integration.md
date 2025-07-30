@@ -398,7 +398,6 @@ public/js/product/
 ├── stores/
 │   └── productStore.js        # Pinia 状态管理
 └── components/
-    ├── ProductInfo.js         # 产品基本信息
     ├── ColorVariants.js       # 颜色变体选择器
     ├── CheckboxOptions.js     # 复选框选项
     ├── ProductQuantity.js     # 数量选择器
