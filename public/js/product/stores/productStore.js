@@ -71,34 +71,88 @@ const useProductStore = Pinia.defineStore('product', () => {
 
     const setSelectedVariant = (variant) => {
         selectedVariant.value = variant;
-        console.log('Store: 设置选中变体', variant);
     };
 
     const setVariants = (vars) => {
         variants.value = vars;
     };
 
+    // 添加请求状态跟踪
+    const isDataFetched = Vue.ref(false);
+    const fetchPromise = Vue.ref(null);
+
     const fetchProductData = async () => {
         if (!productId.value) return;
-        
-        setLoading(true);
-        setError(null);
-        
-        try {
-            // Mock API call - replace with actual API endpoint
-            const response = await axios.get(`/api/product/${productId.value}`);
-            setProductData(response.data);
-        } catch (err) {
-            setError(err.message);
-            console.error('Failed to fetch product data:', err);
-        } finally {
-            setLoading(false);
+
+        // 如果数据已经获取过，直接返回
+        if (isDataFetched.value && productData.value) {
+            return productData.value;
         }
+
+        // 如果正在请求中，返回同一个 Promise
+        if (fetchPromise.value) {
+            return fetchPromise.value;
+        }
+
+        // 创建新的请求 Promise
+        fetchPromise.value = (async () => {
+            setLoading(true);
+            setError(null);
+
+            try {
+                // 使用统一的 API 模块获取数据
+                if (typeof window.productDataAPI === 'undefined') {
+                    throw new Error('ProductDataAPI 未加载');
+                }
+
+                const apiData = await window.productDataAPI.fetchCurrentProductData();
+
+                // 处理 WooCommerce 产品数据
+                if (apiData.has_woocommerce_product && apiData.woocommerce) {
+                    const wooData = apiData.woocommerce;
+                    setProductData({
+                        id: wooData.id,
+                        name: wooData.name,
+                        price: parseFloat(wooData.price) || 0,
+                        price_html: wooData.price_html,
+                        description: wooData.description || '',
+                        sku: wooData.sku || '',
+                        stock_status: wooData.stock_status,
+                        in_stock: wooData.in_stock,
+                        permalink: wooData.permalink,
+                        apiData: apiData // 存储完整的 API 数据
+                    });
+                }
+
+                // 处理颜色变体数据
+                if (apiData.has_variants && apiData.variants && apiData.variants.data) {
+                    setVariants(apiData.variants.data);
+
+                    // 默认选择第一个变体
+                    if (apiData.variants.data.length > 0) {
+                        setSelectedVariant(apiData.variants.data[0]);
+                    }
+                }
+
+                // 标记数据已获取
+                isDataFetched.value = true;
+                return productData.value;
+
+            } catch (err) {
+                setError(err.message);
+                throw err;
+            } finally {
+                setLoading(false);
+                fetchPromise.value = null; // 清除请求状态
+            }
+        })();
+
+        return fetchPromise.value;
     };
 
     const addToCart = async () => {
         if (!canAddToCart.value) return;
-        
+
         setLoading(true);
         try {
             const cartData = {
@@ -107,13 +161,11 @@ const useProductStore = Pinia.defineStore('product', () => {
                 options: selectedOptions,
                 variant: selectedVariant.value // 包含选中的变体信息
             };
-            
+
             // Mock API call - replace with actual endpoint
             await axios.post('/api/cart/add', cartData);
-            console.log('Added to cart:', cartData);
         } catch (err) {
             setError(err.message);
-            console.error('Failed to add to cart:', err);
         } finally {
             setLoading(false);
         }
@@ -132,7 +184,8 @@ const useProductStore = Pinia.defineStore('product', () => {
         selectedOptions,
         showDetails,
         activeTab,
-        
+        isDataFetched,
+
         // Getters
         isLoading,
         hasError,
@@ -140,7 +193,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         canAddToCart,
         hasVariants,
         selectedVariantPrice,
-        
+
         // Actions
         setProductId,
         setProductData,

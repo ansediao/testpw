@@ -4,7 +4,9 @@
  */
 
 // Wait for DOM and all scripts to load
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+
+
     // Check if required dependencies are loaded
     if (typeof Vue === 'undefined' || typeof Pinia === 'undefined') {
         console.error('Vue or Pinia not loaded properly');
@@ -31,38 +33,42 @@ document.addEventListener('DOMContentLoaded', function() {
         checkboxOptions: !!window.CheckboxOptions
     };
 
-    console.log('Module loading status:', modulesLoaded);
+
 
     // Initialize application
     if (modulesLoaded.store && modulesLoaded.productInfo && modulesLoaded.productQuantity && modulesLoaded.addToCart && modulesLoaded.colorVariants && modulesLoaded.checkboxOptions) {
         initializeModularApp(productId);
     } else {
-        console.warn('Some modules not loaded, initializing basic app');
         initializeBasicApp(productId, modulesLoaded);
     }
 });
 
 // Initialize modular application
 function initializeModularApp(productId) {
-    console.log('Initializing modular Vue app...');
 
     const { createApp } = Vue;
     const pinia = Pinia.createPinia();
 
     const App = {
         name: 'ProductApp',
-        
+
         setup() {
             const store = useProductStore();
-            
-            Vue.onMounted(() => {
+
+            Vue.onMounted(async () => {
                 store.setProductId(productId);
-                console.log('Modular Vue app mounted, Product ID:', productId);
+
+                // 初始化时获取产品数据
+                try {
+                    await store.fetchProductData();
+                } catch (error) {
+                    console.error('App: 产品数据初始化失败:', error);
+                }
             });
-            
+
             return { store };
         },
-        
+
         components: {
             ProductInfo: window.ProductInfo,
             ProductQuantity: window.ProductQuantity,
@@ -70,7 +76,7 @@ function initializeModularApp(productId) {
             ColorVariants: window.ColorVariants,
             CheckboxOptions: window.CheckboxOptions  // 添加这行
         },
-        
+
         template: `
             <div class="pw-vue-modular-app">
                 <div class="app-header">
@@ -115,7 +121,6 @@ function initializeModularApp(productId) {
 
 // Fallback basic application
 function initializeBasicApp(productId, modulesLoaded) {
-    console.log('Initializing basic Vue app...');
 
     const { createApp } = Vue;
     const pinia = Pinia.createPinia();
@@ -133,7 +138,6 @@ function initializeBasicApp(productId, modulesLoaded) {
             };
         },
         mounted() {
-            console.log('Basic Vue app mounted, Product ID:', this.productId);
         },
         components,
         template: `

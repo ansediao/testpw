@@ -5,33 +5,26 @@
 
 const ProductInfo = {
     name: 'ProductInfo',
-    
+
     setup() {
         const store = useProductStore();
-        
+
         // Mock product data for demo
         const { onMounted } = Vue;
-        
+
         onMounted(() => {
-            // Set mock product data
-            store.setProductData({
-                name: 'Sample Product',
-                price: 29.99,
-                description: 'This is a sample product description.',
-                sku: 'SKU-123'
-            });
         });
-        
+
         const toggleDetails = () => {
             store.toggleDetails();
         };
-        
+
         return {
             store,
             toggleDetails
         };
     },
-    
+
     template: `
         <div class="product-info">
             <div v-if="store.loading" class="loading">

@@ -223,13 +223,128 @@ CDN 加载器包含详细的控制台日志：
 - 状态管理演示
 - API 调用示例
 
-## 最佳实践
+## 响应式系统最佳实践
+
+### Pinia Store 响应式绑定
+
+**❌ 错误做法 - 直接解构会失去响应式**：
+```javascript
+setup() {
+    const store = useProductStore();
+    return {
+        variants: store.variants,  // 失去响应式连接！
+        loading: store.loading
+    };
+}
+```
+
+**✅ 正确做法 - 使用 toRefs 保持响应式**：
+```javascript
+setup() {
+    const { toRefs } = Vue;
+    const store = useProductStore();
+    const storeRefs = toRefs(store);
+    
+    return {
+        variants: storeRefs.variants,  // 保持响应式
+        loading: storeRefs.loading
+    };
+}
+```
+
+**✅ 替代方案 - 使用计算属性**：
+```javascript
+setup() {
+    const store = useProductStore();
+    
+    return {
+        variants: Vue.computed(() => store.variants),
+        loading: Vue.computed(() => store.loading)
+    };
+}
+```
+
+### API 调用防重复机制
+
+**实现单次 API 调用的 Store 模式**：
+```javascript
+const useProductStore = Pinia.defineStore('product', () => {
+    const isDataFetched = Vue.ref(false);
+    const fetchPromise = Vue.ref(null);
+    
+    const fetchProductData = async () => {
+        // 防重复调用
+        if (isDataFetched.value && productData.value) {
+            return productData.value;
+        }
+        
+        // 防并发调用
+        if (fetchPromise.value) {
+            return fetchPromise.value;
+        }
+        
+        fetchPromise.value = (async () => {
+            try {
+                const apiData = await window.productDataAPI.fetchCurrentProductData();
+                // 处理数据...
+                isDataFetched.value = true;
+                return productData.value;
+            } finally {
+                fetchPromise.value = null;
+            }
+        })();
+        
+        return fetchPromise.value;
+    };
+    
+    return { fetchProductData, isDataFetched };
+});
+```
+
+### 组件数据监听模式
+
+**监听 Store 数据变化**：
+```javascript
+setup() {
+    const { watch, onMounted } = Vue;
+    const store = useProductStore();
+    
+    const updateComponentState = () => {
+        // 更新组件状态
+    };
+    
+    onMounted(() => {
+        // 如果数据已存在，立即更新
+        if (store.isDataFetched && store.productData) {
+            updateComponentState();
+        }
+    });
+    
+    // 监听数据变化
+    watch(() => store.isDataFetched, (newValue) => {
+        if (newValue && store.productData) {
+            updateComponentState();
+        }
+    });
+    
+    watch(() => store.productData, (newData) => {
+        if (newData) {
+            updateComponentState();
+        }
+    });
+}
+```
+
+## 架构最佳实践
 
 1. **条件加载**: 仅在需要的产品页面加载 CDN 脚本
 2. **事件驱动**: 使用 `pwCdnLoaded` 事件确保脚本加载完成
-3. **错误处理**: 包含适当的错误处理和回退机制
-4. **性能优化**: 避免重复加载和不必要的初始化
-5. **调试友好**: 包含控制台日志便于开发调试
+3. **统一数据流**: 所有 API 调用通过 Store 统一管理，避免组件直接调用
+4. **响应式绑定**: 使用 `toRefs` 或计算属性保持 Pinia store 的响应式
+5. **防重复请求**: 在 Store 层面实现请求去重和状态管理
+6. **错误处理**: 包含适当的错误处理和回退机制
+7. **性能优化**: 避免重复加载和不必要的初始化
+8. **调试友好**: 在开发环境包含必要的调试信息
 
 ## 故障排除
 
@@ -247,6 +362,21 @@ CDN 加载器包含详细的控制台日志：
    - 检查 WordPress REST API 端点
    - 确认 nonce 验证（如需要）
 
+4. **组件数据不更新（响应式失效）**
+   - 检查是否直接解构了 Pinia store
+   - 使用 `toRefs()` 或计算属性保持响应式
+   - 确认 Store 中的数据是用 `Vue.ref()` 或 `Vue.reactive()` 创建的
+
+5. **重复 API 调用**
+   - 检查是否有多个组件同时调用 API
+   - 在 Store 层面实现防重复调用机制
+   - 确保只在应用初始化时调用一次数据获取
+
+6. **数据获取时序问题**
+   - 组件挂载时数据可能还未加载完成
+   - 使用 `watch` 监听数据变化
+   - 在 `onMounted` 中检查数据是否已存在
+
 ### 调试步骤
 
 1. 打开浏览器开发者工具
@@ -254,3 +384,90 @@ CDN 加载器包含详细的控制台日志：
 3. 检查网络面板确认 CDN 资源加载
 4. 验证 `pwCdnLoaded` 事件是否触发
 5. 检查 Vue 应用挂载状态
+6. 使用 Vue DevTools 检查组件状态和 Pinia store
+7. 检查响应式绑定是否正常工作
+
+## 当前产品页面架构
+
+### 文件结构
+```
+public/js/product/
+├── main.js                    # 应用入口和初始化
+├── api/
+│   └── productDataAPI.js      # 统一 API 调用模块
+├── stores/
+│   └── productStore.js        # Pinia 状态管理
+└── components/
+    ├── ProductInfo.js         # 产品基本信息
+    ├── ColorVariants.js       # 颜色变体选择器
+    ├── CheckboxOptions.js     # 复选框选项
+    ├── ProductQuantity.js     # 数量选择器
+    └── AddToCart.js          # 添加到购物车
+```
+
+### 数据流架构
+
+1. **应用初始化** (`main.js`)
+   - 检查依赖加载状态
+   - 创建 Vue 应用和 Pinia 实例
+   - 设置产品 ID 并触发数据获取
+
+2. **API 聚合** (`productDataAPI.js`)
+   - 统一的 API 调用接口
+   - 错误处理和重试机制
+   - 支持单个和批量数据获取
+
+3. **状态管理** (`productStore.js`)
+   - 集中管理所有产品相关状态
+   - 防重复 API 调用机制
+   - 响应式数据更新
+
+4. **组件消费** (各个组件)
+   - 使用 `toRefs` 保持响应式绑定
+   - 监听 Store 数据变化
+   - 避免直接 API 调用
+
+### 组件通信模式
+
+```javascript
+// Store 作为唯一数据源
+const useProductStore = Pinia.defineStore('product', () => {
+    const variants = Vue.ref([]);
+    const selectedVariant = Vue.ref(null);
+    
+    return { variants, selectedVariant };
+});
+
+// 组件 A：颜色选择器
+const ColorVariants = {
+    setup() {
+        const store = useProductStore();
+        const storeRefs = toRefs(store);
+        
+        return {
+            variants: storeRefs.variants,
+            selectedVariant: storeRefs.selectedVariant
+        };
+    }
+};
+
+// 组件 B：价格显示器
+const PriceDisplay = {
+    setup() {
+        const store = useProductStore();
+        
+        const currentPrice = Vue.computed(() => {
+            return store.selectedVariant?.price || 0;
+        });
+        
+        return { currentPrice };
+    }
+};
+```
+
+### 性能优化策略
+
+1. **单次数据获取**: 应用启动时统一获取所有数据
+2. **响应式更新**: 数据变化时所有相关组件自动更新
+3. **按需渲染**: 使用 `v-if` 和 `v-show` 优化渲染性能
+4. **计算属性缓存**: 使用 `computed` 缓存复杂计算结果
