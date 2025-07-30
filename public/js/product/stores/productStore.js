@@ -15,6 +15,10 @@ const useProductStore = Pinia.defineStore('product', () => {
     const selectedOptions = Vue.reactive({});
     const showDetails = Vue.ref(false);
     const activeTab = Vue.ref('description');
+    // 暂时没找到的字段
+    
+    // 数量折扣是否开启
+    const quantityDiscountEnabled = Vue.ref(true);
 
     // MOQ (Minimum Order Quantity) related state
     const moqSettings = Vue.ref({
@@ -93,11 +97,11 @@ const useProductStore = Pinia.defineStore('product', () => {
 
     // Quantity Discount computed properties
     const hasQuantityDiscounts = Vue.computed(() => {
-        return quantityDiscounts.value.length > 0;
+        return quantityDiscountEnabled.value && quantityDiscounts.value.length > 0;
     });
 
     const getCurrentDiscount = Vue.computed(() => {
-        if (!hasQuantityDiscounts.value) return 0;
+        if (!quantityDiscountEnabled.value || !hasQuantityDiscounts.value) return 0;
 
         let applicableDiscount = 0;
         // 找到适用的最高折扣梯度（数量大于等于range_from的最大梯度）
@@ -111,6 +115,8 @@ const useProductStore = Pinia.defineStore('product', () => {
     });
 
     const getDiscountText = Vue.computed(() => {
+        if (!quantityDiscountEnabled.value) return '';
+        
         const discount = getCurrentDiscount.value;
         if (discount === 0) return '';
 
@@ -120,6 +126,11 @@ const useProductStore = Pinia.defineStore('product', () => {
 
     const discountedPrice = Vue.computed(() => {
         const basePrice = selectedVariantPrice.value || (productData.value ? productData.value.price : 0);
+        
+        if (!quantityDiscountEnabled.value) {
+            return basePrice;
+        }
+        
         const discount = getCurrentDiscount.value;
         return discount > 0 ? basePrice * discount : basePrice;
     });
@@ -277,6 +288,10 @@ const useProductStore = Pinia.defineStore('product', () => {
         variants.value = vars;
     };
 
+    const setQuantityDiscountEnabled = (enabled) => {
+        quantityDiscountEnabled.value = !!enabled;
+    };
+
     // 添加请求状态跟踪
     const isDataFetched = Vue.ref(false);
     const fetchPromise = Vue.ref(null);
@@ -361,6 +376,11 @@ const useProductStore = Pinia.defineStore('product', () => {
                         setQuantityDiscounts(productApiData.quantity_discount);
                     }
 
+                    // 处理数量折扣启用状态
+                    if (productApiData.quantityDiscountEnabled !== undefined) {
+                        setQuantityDiscountEnabled(productApiData.quantityDiscountEnabled);
+                    }
+
                     // 处理配件数据
                     if (productApiData.accessories && Array.isArray(productApiData.accessories)) {
                         // 将配件数据存储到产品数据中
@@ -436,6 +456,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         showDetails,
         activeTab,
         isDataFetched,
+        quantityDiscountEnabled,
         moqSettings,
         minQuantity,
         maxQuantity,
@@ -471,6 +492,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         setActiveTab,
         setSelectedVariant,
         setVariants,
+        setQuantityDiscountEnabled,
         setMoqSettings,
         setQuantityDiscounts,
         fetchProductData,

@@ -23,6 +23,9 @@ const ProductPriceInfo = {
         
         // 计算折扣后单价
         const unitPrice = computed(() => {
+            if (!store.quantityDiscountEnabled) {
+                return originalUnitPrice.value;
+            }
             const discount = store.getCurrentDiscount;
             return discount > 0 ? originalUnitPrice.value * discount : originalUnitPrice.value;
         });
@@ -39,6 +42,9 @@ const ProductPriceInfo = {
         
         // 计算总折扣金额
         const totalDiscountAmount = computed(() => {
+            if (!store.quantityDiscountEnabled) {
+                return 0;
+            }
             return originalTotalPrice.value - totalPrice.value;
         });
         

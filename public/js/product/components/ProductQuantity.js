@@ -59,9 +59,9 @@ const ProductQuantity = {
             return `Minimum: ${store.minQuantity}`;
         });
         
-        // 检查QuantityDiscountSlider组件是否可用
+        // 检查QuantityDiscountSlider组件是否可用且启用
         const hasDiscountSlider = Vue.computed(() => {
-            return typeof window.QuantityDiscountSlider !== 'undefined';
+            return typeof window.QuantityDiscountSlider !== 'undefined' && store.quantityDiscountEnabled;
         });
 
         // 检查当前数量是否符合批次要求
