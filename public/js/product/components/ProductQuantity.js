@@ -55,6 +55,11 @@ const ProductQuantity = {
             return `Minimum: ${store.minQuantity}`;
         });
         
+        // 检查QuantityDiscountSlider组件是否可用
+        const hasDiscountSlider = Vue.computed(() => {
+            return typeof window.QuantityDiscountSlider !== 'undefined';
+        });
+
         return {
             // Store 响应式数据
             quantity: storeRefs.quantity,
@@ -68,6 +73,7 @@ const ProductQuantity = {
             canDecrease,
             canIncrease,
             moqInfo,
+            hasDiscountSlider,
             
             // 方法
             increaseQuantity,
@@ -106,6 +112,9 @@ const ProductQuantity = {
                     :class="{ 'disabled': !canIncrease }"
                 >+</button>
             </div>
+            
+            <!-- 数量折扣滑块组件 -->
+            <QuantityDiscountSlider v-if="hasDiscountSlider"></QuantityDiscountSlider>
             
             <div class="quantity-info">
                 <p class="moq-info" v-if="moqSettings.minimum_order_quantity > 1">

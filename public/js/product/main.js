@@ -23,6 +23,7 @@ function loadComponentStyles() {
     
     loadCSS(baseUrl + 'ProductQuantity.css', 'product-quantity-css');
     loadCSS(baseUrl + 'ProductPriceInfo.css', 'product-price-info-css');
+    loadCSS(baseUrl + 'QuantityDiscountSlider.css', 'quantity-discount-slider-css');
 }
 
 // Wait for DOM and all scripts to load
@@ -54,13 +55,14 @@ document.addEventListener('DOMContentLoaded', function () {
         productPriceInfo: !!window.ProductPriceInfo,
         addToCart: !!window.AddToCart,
         colorVariants: !!window.ColorVariants,
-        checkboxOptions: !!window.CheckboxOptions
+        checkboxOptions: !!window.CheckboxOptions,
+        quantityDiscountSlider: !!window.QuantityDiscountSlider
     };
 
 
 
     // Initialize application
-    if (modulesLoaded.store && modulesLoaded.productQuantity && modulesLoaded.productPriceInfo && modulesLoaded.addToCart && modulesLoaded.colorVariants && modulesLoaded.checkboxOptions) {
+    if (modulesLoaded.store && modulesLoaded.productQuantity && modulesLoaded.productPriceInfo && modulesLoaded.addToCart && modulesLoaded.colorVariants && modulesLoaded.checkboxOptions && modulesLoaded.quantityDiscountSlider) {
         initializeModularApp(productId);
     } else {
         initializeBasicApp(productId, modulesLoaded);
@@ -98,7 +100,8 @@ function initializeModularApp(productId) {
             ProductPriceInfo: window.ProductPriceInfo,
             AddToCart: window.AddToCart,
             ColorVariants: window.ColorVariants,
-            CheckboxOptions: window.CheckboxOptions
+            CheckboxOptions: window.CheckboxOptions,
+            QuantityDiscountSlider: window.QuantityDiscountSlider
         },
 
         template: `
@@ -133,6 +136,12 @@ function initializeModularApp(productId) {
 
     const app = createApp(App);
     app.use(pinia);
+    
+    // 全局注册QuantityDiscountSlider组件
+    if (window.QuantityDiscountSlider) {
+        app.component('QuantityDiscountSlider', window.QuantityDiscountSlider);
+    }
+    
     app.mount('#vue-dynamic-product-area');
 }
 
@@ -145,6 +154,9 @@ function initializeBasicApp(productId, modulesLoaded) {
     const components = {};
     if (modulesLoaded.checkboxOptions && window.CheckboxOptions) {
         components.CheckboxOptions = window.CheckboxOptions;
+    }
+    if (modulesLoaded.quantityDiscountSlider && window.QuantityDiscountSlider) {
+        components.QuantityDiscountSlider = window.QuantityDiscountSlider;
     }
 
     const app = createApp({

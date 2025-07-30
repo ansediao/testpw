@@ -13,8 +13,8 @@ const ProductPriceInfo = {
         // 使用 toRefs 保持响应式
         const storeRefs = toRefs(store);
         
-        // 计算单价 - 优先使用选中变体的 anchor_price，否则使用产品默认价格
-        const unitPrice = computed(() => {
+        // 计算原始单价 - 优先使用选中变体的 anchor_price，否则使用产品默认价格
+        const originalUnitPrice = computed(() => {
             if (store.selectedVariant && store.selectedVariant.anchor_price) {
                 return parseFloat(store.selectedVariant.anchor_price);
             }
@@ -24,9 +24,25 @@ const ProductPriceInfo = {
             return 0;
         });
         
-        // 计算总价
+        // 计算折扣后单价
+        const unitPrice = computed(() => {
+            const discount = store.getCurrentDiscount;
+            return discount > 0 ? originalUnitPrice.value * discount : originalUnitPrice.value;
+        });
+        
+        // 计算原始总价
+        const originalTotalPrice = computed(() => {
+            return originalUnitPrice.value * store.quantity;
+        });
+        
+        // 计算折扣后总价
         const totalPrice = computed(() => {
             return unitPrice.value * store.quantity;
+        });
+        
+        // 计算总折扣金额
+        const totalDiscountAmount = computed(() => {
+            return originalTotalPrice.value - totalPrice.value;
         });
         
         // 格式化价格显示
@@ -66,10 +82,16 @@ const ProductPriceInfo = {
             productData: storeRefs.productData,
             selectedVariant: storeRefs.selectedVariant,
             quantity: storeRefs.quantity,
+            hasQuantityDiscounts: storeRefs.hasQuantityDiscounts,
+            getCurrentDiscount: storeRefs.getCurrentDiscount,
+            getDiscountText: storeRefs.getDiscountText,
             
             // 计算属性
+            originalUnitPrice,
             unitPrice,
+            originalTotalPrice,
             totalPrice,
+            totalDiscountAmount,
             estimatedShipDate,
             estimatedDeliveryDate,
             
@@ -83,12 +105,26 @@ const ProductPriceInfo = {
             <div class="price-section">
                 <div class="price-item">
                     <label class="price-label">Unit Price:</label>
-                    <span class="price-value unit-price">{{ formatPrice(unitPrice) }}</span>
+                    <div class="price-display">
+                        <span v-if="hasQuantityDiscounts && getCurrentDiscount > 0" class="original-price">{{ formatPrice(originalUnitPrice) }}</span>
+                        <span class="price-value unit-price" :class="{ 'discounted': hasQuantityDiscounts && getCurrentDiscount > 0 }">{{ formatPrice(unitPrice) }}</span>
+                        <span v-if="hasQuantityDiscounts && getCurrentDiscount > 0" class="discount-badge">{{ getDiscountText }}</span>
+                    </div>
                 </div>
                 
                 <div class="price-item">
                     <label class="price-label">Total Price:</label>
-                    <span class="price-value total-price">{{ formatPrice(totalPrice) }}</span>
+                    <div class="price-display">
+                        <span v-if="hasQuantityDiscounts && getCurrentDiscount > 0" class="original-price">{{ formatPrice(originalTotalPrice) }}</span>
+                        <span class="price-value total-price" :class="{ 'discounted': hasQuantityDiscounts && getCurrentDiscount > 0 }">{{ formatPrice(totalPrice) }}</span>
+                    </div>
+                </div>
+                
+                <div v-if="hasQuantityDiscounts && getCurrentDiscount > 0" class="discount-summary">
+                    <div class="price-item discount-item">
+                        <label class="price-label">You Save:</label>
+                        <span class="price-value savings-amount">{{ formatPrice(totalDiscountAmount) }}</span>
+                    </div>
                 </div>
             </div>
             

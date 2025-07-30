@@ -74,6 +74,7 @@ class Pw_CDN_Loader {
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/stores/productStore.js?v=' . time(); ?>"></script>
             
             <!-- 引入 Vue 组件 -->
+            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/QuantityDiscountSlider.js?v=' . time(); ?>"></script>
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductQuantity.js?v=' . time(); ?>"></script>
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductPriceInfo.js?v=' . time(); ?>"></script>
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/AddToCart.js?v=' . time(); ?>"></script>
@@ -85,6 +86,7 @@ class Pw_CDN_Loader {
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/CheckboxOptions.css?v=' . time(); ?>">
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductPriceInfo.css?v=' . time(); ?>">
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductQuantity.css?v=' . time(); ?>">
+            <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/QuantityDiscountSlider.css?v=' . time(); ?>">
             
             <!-- 引入产品页面主脚本 -->
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/main.js?v=' . time(); ?>"></script>
