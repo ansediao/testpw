@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const modulesLoaded = {
         store: !!window.useProductStore,
         productQuantity: !!window.ProductQuantity,
+        productPriceInfo: !!window.ProductPriceInfo,
         addToCart: !!window.AddToCart,
         colorVariants: !!window.ColorVariants,
         checkboxOptions: !!window.CheckboxOptions
@@ -35,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // Initialize application
-    if (modulesLoaded.store && modulesLoaded.productQuantity && modulesLoaded.addToCart && modulesLoaded.colorVariants && modulesLoaded.checkboxOptions) {
+    if (modulesLoaded.store && modulesLoaded.productQuantity && modulesLoaded.productPriceInfo && modulesLoaded.addToCart && modulesLoaded.colorVariants && modulesLoaded.checkboxOptions) {
         initializeModularApp(productId);
     } else {
         initializeBasicApp(productId, modulesLoaded);
@@ -70,6 +71,7 @@ function initializeModularApp(productId) {
 
         components: {
             ProductQuantity: window.ProductQuantity,
+            ProductPriceInfo: window.ProductPriceInfo,
             AddToCart: window.AddToCart,
             ColorVariants: window.ColorVariants,
             CheckboxOptions: window.CheckboxOptions
@@ -94,6 +96,10 @@ function initializeModularApp(productId) {
                     
                     <div class="quantity-section">
                         <ProductQuantity />
+                    </div>
+                    
+                    <div class="price-info-section">
+                        <ProductPriceInfo />
                     </div>
                     
                     <div class="cart-section">

@@ -12,9 +12,11 @@ cuz_cart_checkout/
 │   │   │   └── productDataAPI.js          # API 通信模块
 │   │   ├── components/
 │   │   │   ├── ProductQuantity.js         # 数量选择组件
+│   │   │   ├── ProductPriceInfo.js        # 价格信息显示组件
 │   │   │   ├── AddToCart.js               # 加购物车组件
 │   │   │   ├── ColorVariants.js           # 颜色变体组件
-│   │   │   └── ColorVariants.css          # 组件样式
+│   │   │   ├── ColorVariants.css          # 组件样式
+│   │   │   └── ProductPriceInfo.css       # 价格信息组件样式
 │   │   ├── stores/
 │   │   │   └── productStore.js            # Pinia 状态管理
 │   │   └── main.js                        # Vue 应用入口
@@ -553,6 +555,17 @@ const loadData = async () => {
 - **触发条件**: `has_variants: true`
 - **状态管理**: 选中变体存储在 store 中
 - **文件**: `components/ColorVariants.js` + `ColorVariants.css`
+
+### ProductPriceInfo 组件
+- **功能**: 显示产品单价、总价、预计发货时间和到货时间
+- **数据来源**: 
+  - 单价：优先使用 `selectedVariant.anchor_price`，否则使用 `productData.price`
+  - 总价：单价 × 数量
+  - 发货时间：`productData.apiData.product.data.estimated_ship_date` 或默认值
+  - 到货时间：`productData.apiData.product.data.estimated_delivery_date` 或默认值
+- **响应式特性**: 当选择不同颜色变体时，单价和总价自动更新
+- **状态管理**: 监听 store 中的 `selectedVariant` 和 `quantity` 变化
+- **文件**: `components/ProductPriceInfo.js` + `ProductPriceInfo.css`
 
 ## 🚨 常见问题
 

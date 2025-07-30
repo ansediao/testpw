@@ -20,7 +20,11 @@ const useProductStore = Pinia.defineStore('product', () => {
     const isLoading = Vue.computed(() => loading.value);
     const hasError = Vue.computed(() => error.value !== null);
     const totalPrice = Vue.computed(() => {
-        // 如果有选中的变体，使用变体价格
+        // 如果有选中的变体，优先使用变体的 anchor_price
+        if (selectedVariant.value && selectedVariant.value.anchor_price) {
+            return parseFloat(selectedVariant.value.anchor_price) * quantity.value;
+        }
+        // 如果变体没有 anchor_price，使用变体的 price
         if (selectedVariant.value && selectedVariant.value.price) {
             return parseFloat(selectedVariant.value.price) * quantity.value;
         }
@@ -33,6 +37,9 @@ const useProductStore = Pinia.defineStore('product', () => {
     });
     const hasVariants = Vue.computed(() => variants.value.length > 0);
     const selectedVariantPrice = Vue.computed(() => {
+        if (selectedVariant.value && selectedVariant.value.anchor_price) {
+            return parseFloat(selectedVariant.value.anchor_price);
+        }
         return selectedVariant.value ? parseFloat(selectedVariant.value.price) : 0;
     });
 
@@ -129,9 +136,9 @@ const useProductStore = Pinia.defineStore('product', () => {
                     setVariants(apiData.variants.data);
 
                     // 默认选择第一个变体
-                    if (apiData.variants.data.length > 0) {
-                        setSelectedVariant(apiData.variants.data[0]);
-                    }
+                    // if (apiData.variants.data.length > 0) {
+                    //     setSelectedVariant(apiData.variants.data[0]);
+                    // }
                 }
 
                 // 标记数据已获取
