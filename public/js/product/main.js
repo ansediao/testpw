@@ -78,11 +78,7 @@ function initializeModularApp(productId) {
         },
 
         template: `
-            <div class="pw-vue-modular-app">
-                <div class="app-header">
-                    <h2>Modular Product Page</h2>
-                    <p>Product ID: {{ store.productId }}</p>
-                </div>
+            <div class="pw-vue-modular-app">              
                 
                 <div class="app-content">
                     <div class="color-variants-section">
@@ -105,11 +101,8 @@ function initializeModularApp(productId) {
                     <div class="cart-section">
                         <AddToCart />
                     </div>
-                </div>
-                
-                <div class="app-footer">
-                    <p><small>Powered by Vue 3 + Pinia</small></p>
-                </div>
+                </div>                
+               
             </div>
         `
     };
