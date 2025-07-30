@@ -8,8 +8,7 @@ const ColorVariants = {
     template: `
         <div v-if="showVariants" class="pw-color-variants-module">
             <div class="pw-color-variants-header">
-                <h4>产品颜色</h4>
-                <span class="pw-selected-variant-name">{{ selectedVariant?.variant_name || '请选择颜色' }}</span>
+                <h4>Select Color:</h4>
             </div>
             
             <div class="pw-color-variants-grid">
@@ -28,35 +27,10 @@ const ColorVariants = {
                             class="pw-color-swatch" 
                             :style="{ backgroundColor: variant.variant_color }"
                         ></div>
-                        <div class="pw-variant-name">{{ variant.variant_name }}</div>
                     </div>
                 </div>
-            </div>
-            
-            <div v-if="selectedVariant" class="pw-variant-info">
-                <div class="pw-variant-details">
-                    <div class="pw-variant-price">
-                        <span class="pw-price-label">价格:</span>
-                        <span class="pw-price-value">\${{ parseFloat(selectedVariant.price).toFixed(2) }}</span>
-                        <span v-if="selectedVariant.anchor_price" class="pw-anchor-price">
-                            \${{ parseFloat(selectedVariant.anchor_price).toFixed(2) }}
-                        </span>
-                    </div>
-                    <div class="pw-variant-sku">
-                        <span class="pw-sku-label">SKU:</span>
-                        <span class="pw-sku-value">{{ selectedVariant.sku }}</span>
-                    </div>
-                    <div class="pw-variant-stock">
-                        <span class="pw-stock-label">库存状态:</span>
-                        <span 
-                            class="pw-stock-value" 
-                            :class="selectedVariant.stock_status === 'in Stock' ? 'in-stock' : 'out-of-stock'"
-                        >
-                            {{ selectedVariant.stock_status === 'in Stock' ? '有库存' : '缺货' }}
-                        </span>
-                    </div>
-                </div>
-            </div>
+            </div>    
+           
         </div>
     `,
     
