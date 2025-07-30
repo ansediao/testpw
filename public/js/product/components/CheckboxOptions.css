@@ -1,0 +1,17 @@
+/* CheckboxOptions.css */
+
+.pw-checkbox-options {
+    display: flex;
+    flex-direction: column;
+    margin: 15px 0;
+}
+
+.pw-checkbox-options label {
+    margin: 5px 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.pw-checkbox-options input[type="checkbox"] {
+    margin-right: 5px;
+}

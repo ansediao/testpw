@@ -27,17 +27,18 @@ document.addEventListener('DOMContentLoaded', function() {
         productInfo: !!window.ProductInfo,
         productQuantity: !!window.ProductQuantity,
         addToCart: !!window.AddToCart,
-        colorVariants: !!window.ColorVariants
+        colorVariants: !!window.ColorVariants,
+        checkboxOptions: !!window.CheckboxOptions
     };
 
     console.log('Module loading status:', modulesLoaded);
 
     // Initialize application
-    if (modulesLoaded.store && modulesLoaded.productInfo && modulesLoaded.productQuantity && modulesLoaded.addToCart) {
+    if (modulesLoaded.store && modulesLoaded.productInfo && modulesLoaded.productQuantity && modulesLoaded.addToCart && modulesLoaded.colorVariants && modulesLoaded.checkboxOptions) {
         initializeModularApp(productId);
     } else {
         console.warn('Some modules not loaded, initializing basic app');
-        initializeBasicApp(productId);
+        initializeBasicApp(productId, modulesLoaded);
     }
 });
 
@@ -66,7 +67,8 @@ function initializeModularApp(productId) {
             ProductInfo: window.ProductInfo,
             ProductQuantity: window.ProductQuantity,
             AddToCart: window.AddToCart,
-            ColorVariants: window.ColorVariants
+            ColorVariants: window.ColorVariants,
+            CheckboxOptions: window.CheckboxOptions  // 添加这行
         },
         
         template: `
@@ -83,6 +85,11 @@ function initializeModularApp(productId) {
                     
                     <div class="color-variants-section">
                         <ColorVariants />
+                    </div>
+                    
+                    <!-- 添加新模块 -->
+                    <div class="checkbox-options-section">
+                        <CheckboxOptions />
                     </div>
                     
                     <div class="quantity-section">
@@ -107,11 +114,16 @@ function initializeModularApp(productId) {
 }
 
 // Fallback basic application
-function initializeBasicApp(productId) {
+function initializeBasicApp(productId, modulesLoaded) {
     console.log('Initializing basic Vue app...');
 
     const { createApp } = Vue;
     const pinia = Pinia.createPinia();
+
+    const components = {};
+    if (modulesLoaded.checkboxOptions && window.CheckboxOptions) {
+        components.CheckboxOptions = window.CheckboxOptions;
+    }
 
     const app = createApp({
         data() {
@@ -123,11 +135,16 @@ function initializeBasicApp(productId) {
         mounted() {
             console.log('Basic Vue app mounted, Product ID:', this.productId);
         },
+        components,
         template: `
             <div class="pw-vue-basic-app">
                 <h2>Basic Product Page</h2>
                 <p>{{ message }}</p>
                 <p>Product ID: {{ productId }}</p>
+                <div v-if="$options.components && $options.components.CheckboxOptions">
+                    <h4>Checkbox Options (Basic):</h4>
+                    <CheckboxOptions />
+                </div>
             </div>
         `
     });

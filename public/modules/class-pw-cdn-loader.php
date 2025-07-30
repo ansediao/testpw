@@ -78,9 +78,11 @@ class Pw_CDN_Loader {
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductQuantity.js?v=' . time(); ?>"></script>
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/AddToCart.js?v=' . time(); ?>"></script>
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ColorVariants.js?v=' . time(); ?>"></script>
-            
-            <!-- 引入组件样式 -->
+            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/CheckboxOptions.js?v=' . time(); ?>"></script>
+
+            <!-- 如果有样式文件 -->
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ColorVariants.css?v=' . time(); ?>">
+            <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/CheckboxOptions.css?v=' . time(); ?>">
             
             <!-- 引入产品页面主脚本 -->
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/main.js?v=' . time(); ?>"></script>
