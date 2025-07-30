@@ -148,12 +148,67 @@ window.MOQDebugger = {
             sell_in_batch: true
         });
         
-        console.log('\n5. Final State:');
+        console.log('\n5. Batch Sales Scenarios:');
+        this.testBatchSalesScenarios();
+        
+        console.log('\n6. Final State:');
         this.printState();
         
         console.groupEnd();
     },
     
+    /**
+     * 测试批量销售场景
+     */
+    testBatchSalesScenarios() {
+        const scenarios = [
+            {
+                name: '不按批次销售',
+                settings: {
+                    sell_in_batch: false,
+                    batch_quantity: 50,
+                    minimum_order_quantity: 1
+                }
+            },
+            {
+                name: '按批次销售 - 批次50',
+                settings: {
+                    sell_in_batch: true,
+                    batch_quantity: 50,
+                    minimum_order_quantity: 1
+                }
+            },
+            {
+                name: '按批次销售 - 批次25，最小10',
+                settings: {
+                    sell_in_batch: true,
+                    batch_quantity: 25,
+                    minimum_order_quantity: 10
+                }
+            }
+        ];
+
+        scenarios.forEach((scenario, index) => {
+            console.log(`\n场景 ${index + 1}: ${scenario.name}`);
+            
+            // 临时设置MOQ
+            const store = window.useProductStore();
+            store.setMoqSettings(scenario.settings);
+            
+            // 测试数量修正
+            const testQuantities = [1, 15, 25, 30, 50, 75];
+            console.log('数量修正测试:');
+            testQuantities.forEach(qty => {
+                const corrected = store.correctedQuantity(qty);
+                console.log(`  ${qty} → ${corrected}`);
+            });
+            
+            // 显示当前设置
+            console.log(`步进值: ${store.stepQuantity}`);
+            console.log(`最小数量: ${store.minQuantity}`);
+        });
+    },
+
     /**
      * 重置MOQ设置为默认值
      */

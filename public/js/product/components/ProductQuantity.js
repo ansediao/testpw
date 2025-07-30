@@ -16,20 +16,23 @@ const ProductQuantity = {
         
         // Methods
         const increaseQuantity = () => {
-            const newQuantity = store.quantity + store.stepQuantity;
-            store.updateQuantity(newQuantity);
+            const nextQuantity = store.getNextValidQuantity(store.quantity);
+            if (nextQuantity <= store.maxQuantity) {
+                store.setQuantityDirect(nextQuantity);
+            }
         };
         
         const decreaseQuantity = () => {
-            const newQuantity = store.quantity - store.stepQuantity;
-            if (newQuantity >= store.minQuantity) {
-                store.updateQuantity(newQuantity);
+            const previousQuantity = store.getPreviousValidQuantity(store.quantity);
+            if (previousQuantity >= store.minQuantity) {
+                store.setQuantityDirect(previousQuantity);
             }
         };
         
         const handleInput = (event) => {
-            const value = parseInt(event.target.value) || store.minQuantity;
-            store.updateQuantity(value);
+            const value = parseInt(event.target.value) || 1;
+            // 直接设置用户输入的值，不进行批次修正
+            store.setQuantityDirect(value);
         };
         
         const formatPrice = (price) => {
@@ -49,8 +52,12 @@ const ProductQuantity = {
         // 显示MOQ信息
         const moqInfo = Vue.computed(() => {
             const settings = store.moqSettings;
-            if (settings.sell_in_batch && settings.batch_quantity > 1) {
-                return `Minimum: ${store.minQuantity}, Step: ${store.stepQuantity}`;
+            if (settings.sell_in_batch === true) {
+                if (settings.batch_quantity > 1) {
+                    return `Minimum: ${store.minQuantity}, Step: ${store.stepQuantity}`;
+                } else {
+                    return `Minimum: ${store.minQuantity} (Batch sales enabled)`;
+                }
             }
             return `Minimum: ${store.minQuantity}`;
         });
@@ -58,6 +65,24 @@ const ProductQuantity = {
         // 检查QuantityDiscountSlider组件是否可用
         const hasDiscountSlider = Vue.computed(() => {
             return typeof window.QuantityDiscountSlider !== 'undefined';
+        });
+
+        // 检查当前数量是否符合批次要求
+        const isQuantityValidForBatch = Vue.computed(() => {
+            if (store.moqSettings.sell_in_batch !== true) {
+                return true; // 不按批次销售时，任何数量都有效
+            }
+            
+            const corrected = store.correctedQuantity(store.quantity);
+            return corrected === store.quantity;
+        });
+
+        // 获取建议的修正数量
+        const suggestedQuantity = Vue.computed(() => {
+            if (isQuantityValidForBatch.value) {
+                return null; // 当前数量已经有效
+            }
+            return store.correctedQuantity(store.quantity);
         });
 
         return {
@@ -74,6 +99,8 @@ const ProductQuantity = {
             canIncrease,
             moqInfo,
             hasDiscountSlider,
+            isQuantityValidForBatch,
+            suggestedQuantity,
             
             // 方法
             increaseQuantity,
@@ -117,14 +144,18 @@ const ProductQuantity = {
             <QuantityDiscountSlider v-if="hasDiscountSlider"></QuantityDiscountSlider>
             
             <div class="quantity-info">
-                <p class="moq-info" v-if="moqSettings.minimum_order_quantity > 1">
+                <p class="moq-info" v-if="minQuantity > 1">
                     {{ moqInfo }}
                 </p>
-                <p class="batch-info" v-if="moqSettings.sell_in_batch">
+                <p class="batch-info" v-if="moqSettings.sell_in_batch === true">
                     Sold in batches of {{ stepQuantity }}
                 </p>
                 <p class="validation-error" v-if="!isValidQuantity">
                     Please enter a valid quantity ({{ minQuantity }} - {{ maxQuantity }})
+                </p>
+                <p class="batch-warning" v-if="moqSettings.sell_in_batch === true && !isQuantityValidForBatch" 
+                   style="color: #ff9800; font-size: 12px;">
+                    Suggested quantity: {{ suggestedQuantity }} (Use +/- buttons to auto-correct)
                 </p>
             </div>
         </div>
