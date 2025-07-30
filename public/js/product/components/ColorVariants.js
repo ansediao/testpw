@@ -12,7 +12,9 @@ const ColorVariants = {
             </div>
             
             <div class="pw-color-variants-grid">
-                <div v-if="loading" class="pw-loading-variants">加载颜色选项中...</div>
+                <div v-if="loading" class="pw-loading-variants">
+                    <img src="../../assets/images/icons/spinner.gif" alt="Loading..." class="pw-loading-spinner">
+                </div>
                 <div v-else-if="error" class="pw-loading-variants error">{{ error }}</div>
                 <div v-else-if="variants.length === 0" class="pw-loading-variants">该产品暂无颜色变体</div>
                 <div v-else class="pw-variants-container">
