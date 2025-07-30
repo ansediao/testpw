@@ -15,15 +15,18 @@ const useProductStore = Pinia.defineStore('product', () => {
     const selectedOptions = Vue.reactive({});
     const showDetails = Vue.ref(false);
     const activeTab = Vue.ref('description');
-    // 暂时没找到的字段
-    
+
+    // 暂时没找到的字段    
     // 数量折扣是否开启
-    const quantityDiscountEnabled = Vue.ref(true);    
+    const quantityDiscountEnabled = Vue.ref(true);  
+    // 颜色是否提供样品服务
+    const colorSampleService = Vue.ref(true);
+
     // Buy Sample checkbox state
     const buySampleChecked = Vue.ref(false);
     const blankProductChecked = Vue.ref(false);
 
-    
+
 
     // MOQ (Minimum Order Quantity) related state
     const moqSettings = Vue.ref({
@@ -297,6 +300,10 @@ const useProductStore = Pinia.defineStore('product', () => {
         quantityDiscountEnabled.value = !!enabled;
     };
 
+    const setColorSampleService = (enabled) => {
+        colorSampleService.value = !!enabled;
+    };
+
     const setBuySampleChecked = (checked) => {
         buySampleChecked.value = !!checked;
     };
@@ -394,6 +401,11 @@ const useProductStore = Pinia.defineStore('product', () => {
                         setQuantityDiscountEnabled(productApiData.quantityDiscountEnabled);
                     }
 
+                    // 处理颜色样品服务状态
+                    if (productApiData.colorSampleService !== undefined) {
+                        setColorSampleService(productApiData.colorSampleService);
+                    }
+
                     // 处理复选框状态
                     if (productApiData.buySampleChecked !== undefined) {
                         setBuySampleChecked(productApiData.buySampleChecked);
@@ -478,6 +490,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         activeTab,
         isDataFetched,
         quantityDiscountEnabled,
+        colorSampleService,
         buySampleChecked,
         blankProductChecked,
         moqSettings,
@@ -516,6 +529,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         setSelectedVariant,
         setVariants,
         setQuantityDiscountEnabled,
+        setColorSampleService,
         setBuySampleChecked,
         setBlankProductChecked,
         setMoqSettings,

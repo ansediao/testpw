@@ -24,7 +24,10 @@ const ColorVariants = {
                         v-for="(variant, index) in store.variants" 
                         :key="variant.id"
                         class="pw-color-variant-item"
-                        :class="{ selected: store.selectedVariant?.id === variant.id }"
+                        :class="{ 
+                            selected: store.selectedVariant?.id === variant.id,
+                            disabled: !isVariantClickable
+                        }"
                         @click="selectVariant(variant)"
                     >
                         <div 
@@ -40,33 +43,49 @@ const ColorVariants = {
 
     setup() {
         const { computed, onMounted, watch } = Vue;
-        const productStore = useProductStore();
+        const store = useProductStore();
 
         onMounted(() => {
         });
 
         // 直接使用 Store 中的响应式数据
         const showVariants = computed(() => {
-            const hasVariants = !productStore.loading && productStore.variants.length > 0;
+            const hasVariants = !store.loading && store.variants.length > 0;
             console.log('ColorVariants: showVariants 计算', {
-                loading: productStore.loading,
-                variantsLength: productStore.variants.length,
-                variants: productStore.variants,
+                loading: store.loading,
+                variantsLength: store.variants.length,
+                variants: store.variants,
                 hasVariants
             });
             return hasVariants;
         });
 
+        // 计算颜色变体是否可以点击
+        const isVariantClickable = computed(() => {
+            // 如果选择了买样品，但是不提供颜色样品服务，则不可点击
+            if (store.buySampleChecked && !store.colorSampleService) {
+                return false;
+            }
+            return true;
+        });
+
         // 选择变体
         const selectVariant = (variant) => {
+            // 检查是否可以点击
+            if (!isVariantClickable.value) {
+                console.log('颜色变体不可点击：买样品模式但不提供颜色样品服务');
+                return;
+            }
+            
             console.log('选择了颜色变体:', variant);
-            productStore.setSelectedVariant(variant);
+            store.setSelectedVariant(variant);
         };
 
         return {
             // 直接返回 store 而不是使用 toRefs
-            store: productStore,
+            store,
             showVariants,
+            isVariantClickable,
             selectVariant
         };
     }
