@@ -25,6 +25,9 @@ const useProductStore = Pinia.defineStore('product', () => {
     // Buy Sample checkbox state
     const buySampleChecked = Vue.ref(false);
     const blankProductChecked = Vue.ref(false);
+    
+    // Accessories price state
+    const accessoriesPrice = Vue.ref(0);
 
 
 
@@ -46,17 +49,7 @@ const useProductStore = Pinia.defineStore('product', () => {
     const isLoading = Vue.computed(() => loading.value);
     const hasError = Vue.computed(() => error.value !== null);
     const totalPrice = Vue.computed(() => {
-        // 如果有选中的变体，优先使用变体的 anchor_price
-        if (selectedVariant.value && selectedVariant.value.anchor_price) {
-            return parseFloat(selectedVariant.value.anchor_price) * quantity.value;
-        }
-        // 如果变体没有 anchor_price，使用变体的 price
-        if (selectedVariant.value && selectedVariant.value.price) {
-            return parseFloat(selectedVariant.value.price) * quantity.value;
-        }
-        // 否则使用产品默认价格
-        if (!productData.value || !productData.value.price) return 0;
-        return productData.value.price * quantity.value;
+        return discountedPrice.value * quantity.value;
     });
     const canAddToCart = Vue.computed(() => {
         return productData.value && quantity.value >= minQuantity.value && !loading.value;
@@ -67,6 +60,12 @@ const useProductStore = Pinia.defineStore('product', () => {
             return parseFloat(selectedVariant.value.anchor_price);
         }
         return selectedVariant.value ? parseFloat(selectedVariant.value.price) : 0;
+    });
+    
+    // Base unit price including accessories
+    const baseUnitPrice = Vue.computed(() => {
+        const productPrice = selectedVariantPrice.value || (productData.value ? productData.value.price : 0);
+        return productPrice + accessoriesPrice.value;
     });
 
     // MOQ related computed properties
@@ -133,14 +132,12 @@ const useProductStore = Pinia.defineStore('product', () => {
     });
 
     const discountedPrice = Vue.computed(() => {
-        const basePrice = selectedVariantPrice.value || (productData.value ? productData.value.price : 0);
-        
         if (!quantityDiscountEnabled.value || buySampleChecked.value) {
-            return basePrice;
+            return baseUnitPrice.value;
         }
         
         const discount = getCurrentDiscount.value;
-        return discount > 0 ? basePrice * discount : basePrice;
+        return discount > 0 ? baseUnitPrice.value * discount : baseUnitPrice.value;
     });
 
     // Actions (methods)
@@ -310,6 +307,10 @@ const useProductStore = Pinia.defineStore('product', () => {
 
     const setBlankProductChecked = (checked) => {
         blankProductChecked.value = !!checked;
+    };
+    
+    const setAccessoriesPrice = (price) => {
+        accessoriesPrice.value = parseFloat(price) || 0;
     };
 
     // 添加请求状态跟踪
@@ -493,6 +494,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         colorSampleService,
         buySampleChecked,
         blankProductChecked,
+        accessoriesPrice,
         moqSettings,
         minQuantity,
         maxQuantity,
@@ -507,6 +509,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         canAddToCart,
         hasVariants,
         selectedVariantPrice,
+        baseUnitPrice,
         correctedQuantity,
         isValidQuantity,
         hasQuantityDiscounts,
@@ -532,6 +535,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         setColorSampleService,
         setBuySampleChecked,
         setBlankProductChecked,
+        setAccessoriesPrice,
         setMoqSettings,
         setQuantityDiscounts,
         fetchProductData,

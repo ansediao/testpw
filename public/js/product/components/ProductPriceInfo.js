@@ -10,24 +10,14 @@ const ProductPriceInfo = {
         const { computed, toRefs } = Vue;
         const store = useProductStore();
         
-        // 计算原始单价 - 优先使用选中变体的 anchor_price，否则使用产品默认价格
+        // 计算原始单价 - 包含产品价格和配件价格
         const originalUnitPrice = computed(() => {
-            if (store.selectedVariant && store.selectedVariant.anchor_price) {
-                return parseFloat(store.selectedVariant.anchor_price);
-            }
-            if (store.productData && store.productData.price) {
-                return parseFloat(store.productData.price);
-            }
-            return 0;
+            return store.baseUnitPrice;
         });
         
         // 计算折扣后单价
         const unitPrice = computed(() => {
-            if (!store.quantityDiscountEnabled || store.buySampleChecked) {
-                return originalUnitPrice.value;
-            }
-            const discount = store.getCurrentDiscount;
-            return discount > 0 ? originalUnitPrice.value * discount : originalUnitPrice.value;
+            return store.discountedPrice;
         });
         
         // 计算原始总价

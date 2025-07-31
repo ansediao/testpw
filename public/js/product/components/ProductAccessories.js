@@ -5,60 +5,60 @@
 
 const ProductAccessories = {
     name: 'ProductAccessories',
-    
+
     setup() {
         // Access shared store
         const store = useProductStore();
-        
+
         // Component state
         const isOpen = Vue.ref(false);
         const selectedAccessories = Vue.ref(new Set());
-        
+
         // Computed properties
         const accessories = Vue.computed(() => {
             return store.productData?.accessories || [];
         });
-        
+
         const hasAccessories = Vue.computed(() => {
             return accessories.value.length > 0;
         });
-        
+
         const selectedAccessoriesArray = Vue.computed(() => {
-            return accessories.value.filter(accessory => 
+            return accessories.value.filter(accessory =>
                 selectedAccessories.value.has(accessory.id)
             );
         });
-        
+
         // Methods
         const toggleDropdown = (event) => {
             event.stopPropagation();
             isOpen.value = !isOpen.value;
         };
-        
+
         const closeDropdown = () => {
             isOpen.value = false;
         };
-        
+
         const selectAccessory = (accessory) => {
             if (selectedAccessories.value.has(accessory.id)) {
                 showCustomAlert('该配件已添加！');
                 return;
             }
-            
+
             selectedAccessories.value.add(accessory.id);
             closeDropdown();
         };
-        
+
         const removeAccessory = (accessoryId) => {
             selectedAccessories.value.delete(accessoryId);
         };
-        
+
         const showCustomAlert = (message) => {
             let alertBox = document.querySelector('.custom-alert');
             if (alertBox) {
                 alertBox.remove();
             }
-            
+
             alertBox = document.createElement('div');
             alertBox.textContent = message;
             alertBox.style.cssText = `
@@ -80,28 +80,38 @@ const ProductAccessories = {
                 alertBox.remove();
             }, 3000);
         };
-        
+
         // Calculate total quantity for accessories (1:1 with main product)
         const accessoryQuantity = Vue.computed(() => {
             return store.quantity;
         });
-        
-        // Calculate total accessories price
+
+        // Calculate total accessories price per unit (for store integration)
         const totalAccessoriesPrice = Vue.computed(() => {
             return selectedAccessoriesArray.value.reduce((total, accessory) => {
-                return total + (accessory.price || 0) * accessoryQuantity.value;
+                return total + (accessory.price || 0);
             }, 0);
         });
-        
+
+        // Update store with accessories price whenever selection changes
+        Vue.watch([selectedAccessoriesArray], () => {
+            store.setAccessoriesPrice(totalAccessoriesPrice.value);
+        }, { deep: true });
+
+        // Initialize accessories price on mount
+        Vue.onMounted(() => {
+            store.setAccessoriesPrice(totalAccessoriesPrice.value);
+        });
+
         // Close dropdown when clicking outside
         Vue.onMounted(() => {
             document.addEventListener('click', closeDropdown);
         });
-        
+
         Vue.onUnmounted(() => {
             document.removeEventListener('click', closeDropdown);
         });
-        
+
         return {
             store,
             isOpen,
@@ -116,7 +126,7 @@ const ProductAccessories = {
             removeAccessory
         };
     },
-    
+
     template: `
         <div class="product-accessories" v-if="hasAccessories">
             <div class="dropdown-wrapper">
@@ -171,7 +181,6 @@ const ProductAccessories = {
                     <div class="selected-accessory-info">
                         <p class="selected-accessory-name">{{ accessory.testname }}</p>
                         <p class="selected-accessory-price">$ {{ (accessory.price || 0).toFixed(2) }}</p>
-                        <p class="selected-accessory-quantity">数量: {{ accessoryQuantity }}</p>
                     </div>
                     <button 
                         class="remove-btn"
@@ -182,9 +191,7 @@ const ProductAccessories = {
                 </div>
             </div>
             
-            <div v-if="selectedAccessoriesArray.length > 0" class="accessories-summary">
-                <p class="accessories-total">配件总价: $ {{ totalAccessoriesPrice.toFixed(2) }}</p>
-            </div>
+
         </div>
     `
 };
