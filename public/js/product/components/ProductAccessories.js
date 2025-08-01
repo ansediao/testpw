@@ -166,7 +166,7 @@ const ProductAccessories = {
 
             <div class="selected-accessories-container">
                 <div v-if="selectedAccessoriesArray.length === 0" class="empty-state">
-                    拖拽配件到这里或从上面选择配件
+                    
                 </div>
                 <div 
                     v-for="accessory in selectedAccessoriesArray" 

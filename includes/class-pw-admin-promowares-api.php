@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Promowares API Communication Handler
+ * Promowares API Communication Handler 聚合api
  *
  * This file contains all code that communicates with the Promowares API
  * (https://dev.promowares.com/api/). It has been extracted from the main
@@ -380,6 +380,12 @@ class Pw_Admin_Promowares_Api
             ), 401);
         }
 
+        // 检查缓存数据
+        $cached_data = $this->get_cached_product_data($product_id);
+        if ($cached_data !== false) {
+            return new WP_REST_Response($cached_data, 200);
+        }
+
         $aggregated_data = array();
 
         // 1. Get basic product data
@@ -455,6 +461,9 @@ class Pw_Admin_Promowares_Api
 
         // 6. Generate business logic fields
         $aggregated_data['computed'] = $this->compute_business_logic($aggregated_data);
+
+        // 保存缓存数据
+        $this->save_cached_product_data($product_id, $aggregated_data);
 
         return new WP_REST_Response($aggregated_data, 200);
     }
@@ -658,5 +667,160 @@ class Pw_Admin_Promowares_Api
         }
 
         return $features;
+    }
+
+    /**
+ * Get cached product data from product meta.
+     *
+     * @since    1.0.0
+     * @param    int    $product_id    The Promowares product ID.
+     * @return   array|false           The cached data or false if not found/expired.
+     */
+    private function get_cached_product_data($product_id)
+    {
+        // 查找对应的 WooCommerce品
+        $woo_products = get_posts(array(
+            'post_type' => 'product',
+            'meta_query' => array(
+                array(
+                    'key' => 'pw_id',
+                    'value' => $product_id,
+                    'compare' => '='
+                )
+            ),
+            'posts_per_page' => 1
+        ));
+
+        if (empty($woo_products)) {
+            return false;
+        }
+
+        $woo_product_id = $woo_products[0]->ID;
+        
+        // 获取缓存数据和时间戳
+        $cached_data = get_post_meta($woo_product_id, '_pw_aggregated_data_cache', true);
+        $cache_timestamp = get_post_meta($woo_product_id, '_pw_aggregated_data_cache_time', true);
+
+        // 检查缓存是否存在且未过期（30分钟 = 1800秒）
+        if (empty($cached_data) || empty($cache_timestamp)) {
+            return false;
+        }
+
+        $cache_expiry = 30 * 60; // 30分钟
+        if ((time() - intval($cache_timestamp)) > $cache_expiry) {
+            // 缓存已过期，删除旧缓存
+            delete_post_meta($woo_product_id, '_pw_aggregated_data_cache');
+            delete_post_meta($woo_product_id, '_pw_aggregated_data_cache_time');
+            return false;
+        }
+
+        // 返回缓存的数据
+        $decoded_data = json_decode($cached_data, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return $decoded_data;
+        }
+
+        return false;
+    }
+
+    /**
+     * Save product data to cache using product meta.
+     *
+     * @since    1.0.0
+     * @param    int      $product_id        The Promowares product ID.
+     * @param    array    $aggregated_data   The data to cache.
+     * @return   bool                        True on success, false on failure.
+     */
+    private function save_cached_product_data($product_id, $aggregated_data)
+    {
+        // 查找对应的 WooCommerce 产品
+        $woo_products = get_posts(array(
+            'post_type' => 'product',
+            'meta_query' => array(
+                array(
+                    'key' => 'pw_id',
+                    'value' => $product_id,
+                    'compare' => '='
+                )
+            ),
+            'posts_per_page' => 1
+        ));
+
+        if (empty($woo_products)) {
+            return false;
+        }
+
+        $woo_product_id = $woo_products[0]->ID;
+        
+        // 将数据编码为 JSON 并保存
+        $encoded_data = wp_json_encode($aggregated_data);
+        $current_time = time();
+
+        // 保存缓存数据和时间戳
+        $data_saved = update_post_meta($woo_product_id, '_pw_aggregated_data_cache', $encoded_data);
+        $time_saved = update_post_meta($woo_product_id, '_pw_aggregated_data_cache_time', $current_time);
+
+        return $data_saved && $time_saved;
+    }
+
+    /**
+     * Clear cached product data for a specific product.
+     *
+     * @since    1.0.0
+     * @param    int    $product_id    The Promowares product ID.
+     * @return   bool                  True on success, false on failure.
+     */
+    public function clear_cached_product_data($product_id)
+    {
+        // 查找对应的 WooCommerce 产品
+        $woo_products = get_posts(array(
+            'post_type' => 'product',
+            'meta_query' => array(
+                array(
+                    'key' => 'pw_id',
+                    'value' => $product_id,
+                    'compare' => '='
+                )
+            ),
+            'posts_per_page' => 1
+        ));
+
+        if (empty($woo_products)) {
+            return false;
+        }
+
+        $woo_product_id = $woo_products[0]->ID;
+        
+        // 删除缓存数据
+        $data_deleted = delete_post_meta($woo_product_id, '_pw_aggregated_data_cache');
+        $time_deleted = delete_post_meta($woo_product_id, '_pw_aggregated_data_cache_time');
+
+        return $data_deleted || $time_deleted; // 如果任一删除成功就返回 true
+    }
+
+    /**
+     * Clear all cached product data.
+     *
+     * @since    1.0.0
+     * @return   int    Number of products cleared.
+     */
+    public function clear_all_cached_product_data()
+    {
+        global $wpdb;
+        
+        // 删除所有相关的缓存 meta
+        $cache_deleted = $wpdb->delete(
+            $wpdb->postmeta,
+            array('meta_key' => '_pw_aggregated_data_cache'),
+            array('%s')
+        );
+        
+        $time_deleted = $wpdb->delete(
+            $wpdb->postmeta,
+            array('meta_key' => '_pw_aggregated_data_cache_time'),
+            array('%s')
+        );
+
+        return max($cache_deleted, $time_deleted);
     }
 }

@@ -559,6 +559,39 @@ function pw_main_menu_page()
             <div id="progress-bar"></div>
             <div id="progress-text">0/0</div>
         </div>
+
+        <!-- 缓存管理部分 -->
+        <hr style="margin: 30px 0;">
+        <h1>产品数据缓存管理</h1>
+        <div id="cache-management-section">
+            <div id="cache-status" style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 15px;">
+                <h3>缓存状态</h3>
+                <div id="cache-info">
+                    <p><strong>总缓存数量:</strong> <span id="total-cached">加载中...</span></p>
+                    <p><strong>过期缓存数量:</strong> <span id="expired-count">加载中...</span></p>
+                    <p><strong>最近更新时间:</strong> <span id="latest-cache-time">加载中...</span></p>
+                    <p><strong>缓存有效期:</strong> <span id="cache-expiry">30分钟</span></p>
+                </div>
+                <button type="button" id="refresh-cache-status" class="button">刷新状态</button>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <h3>缓存操作</h3>
+                <p>
+                    <input type="number" id="specific-product-id" placeholder="输入产品ID (可选)" style="width: 200px;">
+                    <button type="button" id="clear-specific-cache" class="button">清除指定产品缓存</button>
+                </p>
+                <p>
+                    <button type="button" id="clear-all-cache" class="button button-secondary" onclick="return confirm('确定要清除所有产品缓存吗？')">清除所有缓存</button>
+                </p>
+                <p>
+                    <input type="number" id="test-product-id" placeholder="输入产品ID进行测试" style="width: 200px;">
+                    <button type="button" id="test-cache" class="button">测试缓存功能</button>
+                </p>
+            </div>
+            
+            <div id="cache-operation-result"></div>
+        </div>
     </div>
     <style>
         #progress-bar-container {
@@ -602,6 +635,118 @@ function pw_main_menu_page()
 
             $('#sync_products').on('click', function() {
                 setTimeout(updateProgress, 1000);
+            });
+
+            // 缓存管理功能
+            function loadCacheStatus() {
+                $.post(ajaxurl, {
+                    action: 'pw_get_cache_status',
+                    nonce: '<?php echo wp_create_nonce("pw_cache_status_nonce"); ?>'
+                }, function(response) {
+                    if (response.success) {
+                        $('#total-cached').text(response.data.total_cached);
+                        $('#expired-count').text(response.data.expired_count);
+                        $('#latest-cache-time').text(response.data.latest_cache_time);
+                        $('#cache-expiry').text(response.data.cache_expiry_minutes + '分钟');
+                    } else {
+                        $('#cache-info').html('<p style="color: red;">加载缓存状态失败: ' + (response.data || '未知错误') + '</p>');
+                    }
+                }).fail(function() {
+                    $('#cache-info').html('<p style="color: red;">加载缓存状态失败: 网络错误</p>');
+                });
+            }
+
+            // 页面加载时获取缓存状态
+            loadCacheStatus();
+
+            // 刷新缓存状态
+            $('#refresh-cache-status').on('click', function() {
+                loadCacheStatus();
+            });
+
+            // 清除指定产品缓存
+            $('#clear-specific-cache').on('click', function() {
+                var productId = $('#specific-product-id').val().trim();
+                if (!productId) {
+                    alert('请输入产品ID');
+                    return;
+                }
+
+                $.post(ajaxurl, {
+                    action: 'pw_clear_product_cache',
+                    product_id: productId,
+                    nonce: '<?php echo wp_create_nonce("pw_clear_cache_nonce"); ?>'
+                }, function(response) {
+                    if (response.success) {
+                        $('#cache-operation-result').html('<div class="notice notice-success"><p>' + response.data.message + '</p></div>');
+                        loadCacheStatus(); // 刷新状态
+                        $('#specific-product-id').val(''); // 清空输入框
+                    } else {
+                        $('#cache-operation-result').html('<div class="notice notice-error"><p>操作失败: ' + (response.data || '未知错误') + '</p></div>');
+                    }
+                }).fail(function() {
+                    $('#cache-operation-result').html('<div class="notice notice-error"><p>操作失败: 网络错误</p></div>');
+                });
+            });
+
+            // 清除所有缓存
+            $('#clear-all-cache').on('click', function() {
+                $.post(ajaxurl, {
+                    action: 'pw_clear_product_cache',
+                    nonce: '<?php echo wp_create_nonce("pw_clear_cache_nonce"); ?>'
+                }, function(response) {
+                    if (response.success) {
+                        $('#cache-operation-result').html('<div class="notice notice-success"><p>' + response.data.message + '</p></div>');
+                        loadCacheStatus(); // 刷新状态
+                    } else {
+                        $('#cache-operation-result').html('<div class="notice notice-error"><p>操作失败: ' + (response.data || '未知错误') + '</p></div>');
+                    }
+                }).fail(function() {
+                    $('#cache-operation-result').html('<div class="notice notice-error"><p>操作失败: 网络错误</p></div>');
+                });
+            });
+
+            // 测试缓存功能
+            $('#test-cache').on('click', function() {
+                var productId = $('#test-product-id').val().trim();
+                if (!productId) {
+                    alert('请输入产品ID');
+                    return;
+                }
+
+                $('#cache-operation-result').html('<div class="notice notice-info"><p>正在测试缓存功能...</p></div>');
+
+                // 第一次调用 - 应该从API获取数据并缓存
+                var startTime1 = Date.now();
+                $.get('/wp-json/pw/v1/product-data/' + productId)
+                    .done(function(data1) {
+                        var time1 = Date.now() - startTime1;
+                        
+                        // 第二次调用 - 应该从缓存获取数据
+                        var startTime2 = Date.now();
+                        $.get('/wp-json/pw/v1/product-data/' + productId)
+                            .done(function(data2) {
+                                var time2 = Date.now() - startTime2;
+                                
+                                var resultHtml = '<div class="notice notice-success">';
+                                resultHtml += '<h4>缓存测试结果:</h4>';
+                                resultHtml += '<p><strong>第一次调用 (API):</strong> ' + time1 + 'ms</p>';
+                                resultHtml += '<p><strong>第二次调用 (缓存):</strong> ' + time2 + 'ms</p>';
+                                resultHtml += '<p><strong>性能提升:</strong> ' + ((time1 - time2) / time1 * 100).toFixed(1) + '%</p>';
+                                resultHtml += '<p><strong>数据一致性:</strong> ' + (JSON.stringify(data1) === JSON.stringify(data2) ? '✓ 通过' : '✗ 失败') + '</p>';
+                                resultHtml += '</div>';
+                                
+                                $('#cache-operation-result').html(resultHtml);
+                                loadCacheStatus(); // 刷新状态
+                            })
+                            .fail(function() {
+                                $('#cache-operation-result').html('<div class="notice notice-error"><p>第二次调用失败</p></div>');
+                            });
+                    })
+                    .fail(function(xhr) {
+                        var errorMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : '第一次调用失败';
+                        $('#cache-operation-result').html('<div class="notice notice-error"><p>' + errorMsg + '</p></div>');
+                    });
             });
 
             // Token验证功能
@@ -2160,4 +2305,88 @@ function pw_add_design() {
     } else {
         wp_send_json_error('文件上传失败：' . (isset($movefile['error']) ? $movefile['error'] : '未知错误'));
     }
+}
+
+// AJAX handler for clearing product data cache
+add_action('wp_ajax_pw_clear_product_cache', 'pw_clear_product_cache');
+function pw_clear_product_cache() {
+    // 验证 nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'pw_clear_cache_nonce')) {
+        wp_send_json_error('安全验证失败');
+        return;
+    }
+    
+    // 验证用户权限
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('权限不足');
+        return;
+    }
+    
+    $api = new Pw_Admin_Promowares_Api();
+    $product_id = isset($_POST['product_id']) ? intval($_POST['product_id']) : 0;
+    
+    if ($product_id > 0) {
+        // 清除特定产品的缓存
+        $result = $api->clear_cached_product_data($product_id);
+        if ($result) {
+            wp_send_json_success(array(
+                'message' => "产品 ID {$product_id} 的缓存已清除"
+            ));
+        } else {
+            wp_send_json_error("清除产品 ID {$product_id} 的缓存失败");
+        }
+    } else {
+        // 清除所有产品的缓存
+        $cleared_count = $api->clear_all_cached_product_data();
+        wp_send_json_success(array(
+            'message' => "已清除 {$cleared_count} 个产品的缓存数据"
+        ));
+    }
+}
+
+// AJAX handler for getting cache status
+add_action('wp_ajax_pw_get_cache_status', 'pw_get_cache_status');
+function pw_get_cache_status() {
+    // 验证 nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'pw_cache_status_nonce')) {
+        wp_send_json_error('安全验证失败');
+        return;
+    }
+    
+    // 验证用户权限
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('权限不足');
+        return;
+    }
+    
+    global $wpdb;
+    
+    // 获取缓存统计信息
+    $cache_count = $wpdb->get_var(
+        "SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key = '_pw_aggregated_data_cache'"
+    );
+    
+    // 获取过期的缓存数量
+    $expired_count = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->postmeta} pm1 
+         INNER JOIN {$wpdb->postmeta} pm2 ON pm1.post_id = pm2.post_id 
+         WHERE pm1.meta_key = '_pw_aggregated_data_cache' 
+         AND pm2.meta_key = '_pw_aggregated_data_cache_time' 
+         AND pm2.meta_value < %d",
+        time() - (30 * 60) // 30分钟前
+    ));
+    
+    // 获取最近的缓存更新时间
+    $latest_cache = $wpdb->get_var(
+        "SELECT MAX(meta_value) FROM {$wpdb->postmeta} WHERE meta_key = '_pw_aggregated_data_cache_time'"
+    );
+    
+    $latest_cache_time = $latest_cache ? date('Y-m-d H:i:s', intval($latest_cache)) : '无';
+    
+    wp_send_json_success(array(
+        'total_cached' => intval($cache_count),
+        'expired_count' => intval($expired_count),
+        'latest_cache_time' => $latest_cache_time,
+        'cache_expiry_minutes' => 30
+    ));
 }
