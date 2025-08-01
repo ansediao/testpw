@@ -18,14 +18,23 @@ const useProductStore = Pinia.defineStore('product', () => {
 
     // 暂时没找到的字段    
     // 数量折扣是否开启
-    const quantityDiscountEnabled = Vue.ref(true);  
+    const quantityDiscountEnabled = Vue.ref(true);
     // 颜色是否提供样品服务
     const colorSampleService = Vue.ref(true);
+    // RTS Date
+    const rts_date = Vue.ref(true);
+    // 预计发货时间 数值
+    const rts_date_starts_from = Vue.ref(3);
+    // 批量订单额外处理时间
+    const rts_for_bulk_order = Vue.ref(2);
+    // 样品订单额外处理时间
+    const rts_for_sample_order = Vue.ref(1);
+
 
     // Buy Sample checkbox state
     const buySampleChecked = Vue.ref(false);
     const blankProductChecked = Vue.ref(false);
-    
+
     // Accessories price state
     const accessoriesPrice = Vue.ref(0);
 
@@ -61,7 +70,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         }
         return selectedVariant.value ? parseFloat(selectedVariant.value.price) : 0;
     });
-    
+
     // Base unit price including accessories
     const baseUnitPrice = Vue.computed(() => {
         const productPrice = selectedVariantPrice.value || (productData.value ? productData.value.price : 0);
@@ -123,7 +132,7 @@ const useProductStore = Pinia.defineStore('product', () => {
 
     const getDiscountText = Vue.computed(() => {
         if (!quantityDiscountEnabled.value || buySampleChecked.value) return '';
-        
+
         const discount = getCurrentDiscount.value;
         if (discount === 0) return '';
 
@@ -135,9 +144,36 @@ const useProductStore = Pinia.defineStore('product', () => {
         if (!quantityDiscountEnabled.value || buySampleChecked.value) {
             return baseUnitPrice.value;
         }
-        
+
         const discount = getCurrentDiscount.value;
         return discount > 0 ? baseUnitPrice.value * discount : baseUnitPrice.value;
+    });
+
+    // 计算预计发货日期
+    const estimatedShipDate = Vue.computed(() => {
+        // 获取当前日期
+        const currentDate = new Date();
+
+        // 基础天数：rts_date_starts_from
+        let totalDays = rts_date_starts_from.value;
+
+        // 根据是否为样品订单选择额外处理时间
+        if (buySampleChecked.value) {
+            totalDays += rts_for_sample_order.value;
+        } else {
+            totalDays += rts_for_bulk_order.value;
+        }
+
+        // 计算目标日期
+        const shipDate = new Date(currentDate);
+        shipDate.setDate(currentDate.getDate() + totalDays);
+
+        // 格式化日期为 MM/DD/YYYY 格式
+        const month = String(shipDate.getMonth() + 1).padStart(2, '0');
+        const day = String(shipDate.getDate()).padStart(2, '0');
+        const year = shipDate.getFullYear();
+
+        return `${month}/${day}/${year}`;
     });
 
     // Actions (methods)
@@ -221,7 +257,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         const excessQuantity = currentQty - minQty;
         const batchIndex = Math.floor(excessQuantity / batchQty);
         const previousBatchQuantity = minQty + (batchIndex * batchQty);
-        
+
         return Math.max(minQty, previousBatchQuantity);
     };
 
@@ -301,6 +337,22 @@ const useProductStore = Pinia.defineStore('product', () => {
         colorSampleService.value = !!enabled;
     };
 
+    const setRtsDate = (enabled) => {
+        rts_date.value = !!enabled;
+    };
+
+    const setRtsDateStartsFrom = (days) => {
+        rts_date_starts_from.value = parseInt(days) || 3;
+    };
+
+    const setRtsForBulkOrder = (days) => {
+        rts_for_bulk_order.value = parseInt(days) || 2;
+    };
+
+    const setRtsForSampleOrder = (days) => {
+        rts_for_sample_order.value = parseInt(days) || 1;
+    };
+
     const setBuySampleChecked = (checked) => {
         buySampleChecked.value = !!checked;
     };
@@ -308,7 +360,7 @@ const useProductStore = Pinia.defineStore('product', () => {
     const setBlankProductChecked = (checked) => {
         blankProductChecked.value = !!checked;
     };
-    
+
     const setAccessoriesPrice = (price) => {
         accessoriesPrice.value = parseFloat(price) || 0;
     };
@@ -407,6 +459,28 @@ const useProductStore = Pinia.defineStore('product', () => {
                         setColorSampleService(productApiData.colorSampleService);
                     }
 
+                    // 处理 RTS Date 显示状态
+                    if (productApiData.rts_date !== undefined) {
+                        setRtsDate(productApiData.rts_date);
+                    }
+
+                    // 处理发货时间相关数据 - 从 shipping_info 中获取
+                    if (productApiData.shipping_info) {
+                        const shippingInfo = productApiData.shipping_info;
+
+                        if (shippingInfo.rts_date_starts_from !== undefined) {
+                            setRtsDateStartsFrom(shippingInfo.rts_date_starts_from);
+                        }
+
+                        if (shippingInfo.rts_for_bulk_order !== undefined) {
+                            setRtsForBulkOrder(shippingInfo.rts_for_bulk_order);
+                        }
+
+                        if (shippingInfo.rts_for_sample_order !== undefined) {
+                            setRtsForSampleOrder(shippingInfo.rts_for_sample_order);
+                        }
+                    }
+
                     // 处理复选框状态
                     if (productApiData.buySampleChecked !== undefined) {
                         setBuySampleChecked(productApiData.buySampleChecked);
@@ -492,6 +566,10 @@ const useProductStore = Pinia.defineStore('product', () => {
         isDataFetched,
         quantityDiscountEnabled,
         colorSampleService,
+        rts_date,
+        rts_date_starts_from,
+        rts_for_bulk_order,
+        rts_for_sample_order,
         buySampleChecked,
         blankProductChecked,
         accessoriesPrice,
@@ -516,6 +594,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         getCurrentDiscount,
         getDiscountText,
         discountedPrice,
+        estimatedShipDate,
 
         // Actions
         setProductId,
@@ -533,6 +612,10 @@ const useProductStore = Pinia.defineStore('product', () => {
         setVariants,
         setQuantityDiscountEnabled,
         setColorSampleService,
+        setRtsDate,
+        setRtsDateStartsFrom,
+        setRtsForBulkOrder,
+        setRtsForSampleOrder,
         setBuySampleChecked,
         setBlankProductChecked,
         setAccessoriesPrice,
