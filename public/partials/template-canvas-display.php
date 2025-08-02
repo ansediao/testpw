@@ -21,6 +21,11 @@ if ($product_id > 0) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>在线定制<?php echo $product_name ? ' - ' . esc_html($product_name) : ''; ?></title>
 
+
+ <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue-demi@0.14.7/lib/index.iife.js"></script>
+    <script src="https://unpkg.com/pinia@2/dist/pinia.iife.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   
