@@ -7,10 +7,6 @@ import { useCanvasStore, pinia } from '../stores/index.js';
 const layersApp = Vue.createApp({
     template: `
         <div class="layers-panel">
-          
-            
-   
-            
             <div class="layers-list">
                 <div class="layers-list-header">
                     <span>图层列表 ({{ layers.length }})</span>
@@ -50,10 +46,36 @@ const layersApp = Vue.createApp({
           
         </div>
     `,
-    
+
     setup() {
         const store = useCanvasStore();
-        
+
+        // 获取画布实例的统一函数
+        const getCanvasInstance = () => {
+            // 尝试多种方式获取画布实例
+            let canvasInstance = window.canvas || window.fabricCanvas;
+
+            if (!canvasInstance) {
+                const canvasElement = document.querySelector('#mainCanvas');
+                if (canvasElement && canvasElement.__fabric) {
+                    canvasInstance = canvasElement.__fabric;
+                }
+            }
+
+            // 如果还是没找到，尝试通过 fabric 全局对象查找
+            if (!canvasInstance && window.fabric && window.fabric.Canvas) {
+                const canvasElement = document.querySelector('#mainCanvas');
+                if (canvasElement) {
+                    // 尝试从 fabric 的内部实例列表中查找
+                    canvasInstance = canvasElement.__fabric;
+                }
+            }
+
+            return canvasInstance;
+        };
+
+
+
         // 添加图层的方法
         const addLayer = () => {
             const newLayer = {
@@ -63,104 +85,114 @@ const layersApp = Vue.createApp({
                 visible: true,
                 locked: false
             };
-            
+
             const updatedLayers = [...store.layers, newLayer];
             store.setLayers(updatedLayers);
         };
-        
+
+
+
         // 选择图层
         const selectLayer = (layerId) => {
             store.setActiveObjectId(layerId);
-            
+
             // 同步到画布选中状态
             syncLayerSelectionToCanvas(layerId);
         };
-        
+
         // 切换可见性
         const toggleVisibility = (layer) => {
             const newVisible = !layer.visible;
-            const updatedLayers = store.layers.map(l => 
+            const updatedLayers = store.layers.map(l =>
                 l.id === layer.id ? { ...l, visible: newVisible } : l
             );
             store.setLayers(updatedLayers);
-            
+
             // 同步到画布对象
             syncLayerVisibilityToCanvas(layer.id, newVisible);
         };
-        
+
         // 切换锁定状态
         const toggleLock = (layer) => {
             const newLocked = !layer.locked;
-            const updatedLayers = store.layers.map(l => 
+            const updatedLayers = store.layers.map(l =>
                 l.id === layer.id ? { ...l, locked: newLocked } : l
             );
             store.setLayers(updatedLayers);
-            
+
             // 同步到画布对象
             syncLayerLockToCanvas(layer.id, newLocked);
         };
-        
+
         // 复制图层
         const duplicateLayer = (layer) => {
             // 先在画布中复制对象
             duplicateCanvasObject(layer.id);
         };
-        
+
         // 删除图层
         const deleteLayer = (layer) => {
             if (confirm(`确定要删除图层 "${layer.name}" 吗？`)) {
                 // 先从画布中删除对象
                 deleteCanvasObject(layer.id);
-                
+
                 // 然后从 store 中删除（这会通过画布事件自动触发）
                 const updatedLayers = store.layers.filter(l => l.id !== layer.id);
                 store.setLayers(updatedLayers);
-                
+
                 // 如果删除的是当前选中的图层，清除选中状态
                 if (store.activeObjectId === layer.id) {
                     store.setActiveObjectId(null);
                 }
             }
         };
-        
+
         // 同步图层选中状态到画布
         const syncLayerSelectionToCanvas = (layerId) => {
-            if (typeof window.canvas !== 'undefined' && window.canvas) {
-                const obj = window.canvas.getObjects().find(o => o.id === layerId);
+            const canvasInstance = getCanvasInstance();
+
+            if (canvasInstance) {
+                const obj = canvasInstance.getObjects().find(o => o.id === layerId);
                 if (obj) {
-                    window.canvas.setActiveObject(obj);
-                    window.canvas.renderAll();
+                    canvasInstance.setActiveObject(obj);
+                    canvasInstance.renderAll();
                 }
             }
         };
-        
+
         // 同步图层可见性到画布
         const syncLayerVisibilityToCanvas = (layerId, visible) => {
-            if (typeof window.canvas !== 'undefined' && window.canvas) {
-                const obj = window.canvas.getObjects().find(o => o.id === layerId);
+            const canvasInstance = getCanvasInstance();
+
+            if (canvasInstance) {
+                const obj = canvasInstance.getObjects().find(o => o.id === layerId);
                 if (obj) {
                     obj.set('visible', visible);
-                    window.canvas.renderAll();
+                    canvasInstance.renderAll();
                 }
             }
         };
-        
+
         // 同步图层锁定状态到画布
         const syncLayerLockToCanvas = (layerId, locked) => {
-            if (typeof window.canvas !== 'undefined' && window.canvas) {
-                const obj = window.canvas.getObjects().find(o => o.id === layerId);
+            const canvasInstance = getCanvasInstance();
+
+            if (canvasInstance) {
+                const obj = canvasInstance.getObjects().find(o => o.id === layerId);
                 if (obj) {
                     obj.set('selectable', !locked);
                     obj.set('evented', !locked);
-                    window.canvas.renderAll();
+                    canvasInstance.renderAll();
                 }
             }
         };
-        
+
         // 复制画布对象
         const duplicateCanvasObject = (layerId) => {
-            if (typeof window.canvas !== 'undefined' && window.canvas) {
-                const obj = window.canvas.getObjects().find(o => o.id === layerId);
+            const canvasInstance = getCanvasInstance();
+
+            if (canvasInstance) {
+                const obj = canvasInstance.getObjects().find(o => o.id === layerId);
                 if (obj) {
                     obj.clone((cloned) => {
                         cloned.set({
@@ -168,32 +200,34 @@ const layersApp = Vue.createApp({
                             top: cloned.top + 10,
                             id: `layer_${Date.now()}`
                         });
-                        window.canvas.add(cloned);
-                        window.canvas.setActiveObject(cloned);
-                        window.canvas.renderAll();
+                        canvasInstance.add(cloned);
+                        canvasInstance.setActiveObject(cloned);
+                        canvasInstance.renderAll();
                     });
                 }
             }
         };
-        
+
         // 删除画布对象
         const deleteCanvasObject = (layerId) => {
-            if (typeof window.canvas !== 'undefined' && window.canvas) {
-                const obj = window.canvas.getObjects().find(o => o.id === layerId);
+            const canvasInstance = getCanvasInstance();
+
+            if (canvasInstance) {
+                const obj = canvasInstance.getObjects().find(o => o.id === layerId);
                 if (obj) {
-                    window.canvas.remove(obj);
-                    window.canvas.renderAll();
+                    canvasInstance.remove(obj);
+                    canvasInstance.renderAll();
                 }
             }
         };
-        
+
         return {
             // 从 store 获取的数据
             canvasIds: Vue.computed(() => Object.keys(store.canvasStates)),
             activeCanvasId: Vue.computed(() => store.activeCanvasId),
             layers: Vue.computed(() => store.layers),
             activeObjectId: Vue.computed(() => store.activeObjectId),
-            
+
             // 方法
             switchCanvas: (id) => store.setActiveCanvasId(id),
             addLayer,
@@ -222,17 +256,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // 全局函数：添加图层到 store（供外部调用）
-window.addLayerToStore = function(layerId, layerName, layerType) {
+window.addLayerToStore = function (layerId, layerName, layerType) {
     if (typeof window.useCanvasStore === 'function') {
         try {
             const store = window.useCanvasStore();
-            
+
             // 检查图层是否已存在
             const existingLayer = store.layers.find(layer => layer.id === layerId);
             if (existingLayer) {
                 return; // 图层已存在，不重复添加
             }
-            
+
             const newLayer = {
                 id: layerId,
                 name: layerName.length > 20 ? layerName.substring(0, 20) + '...' : layerName,
@@ -240,11 +274,11 @@ window.addLayerToStore = function(layerId, layerName, layerType) {
                 visible: true,
                 locked: false
             };
-            
+
             const updatedLayers = [...store.layers, newLayer];
             store.setLayers(updatedLayers);
             store.setActiveObjectId(layerId);
-            
+
         } catch (error) {
             console.error('添加图层到管理系统失败:', error);
         }

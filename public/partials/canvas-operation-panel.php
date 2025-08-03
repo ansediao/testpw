@@ -509,7 +509,7 @@ $plugin_url = plugin_dir_url(__FILE__);
             <div id="dropZone" style="border: 2px dashed #ccc; padding: 20px; text-align: center; margin-bottom: 10px;">
                 将图片拖放到此处或点击上传
             </div>
-            <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="addImage(event)" />
+            <input type="file" id="imageInput" accept="image/*" style="display: none;" />
             <script>
                 // 拖放事件处理
                 const dropZone = document.getElementById('dropZone');
@@ -579,7 +579,11 @@ $plugin_url = plugin_dir_url(__FILE__);
                         
                         // 同时添加到图层管理系统
                         const layerName = fileName || '图片';
-                        addLayerToStore(layerId, layerName, 'image');
+                        if (typeof window.addLayerToStore === 'function') {
+                            window.addLayerToStore(layerId, layerName, 'image');
+                        } else {
+                            console.warn('图层管理系统未初始化');
+                        }
                     }
 
                     // 添加到上传列表（只存base64和文件名）
@@ -812,13 +816,8 @@ $plugin_url = plugin_dir_url(__FILE__);
             canvas.renderAll();
             
             // 同时添加到图层管理系统
-            addLayerToStore(layerId, text, 'text');
-        }
-        
-        // 添加图层到 Pinia store 的函数（使用全局函数）
-        function addLayerToStore(layerId, layerName, layerType) {
             if (typeof window.addLayerToStore === 'function') {
-                window.addLayerToStore(layerId, layerName, layerType);
+                window.addLayerToStore(layerId, text, 'text');
             } else {
                 console.warn('图层管理系统未初始化');
             }

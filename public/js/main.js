@@ -27,7 +27,7 @@ function saveState() {
   }
 
   updateHistoryButtons();
-  console.log('保存状态，当前历史记录指针：', historyPointer);
+
 }
 
 // 从历史记录中加载指定状态并绘制到画布
@@ -46,7 +46,7 @@ function restoreState(index) {
         canvas.renderAll();
         historyPointer = index;
         updateHistoryButtons();
-        console.log('恢复状态，当前历史记录指针：', historyPointer);
+
         isRestoring = false;
       }, { crossOrigin: 'anonymous' });
     };
@@ -59,7 +59,7 @@ function updateHistoryButtons() {
   const backwardBtn = document.getElementById('backward');
   if (forwardBtn) forwardBtn.disabled = historyPointer >= history.length - 1;
   if (backwardBtn) backwardBtn.disabled = historyPointer <= 0;
-  console.log('更新按钮状态，前进按钮：', forwardBtn ? forwardBtn.disabled : '未找到', '，后退按钮：', backwardBtn ? backwardBtn.disabled : '未找到');
+
 }
 
 // 初始化画布尺寸并清空
@@ -78,6 +78,10 @@ const canvas = new fabric.Canvas('mainCanvas', {
   
   selectionLineWidth: 1
 });
+
+// 将画布实例设置为全局变量，供图层组件使用
+window.canvas = canvas;
+window.fabricCanvas = canvas;
 
 
 canvas.on('object:modified', () => {
@@ -194,9 +198,9 @@ if (forwardBtn) {
   forwardBtn.addEventListener('click', () => {
     if (historyPointer < history.length - 1) {
       restoreState(historyPointer + 1);
-      console.log('前进操作，目标历史记录指针：', historyPointer + 1);
+
     } else {
-      console.log('已到达历史记录终点，无法继续前进');
+
     }
   });
 }
@@ -322,6 +326,12 @@ canvas.on('object:rotating', function () {
 // 监听对象添加事件 - 同步到图层管理系统
 canvas.on('object:added', function (e) {
   const obj = e.target;
+  
+  // 确保对象有 ID
+  if (!obj.id) {
+    obj.id = `layer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.log('为对象分配ID:', obj.id);
+  }
   
   // 保持旧的图层面板功能
   if (typeof addLayerItem === 'function') {
