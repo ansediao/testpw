@@ -331,8 +331,8 @@ if ($product_id > 0) {
       doc.save(fileName);
     });
   </script>
- <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/stores/index.js'; ?>" type="module"></script>
- <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/main.js'; ?>" type="module"></script>
+ <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/stores/index.js?time=' . microtime(true); ?>" type="module"></script>
+ <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/main.js?time=' . microtime(true); ?>" type="module"></script>
 
 
   <?php //wp_footer();
