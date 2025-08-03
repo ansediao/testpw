@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         // Send the request
-        xhr.send('action=pw_load_custom_templates&product_id=' + encodeURIComponent(productId) + '&nonce=' + encodeURIComponent(nonce));
+        // xhr.send('action=pw_load_custom_templates&product_id=' + encodeURIComponent(productId) + '&nonce=' + encodeURIComponent(nonce));
     }
     
     // Process template data and create view buttons

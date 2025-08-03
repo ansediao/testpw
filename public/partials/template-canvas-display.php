@@ -332,9 +332,9 @@ if ($product_id > 0) {
       doc.save(fileName);
     });
   </script>
+ <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/stores/index.js'; ?>" type="module"></script>
+ <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/main.js'; ?>" type="module"></script>
 
-
-  <!-- 已移除 Vue 相关代码，保留添加购物车功能 -->
 
   <?php //wp_footer();
   ?>

@@ -488,16 +488,19 @@ $plugin_url = plugin_dir_url(__FILE__);
 
     <!-- 图层 -->
     <div id="content-tuan" class="content-pane">
-        <div class="layers-panel">
+    <div id="layers-container" class="layers-container">
+                
+                </div>
+        <!-- <div class="layers-panel">
             <div class="layers-header">
                 <span class="layer-column layer-visibility">显示</span>
                 <span class="layer-column layer-lock">锁定</span>
                 <span class="layer-column layer-name">名称</span>
             </div>
             <div id="layers-container" class="layers-container">
-                <!-- 图层将在这里动态添加 -->
+                
             </div>
-        </div>
+        </div> -->
     </div>
 
     <!-- 图片 -->
