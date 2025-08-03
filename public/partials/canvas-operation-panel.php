@@ -488,7 +488,7 @@ $plugin_url = plugin_dir_url(__FILE__);
 
     <!-- 图层 -->
     <div id="content-tuan" class="content-pane">
-    <div id="layers-container" class="layers-container">
+    <div id="layers-box" class="layers-box">
                 
                 </div>
         <!-- <div class="layers-panel">
@@ -551,6 +551,9 @@ $plugin_url = plugin_dir_url(__FILE__);
                     // 根据宽高比计算目标高度
                     const targetHeight = targetWidth / aspectRatio;
 
+                    // 生成唯一的图层ID
+                    const layerId = 'layer_' + Date.now();
+
                     const fabricImage = new fabric.Image(imgElement, {
                         left: canvas.width / 2,
                         top: canvas.height / 2,
@@ -558,7 +561,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                         scaleY: targetHeight / imgElement.height,
                         originX: 'center',
                         originY: 'center',
-                        id: 'layer_' + layerCounter++
+                        id: layerId
                     });
 
                     // 检查画布上是否已存在相同来源的图片
@@ -568,10 +571,15 @@ $plugin_url = plugin_dir_url(__FILE__);
                             imageExists = true;
                         }
                     });
+                    
                     if (!imageExists) {
                         canvas.add(fabricImage);
                         canvas.setActiveObject(fabricImage);
                         canvas.renderAll();
+                        
+                        // 同时添加到图层管理系统
+                        const layerName = fileName || '图片';
+                        addLayerToStore(layerId, layerName, 'image');
                     }
 
                     // 添加到上传列表（只存base64和文件名）
@@ -779,8 +787,13 @@ $plugin_url = plugin_dir_url(__FILE__);
         function addText() {
             const text = document.getElementById('customText').value.trim();
             if (!text) return;
+            
             // 清空文本输入框
             document.getElementById('customText').value = '';
+            
+            // 生成唯一的图层ID
+            const layerId = 'layer_' + Date.now();
+            
             // 创建Fabric文本对象
             const fabricText = new fabric.Text(text, {
                 left: canvas.width / 2,
@@ -790,12 +803,25 @@ $plugin_url = plugin_dir_url(__FILE__);
                 fontFamily: 'Arial',
                 originX: 'center',
                 originY: 'center',
-                id: 'layer_' + layerCounter++
+                id: layerId
             });
+            
             // 添加到画布并设为活动对象
             canvas.add(fabricText);
             canvas.setActiveObject(fabricText);
             canvas.renderAll();
+            
+            // 同时添加到图层管理系统
+            addLayerToStore(layerId, text, 'text');
+        }
+        
+        // 添加图层到 Pinia store 的函数（使用全局函数）
+        function addLayerToStore(layerId, layerName, layerType) {
+            if (typeof window.addLayerToStore === 'function') {
+                window.addLayerToStore(layerId, layerName, layerType);
+            } else {
+                console.warn('图层管理系统未初始化');
+            }
         }
     </script>
 

@@ -38,3 +38,6 @@ export const useCanvasStore = defineStore('canvas', {
 
 // 5. 创建 Pinia 实例，后续所有 Vue 应用都要 use(pinia) 才能访问全局状态
 export const pinia = createPinia();
+
+// 6. 将 store 暴露到全局，让非 Vue 组件也能访问
+window.useCanvasStore = useCanvasStore;

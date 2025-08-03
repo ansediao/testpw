@@ -319,35 +319,142 @@ canvas.on('object:rotating', function () {
   updateModelFromCanvas();
 });
 
-// 监听对象添加事件
+// 监听对象添加事件 - 同步到图层管理系统
 canvas.on('object:added', function (e) {
   const obj = e.target;
-  addLayerItem(obj);
+  
+  // 保持旧的图层面板功能
+  if (typeof addLayerItem === 'function') {
+    addLayerItem(obj);
+  }
+  
+  // 同步到新的 Pinia store 系统
+  syncCanvasObjectToStore(obj, 'added');
 });
-// 监听对象移除事件
+
+// 监听对象移除事件 - 同步到图层管理系统
 canvas.on('object:removed', function (e) {
   const obj = e.target;
+  
+  // 保持旧的图层面板功能
   if (obj.id) {
-    const layerItem = document.querySelector(`.layer-item[data-id="${obj.id
-      }"]`);
-    if (layerItem)
+    const layerItem = document.querySelector(`.layer-item[data-id="${obj.id}"]`);
+    if (layerItem) {
       layerItem.remove();
-
-
+    }
   }
+  
+  // 同步到新的 Pinia store 系统
+  syncCanvasObjectToStore(obj, 'removed');
 });
+
 // 监听选择事件，更新图层面板中的选中状态
 canvas.on('selection:created', function (e) {
-  updateLayerSelection(e.selected[0]);
+  if (typeof updateLayerSelection === 'function') {
+    updateLayerSelection(e.selected[0]);
+  }
+  
+  // 同步选中状态到 Pinia store
+  if (e.selected && e.selected.length > 0 && e.selected[0].id) {
+    syncSelectionToStore(e.selected[0].id);
+  }
 });
+
 canvas.on('selection:updated', function (e) {
-  updateLayerSelection(e.selected[0]);
+  if (typeof updateLayerSelection === 'function') {
+    updateLayerSelection(e.selected[0]);
+  }
+  
+  // 同步选中状态到 Pinia store
+  if (e.selected && e.selected.length > 0 && e.selected[0].id) {
+    syncSelectionToStore(e.selected[0].id);
+  }
 });
+
 canvas.on('selection:cleared', function () {
+  // 保持旧的图层面板功能
   document.querySelectorAll('.layer-item').forEach(item => {
     item.classList.remove('selected');
   });
+  
+  // 清除 Pinia store 中的选中状态
+  syncSelectionToStore(null);
 });
+
+// 同步画布对象到 Pinia store 的函数
+function syncCanvasObjectToStore(obj, action) {
+  if (typeof window.useCanvasStore === 'function') {
+    try {
+      const store = window.useCanvasStore();
+      
+      if (action === 'added' && obj.id) {
+        // 检查图层是否已存在（避免重复添加）
+        const existingLayer = store.layers.find(layer => layer.id === obj.id);
+        if (!existingLayer) {
+          const layerName = getLayerName(obj);
+          const layerType = getLayerType(obj);
+          
+          const newLayer = {
+            id: obj.id,
+            name: layerName,
+            type: layerType,
+            visible: obj.visible !== false,
+            locked: !obj.selectable
+          };
+          
+          const updatedLayers = [...store.layers, newLayer];
+          store.setLayers(updatedLayers);
+        }
+      } else if (action === 'removed' && obj.id) {
+        // 从 store 中移除图层
+        const updatedLayers = store.layers.filter(layer => layer.id !== obj.id);
+        store.setLayers(updatedLayers);
+        
+        // 如果删除的是当前选中的图层，清除选中状态
+        if (store.activeObjectId === obj.id) {
+          store.setActiveObjectId(null);
+        }
+      }
+    } catch (error) {
+      console.error('同步画布对象到图层管理系统失败:', error);
+    }
+  }
+}
+
+// 同步选中状态到 Pinia store
+function syncSelectionToStore(objectId) {
+  if (typeof window.useCanvasStore === 'function') {
+    try {
+      const store = window.useCanvasStore();
+      store.setActiveObjectId(objectId);
+    } catch (error) {
+      console.error('同步选中状态失败:', error);
+    }
+  }
+}
+
+// 获取图层名称的辅助函数
+function getLayerName(obj) {
+  if (obj.type === 'text' || obj.type === 'i-text') {
+    const text = obj.text || '';
+    return text.length > 15 ? text.substring(0, 15) + '...' : text;
+  } else if (obj.type === 'image') {
+    return '图片 ' + Date.now().toString().slice(-4);
+  } else {
+    return '图层 ' + Date.now().toString().slice(-4);
+  }
+}
+
+// 获取图层类型的辅助函数
+function getLayerType(obj) {
+  if (obj.type === 'text' || obj.type === 'i-text') {
+    return 'text';
+  } else if (obj.type === 'image') {
+    return 'image';
+  } else {
+    return 'other';
+  }
+}
 
 // 计算弧形文字的每个字符的属性
 function calculateArcTextProperties(textObject, arcValue) {
