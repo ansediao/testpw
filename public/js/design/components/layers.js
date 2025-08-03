@@ -9,46 +9,147 @@ const layersApp = Vue.createApp({
         <div class="layers-panel">
             <div class="layers-list">
                 <div class="layers-list-header">
-                    <span>图层列表 ({{ layers.length }})</span>
+                    <span>图层管理 ({{ layers.length }})</span>
+                    <button @click="showGroupDialog = true" class="create-group-btn">创建组</button>
+                </div>
+                
+                <!-- 未分组图层提示区域 -->
+                <div v-if="ungroupedLayers.length > 0" class="ungrouped-warning">
+                    <div class="warning-header">
+                        ⚠️ 未分组图层 ({{ungroupedLayers.length}})
+                    </div>
+                    <div class="ungrouped-layers">
+                        <div v-for="layer in ungroupedLayers" :key="layer.id" 
+                             class="layer-item ungrouped"
+                             :class="{ active: layer.id === activeObjectId }"
+                             @click="selectLayer(layer.id)">
+                            <div class="layer-controls">
+                                <button @click.stop="toggleVisibility(layer)" class="layer-btn">
+                                    {{ layer.visible ? '👁️' : '🙈' }}
+                                </button>
+                                <button @click.stop="toggleLock(layer)" class="layer-btn">
+                                    {{ layer.locked ? '🔒' : '🔓' }}
+                                </button>
+                            </div>
+                            <div class="layer-info">
+                                <div class="layer-name">{{ layer.name || layer.id }}</div>
+                                <div class="layer-type">{{ layer.type || 'unknown' }}</div>
+                            </div>
+                            <div class="layer-actions">
+                                <button @click.stop="showGroupAssignDialog(layer)" class="assign-btn">分组</button>
+                                <button @click.stop="duplicateLayer(layer)" class="layer-btn">📋</button>
+                                <button @click.stop="deleteLayer(layer)" class="layer-btn delete">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 图层组列表 -->
+                <div v-for="group in layerGroups" :key="group.id" class="layer-group">
+                    <!-- 图层组头部 -->
+                    <div class="group-header" 
+                         :class="{active: activeGroupId === group.id}"
+                         @click="toggleGroup(group.id)">
+                        <span class="expand-icon" @click.stop="toggleGroupExpand(group.id)">
+                            {{group.expanded ? '▼' : '▶'}}
+                        </span>
+                        <span class="group-name">📁 {{group.name}}</span>
+                        
+                        <!-- 图层组操作按钮 -->
+                        <div class="group-actions">
+                            <button @click.stop="toggleGroupVisibility(group)" 
+                                    :class="{hidden: !group.visible}" class="layer-btn">
+                                {{group.visible ? '👁️' : '🙈'}}
+                            </button>
+                            <button @click.stop="toggleGroupLock(group)"
+                                    :class="{locked: group.locked}" class="layer-btn">
+                                {{group.locked ? '🔒' : '🔓'}}
+                            </button>
+                            <button @click.stop="duplicateGroup(group)" class="layer-btn">📋</button>
+                            <button @click.stop="deleteGroup(group)" class="layer-btn delete">🗑️</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 图层组内容（可折叠） -->
+                    <div v-if="group.expanded" class="group-content">
+                        <div v-for="layer in getGroupLayers(group.id)" 
+                             :key="layer.id" 
+                             class="layer-item grouped"
+                             :class="{active: activeObjectId === layer.id}"
+                             @click="selectLayer(layer.id)">
+                            <div class="layer-controls">
+                                <button @click.stop="toggleVisibility(layer)" class="layer-btn">
+                                    {{ layer.visible ? '👁️' : '🙈' }}
+                                </button>
+                                <button @click.stop="toggleLock(layer)" class="layer-btn">
+                                    {{ layer.locked ? '🔒' : '🔓' }}
+                                </button>
+                            </div>
+                            <div class="layer-info">
+                                <div class="layer-name">{{ layer.name || layer.id }}</div>
+                                <div class="layer-type">{{ layer.type || 'unknown' }}</div>
+                            </div>
+                            <div class="layer-actions">
+                                <button @click.stop="removeFromGroup(layer)" class="ungroup-btn">移出</button>
+                                <button @click.stop="duplicateLayer(layer)" class="layer-btn">📋</button>
+                                <button @click.stop="deleteLayer(layer)" class="layer-btn delete">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div v-if="layers.length === 0" class="no-layers">
                     暂无图层
                 </div>
-                
-                <div v-else class="layer-items">
-                    <div 
-                        v-for="layer in layers" 
-                        :key="layer.id"
-                        :class="['layer-item', { active: layer.id === activeObjectId }]"
-                        @click="selectLayer(layer.id)"
-                    >
-                        <div class="layer-controls">
-                            <button @click.stop="toggleVisibility(layer)" class="layer-btn">
-                                {{ layer.visible ? '👁️' : '🙈' }}
-                            </button>
-                            <button @click.stop="toggleLock(layer)" class="layer-btn">
-                                {{ layer.locked ? '🔒' : '🔓' }}
-                            </button>
-                        </div>
-                        <div class="layer-info">
-                            <div class="layer-name">{{ layer.name || layer.id }}</div>
-                            <div class="layer-type">{{ layer.type || 'unknown' }}</div>
-                        </div>
-                        <div class="layer-actions">
-                            <button @click.stop="duplicateLayer(layer)" class="layer-btn">📋</button>
-                            <button @click.stop="deleteLayer(layer)" class="layer-btn delete">🗑️</button>
-                        </div>
+            </div>
+            
+            <!-- 创建图层组对话框 -->
+            <div v-if="showGroupDialog" class="group-dialog-overlay" @click="showGroupDialog = false">
+                <div class="group-dialog" @click.stop>
+                    <h3>创建图层组</h3>
+                    <input v-model="newGroupName" placeholder="输入图层组名称" @keyup.enter="createGroup" />
+                    <div class="dialog-actions">
+                        <button @click="createGroup">创建</button>
+                        <button @click="showGroupDialog = false">取消</button>
                     </div>
                 </div>
             </div>
             
-          
+            <!-- 分配图层到组对话框 -->
+            <div v-if="showAssignDialog" class="assign-dialog-overlay" @click="showAssignDialog = false">
+                <div class="assign-dialog" @click.stop>
+                    <h3>分配图层到组</h3>
+                    <p>图层: {{selectedLayerForAssign?.name}}</p>
+                    <select v-model="selectedGroupForAssign">
+                        <option value="">选择图层组</option>
+                        <option v-for="group in layerGroups" :key="group.id" :value="group.id">
+                            {{group.name}}
+                        </option>
+                    </select>
+                    <div class="dialog-actions">
+                        <button @click="assignLayerToGroup">分配</button>
+                        <button @click="showAssignDialog = false">取消</button>
+                    </div>
+                </div>
+            </div>
         </div>
     `,
 
     setup() {
         const store = useCanvasStore();
+        const { layers, activeObjectId, layerGroups, activeGroupId } = Vue.toRefs(store);
+        
+        // 图层组相关响应式数据
+        const showGroupDialog = Vue.ref(false);
+        const showAssignDialog = Vue.ref(false);
+        const newGroupName = Vue.ref('');
+        const selectedLayerForAssign = Vue.ref(null);
+        const selectedGroupForAssign = Vue.ref('');
+        
+        // 计算属性：未分组的图层
+        const ungroupedLayers = Vue.computed(() => {
+            return layers.value.filter(layer => !layer.groupId);
+        });
 
         // 获取画布实例的统一函数
         const getCanvasInstance = () => {
@@ -125,9 +226,23 @@ const layersApp = Vue.createApp({
         };
 
         // 复制图层
-        const duplicateLayer = (layer) => {
+        const duplicateLayer = (layer, targetGroupId = null) => {
             // 先在画布中复制对象
             duplicateCanvasObject(layer.id);
+            
+            // 创建新的图层数据
+            const newLayer = {
+                id: 'layer_' + Date.now(),
+                name: layer.name + '_副本',
+                type: layer.type,
+                visible: layer.visible,
+                locked: layer.locked,
+                groupId: targetGroupId || layer.groupId,
+                groupOrder: targetGroupId ? getGroupLayers(targetGroupId).length : layer.groupOrder
+            };
+            
+            const updatedLayers = [...store.layers, newLayer];
+            store.setLayers(updatedLayers);
         };
 
         // 删除图层
@@ -221,12 +336,192 @@ const layersApp = Vue.createApp({
             }
         };
 
+        // 图层组相关方法
+        const getGroupLayers = (groupId) => {
+            return layers.value.filter(layer => layer.groupId === groupId)
+                .sort((a, b) => a.groupOrder - b.groupOrder);
+        };
+        
+        const createGroup = () => {
+            if (!newGroupName.value.trim()) return;
+            
+            const newGroup = {
+                id: 'group_' + Date.now(),
+                name: newGroupName.value.trim(),
+                visible: true,
+                locked: false,
+                expanded: true
+            };
+            
+            const updatedGroups = [...layerGroups.value, newGroup];
+            store.setLayerGroups(updatedGroups);
+            
+            newGroupName.value = '';
+            showGroupDialog.value = false;
+        };
+        
+        const showGroupAssignDialog = (layer) => {
+            selectedLayerForAssign.value = layer;
+            selectedGroupForAssign.value = '';
+            showAssignDialog.value = true;
+        };
+        
+        const assignLayerToGroup = () => {
+            if (!selectedLayerForAssign.value || !selectedGroupForAssign.value) return;
+            
+            const layerIndex = layers.value.findIndex(l => l.id === selectedLayerForAssign.value.id);
+            if (layerIndex !== -1) {
+                const updatedLayers = [...layers.value];
+                updatedLayers[layerIndex] = {
+                    ...updatedLayers[layerIndex],
+                    groupId: selectedGroupForAssign.value,
+                    groupOrder: getGroupLayers(selectedGroupForAssign.value).length
+                };
+                store.setLayers(updatedLayers);
+            }
+            
+            showAssignDialog.value = false;
+        };
+        
+        const removeFromGroup = (layer) => {
+            const layerIndex = layers.value.findIndex(l => l.id === layer.id);
+            if (layerIndex !== -1) {
+                const updatedLayers = [...layers.value];
+                updatedLayers[layerIndex] = {
+                    ...updatedLayers[layerIndex],
+                    groupId: null,
+                    groupOrder: 0
+                };
+                store.setLayers(updatedLayers);
+            }
+        };
+        
+        const toggleGroup = (groupId) => {
+            store.setActiveGroupId(activeGroupId.value === groupId ? null : groupId);
+        };
+        
+        const toggleGroupExpand = (groupId) => {
+            const groupIndex = layerGroups.value.findIndex(g => g.id === groupId);
+            if (groupIndex !== -1) {
+                const updatedGroups = [...layerGroups.value];
+                updatedGroups[groupIndex] = {
+                    ...updatedGroups[groupIndex],
+                    expanded: !updatedGroups[groupIndex].expanded
+                };
+                store.setLayerGroups(updatedGroups);
+            }
+        };
+        
+        const toggleGroupVisibility = (group) => {
+            const newVisible = !group.visible;
+            
+            // 更新组状态
+            const groupIndex = layerGroups.value.findIndex(g => g.id === group.id);
+            if (groupIndex !== -1) {
+                const updatedGroups = [...layerGroups.value];
+                updatedGroups[groupIndex] = { ...updatedGroups[groupIndex], visible: newVisible };
+                store.setLayerGroups(updatedGroups);
+            }
+            
+            // 同步组内所有图层
+            const groupLayers = getGroupLayers(group.id);
+            groupLayers.forEach(layer => {
+                const layerIndex = layers.value.findIndex(l => l.id === layer.id);
+                if (layerIndex !== -1) {
+                    const updatedLayers = [...layers.value];
+                    updatedLayers[layerIndex] = { ...updatedLayers[layerIndex], visible: newVisible };
+                    store.setLayers(updatedLayers);
+                    syncLayerVisibilityToCanvas(layer.id, newVisible);
+                }
+            });
+        };
+        
+        const toggleGroupLock = (group) => {
+            const newLocked = !group.locked;
+            
+            // 更新组状态
+            const groupIndex = layerGroups.value.findIndex(g => g.id === group.id);
+            if (groupIndex !== -1) {
+                const updatedGroups = [...layerGroups.value];
+                updatedGroups[groupIndex] = { ...updatedGroups[groupIndex], locked: newLocked };
+                store.setLayerGroups(updatedGroups);
+            }
+            
+            // 同步组内所有图层
+            const groupLayers = getGroupLayers(group.id);
+            groupLayers.forEach(layer => {
+                const layerIndex = layers.value.findIndex(l => l.id === layer.id);
+                if (layerIndex !== -1) {
+                    const updatedLayers = [...layers.value];
+                    updatedLayers[layerIndex] = { ...updatedLayers[layerIndex], locked: newLocked };
+                    store.setLayers(updatedLayers);
+                    syncLayerLockToCanvas(layer.id, newLocked);
+                }
+            });
+        };
+        
+        const duplicateGroup = (group) => {
+            // 复制组
+            const newGroup = {
+                id: 'group_' + Date.now(),
+                name: group.name + '_副本',
+                visible: group.visible,
+                locked: group.locked,
+                expanded: true
+            };
+            
+            const updatedGroups = [...layerGroups.value, newGroup];
+            store.setLayerGroups(updatedGroups);
+            
+            // 复制组内图层
+            const groupLayers = getGroupLayers(group.id);
+            groupLayers.forEach(layer => {
+                duplicateLayer(layer, newGroup.id);
+            });
+        };
+        
+        const deleteGroup = (group) => {
+            if (confirm(`确定要删除图层组 "${group.name}" 吗？组内的所有图层也将被删除。`)) {
+                // 获取组内所有图层并删除
+                const groupLayers = getGroupLayers(group.id);
+                groupLayers.forEach(layer => {
+                    // 从画布中删除对象
+                    deleteCanvasObject(layer.id);
+                });
+                
+                // 从图层列表中删除组内所有图层
+                const updatedLayers = layers.value.filter(layer => layer.groupId !== group.id);
+                store.setLayers(updatedLayers);
+                
+                // 删除组
+                const updatedGroups = layerGroups.value.filter(g => g.id !== group.id);
+                store.setLayerGroups(updatedGroups);
+                
+                // 清除选中状态
+                if (activeGroupId.value === group.id) {
+                    store.setActiveGroupId(null);
+                }
+            }
+        };
+
         return {
             // 从 store 获取的数据
             canvasIds: Vue.computed(() => Object.keys(store.canvasStates)),
             activeCanvasId: Vue.computed(() => store.activeCanvasId),
             layers: Vue.computed(() => store.layers),
             activeObjectId: Vue.computed(() => store.activeObjectId),
+            layerGroups: Vue.computed(() => store.layerGroups),
+            activeGroupId: Vue.computed(() => store.activeGroupId),
+            
+            // 计算属性
+            ungroupedLayers,
+            
+            // 图层组相关数据
+            showGroupDialog,
+            showAssignDialog,
+            newGroupName,
+            selectedLayerForAssign,
+            selectedGroupForAssign,
 
             // 方法
             switchCanvas: (id) => store.setActiveCanvasId(id),
@@ -235,7 +530,20 @@ const layersApp = Vue.createApp({
             toggleVisibility,
             toggleLock,
             duplicateLayer,
-            deleteLayer
+            deleteLayer,
+            
+            // 图层组方法
+            getGroupLayers,
+            createGroup,
+            showGroupAssignDialog,
+            assignLayerToGroup,
+            removeFromGroup,
+            toggleGroup,
+            toggleGroupExpand,
+            toggleGroupVisibility,
+            toggleGroupLock,
+            duplicateGroup,
+            deleteGroup
         };
     }
 });
@@ -272,7 +580,9 @@ window.addLayerToStore = function (layerId, layerName, layerType) {
                 name: layerName.length > 20 ? layerName.substring(0, 20) + '...' : layerName,
                 type: layerType,
                 visible: true,
-                locked: false
+                locked: false,
+                groupId: null,          // 新增：默认未分组
+                groupOrder: 0           // 新增：组内排序
             };
 
             const updatedLayers = [...store.layers, newLayer];

@@ -20,6 +20,9 @@ export const useCanvasStore = defineStore('canvas', {
         activeObjectId: null,
         // actionRequest：全局动作请求（如添加、删除、克隆图层等），用于跨组件通信
         actionRequest: null,
+        // 图层组相关状态
+        layerGroups: [],        // 图层组列表
+        activeGroupId: null,    // 当前选中的图层组ID
     }),
     // 4. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
     actions: {
@@ -32,7 +35,10 @@ export const useCanvasStore = defineStore('canvas', {
         // 设置当前选中的对象 id
         setActiveObjectId(id) { this.activeObjectId = id; },
         // 发起一个全局动作请求（如添加/删除/克隆图层），payload 为动作参数
-        requestAction(payload) { this.actionRequest = { ...payload, timestamp: Date.now() }; }
+        requestAction(payload) { this.actionRequest = { ...payload, timestamp: Date.now() }; },
+        // 图层组相关方法
+        setLayerGroups(groups) { this.layerGroups = groups; },
+        setActiveGroupId(id) { this.activeGroupId = id; }
     },
 });
 
