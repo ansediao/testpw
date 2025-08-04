@@ -13,265 +13,133 @@ $api_product_id = get_post_meta($product_id, 'pw_id', true);
 // Initialize view container
 echo '<div class="pw-view-switcher-container" id="pw-view-switcher-container">';
 
-// If this is a synchronized product with API ID, we'll use API mode
-if ($pw_isSyncProduct === '1' && !empty($api_product_id)) {
-    // Add loading indicator
-    echo '<div id="pw-view-loading" class="pw-view-loading">
-            <span class="pw-loading-spinner"></span>
-            <span class="pw-loading-text">加载视图...</span>
-          </div>';
+echo '</div>';
+
+// Add JavaScript to monitor Pinia state changes and create buttons dynamically
+?>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    console.log('Canvas customization area script loaded');
     
-    // We'll populate this container via AJAX
-    echo '<div id="pw-view-buttons-container" style="display:none;"></div>';
-    
-    // Set flag for API mode
-    $using_api_data = true;
-} else {
-    // Legacy mode - use post meta
-    $color_image_url = get_post_meta($product_id, 'pw_mainIMG_color', true);
-    if (!empty($color_image_url)) {
-        // 将图片URL字符串按逗号分割成数组
-        $image_urls = explode(',', $color_image_url);
-        // 遍历数组生成按钮
-        foreach ($image_urls as $index => $url) {
-            $url = trim($url); // 去除可能存在的空格
-            if (!empty($url)) {
-                // 定义按钮名称
-                $names = ['Front', 'Back', 'Left', 'Right'];
-                $btn_name = isset($names[$index]) ? $names[$index] : 'View ' . ($index + 1);
-                $active_class = ($index === 0) ? ' actived' : '';
-                echo '<button class="viewer-switch-btn' . $active_class . '" data-image-url="' . esc_attr($url) . '" style="margin: 5px;">' .
-                $btn_name .
-                '</button>';
+    // Wait for Pinia store to be available
+    function waitForStore() {
+        console.log('Checking for Pinia store...', typeof window.useCanvasStore);
+        
+        if (typeof window.useCanvasStore === "function") {
+            console.log('Pinia store found, setting up watcher');
+            const store = window.useCanvasStore();
+            let previousLoadingState = store.isLoadingProductData;
+            
+            console.log('Initial loading state:', previousLoadingState);
+            console.log('Current productData:', store.productData);
+            
+            // If data is already loaded, create buttons immediately
+            if (!store.isLoadingProductData && store.productData) {
+                console.log('Data already loaded, creating buttons immediately');
+                createViewButtons(store.productData);
             }
+            
+            // Monitor isLoadingProductData changes
+            const unwatch = store.$subscribe((mutation, state) => {
+                console.log('Store state changed:', {
+                    storeId: mutation.storeId,
+                    previousLoading: previousLoadingState,
+                    currentLoading: state.isLoadingProductData,
+                    hasProductData: !!state.productData
+                });
+                
+                if (mutation.storeId === "canvas" && 
+                    previousLoadingState === true && 
+                    state.isLoadingProductData === false) {
+                    
+                    console.log('Loading completed, creating buttons');
+                    // Loading completed, create buttons
+                    createViewButtons(state.productData);
+                }
+                previousLoadingState = state.isLoadingProductData;
+            });
+        } else {
+            console.log('Pinia store not available yet, retrying in 100ms');
+            // Retry if store not available yet
+            setTimeout(waitForStore, 100);
         }
     }
     
-    // Set flag for legacy mode
-    $using_api_data = false;
-}
-
-echo '</div>';
-
-// Add hidden container for view data
-echo '<div id="pw-view-data-container" style="display:none;"></div>';
-
-// Add JavaScript for API mode
-if ($using_api_data) {
-?>
-<script type="text/javascript">
-document.addEventListener('DOMContentLoaded', function() {
-    // Product and API information
-    var apiProductId = '<?php echo esc_js($api_product_id); ?>';
-    var productId = '<?php echo esc_js($product_id); ?>';
-    var ajaxUrl = '<?php echo esc_js(admin_url('admin-ajax.php')); ?>';
-    var nonce = '<?php echo esc_js(wp_create_nonce('pw_custom_templates_nonce')); ?>';
-    
-    // Load view data from API
-    function loadViewData() {
-        // Show loading indicator
-        document.getElementById('pw-view-loading').style.display = 'flex';
-        document.getElementById('pw-view-buttons-container').style.display = 'none';
+    function createViewButtons(productData) {
+        console.log('createViewButtons called with:', productData);
         
-        // Make AJAX request to get template data
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', ajaxUrl, true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        
-        xhr.onload = function() {
-            if (xhr.status >= 200 && xhr.status < 400) {
-                // Hide loading indicator
-                document.getElementById('pw-view-loading').style.display = 'none';
-                
-                try {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response.success && response.data) {
-                        // Process template data
-                        processTemplateData(response.data);
-                    } else {
-                        // Show error
-                        document.getElementById('pw-view-switcher-container').innerHTML = 
-                            '<div class="pw-api-error">无法加载视图数据。请刷新页面重试。</div>';
-                    }
-                } catch (e) {
-                    console.error('Error parsing JSON response:', e);
-                    document.getElementById('pw-view-switcher-container').innerHTML = 
-                        '<div class="pw-api-error">解析响应数据时出错。请刷新页面重试。</div>';
-                }
-            } else {
-                // Hide loading indicator and show error
-                document.getElementById('pw-view-loading').style.display = 'none';
-                document.getElementById('pw-view-switcher-container').innerHTML = 
-                    '<div class="pw-api-error">加载视图数据时出错。请刷新页面重试。</div>';
-            }
-        };
-        
-        xhr.onerror = function() {
-            // Hide loading indicator and show error
-            document.getElementById('pw-view-loading').style.display = 'none';
-            document.getElementById('pw-view-switcher-container').innerHTML = 
-                '<div class="pw-api-error">网络请求失败。请检查您的网络连接并重试。</div>';
-        };
-        
-        // Send the request
-        // xhr.send('action=pw_load_custom_templates&product_id=' + encodeURIComponent(productId) + '&nonce=' + encodeURIComponent(nonce));
-    }
-    
-    // Process template data and create view buttons
-    function processTemplateData(templateData) {
-        if (!templateData.data || !templateData.data.custom_view) {
-            document.getElementById('pw-view-switcher-container').innerHTML = 
-                '<div class="pw-api-error">视图数据格式无效。</div>';
+        if (!productData) {
+            console.log('No productData provided');
             return;
         }
         
-        var customView = templateData.data.custom_view;
-        var mainView = customView.main_custom_view || null;
-        var subViews = customView.sub_custom_view || [];
-        var buttonsHtml = '';
-        
-        // Create main view button
-        if (mainView) {
-            var viewName = mainView.view_name || 'Main View';
-            buttonsHtml += '<button class="viewer-switch-btn actived" data-view-type="main" style="margin: 5px;">' + 
-                           viewName + 
-                           '</button>';
-                           
-            // Store main view data
-            var mainViewDataElement = document.createElement('div');
-            mainViewDataElement.id = 'pw-main-view-data';
-            mainViewDataElement.setAttribute('data-view-type', 'main');
-            mainViewDataElement.style.display = 'none';
-            mainViewDataElement.textContent = JSON.stringify(mainView);
-            document.getElementById('pw-view-data-container').appendChild(mainViewDataElement);
-            
-            // Initialize canvas with main view data
-            if (window.pwCanvasApp) {
-                initializeCanvasWithViewData(mainView);
-            }
+        if (!productData.templates || !productData.templates.data) {
+            console.log('No templates.data found in productData');
+            return;
         }
         
-        // Create sub view buttons
-        if (subViews && subViews.length > 0) {
-            for (var i = 0; i < subViews.length; i++) {
-                var subView = subViews[i];
-                var subViewName = subView.view_name || 'View ' + (i + 1);
-                
-                buttonsHtml += '<button class="viewer-switch-btn" data-view-type="sub" data-view-index="' + i + '" style="margin: 5px;">' + 
-                               subViewName + 
-                               '</button>';
-                               
-                // Store sub view data
-                var subViewDataElement = document.createElement('div');
-                subViewDataElement.id = 'pw-sub-view-data-' + i;
-                subViewDataElement.setAttribute('data-view-type', 'sub');
-                subViewDataElement.setAttribute('data-view-index', i);
-                subViewDataElement.style.display = 'none';
-                subViewDataElement.textContent = JSON.stringify(subView);
-                document.getElementById('pw-view-data-container').appendChild(subViewDataElement);
-            }
+        const container = document.getElementById("pw-view-switcher-container");
+        if (!container) {
+            console.log('Container not found!');
+            return;
         }
         
-        // Update buttons container
-        var buttonsContainer = document.getElementById('pw-view-buttons-container');
-        buttonsContainer.innerHTML = buttonsHtml;
-        buttonsContainer.style.display = 'block';
+        console.log('Container found, clearing existing content');
         
-        // Attach click handlers to view buttons
-        var buttons = document.querySelectorAll('.viewer-switch-btn');
-        for (var j = 0; j < buttons.length; j++) {
-            buttons[j].addEventListener('click', function(e) {
-                // Update active state
-                var allButtons = document.querySelectorAll('.viewer-switch-btn');
-                for (var k = 0; k < allButtons.length; k++) {
-                    allButtons[k].classList.remove('actived');
-                }
-                e.target.classList.add('actived');
-                
-                var viewType = e.target.getAttribute('data-view-type');
-                var viewData = null;
-                
-                if (viewType === 'main') {
-                    // Get main view data
-                    viewData = JSON.parse(document.getElementById('pw-main-view-data').textContent);
-                } else if (viewType === 'sub') {
-                    // Get sub view data
-                    var viewIndex = e.target.getAttribute('data-view-index');
-                    viewData = JSON.parse(document.getElementById('pw-sub-view-data-' + viewIndex).textContent);
-                }
-                
-                if (viewData) {
-                    // Trigger custom event with view data
-                    var viewChangedEvent = new CustomEvent('pw_view_changed', {
-                        detail: {
-                            viewType: viewType,
-                            viewData: viewData
-                        }
-                    });
-                    document.dispatchEvent(viewChangedEvent);
-                }
+        // Clear existing buttons
+        container.innerHTML = "";
+        
+        let buttonsCreated = 0;
+        
+        // Check for main_custom_view - 修正数据路径
+        const customView = productData.templates.data.custom_view;
+        if (!customView) {
+            console.log('No custom_view found in templates.data');
+            return;
+        }
+        
+        const mainCustomView = customView.main_custom_view;
+        if (!mainCustomView) {
+            console.log('No main_custom_view found');
+        } else {
+            console.log('Found main_custom_view:', mainCustomView);
+            const mainButton = document.createElement('button');
+            mainButton.className = 'viewer-switch-btn';
+            mainButton.textContent = mainCustomView.view_name || 'Main View';
+            mainButton.setAttribute('data-view-data', JSON.stringify(mainCustomView));
+            container.appendChild(mainButton);
+            buttonsCreated++;
+            console.log('Main button created:', mainButton.textContent);
+        }
+        
+        // Check for sub_custom_view array
+        const subCustomViews = customView.sub_custom_view;
+        if (!Array.isArray(subCustomViews)) {
+            console.log('No sub_custom_view array found');
+        } else {
+            console.log('Found sub_custom_view array with', subCustomViews.length, 'items');
+            subCustomViews.forEach((subView, index) => {
+                console.log(`Creating sub button ${index + 1}:`, subView);
+                const subButton = document.createElement('button');
+                subButton.className = 'viewer-switch-btn';
+                subButton.textContent = subView.view_name || `Sub View ${index + 1}`;
+                subButton.setAttribute('data-view-data', JSON.stringify(subView));
+                container.appendChild(subButton);
+                buttonsCreated++;
+                console.log('Sub button created:', subButton.textContent);
             });
         }
-    }
-    
-    // Initialize canvas with view data
-    function initializeCanvasWithViewData(viewData) {
-        if (!viewData) return;
         
-        // Trigger custom event with view data
-        var viewChangedEvent = new CustomEvent('pw_view_changed', {
-            detail: {
-                viewType: 'main',
-                viewData: viewData
-            }
-        });
-        document.dispatchEvent(viewChangedEvent);
+        console.log('View buttons creation completed. Total buttons created:', buttonsCreated);
+        console.log('Container innerHTML after creation:', container.innerHTML);
     }
     
-    // Load view data when document is ready
-    loadViewData();
+    // Start monitoring
+    waitForStore();
 });
 </script>
-
-<style>
-.pw-view-loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 15px;
-    background-color: #f9f9f9;
-    border-radius: 4px;
-    width: 100%;
-}
-
-.pw-loading-spinner {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    border-top-color: #3498db;
-    border-radius: 50%;
-    animation: pw-spin 1s linear infinite;
-    margin-right: 10px;
-}
-
-.pw-loading-text {
-    color: #666;
-    font-size: 14px;
-}
-
-.pw-api-error {
-    padding: 10px;
-    background-color: #ffebee;
-    border: 1px solid #f44336;
-    color: #d32f2f;
-    border-radius: 4px;
-    margin: 10px 0;
-}
-
-@keyframes pw-spin {
-    to { transform: rotate(360deg); }
-}
-</style>
 <?php
-}
+
+
+
+
