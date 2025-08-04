@@ -23,6 +23,10 @@ export const useCanvasStore = defineStore('canvas', {
         // 图层组相关状态
         layerGroups: [],        // 图层组列表
         activeGroupId: null,    // 当前选中的图层组ID
+        // 产品数据相关状态
+        productData: null,      // 存储从API获取的产品数据
+        isLoadingProductData: false, // 产品数据加载状态
+        productDataError: null, // 产品数据加载错误信息
     }),
     // 4. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
     actions: {
@@ -38,7 +42,28 @@ export const useCanvasStore = defineStore('canvas', {
         requestAction(payload) { this.actionRequest = { ...payload, timestamp: Date.now() }; },
         // 图层组相关方法
         setLayerGroups(groups) { this.layerGroups = groups; },
-        setActiveGroupId(id) { this.activeGroupId = id; }
+        setActiveGroupId(id) { this.activeGroupId = id; },
+        // 产品数据相关方法
+        setProductData(data) { this.productData = data; },
+        setLoadingProductData(loading) { this.isLoadingProductData = loading; },
+        setProductDataError(error) { this.productDataError = error; },
+        // 异步获取产品数据
+        async fetchProductData(pwId) {
+            this.setLoadingProductData(true);
+            this.setProductDataError(null);
+            try {
+                const response = await axios.get(`/wp-json/pw/v1/product-data/${pwId}`);
+                this.setProductData(response.data);
+                console.log('产品数据获取成功:', response.data);
+                return response.data;
+            } catch (error) {
+                console.error('获取产品数据失败:', error);
+                this.setProductDataError(error.message || '获取产品数据失败');
+                throw error;
+            } finally {
+                this.setLoadingProductData(false);
+            }
+        }
     },
 });
 

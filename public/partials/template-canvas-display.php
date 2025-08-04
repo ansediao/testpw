@@ -2,12 +2,15 @@
 // 获取产品ID参数
 $product_id = isset($_GET['product_id']) ? intval($_GET['product_id']) : 258;
 
-// 获取产品名称
+// 获取产品名称和 pw_id meta 值
 $product_name = '';
+$pw_id = '';
 if ($product_id > 0) {
   $product = wc_get_product($product_id);
   if ($product) {
     $product_name = $product->get_name();
+    // 获取产品的 pw_id meta 值
+    $pw_id = get_post_meta($product_id, 'pw_id', true);
   }
 }
 
@@ -198,8 +201,23 @@ if ($product_id > 0) {
 
 
 
-    // 加入购物车功能
-    document.addEventListener('DOMContentLoaded', function() {
+    // 页面加载完成后的初始化功能
+    document.addEventListener('DOMContentLoaded', async function() {
+      // 获取产品数据
+      const pwId = '<?php echo esc_js($pw_id); ?>';
+      if (pwId && typeof window.useCanvasStore !== 'undefined') {
+        try {
+          const store = window.useCanvasStore();
+          await store.fetchProductData(pwId);
+          console.log('产品数据已加载到 Pinia store');
+        } catch (error) {
+          console.error('加载产品数据失败:', error);
+        }
+      } else {
+        console.warn('pw_id 未找到或 Pinia store 未初始化:', { pwId, storeAvailable: typeof window.useCanvasStore !== 'undefined' });
+      }
+
+      // 加入购物车功能
       const addToCartBtn = document.getElementById('addToCartBtn');
       if (addToCartBtn) {
         addToCartBtn.addEventListener('click', async function() {
