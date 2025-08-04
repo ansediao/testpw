@@ -234,40 +234,6 @@ function pw_canvas_public_enqueue_scripts()
         return;
     }
 
-
-
-    /**
-     * 1. 使用 wp_enqueue_script 以 WordPress 的方式加载 Vue.js
-     * 我们从 CDN 加载，并为其指定一个句柄 'vue-js'。
-     */
-    wp_enqueue_script(
-        'vue-js', // 为 Vue 定义一个唯一的句柄
-        'https://unpkg.com/vue@3.3.4/dist/vue.global.js', // Vue 的 CDN 链接
-        array(), // Vue 本身没有依赖
-        '3.3.4', // 指定版本号
-        false // true 表示在 <body> 底部加载，提升性能
-    );
-
-    /**
-     * 2. 加载你自己的 app.js 脚本
-     * 注意：我们将 'vue-js' 添加到了依赖数组中。
-     */
-    wp_enqueue_script(
-        'my-app-script', // 你的脚本句柄
-        plugins_url('public/js/app.js', __FILE__),
-        array('vue-js'), // <-- 重要！声明此脚本依赖于 'vue-js'
-        filemtime(plugin_dir_path(__FILE__) . 'public/js/app.js'), // <-- 使用文件修改时间作为版本号
-        false // 在 <body> 底部加载 (建议将 false 改为 true 保持一致)
-    );
-
-    // 为 my-app-script 添加 type="module" 属性的过滤器保持不变
-    add_filter('script_loader_tag', 'add_type_attribute_to_my_script', 10, 3);
-
-    /**
-     * 3. 使用 wp_localize_script 传递数据
-     * 这部分代码保持不变，它会把数据附加到 'my-app-script' 上。
-     */
-
     // 获取产品id
     $product_id = $_GET['product_id'];
     // 获取标题
