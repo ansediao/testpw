@@ -104,15 +104,7 @@
   - **禁止**在 HTML 标签中使用行内事件处理器 (如 `onclick`, `onmouseover`)。
   - 所有 JavaScript 代码**必须**存放在独立的 `.js` 文件中（如 `public/js/main.js`），并通过 `<script src="..."></script>` 引入。
 
----
-
-## 6. Vue.js 组件规范 (Vue.js Component Standards)
-
-- 不使用任何 Vue 方法，如 created()、mounted()、watch 等
-- 不使用 Vue 特有的生命周期钩子
-- 不使用 Vue 指令，如 v-if、v-for、v-bind、v-on 等
-- 不使用 Vue 组件选项，如 props、data、methods 等
-  
+ 
 ---
 
 ## 7. CSS/SCSS 开发规范 (CSS/SCSS Development Standards)
