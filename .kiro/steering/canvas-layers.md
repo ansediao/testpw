@@ -48,6 +48,13 @@ canvas.on('object:added', function (e) {
 - **复制**: 创建对象副本并偏移位置
 - **拖拽排序**: 使用 Sortable.js 实现图层重排
 
+### 画布访问路径
+- **URL重写**: `/pwcanvas/` 重写为 `index.php?pw_canvas=1`
+- **查询变量**: `pw_canvas` 注册为自定义查询变量
+- **模板处理**: 通过 `pw_canvas_handle_request()` 方法处理请求
+- **产品数据**: 通过URL参数 `?product_id=` 传递产品ID
+
+
 ### 图层命名规则
 - **文字图层**: `文字: [前10个字符]...`
 - **图片图层**: `图片 [计数器]`
@@ -56,18 +63,27 @@ canvas.on('object:added', function (e) {
 ## 文件关联关系
 
 ### 核心文件
-- **`public/js/layer-manager.js`**: 图层管理核心逻辑
-- **`public/js/main.js`**: 画布初始化和事件监听
+- **`public/js/main.js`**: 画布初始化和事件监听（主画布脚本）
+- **`public/js/canvas-init.js`**: 画布初始化专用脚本
+- **`public/js/toolbar.js`**: 工具栏功能
+- **`public/js/export.js`**: 导出功能
 - **`public/partials/canvas-operation-panel.php`**: 图层面板HTML结构
+- **`public/partials/template-canvas-display.php`**: 画布主模板
+
+### 画布相关脚本
+- **`public/js/boundary.js`**: 边界检测功能
+- **`public/js/model-3d.js`**: 3D模型处理
+- **`public/js/design/`**: 设计相关脚本目录
 
 ### 样式文件
-- **`public/css/template-canvas-display.scss`**: 图层样式定义
-- **`public/css/template-canvas-display.css`**: 编译后的CSS
+- **外部CSS**: `https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/224.css`
+- **视图切换器**: `public/css/pw-view-switcher.css`
 
 ### 依赖库
 - **Fabric.js**: 画布核心库
 - **Sortable.js**: 图层拖拽排序 (CDN加载)
 - **Font Awesome**: 图层控制图标 (CDN加载)
+- **jsPDF**: PDF导出功能（管理后台）
 
 ## 开发规范
 

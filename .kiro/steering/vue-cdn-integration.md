@@ -8,40 +8,71 @@ PW Canvas 插件现在支持在产品页面通过 CDN 方式加载 Vue 3、Pinia
 
 ### CDN 加载器模块 (`class-pw-cdn-loader.php`)
 
-负责在产品页面加载必要的 CDN 脚本：
+负责在产品页面加载必要的 CDN 脚本和Vue组件：
 
+#### CDN依赖
 - **Vue 3**: `https://unpkg.com/vue@3/dist/vue.global.js`
 - **VueDemi**: `https://unpkg.com/vue-demi@0.14.5/lib/index.iife.js` (Pinia 依赖)
 - **Pinia**: `https://unpkg.com/pinia@2/dist/pinia.iife.js`
 - **Axios**: `https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js`
 
+#### 本地组件和模块
+- **API模块**: `productDataAPI.js` - 统一API调用接口
+- **状态管理**: `productStore.js` - Pinia store
+- **Vue组件**: 
+  - `ColorVariants.js` - 颜色变体选择器
+  - `ProductQuantity.js` - 数量选择器
+  - `ProductPriceInfo.js` - 价格信息显示
+  - `AddToCart.js` - 添加到购物车
+  - `CheckboxOptions.js` - 复选框选项
+  - `ProductAccessories.js` - 产品配件
+  - `QuantityDiscountSlider.js` - 数量折扣滑块
+- **样式文件**: 每个组件对应的CSS文件
+- **主应用**: `main.js` - Vue应用入口
+
 #### 加载条件
-- 仅在产品页面 (`is_product()`) 加载
+- 仅在产品页面通过 `pw_admin_single_product_custom_content` 钩子加载
 - 仅对同步产品 (`pw_isSyncProduct = '1'`) 加载
-- 防重复加载机制
+- 防重复加载机制（静态变量控制）
 - 钩子优先级：5 (确保在其他模块之前加载)
 
-#### 全局变量
-加载完成后创建以下全局变量：
+#### 开发环境支持
+- **组件验证器**: `component-validator.js` - 开发环境组件验证
+- **MOQ调试器**: `moq-debugger.js` - 最小订购量调试工具
+- 基于 `WP_DEBUG` 常量条件加载
+
+#### 产品配置数据
+提供给Vue应用的配置信息：
 ```javascript
-window.pwVue = Vue;           // Vue 3 实例
-window.pwPinia = pinia;       // Pinia 实例
-window.pwAxios = axios;       // Axios 实例
-window.PiniaDefineStore = Pinia.defineStore; // defineStore 函数
+window.pwProductConfig = {
+    pwId: 'Promowares产品ID',
+    productId: 'WooCommerce产品ID',
+    restApiUrl: 'REST API基础URL',
+    nonce: 'WordPress nonce'
+};
 ```
 
 ### 事件系统
 
 #### pwCdnLoaded 事件
-当所有 CDN 脚本加载完成后触发自定义事件：
+当所有 CDN 脚本加载完成后，由 `main.js` 触发自定义事件：
 
 ```javascript
 document.addEventListener('pwCdnLoaded', function(event) {
     const { vue: Vue, pinia, axios, defineStore } = event.detail;
     
     // 现在可以安全使用这些库
+    console.log('PW CDN 依赖加载完成');
 });
 ```
+
+#### 应用初始化流程
+1. **依赖检查**: `main.js` 检查所有CDN依赖是否加载完成
+2. **配置验证**: 验证 `window.pwProductConfig` 是否存在
+3. **应用创建**: 创建Vue应用实例和Pinia store
+4. **组件注册**: 注册所有产品页面组件
+5. **应用挂载**: 挂载到 `#vue-dynamic-product-area` 容器
+6. **事件触发**: 触发 `pwCdnLoaded` 事件通知其他模块
 
 ## 使用方法
 
@@ -397,11 +428,19 @@ public/js/product/
 │   └── productDataAPI.js      # 统一 API 调用模块
 ├── stores/
 │   └── productStore.js        # Pinia 状态管理
-└── components/
-    ├── ColorVariants.js       # 颜色变体选择器
-    ├── CheckboxOptions.js     # 复选框选项
-    ├── ProductQuantity.js     # 数量选择器
-    └── AddToCart.js          # 添加到购物车
+├── components/
+│   ├── ColorVariants.js       # 颜色变体选择器
+│   ├── CheckboxOptions.js     # 复选框选项
+│   ├── ProductQuantity.js     # 数量选择器
+│   ├── ProductPriceInfo.js    # 价格信息显示
+│   ├── AddToCart.js          # 添加到购物车
+│   ├── ProductAccessories.js  # 产品配件选择器
+│   ├── QuantityDiscountSlider.js # 数量折扣滑块
+│   └── component-validator.js # 组件验证器
+├── debug/
+│   └── moq-debugger.js        # MOQ调试工具
+└── demo/
+    └── batch-quantity-demo.html # 批量数量演示
 ```
 
 ### 数据流架构

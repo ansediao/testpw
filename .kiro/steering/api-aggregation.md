@@ -10,6 +10,8 @@ PW Canvas 插件实现了 BFF（Backend for Frontend）模式的API聚合系统�
 - **端点**: `GET /wp-json/pw/v1/product-data/{product_id}`
 - **实现类**: `Pw_Admin_Promowares_Api`
 - **方法**: `get_aggregated_product_data()`
+- **权限**: 公开访问（`'permission_callback' => '__return_true'`）
+- **缓存**: 30分钟产品级缓存机制
 
 ### 数据源集成
 
@@ -27,8 +29,8 @@ GET https://dev.promowares.com/api/v1/plugin/variant_product/{id}
 
 #### 2. 外部 Mock API 数据源
 ```php
-// Mock 数据
-GET https://mock.apipost.net/mock/2adf9164a465000/mock/2adf9164a465000/
+// Mock 数据（带产品ID参数）
+GET https://mock.apipost.net/mock/2adf9164a465000/mock/2adf9164a465000/?apipost_id=432a4307f209d
 ```
 
 #### 3. WooCommerce 数据源
@@ -281,14 +283,24 @@ function ProductComponent({ productId }) {
 ## 性能优化
 
 ### 缓存策略
-- 可在 `call_promowares_api()` 和 `call_mock_api()` 方法中添加缓存
-- 建议使用 WordPress Transients API 进行缓存
-- 缓存时间建议：产品数据 15分钟，Mock数据 1小时
+- **实现方式**: 使用WooCommerce产品meta存储缓存数据
+- **缓存字段**: `_pw_aggregated_data_cache` (数据) + `_pw_aggregated_data_cache_time` (时间戳)
+- **缓存时间**: 30分钟 (1800秒)
+- **缓存逻辑**: 
+  - 首次请求从API获取数据并缓存
+  - 后续请求直接返回缓存数据
+  - 过期后自动清除并重新获取
+
+### 缓存管理功能
+- **状态查询**: 获取总缓存数量、过期数量、最新更新时间
+- **清除操作**: 支持清除指定产品或所有产品缓存
+- **测试功能**: 缓存性能测试，对比API调用和缓存调用时间
+- **管理界面**: 在Promoware Dashboard中集成缓存管理
 
 ### 并发请求
-- 当前实现为串行请求，可优化为并行请求
-- 使用 `wp_remote_request()` 的异步特性
-- 考虑实现请求超时和重试机制
+- 当前实现为串行请求，确保数据一致性
+- 包含请求超时机制（Promowares API: 30秒，Mock API: 15秒）
+- 错误处理：单个数据源失败不影响其他数据源
 
 ## 扩展指南
 
