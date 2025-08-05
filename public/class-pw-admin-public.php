@@ -146,10 +146,7 @@ class Pw_Admin_Public
             wp_enqueue_script('wc-add-to-cart');
         }
 
-        // 在产品页面加载视图切换器脚本
-        if (is_product()) {
-            wp_enqueue_script('pw-view-switcher', plugin_dir_url(__FILE__) . 'js/pw-view-switcher.js', array('jquery'), $this->version, true);
-        }
+       
 
         // 添加内联脚本处理购物车图片
         $script = '
