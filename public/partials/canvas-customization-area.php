@@ -68,13 +68,9 @@ document.addEventListener("DOMContentLoaded", function() {
     function createViewButtons(productData) {
         console.log('createViewButtons called with:', productData);
         
-        if (!productData) {
-            console.log('No productData provided');
-            return;
-        }
-        
-        if (!productData.templates || !productData.templates.data) {
-            console.log('No templates.data found in productData');
+        const store = window.useCanvasStore();
+        if (!store) {
+            console.log('Store not available');
             return;
         }
         
@@ -89,49 +85,89 @@ document.addEventListener("DOMContentLoaded", function() {
         // Clear existing buttons
         container.innerHTML = "";
         
-        let buttonsCreated = 0;
-        
-        // Check for main_custom_view - 修正数据路径
-        const customView = productData.templates.data.custom_view;
-        if (!customView) {
-            console.log('No custom_view found in templates.data');
+        // 从 store 获取视图信息
+        const views = store.views;
+        if (!views || views.length === 0) {
+            console.log('No views found in store');
             return;
         }
         
-        const mainCustomView = customView.main_custom_view;
-        if (!mainCustomView) {
-            console.log('No main_custom_view found');
-        } else {
-            console.log('Found main_custom_view:', mainCustomView);
-            const mainButton = document.createElement('button');
-            mainButton.className = 'viewer-switch-btn';
-            mainButton.textContent = mainCustomView.view_name || 'Main View';
-            mainButton.setAttribute('data-view-data', JSON.stringify(mainCustomView));
-            container.appendChild(mainButton);
-            buttonsCreated++;
-            console.log('Main button created:', mainButton.textContent);
-        }
+        console.log('Creating buttons for views:', views);
         
-        // Check for sub_custom_view array
-        const subCustomViews = customView.sub_custom_view;
-        if (!Array.isArray(subCustomViews)) {
-            console.log('No sub_custom_view array found');
-        } else {
-            console.log('Found sub_custom_view array with', subCustomViews.length, 'items');
-            subCustomViews.forEach((subView, index) => {
-                console.log(`Creating sub button ${index + 1}:`, subView);
-                const subButton = document.createElement('button');
-                subButton.className = 'viewer-switch-btn';
-                subButton.textContent = subView.view_name || `Sub View ${index + 1}`;
-                subButton.setAttribute('data-view-data', JSON.stringify(subView));
-                container.appendChild(subButton);
-                buttonsCreated++;
-                console.log('Sub button created:', subButton.textContent);
+        views.forEach((view, index) => {
+            const button = document.createElement('button');
+            button.className = 'viewer-switch-btn';
+            button.textContent = view.name;
+            button.setAttribute('data-view-id', view.id);
+            button.setAttribute('data-view-data', JSON.stringify(view.data));
+            
+            // 第一个按钮默认激活
+            if (index === 0) {
+                button.classList.add('active');
+            }
+            
+            // 添加点击事件
+            button.addEventListener('click', function() {
+                // 移除所有按钮的激活状态
+                container.querySelectorAll('.viewer-switch-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // 激活当前按钮
+                button.classList.add('active');
+                
+                // 更新 store 中的激活视图
+                store.setActiveViewId(view.id);
+                
+                // 触发视图切换
+                switchToView(view);
+                
+                console.log('Switched to view:', view.name);
             });
+            
+            container.appendChild(button);
+            console.log('Button created for view:', view.name);
+        });
+        
+        // 默认激活第一个视图
+        if (views.length > 0) {
+            store.setActiveViewId(views[0].id);
+            switchToView(views[0]);
         }
         
-        console.log('View buttons creation completed. Total buttons created:', buttonsCreated);
-        console.log('Container innerHTML after creation:', container.innerHTML);
+        console.log('View buttons creation completed. Total buttons created:', views.length);
+    }
+    
+    function switchToView(view) {
+        console.log('Switching to view:', view);
+        
+        // 隐藏所有视图容器
+        const allViewContainers = document.querySelectorAll('.view-container');
+        allViewContainers.forEach(container => {
+            container.style.display = 'none';
+        });
+        
+        // 显示对应的视图容器
+        const viewContainer = document.getElementById(`view-container-${view.id}`);
+        if (viewContainer) {
+            viewContainer.style.display = 'block';
+        }
+        
+        // 获取对应的 canvas 实例
+        const store = window.useCanvasStore();
+        const canvas = store.viewCanvases[view.id];
+        if (canvas) {
+            // 更新全局 canvas 引用
+            if (window.setGlobalCanvas) {
+                window.setGlobalCanvas(canvas);
+            } else {
+                window.canvas = canvas;
+                window.fabricCanvas = canvas;
+            }
+            
+            // 重新渲染 canvas
+            canvas.renderAll();
+        }
     }
     
     // Start monitoring

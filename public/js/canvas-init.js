@@ -1,5 +1,26 @@
 // 初始化
 function init() {
+    // 检查是否为多视图模式
+    const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
+    
+    if (canvasStore && canvasStore.views && canvasStore.views.length > 0) {
+        // 多视图模式：跳过传统初始化，由多视图系统处理
+        console.log('多视图模式已激活，跳过传统 canvas 初始化');
+        return;
+    }
+    
+    // 兼容模式：尝试获取传统 canvas 元素
+    const colorCanvas = document.getElementById('colorLayer');
+    const shadowCanvas = document.getElementById('shadowLayer');
+    
+    if (!colorCanvas || !shadowCanvas) {
+        console.warn('未找到传统 canvas 元素，可能处于多视图模式');
+        return;
+    }
+    
+    const colorCtx = colorCanvas.getContext('2d');
+    const shadowCtx = shadowCanvas.getContext('2d');
+    
     const productImageUrl = colorCanvas.getAttribute('data-product-image');
     const colorImageUrl = shadowCanvas.getAttribute('data-color-image');
     // 设置高分辨率画布（4倍像素密度）
@@ -62,6 +83,30 @@ function init() {
 
 // 新增：加载并着色图片的函数
 function loadColorImage1(imageUrl, color) {
+    // 获取当前激活视图的 shadow canvas
+    const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
+    let shadowCanvas = null;
+    let shadowCtx = null;
+    
+    if (canvasStore && canvasStore.activeViewId) {
+        // 多视图模式：获取当前激活视图的 shadow canvas
+        shadowCanvas = document.querySelector(`#view-container-${canvasStore.activeViewId} .shadow-layer`);
+    } else {
+        // 兼容模式：尝试获取原有的 shadowLayer
+        shadowCanvas = document.getElementById('shadowLayer');
+    }
+    
+    if (!shadowCanvas) {
+        console.warn('未找到 shadow canvas 元素');
+        return;
+    }
+    
+    shadowCtx = shadowCanvas.getContext('2d');
+    if (!shadowCtx) {
+        console.warn('无法获取 shadow canvas 上下文');
+        return;
+    }
+    
     const colorImg = new Image();
     colorImg.onload = function () {
         const scale = Math.min(shadowCanvas.width / colorImg.width, shadowCanvas.height / colorImg.height);
@@ -85,7 +130,8 @@ function loadColorImage1(imageUrl, color) {
 // 画板缩放功能
 const zoomSlider = document.getElementById('zoomSlider');
 const zoomValue = document.getElementById('zoomValue');
-const canvasContainer = document.querySelector('.canvas-container');
+// 获取画布容器，兼容多视图和单视图模式
+let canvasContainer = document.querySelector('.multi-view-container') || document.querySelector('.canvas-container');
 // 初始化缩放值
 let currentZoom = 100;
 // 监听滑块变化
@@ -146,6 +192,30 @@ switchButtons.forEach(function(button) {
 
 // 修改loadColorImage函数，在加载完成后更新3D模型
 function loadColorImage(imageUrl, color) {
+    // 获取当前激活视图的 shadow canvas
+    const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
+    let shadowCanvas = null;
+    let shadowCtx = null;
+    
+    if (canvasStore && canvasStore.activeViewId) {
+        // 多视图模式：获取当前激活视图的 shadow canvas
+        shadowCanvas = document.querySelector(`#view-container-${canvasStore.activeViewId} .shadow-layer`);
+    } else {
+        // 兼容模式：尝试获取原有的 shadowLayer
+        shadowCanvas = document.getElementById('shadowLayer');
+    }
+    
+    if (!shadowCanvas) {
+        console.warn('未找到 shadow canvas 元素');
+        return;
+    }
+    
+    shadowCtx = shadowCanvas.getContext('2d');
+    if (!shadowCtx) {
+        console.warn('无法获取 shadow canvas 上下文');
+        return;
+    }
+    
     const colorImg = new Image();
     colorImg.onload = function () {
         const scale = Math.min(shadowCanvas.width / colorImg.width, shadowCanvas.height / colorImg.height);

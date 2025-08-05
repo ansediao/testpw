@@ -1,8 +1,29 @@
-// 获取画布和上下文
-const colorCanvas = document.getElementById('colorLayer');
-const shadowCanvas = document.getElementById('shadowLayer');
-const colorCtx = colorCanvas.getContext('2d');
-const shadowCtx = shadowCanvas.getContext('2d');
+// 获取画布和上下文 - 动态获取当前激活视图的 canvas
+function getActiveCanvasElements() {
+    const store = window.useCanvasStore && window.useCanvasStore();
+    if (store && store.activeViewId) {
+        return {
+            colorCanvas: document.getElementById(`colorLayer-${store.activeViewId}`),
+            shadowCanvas: document.getElementById(`shadowLayer-${store.activeViewId}`),
+            mainCanvas: document.getElementById(`mainCanvas-${store.activeViewId}`)
+        };
+    }
+    // 回退到原始 ID（兼容性）
+    return {
+        colorCanvas: document.getElementById('colorLayer'),
+        shadowCanvas: document.getElementById('shadowLayer'),
+        mainCanvas: document.getElementById('mainCanvas')
+    };
+}
+
+// 动态获取上下文
+function getActiveCanvasContexts() {
+    const elements = getActiveCanvasElements();
+    return {
+        colorCtx: elements.colorCanvas ? elements.colorCanvas.getContext('2d') : null,
+        shadowCtx: elements.shadowCanvas ? elements.shadowCanvas.getContext('2d') : null
+    };
+}
  // 历史记录管理逻辑
 // 历史记录数组和当前索引
 let history = [];
@@ -12,12 +33,15 @@ let isRestoring = false; // 标志以防止恢复状态时触发保存
 
 // 保存画布当前状态到历史记录
 function saveState() {
+  const activeCanvas = getActiveCanvas();
+  if (!activeCanvas) return;
+  
   // 如果在历史记录中间进行了新操作，则清除未来的历史记录
   if (historyPointer < history.length - 1) {
     history = history.slice(0, historyPointer + 1);
   }
   // 将当前画布内容保存为 Data URL
-  history.push(canvas.toDataURL());
+  history.push(activeCanvas.toDataURL());
   historyPointer++;
 
   // 限制历史记录步数
@@ -32,25 +56,26 @@ function saveState() {
 
 // 从历史记录中加载指定状态并绘制到画布
 function restoreState(index) {
-  if (index >= 0 && index < history.length) {
-    isRestoring = true;
-    canvas.clear(); // 清空画布
-    const img = new Image();
-    img.src = history[index];
-    img.onload = () => {
-      fabric.Image.fromURL(img.src, function(oImg) {
-        // 调整图像尺寸以适应画布
-        oImg.scaleToWidth(canvas.width);
-        oImg.scaleToHeight(canvas.height);
-        canvas.add(oImg);
-        canvas.renderAll();
-        historyPointer = index;
-        updateHistoryButtons();
+  const activeCanvas = getActiveCanvas();
+  if (!activeCanvas || index < 0 || index >= history.length) return;
+  
+  isRestoring = true;
+  activeCanvas.clear(); // 清空画布
+  const img = new Image();
+  img.src = history[index];
+  img.onload = () => {
+    fabric.Image.fromURL(img.src, function(oImg) {
+      // 调整图像尺寸以适应画布
+      oImg.scaleToWidth(activeCanvas.width);
+      oImg.scaleToHeight(activeCanvas.height);
+      activeCanvas.add(oImg);
+      activeCanvas.renderAll();
+      historyPointer = index;
+      updateHistoryButtons();
 
-        isRestoring = false;
-      }, { crossOrigin: 'anonymous' });
-    };
-  }
+      isRestoring = false;
+    }, { crossOrigin: 'anonymous' });
+  };
 }
 
 // 更新前进/后退按钮状态
@@ -70,32 +95,61 @@ function initializeCanvas() {
   saveState(); // 保存初始空白状态
 }
 
-// 初始化Fabric.js画布
+// Canvas 初始化将在多视图系统中处理
+// 这里保留全局变量的声明以保持兼容性
+let canvas = null;
 
-const canvas = new fabric.Canvas('mainCanvas', {
-  // 设置选中对象时的控制框样式
-  selectionBorderColor: 'rgba(0,0,0,0.3)',
+// 获取当前激活的 canvas 实例
+function getActiveCanvas() {
+    const store = window.useCanvasStore && window.useCanvasStore();
+    if (store && store.activeViewId) {
+        return store.getActiveViewCanvas();
+    }
+    return window.canvas || window.fabricCanvas;
+}
+
+// 动态设置全局 canvas 引用
+function setGlobalCanvas(fabricCanvas) {
+    canvas = fabricCanvas;
+    window.canvas = fabricCanvas;
+    window.fabricCanvas = fabricCanvas;
+}
+
+// 为 canvas 添加所有必要的事件监听器
+function initializeCanvasEventListeners(fabricCanvas) {
+  if (!fabricCanvas) return;
   
-  selectionLineWidth: 1
-});
+  addCanvasEventListeners(fabricCanvas);
+  addCanvasSelectionListeners(fabricCanvas);
+  addCanvas3DModelListeners(fabricCanvas);
+  addCanvasLayerListeners(fabricCanvas);
+  
+  console.log('Canvas 事件监听器已初始化');
+}
 
-// 将画布实例设置为全局变量，供图层组件使用
-window.canvas = canvas;
-window.fabricCanvas = canvas;
+// 暴露给全局使用
+window.initializeCanvasEventListeners = initializeCanvasEventListeners;
+window.setGlobalCanvas = setGlobalCanvas;
 
 
-canvas.on('object:modified', () => {
-  updatePreviewCanvas();
-  if (!isRestoring) saveState();
-});
-canvas.on('object:added', () => {
-  updatePreviewCanvas();
-  if (!isRestoring) saveState();
-});
-canvas.on('object:removed', () => {
-  updatePreviewCanvas();
-  if (!isRestoring) saveState();
-});
+// 为当前激活的 canvas 添加事件监听器
+function addCanvasEventListeners(fabricCanvas) {
+  if (!fabricCanvas) return;
+  
+  // 监听画布对象修改事件，保存状态
+  fabricCanvas.on('object:modified', () => {
+    updatePreviewCanvas();
+    if (!isRestoring) saveState();
+  });
+  fabricCanvas.on('object:added', () => {
+    updatePreviewCanvas();
+    if (!isRestoring) saveState();
+  });
+  fabricCanvas.on('object:removed', () => {
+    updatePreviewCanvas();
+    if (!isRestoring) saveState();
+  });
+}
 
 const arcSlider = document.getElementById('arcSlider');
 if (arcSlider) {
@@ -107,10 +161,13 @@ if (arcSlider) {
 
 // 更新预览画布的函数
 function updatePreviewCanvas() {
+  const activeCanvas = getActiveCanvas();
+  if (!activeCanvas) return;
+  
   const designPreviewCanvas = document.getElementById('designPreviewCanvas');
   if (!designPreviewCanvas) return;
 
-  const mainCanvas = canvas.toDataURL({
+  const mainCanvas = activeCanvas.toDataURL({
     format: 'png',
     quality: 1
   });
@@ -171,26 +228,42 @@ function drawImageCurvedAndCentered(ctx, image, x, y, width, height, arc, source
 
 
 
-// 监听对象选择事件
-canvas.on('selection:created', function (options) {
-  updateDynamicToolbar(options.selected[0]);
-});
-canvas.on('selection:updated', function (options) {
-  updateDynamicToolbar(options.selected[0]);
-});
-canvas.on('selection:cleared', function () {
-  updateDynamicToolbar(null);
-});
+// 为当前激活的 canvas 添加选择事件监听器
+function addCanvasSelectionListeners(fabricCanvas) {
+  if (!fabricCanvas) return;
+  
+  // 监听对象选择事件
+  fabricCanvas.on('selection:created', function (options) {
+    updateDynamicToolbar(options.selected[0]);
+  });
+  fabricCanvas.on('selection:updated', function (options) {
+    updateDynamicToolbar(options.selected[0]);
+  });
+  fabricCanvas.on('selection:cleared', function () {
+    updateDynamicToolbar(null);
+  });
+}
 
 // 默认颜色
 const defaultColor = '#3498db';
 let currentColor = defaultColor;
-// 初始化画布
-init();
-// 初始化时绘制边界
-drawBoundary();
-// 初始化画布尺寸和历史记录
-initializeCanvas();
+
+// 检查是否为多视图模式
+const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
+const isMultiViewMode = canvasStore && canvasStore.views && canvasStore.views.length > 0;
+
+if (!isMultiViewMode) {
+  // 单视图模式：执行传统初始化
+  init();
+  drawBoundary();
+  // 只有在 canvas 存在时才初始化
+  if (canvas) {
+    initializeCanvas();
+  }
+} else {
+  // 多视图模式：初始化将由多视图系统处理
+  console.log('多视图模式已激活，跳过传统初始化');
+}
 
 // 前进按钮事件
 const forwardBtn = document.getElementById('forward');
@@ -297,99 +370,109 @@ if (document.getElementById('model3dContainer')) {
   });
 }
 
-// 添加Canvas事件监听，以便在修改时更新3D模型纹理
-// 对象修改事件
-canvas.on('object:modified', function () {
-  updateModelFromCanvas();
-});
-// 对象添加事件
-canvas.on('object:added', function () {
-  updateModelFromCanvas();
-});
-// 对象移除事件
-canvas.on('object:removed', function () {
-  updateModelFromCanvas();
-});
-// 对象移动事件
-canvas.on('object:moving', function () {
-  updateModelFromCanvas();
-});
-// 对象缩放事件
-canvas.on('object:scaling', function () {
-  updateModelFromCanvas();
-});
-// 对象旋转事件
-canvas.on('object:rotating', function () {
-  updateModelFromCanvas();
-});
-
-// 监听对象添加事件 - 同步到图层管理系统
-canvas.on('object:added', function (e) {
-  const obj = e.target;
+// 为当前激活的 canvas 添加3D模型更新事件监听器
+function addCanvas3DModelListeners(fabricCanvas) {
+  if (!fabricCanvas) return;
   
-  // 确保对象有 ID
-  if (!obj.id) {
-    obj.id = `layer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    console.log('为对象分配ID:', obj.id);
-  }
-  
-  // 保持旧的图层面板功能
-  if (typeof addLayerItem === 'function') {
-    addLayerItem(obj);
-  }
-  
-  // 同步到新的 Pinia store 系统
-  syncCanvasObjectToStore(obj, 'added');
-});
-
-// 监听对象移除事件 - 同步到图层管理系统
-canvas.on('object:removed', function (e) {
-  const obj = e.target;
-  
-  // 保持旧的图层面板功能
-  if (obj.id) {
-    const layerItem = document.querySelector(`.layer-item[data-id="${obj.id}"]`);
-    if (layerItem) {
-      layerItem.remove();
-    }
-  }
-  
-  // 同步到新的 Pinia store 系统
-  syncCanvasObjectToStore(obj, 'removed');
-});
-
-// 监听选择事件，更新图层面板中的选中状态
-canvas.on('selection:created', function (e) {
-  if (typeof updateLayerSelection === 'function') {
-    updateLayerSelection(e.selected[0]);
-  }
-  
-  // 同步选中状态到 Pinia store
-  if (e.selected && e.selected.length > 0 && e.selected[0].id) {
-    syncSelectionToStore(e.selected[0].id);
-  }
-});
-
-canvas.on('selection:updated', function (e) {
-  if (typeof updateLayerSelection === 'function') {
-    updateLayerSelection(e.selected[0]);
-  }
-  
-  // 同步选中状态到 Pinia store
-  if (e.selected && e.selected.length > 0 && e.selected[0].id) {
-    syncSelectionToStore(e.selected[0].id);
-  }
-});
-
-canvas.on('selection:cleared', function () {
-  // 保持旧的图层面板功能
-  document.querySelectorAll('.layer-item').forEach(item => {
-    item.classList.remove('selected');
+  // 添加Canvas事件监听，以便在修改时更新3D模型纹理
+  // 对象修改事件
+  fabricCanvas.on('object:modified', function () {
+    updateModelFromCanvas();
   });
+  // 对象添加事件
+  fabricCanvas.on('object:added', function () {
+    updateModelFromCanvas();
+  });
+  // 对象移除事件
+  fabricCanvas.on('object:removed', function () {
+    updateModelFromCanvas();
+  });
+  // 对象移动事件
+  fabricCanvas.on('object:moving', function () {
+    updateModelFromCanvas();
+  });
+  // 对象缩放事件
+  fabricCanvas.on('object:scaling', function () {
+    updateModelFromCanvas();
+  });
+  // 对象旋转事件
+  fabricCanvas.on('object:rotating', function () {
+    updateModelFromCanvas();
+  });
+}
+
+// 为当前激活的 canvas 添加图层管理事件监听器
+function addCanvasLayerListeners(fabricCanvas) {
+  if (!fabricCanvas) return;
   
-  // 清除 Pinia store 中的选中状态
-  syncSelectionToStore(null);
-});
+  // 监听对象添加事件 - 同步到图层管理系统
+  fabricCanvas.on('object:added', function (e) {
+    const obj = e.target;
+    
+    // 确保对象有 ID
+    if (!obj.id) {
+      obj.id = `layer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      console.log('为对象分配ID:', obj.id);
+    }
+    
+    // 保持旧的图层面板功能
+    if (typeof addLayerItem === 'function') {
+      addLayerItem(obj);
+    }
+    
+    // 同步到新的 Pinia store 系统
+    syncCanvasObjectToStore(obj, 'added');
+  });
+
+  // 监听对象移除事件 - 同步到图层管理系统
+  fabricCanvas.on('object:removed', function (e) {
+    const obj = e.target;
+    
+    // 保持旧的图层面板功能
+    if (obj.id) {
+      const layerItem = document.querySelector(`.layer-item[data-id="${obj.id}"]`);
+      if (layerItem) {
+        layerItem.remove();
+      }
+    }
+    
+    // 同步到新的 Pinia store 系统
+    syncCanvasObjectToStore(obj, 'removed');
+  });
+
+  // 监听选择事件，更新图层面板中的选中状态
+  fabricCanvas.on('selection:created', function (e) {
+    if (typeof updateLayerSelection === 'function') {
+      updateLayerSelection(e.selected[0]);
+    }
+    
+    // 同步选中状态到 Pinia store
+    if (e.selected && e.selected.length > 0 && e.selected[0].id) {
+      syncSelectionToStore(e.selected[0].id);
+    }
+  });
+
+  fabricCanvas.on('selection:updated', function (e) {
+    if (typeof updateLayerSelection === 'function') {
+      updateLayerSelection(e.selected[0]);
+    }
+    
+    // 同步选中状态到 Pinia store
+    if (e.selected && e.selected.length > 0 && e.selected[0].id) {
+      syncSelectionToStore(e.selected[0].id);
+    }
+  });
+
+  fabricCanvas.on('selection:cleared', function () {
+    // 保持旧的图层面板功能
+    document.querySelectorAll('.layer-item').forEach(item => {
+      item.classList.remove('selected');
+    });
+    
+    // 清除 Pinia store 中的选中状态
+    syncSelectionToStore(null);
+  });
+}
 
 // 同步画布对象到 Pinia store 的函数
 function syncCanvasObjectToStore(obj, action) {

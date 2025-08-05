@@ -13,15 +13,12 @@ if ($product_id > 0 && $product) {
     // 获取3D模型文件
     $model_3d_url = get_post_meta($product_id, 'pw_3d_file', true);
 
-
     // 获取容器图层
     $pw_container  = get_post_meta($product_id, 'pw_container', true);
     // 获取 4格图层
     $pw_4_grid = get_post_meta($product_id, 'pw_4-grid', true);
 
     $pw_bg = get_post_meta($product_id, 'pw_bg', true);
-
-    // print_r($pw_container);
 
     // 如果 pw_3d_file 存在 ，则 $image_url 和 $color_image_url 值就为空
     if ($model_3d_url) {
@@ -32,7 +29,6 @@ if ($product_id > 0 && $product) {
     // 如果 $pw_4_grid 存在且不为空 那么 
     if ($pw_4_grid) {
         $image_url = $pw_4_grid;
-        // $color_image_url = '';
         // 获取图片尺寸
         $image_size = getimagesize($pw_4_grid);
         $image_width = $image_size[0];
@@ -42,103 +38,207 @@ if ($product_id > 0 && $product) {
         $canvas_height = round(($canvas_width / $image_width) * $image_height);
     }
 }
+
+// 准备图片数据
+$first_image_url = $color_image_url;
+if (strpos($color_image_url, ',') !== false) {
+    $image_urls = explode(',', $color_image_url);
+    $first_image_url = trim($image_urls[0]);
+}
+// 获取图片尺寸
+$first_image_width = 0;
+$first_image_height = 0;
+if ($first_image_url) {
+    // 如果 $first_image_url 是以 / 开头的相对路径，补全为绝对路径
+    if (strpos($first_image_url, '/') === 0) {
+        $first_image_url_full = $_SERVER['DOCUMENT_ROOT'] . $first_image_url;
+    } else {
+        $first_image_url_full = $first_image_url;
+    }
+    $img_size = getimagesize($first_image_url_full);
+    if ($img_size) {
+        $first_image_width = $img_size[0];
+        $first_image_height = $img_size[1];
+    }
+}
 ?>
 
-
-
-
-<?php if (empty($pw_4_grid)) : ?>
-    <?php
-    // 如果$color_image_url包含逗号，说明有多张图片，只取第一张
-    $first_image_url = $color_image_url;
-    if (strpos($color_image_url, ',') !== false) {
-        $image_urls = explode(',', $color_image_url);
-        $first_image_url = trim($image_urls[0]);
-    }
-    // 获取图片尺寸
-    $first_image_width = 0;
-    $first_image_height = 0;
-    if ($first_image_url) {
-        // 如果 $first_image_url 是以 / 开头的相对路径，补全为绝对路径
-        if (strpos($first_image_url, '/') === 0) {
-            $first_image_url_full = $_SERVER['DOCUMENT_ROOT'] . $first_image_url;
-        } else {
-            $first_image_url_full = $first_image_url;
-        }
-        $img_size = getimagesize($first_image_url_full);
-        if ($img_size) {
-            $first_image_width = $img_size[0];
-            $first_image_height = $img_size[1];
-        }
-    }
-    ?>
-    <canvas id="shadowLayer"
-        data-color-image="<?php echo esc_attr($first_image_url); ?>"
-        data-img-width="<?php echo esc_attr($first_image_width); ?>"
-        data-img-height="<?php echo esc_attr($first_image_height); ?>"
-        style="display:block;height:100%;"></canvas>
-
-    <canvas id="colorLayer"
-        data-img-width="<?php echo esc_attr($first_image_width); ?>"
-        data-img-height="<?php echo esc_attr($first_image_height); ?>"
-        data-product-image="<?php echo esc_attr($image_url); ?>"
-        style="display:block;"></canvas>
-    <canvas id="mainCanvas"
-        data-img-width="<?php echo esc_attr($first_image_width); ?>"
-        data-img-height="<?php echo esc_attr($first_image_height); ?>"
-        style="display:block;height:100%;"></canvas>
-
-    <!-- 添加边缘限制层 -->
-    <canvas id="boundaryLayer"
-        data-img-width="<?php echo esc_attr($first_image_width); ?>"
-        data-img-height="<?php echo esc_attr($first_image_height); ?>"
-        <?php if ($pw_4_grid) {
-            echo 'style="display:none;"';
-        } else {
-            echo 'style="height:100%;width:auto;display:block;"';
-        } ?>></canvas>
-<?php endif; ?>
+<!-- 多视图容器 -->
+<div id="multi-view-container">
+    <!-- 视图容器将通过 JavaScript 动态生成 -->
+</div>
 
 
 
 <script>
-    // 让所有canvas高度100%，宽度根据图片比例自适应
+    // 多视图 canvas 初始化
     document.addEventListener('DOMContentLoaded', function() {
-                    //获取 shadowLayer元素 高度
-                    var shadowLayer = document.getElementById('shadowLayer');
-                    var shadowLayer_height = shadowLayer.offsetHeight;
-
-
-                    var first_image_width = shadowLayer.getAttribute('data-img-width');
-                    var first_image_height = shadowLayer.getAttribute('data-img-height');
-                    // 计算 canvas的宽度
-                    var canvas_height = shadowLayer_height;
-                    var canvas_width = (first_image_width / first_image_height) * canvas_height;
-                    
-                    // 输出日志
-                    console.log('shadowLayer height:', shadowLayer_height);
-                    console.log('first_image_width:', first_image_width);
-                    console.log('first_image_height:', first_image_height);
-                    console.log('canvas width:', canvas_width); 
-                    console.log('canvas height:', canvas_height);
-
-                    canvas.setHeight(canvas_height);
-                    canvas.setWidth(canvas_width);
-
-            // 设置 shadowLayer colorLayer  boundaryLayer 的宽高
-            var shadowLayer = document.getElementById('shadowLayer');
-            shadowLayer.style.height = canvas_height + 'px';
-            shadowLayer.style.width = canvas_width + 'px';  
-            var colorLayer = document.getElementById('colorLayer');
-            colorLayer.style.height = canvas_height + 'px';
-            colorLayer.style.width = canvas_width + 'px';
-            var boundaryLayer = document.getElementById('boundaryLayer');
-            boundaryLayer.style.height = canvas_height + 'px';
-            boundaryLayer.style.width = canvas_width + 'px';
-
-
-
-
-
+        // 等待 Pinia store 可用
+        function waitForStore() {
+            if (typeof window.useCanvasStore === 'function') {
+                const store = window.useCanvasStore();
+                if (store) {
+                    initializeMultiViewCanvases(store);
+                    return;
+                }
+            }
+            setTimeout(waitForStore, 100);
+        }
+        waitForStore();
     });
+    
+    function initializeMultiViewCanvases(store) {
+        console.log('Initializing multi-view canvases');
+        
+        let isInitialized = false;
+        
+        // 监听视图数据变化
+        store.$subscribe((mutation, state) => {
+            if (mutation.storeId === 'canvas' && state.views && state.views.length > 0 && !isInitialized) {
+                createViewContainers(state.views, store);
+                isInitialized = true;
+            }
+        });
+        
+        // 如果视图数据已经存在，直接创建
+        if (store.views && store.views.length > 0 && !isInitialized) {
+            createViewContainers(store.views, store);
+            isInitialized = true;
+        }
+    }
+    
+    function createViewContainers(views, store) {
+        console.log('Creating view containers for views:', views);
+        
+        const multiViewContainer = document.getElementById('multi-view-container');
+        if (!multiViewContainer) {
+            console.error('Multi-view container not found');
+            return;
+        }
+        
+        // 清空现有容器
+        multiViewContainer.innerHTML = '';
+        
+        views.forEach((view, index) => {
+            // 创建视图容器
+            const viewContainer = document.createElement('div');
+            viewContainer.id = `view-container-${view.id}`;
+            viewContainer.className = 'view-container';
+            viewContainer.style.cssText = `
+                position: relative;
+                width: 100%;
+                height: 100%;
+                display: ${index === 0 ? 'block' : 'none'};
+            `;
+            
+            // 创建 canvas 元素
+            const canvasHtml = `
+                <canvas id="shadowLayer-${view.id}"
+                    data-color-image="<?php echo esc_attr($first_image_url); ?>"
+                    data-img-width="<?php echo esc_attr($first_image_width); ?>"
+                    data-img-height="<?php echo esc_attr($first_image_height); ?>"
+                    style="position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
+                
+                <canvas id="colorLayer-${view.id}"
+                    data-img-width="<?php echo esc_attr($first_image_width); ?>"
+                    data-img-height="<?php echo esc_attr($first_image_height); ?>"
+                    data-product-image="<?php echo esc_attr($image_url); ?>"
+                    style="position: absolute; top: 0; left: 0; z-index: 2;"></canvas>
+                
+                <canvas id="mainCanvas-${view.id}"
+                    data-img-width="<?php echo esc_attr($first_image_width); ?>"
+                    data-img-height="<?php echo esc_attr($first_image_height); ?>"
+                    style="position: absolute; top: 0; left: 0; z-index: 3;"></canvas>
+                
+                <canvas id="boundaryLayer-${view.id}"
+                    data-img-width="<?php echo esc_attr($first_image_width); ?>"
+                    data-img-height="<?php echo esc_attr($first_image_height); ?>"
+                    style="position: absolute; top: 0; left: 0; z-index: 4;"></canvas>
+            `;
+            
+            viewContainer.innerHTML = canvasHtml;
+            multiViewContainer.appendChild(viewContainer);
+            
+            // 初始化该视图的 Fabric.js canvas
+            setTimeout(() => {
+                initializeViewCanvas(view, store);
+            }, 100);
+        });
+    }
+    
+    function initializeViewCanvas(view, store) {
+        console.log('Initializing canvas for view:', view.name);
+        
+        const mainCanvasId = `mainCanvas-${view.id}`;
+        const mainCanvasElement = document.getElementById(mainCanvasId);
+        
+        if (!mainCanvasElement) {
+            console.error('Canvas element not found:', mainCanvasId);
+            return;
+        }
+        
+        // 设置 canvas 尺寸为 400x300
+        const canvasWidth = 400;
+        const canvasHeight = 300;
+        
+        // 创建 Fabric.js canvas 实例
+        const fabricCanvas = new fabric.Canvas(mainCanvasId, {
+            width: canvasWidth,
+            height: canvasHeight,
+            backgroundColor: '#ffffff'
+        });
+        
+        // 在右上角添加视图名称文本
+        const viewNameText = new fabric.Text(view.name, {
+            left: canvasWidth - 10,
+            top: 10,
+            fontSize: 16,
+            fill: '#333333',
+            fontFamily: 'Arial',
+            selectable: false,
+            evented: false,
+            originX: 'right',
+            originY: 'top'
+        });
+        
+        fabricCanvas.add(viewNameText);
+        fabricCanvas.renderAll();
+        
+        // 为 canvas 添加事件监听器
+        if (window.initializeCanvasEventListeners) {
+            window.initializeCanvasEventListeners(fabricCanvas);
+        }
+        
+        // 存储 canvas 实例到 store
+        store.addViewCanvas(view.id, fabricCanvas);
+        
+        // 设置其他 canvas 层的尺寸
+        const shadowLayer = document.getElementById(`shadowLayer-${view.id}`);
+        const colorLayer = document.getElementById(`colorLayer-${view.id}`);
+        const boundaryLayer = document.getElementById(`boundaryLayer-${view.id}`);
+        
+        [shadowLayer, colorLayer, boundaryLayer].forEach(canvas => {
+            if (canvas) {
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+                canvas.style.width = canvasWidth + 'px';
+                canvas.style.height = canvasHeight + 'px';
+            }
+        });
+        
+        // 如果是第一个视图，设置为全局 canvas
+        if (store.activeViewId === view.id) {
+            window.canvas = fabricCanvas;
+            window.fabricCanvas = fabricCanvas;
+        }
+        
+        console.log('Canvas initialized for view:', view.name);
+        
+        // 为所有视图绘制边界
+        setTimeout(() => {
+            if (window.drawBoundaryForAllViews) {
+                window.drawBoundaryForAllViews();
+            }
+        }, 100);
+    }
 </script>

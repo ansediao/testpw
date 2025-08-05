@@ -27,6 +27,10 @@ export const useCanvasStore = defineStore('canvas', {
         productData: null,      // 存储从API获取的产品数据
         isLoadingProductData: false, // 产品数据加载状态
         productDataError: null, // 产品数据加载错误信息
+        // 视图相关状态
+        views: [],              // 存储所有视图信息
+        activeViewId: null,     // 当前激活的视图ID
+        viewCanvases: {},       // 存储每个视图的canvas实例
     }),
     // 4. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
     actions: {
@@ -47,6 +51,12 @@ export const useCanvasStore = defineStore('canvas', {
         setProductData(data) { this.productData = data; },
         setLoadingProductData(loading) { this.isLoadingProductData = loading; },
         setProductDataError(error) { this.productDataError = error; },
+        // 视图相关方法
+        setViews(views) { this.views = views; },
+        setActiveViewId(viewId) { this.activeViewId = viewId; },
+        addViewCanvas(viewId, canvas) { this.viewCanvases[viewId] = canvas; },
+        removeViewCanvas(viewId) { delete this.viewCanvases[viewId]; },
+        getActiveViewCanvas() { return this.viewCanvases[this.activeViewId]; },
         // 异步获取产品数据
         async fetchProductData(pwId) {
             this.setLoadingProductData(true);
@@ -55,6 +65,8 @@ export const useCanvasStore = defineStore('canvas', {
                 const response = await axios.get(`/wp-json/pw/v1/product-data/${pwId}`);
                 this.setProductData(response.data);
                 console.log('产品数据获取成功:', response.data);
+                // 从产品数据中提取视图信息
+                this.extractViewsFromProductData(response.data);
                 return response.data;
             } catch (error) {
                 console.error('获取产品数据失败:', error);
@@ -63,6 +75,41 @@ export const useCanvasStore = defineStore('canvas', {
             } finally {
                 this.setLoadingProductData(false);
             }
+        },
+        // 从产品数据中提取视图信息
+        extractViewsFromProductData(productData) {
+            const views = [];
+            if (productData && productData.templates && productData.templates.data && productData.templates.data.custom_view) {
+                const customView = productData.templates.data.custom_view;
+                
+                // 添加主视图
+                if (customView.main_custom_view) {
+                    views.push({
+                        id: 'main_view',
+                        name: customView.main_custom_view.view_name || 'Main View',
+                        data: customView.main_custom_view
+                    });
+                }
+                
+                // 添加子视图
+                if (Array.isArray(customView.sub_custom_view)) {
+                    customView.sub_custom_view.forEach((subView, index) => {
+                        views.push({
+                            id: `sub_view_${index}`,
+                            name: subView.view_name || `Sub View ${index + 1}`,
+                            data: subView
+                        });
+                    });
+                }
+            }
+            
+            this.setViews(views);
+            // 默认激活第一个视图
+            if (views.length > 0) {
+                this.setActiveViewId(views[0].id);
+            }
+            
+            console.log('提取的视图信息:', views);
         }
     },
 });
