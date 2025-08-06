@@ -157,6 +157,14 @@ document.addEventListener("DOMContentLoaded", function() {
         const store = window.useCanvasStore();
         const canvas = store.viewCanvases[view.id];
         if (canvas) {
+            // 取消所有视图上所有元素的选中状态
+            Object.values(store.viewCanvases).forEach(viewCanvas => {
+                if (viewCanvas && typeof viewCanvas.discardActiveObject === 'function') {
+                    viewCanvas.discardActiveObject();
+                    viewCanvas.renderAll();
+                }
+            });
+            
             // 更新全局 canvas 引用
             if (window.setGlobalCanvas) {
                 window.setGlobalCanvas(canvas);
