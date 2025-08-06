@@ -203,11 +203,15 @@ const layersApp = Vue.createApp({
 
         // 切换可见性
         const toggleVisibility = (layer) => {
+            const currentViewId = store.activeViewId;
+            if (!currentViewId) return;
+            
             const newVisible = !layer.visible;
-            const updatedLayers = store.layers.map(l =>
+            const currentViewLayers = store.getViewLayers(currentViewId);
+            const updatedLayers = currentViewLayers.map(l =>
                 l.id === layer.id ? { ...l, visible: newVisible } : l
             );
-            store.setLayers(updatedLayers);
+            store.setViewLayers(currentViewId, updatedLayers);
 
             // 同步到画布对象
             syncLayerVisibilityToCanvas(layer.id, newVisible);
@@ -215,11 +219,15 @@ const layersApp = Vue.createApp({
 
         // 切换锁定状态
         const toggleLock = (layer) => {
+            const currentViewId = store.activeViewId;
+            if (!currentViewId) return;
+            
             const newLocked = !layer.locked;
-            const updatedLayers = store.layers.map(l =>
+            const currentViewLayers = store.getViewLayers(currentViewId);
+            const updatedLayers = currentViewLayers.map(l =>
                 l.id === layer.id ? { ...l, locked: newLocked } : l
             );
-            store.setLayers(updatedLayers);
+            store.setViewLayers(currentViewId, updatedLayers);
 
             // 同步到画布对象
             syncLayerLockToCanvas(layer.id, newLocked);
@@ -227,6 +235,9 @@ const layersApp = Vue.createApp({
 
         // 复制图层
         const duplicateLayer = (layer, targetGroupId = null) => {
+            const currentViewId = store.activeViewId;
+            if (!currentViewId) return;
+            
             // 先在画布中复制对象
             duplicateCanvasObject(layer.id);
             
@@ -241,19 +252,21 @@ const layersApp = Vue.createApp({
                 groupOrder: targetGroupId ? getGroupLayers(targetGroupId).length : layer.groupOrder
             };
             
-            const updatedLayers = [...store.layers, newLayer];
-            store.setLayers(updatedLayers);
+            // 添加到当前视图
+            store.addLayerToView(currentViewId, newLayer);
         };
 
         // 删除图层
         const deleteLayer = (layer) => {
             if (confirm(`确定要删除图层 "${layer.name}" 吗？`)) {
+                const currentViewId = store.activeViewId;
+                if (!currentViewId) return;
+                
                 // 先从画布中删除对象
                 deleteCanvasObject(layer.id);
 
-                // 然后从 store 中删除（这会通过画布事件自动触发）
-                const updatedLayers = store.layers.filter(l => l.id !== layer.id);
-                store.setLayers(updatedLayers);
+                // 然后从当前视图的store中删除
+                store.removeLayerFromView(currentViewId, layer.id);
 
                 // 如果删除的是当前选中的图层，清除选中状态
                 if (store.activeObjectId === layer.id) {
@@ -345,6 +358,9 @@ const layersApp = Vue.createApp({
         const createGroup = () => {
             if (!newGroupName.value.trim()) return;
             
+            const currentViewId = store.activeViewId;
+            if (!currentViewId) return;
+            
             const newGroup = {
                 id: 'group_' + Date.now(),
                 name: newGroupName.value.trim(),
@@ -353,8 +369,9 @@ const layersApp = Vue.createApp({
                 expanded: true
             };
             
-            const updatedGroups = [...layerGroups.value, newGroup];
-            store.setLayerGroups(updatedGroups);
+            const currentViewGroups = store.getViewLayerGroups(currentViewId);
+            const updatedGroups = [...currentViewGroups, newGroup];
+            store.setViewLayerGroups(currentViewId, updatedGroups);
             
             newGroupName.value = '';
             showGroupDialog.value = false;
@@ -369,30 +386,38 @@ const layersApp = Vue.createApp({
         const assignLayerToGroup = () => {
             if (!selectedLayerForAssign.value || !selectedGroupForAssign.value) return;
             
-            const layerIndex = layers.value.findIndex(l => l.id === selectedLayerForAssign.value.id);
+            const currentViewId = store.activeViewId;
+            if (!currentViewId) return;
+            
+            const currentViewLayers = store.getViewLayers(currentViewId);
+            const layerIndex = currentViewLayers.findIndex(l => l.id === selectedLayerForAssign.value.id);
             if (layerIndex !== -1) {
-                const updatedLayers = [...layers.value];
+                const updatedLayers = [...currentViewLayers];
                 updatedLayers[layerIndex] = {
                     ...updatedLayers[layerIndex],
                     groupId: selectedGroupForAssign.value,
                     groupOrder: getGroupLayers(selectedGroupForAssign.value).length
                 };
-                store.setLayers(updatedLayers);
+                store.setViewLayers(currentViewId, updatedLayers);
             }
             
             showAssignDialog.value = false;
         };
         
         const removeFromGroup = (layer) => {
-            const layerIndex = layers.value.findIndex(l => l.id === layer.id);
+            const currentViewId = store.activeViewId;
+            if (!currentViewId) return;
+            
+            const currentViewLayers = store.getViewLayers(currentViewId);
+            const layerIndex = currentViewLayers.findIndex(l => l.id === layer.id);
             if (layerIndex !== -1) {
-                const updatedLayers = [...layers.value];
+                const updatedLayers = [...currentViewLayers];
                 updatedLayers[layerIndex] = {
                     ...updatedLayers[layerIndex],
                     groupId: null,
                     groupOrder: 0
                 };
-                store.setLayers(updatedLayers);
+                store.setViewLayers(currentViewId, updatedLayers);
             }
         };
         
@@ -568,9 +593,16 @@ window.addLayerToStore = function (layerId, layerName, layerType) {
     if (typeof window.useCanvasStore === 'function') {
         try {
             const store = window.useCanvasStore();
+            const currentViewId = store.activeViewId;
+            
+            if (!currentViewId) {
+                console.warn('没有激活的视图，无法添加图层');
+                return;
+            }
 
-            // 检查图层是否已存在
-            const existingLayer = store.layers.find(layer => layer.id === layerId);
+            // 检查当前视图的图层是否已存在
+            const currentViewLayers = store.getViewLayers(currentViewId);
+            const existingLayer = currentViewLayers.find(layer => layer.id === layerId);
             if (existingLayer) {
                 return; // 图层已存在，不重复添加
             }
@@ -585,8 +617,8 @@ window.addLayerToStore = function (layerId, layerName, layerType) {
                 groupOrder: 0           // 新增：组内排序
             };
 
-            const updatedLayers = [...store.layers, newLayer];
-            store.setLayers(updatedLayers);
+            // 添加图层到当前视图
+            store.addLayerToView(currentViewId, newLayer);
             store.setActiveObjectId(layerId);
 
         } catch (error) {

@@ -479,10 +479,17 @@ function syncCanvasObjectToStore(obj, action) {
   if (typeof window.useCanvasStore === 'function') {
     try {
       const store = window.useCanvasStore();
+      const currentViewId = store.activeViewId;
+      
+      if (!currentViewId) {
+        console.warn('没有激活的视图，无法同步图层');
+        return;
+      }
       
       if (action === 'added' && obj.id) {
-        // 检查图层是否已存在（避免重复添加）
-        const existingLayer = store.layers.find(layer => layer.id === obj.id);
+        // 检查当前视图的图层是否已存在（避免重复添加）
+        const currentViewLayers = store.getViewLayers(currentViewId);
+        const existingLayer = currentViewLayers.find(layer => layer.id === obj.id);
         if (!existingLayer) {
           const layerName = getLayerName(obj);
           const layerType = getLayerType(obj);
@@ -492,16 +499,17 @@ function syncCanvasObjectToStore(obj, action) {
             name: layerName,
             type: layerType,
             visible: obj.visible !== false,
-            locked: !obj.selectable
+            locked: !obj.selectable,
+            groupId: null,
+            groupOrder: 0
           };
           
-          const updatedLayers = [...store.layers, newLayer];
-          store.setLayers(updatedLayers);
+          // 添加图层到当前视图
+          store.addLayerToView(currentViewId, newLayer);
         }
       } else if (action === 'removed' && obj.id) {
-        // 从 store 中移除图层
-        const updatedLayers = store.layers.filter(layer => layer.id !== obj.id);
-        store.setLayers(updatedLayers);
+        // 从当前视图中移除图层
+        store.removeLayerFromView(currentViewId, obj.id);
         
         // 如果删除的是当前选中的图层，清除选中状态
         if (store.activeObjectId === obj.id) {

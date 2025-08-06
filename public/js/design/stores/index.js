@@ -16,12 +16,16 @@ export const useCanvasStore = defineStore('canvas', {
         activeCanvasId: 'canvas1',
         // layers：当前画板的所有图层对象（用于底部图层面板显示）
         layers: [],
+        // viewLayers：按视图分组的图层管理 { viewId: [layers] }
+        viewLayers: {},
         // activeObjectId：当前选中的对象 id（用于高亮和操作）
         activeObjectId: null,
         // actionRequest：全局动作请求（如添加、删除、克隆图层等），用于跨组件通信
         actionRequest: null,
         // 图层组相关状态
         layerGroups: [],        // 图层组列表
+        // viewLayerGroups：按视图分组的图层组管理 { viewId: [layerGroups] }
+        viewLayerGroups: {},
         activeGroupId: null,    // 当前选中的图层组ID
         // 产品数据相关状态
         productData: null,      // 存储从API获取的产品数据
@@ -47,13 +51,59 @@ export const useCanvasStore = defineStore('canvas', {
         // 图层组相关方法
         setLayerGroups(groups) { this.layerGroups = groups; },
         setActiveGroupId(id) { this.activeGroupId = id; },
+        // 按视图管理图层的方法
+        setViewLayers(viewId, layers) { 
+            this.viewLayers[viewId] = layers;
+            // 如果是当前激活视图，同时更新全局layers
+            if (viewId === this.activeViewId) {
+                this.layers = layers;
+            }
+        },
+        getViewLayers(viewId) { 
+            return this.viewLayers[viewId] || [];
+        },
+        addLayerToView(viewId, layer) {
+            if (!this.viewLayers[viewId]) {
+                this.viewLayers[viewId] = [];
+            }
+            this.viewLayers[viewId].push(layer);
+            // 如果是当前激活视图，同时更新全局layers
+            if (viewId === this.activeViewId) {
+                this.layers = [...this.viewLayers[viewId]];
+            }
+        },
+        removeLayerFromView(viewId, layerId) {
+            if (this.viewLayers[viewId]) {
+                this.viewLayers[viewId] = this.viewLayers[viewId].filter(layer => layer.id !== layerId);
+                // 如果是当前激活视图，同时更新全局layers
+                if (viewId === this.activeViewId) {
+                    this.layers = [...this.viewLayers[viewId]];
+                }
+            }
+        },
+        // 按视图管理图层组的方法
+        setViewLayerGroups(viewId, groups) {
+            this.viewLayerGroups[viewId] = groups;
+            // 如果是当前激活视图，同时更新全局layerGroups
+            if (viewId === this.activeViewId) {
+                this.layerGroups = groups;
+            }
+        },
+        getViewLayerGroups(viewId) {
+            return this.viewLayerGroups[viewId] || [];
+        },
         // 产品数据相关方法
         setProductData(data) { this.productData = data; },
         setLoadingProductData(loading) { this.isLoadingProductData = loading; },
         setProductDataError(error) { this.productDataError = error; },
         // 视图相关方法
         setViews(views) { this.views = views; },
-        setActiveViewId(viewId) { this.activeViewId = viewId; },
+        setActiveViewId(viewId) { 
+            this.activeViewId = viewId;
+            // 切换视图时，更新当前显示的图层和图层组
+            this.layers = this.viewLayers[viewId] || [];
+            this.layerGroups = this.viewLayerGroups[viewId] || [];
+        },
         addViewCanvas(viewId, canvas) { this.viewCanvases[viewId] = canvas; },
         removeViewCanvas(viewId) { delete this.viewCanvases[viewId]; },
         getActiveViewCanvas() { return this.viewCanvases[this.activeViewId]; },
