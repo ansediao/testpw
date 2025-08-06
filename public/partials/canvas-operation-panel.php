@@ -543,6 +543,13 @@ $plugin_url = plugin_dir_url(__FILE__);
                 });
                 // 添加图片到画布的函数
                 function addImageToCanvas(imgElement, fileName = '') {
+                    // 获取当前激活的画布
+                    const activeCanvas = getActiveCanvas();
+                    if (!activeCanvas) {
+                        console.warn('未找到激活的画布');
+                        return;
+                    }
+
                     // 计算宽高比
                     const aspectRatio = imgElement.width / imgElement.height;
 
@@ -555,8 +562,8 @@ $plugin_url = plugin_dir_url(__FILE__);
                     const layerId = 'layer_' + Date.now();
 
                     const fabricImage = new fabric.Image(imgElement, {
-                        left: canvas.width / 2,
-                        top: canvas.height / 2,
+                        left: activeCanvas.width / 2,
+                        top: activeCanvas.height / 2,
                         scaleX: targetWidth / imgElement.width,
                         scaleY: targetHeight / imgElement.height,
                         originX: 'center',
@@ -566,16 +573,47 @@ $plugin_url = plugin_dir_url(__FILE__);
 
                     // 检查画布上是否已存在相同来源的图片
                     let imageExists = false;
-                    canvas.getObjects().forEach(obj => {
+                    activeCanvas.getObjects().forEach(obj => {
                         if (obj.type === 'image' && obj.getElement().src === imgElement.src) {
                             imageExists = true;
                         }
                     });
 
                     if (!imageExists) {
-                        canvas.add(fabricImage);
-                        canvas.setActiveObject(fabricImage);
-                        canvas.renderAll();
+                        activeCanvas.add(fabricImage);
+                        activeCanvas.setActiveObject(fabricImage);
+                        activeCanvas.renderAll();
+
+                        // 强制更新全局canvas引用并触发渲染
+                        if (window.setGlobalCanvas) {
+                            window.setGlobalCanvas(activeCanvas);
+                        } else {
+                            window.canvas = activeCanvas;
+                            window.fabricCanvas = activeCanvas;
+                        }
+
+                        // 延迟再次渲染以确保显示
+                         setTimeout(() => {
+                             activeCanvas.renderAll();
+                             
+                             // 强制刷新当前视图显示
+                             const store = window.useCanvasStore && window.useCanvasStore();
+                             if (store && store.activeViewId) {
+                                 const viewContainer = document.getElementById(`view-container-${store.activeViewId}`);
+                                 if (viewContainer) {
+                                     // 隐藏所有视图容器
+                                     document.querySelectorAll('.view-container').forEach(container => {
+                                         container.style.display = 'none';
+                                     });
+                                     // 重新显示当前视图容器
+                                     viewContainer.style.display = 'block';
+                                 }
+                             }
+                             
+                             if (typeof window.updatePreviewCanvas === 'function') {
+                                 window.updatePreviewCanvas();
+                             }
+                         }, 50);
 
                         // 同时添加到图层管理系统
                         const layerName = fileName || '图片';
@@ -593,6 +631,15 @@ $plugin_url = plugin_dir_url(__FILE__);
                             fileName: fileName
                         });
                     }
+                }
+
+                // 获取当前激活的画布实例
+                function getActiveCanvas() {
+                    const store = window.useCanvasStore && window.useCanvasStore();
+                    if (store && store.activeViewId) {
+                        return store.getActiveViewCanvas();
+                    }
+                    return window.canvas || window.fabricCanvas;
                 }
             </script>
 
@@ -792,6 +839,13 @@ $plugin_url = plugin_dir_url(__FILE__);
             const text = document.getElementById('customText').value.trim();
             if (!text) return;
 
+            // 获取当前激活的画布
+            const activeCanvas = getActiveCanvas();
+            if (!activeCanvas) {
+                console.warn('未找到激活的画布');
+                return;
+            }
+
             // 清空文本输入框
             document.getElementById('customText').value = '';
 
@@ -800,8 +854,8 @@ $plugin_url = plugin_dir_url(__FILE__);
 
             // 创建Fabric文本对象
             const fabricText = new fabric.Text(text, {
-                left: canvas.width / 2,
-                top: canvas.height / 2,
+                left: activeCanvas.width / 2,
+                top: activeCanvas.height / 2,
                 fontSize: 30,
                 fill: '#000000',
                 fontFamily: 'Arial',
@@ -811,9 +865,40 @@ $plugin_url = plugin_dir_url(__FILE__);
             });
 
             // 添加到画布并设为活动对象
-            canvas.add(fabricText);
-            canvas.setActiveObject(fabricText);
-            canvas.renderAll();
+            activeCanvas.add(fabricText);
+            activeCanvas.setActiveObject(fabricText);
+            activeCanvas.renderAll();
+
+            // 强制更新全局canvas引用并触发渲染
+            if (window.setGlobalCanvas) {
+                window.setGlobalCanvas(activeCanvas);
+            } else {
+                window.canvas = activeCanvas;
+                window.fabricCanvas = activeCanvas;
+            }
+
+            // 延迟再次渲染以确保显示
+            setTimeout(() => {
+                activeCanvas.renderAll();
+                
+                // 强制刷新当前视图显示
+                const store = window.useCanvasStore && window.useCanvasStore();
+                if (store && store.activeViewId) {
+                    const viewContainer = document.getElementById(`view-container-${store.activeViewId}`);
+                    if (viewContainer) {
+                        // 隐藏所有视图容器
+                        document.querySelectorAll('.view-container').forEach(container => {
+                            container.style.display = 'none';
+                        });
+                        // 重新显示当前视图容器
+                        viewContainer.style.display = 'block';
+                    }
+                }
+                
+                if (typeof window.updatePreviewCanvas === 'function') {
+                    window.updatePreviewCanvas();
+                }
+            }, 50);
 
             // 同时添加到图层管理系统
             if (typeof window.addLayerToStore === 'function') {

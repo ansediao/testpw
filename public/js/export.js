@@ -1,35 +1,58 @@
 // 修改捕获画布内容的函数
 function captureCanvas(includeBoundary = false) {
+    // 获取当前激活视图的canvas元素
+    const canvasElements = getActiveCanvasElements();
+    const activeColorCanvas = canvasElements.colorCanvas;
+    const activeShadowCanvas = canvasElements.shadowCanvas;
+    const activeCanvas = getActiveCanvas();
+    
+    // 如果没有找到激活的canvas元素，使用全局变量作为回退
+    const currentColorCanvas = activeColorCanvas || window.colorCanvas;
+    const currentShadowCanvas = activeShadowCanvas || window.shadowCanvas;
+    const currentCanvas = activeCanvas || window.canvas || window.fabricCanvas;
+    
+    if (!currentColorCanvas) {
+        console.error('无法找到colorCanvas元素');
+        return Promise.resolve(null);
+    }
+    
     // 创建一个临时画布来合成所有图层
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = colorCanvas.width /2;
-    tempCanvas.height = colorCanvas.height;
+    tempCanvas.width = currentColorCanvas.width /2;
+    tempCanvas.height = currentColorCanvas.height;
     const tempCtx = tempCanvas.getContext('2d');
     // 首先绘制白色背景
     tempCtx.fillStyle = '#FFFFFF';
     tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
     // 1. 首先绘制阴影层（颜色图片）
-    if (shadowCanvas) {
-        tempCtx.drawImage(shadowCanvas, 0, 0 , tempCanvas.width, tempCanvas.height);
+    if (currentShadowCanvas) {
+        tempCtx.drawImage(currentShadowCanvas, 0, 0 , tempCanvas.width, tempCanvas.height);
     }
     // 2. 然后绘制颜色层（产品图片）
-    if (colorCanvas) {
-        tempCtx.drawImage(colorCanvas, 0, 0 , tempCanvas.width, tempCanvas.height);
+    if (currentColorCanvas) {
+        tempCtx.drawImage(currentColorCanvas, 0, 0 , tempCanvas.width, tempCanvas.height);
     }
     // 3. 最后绘制主画布内容（用户添加的文字和图片）
     // 强制fabric.js画布渲染，确保获取到最新的内容
-    canvas.renderAll();
+    if (currentCanvas) {
+        currentCanvas.renderAll();
+    }
     // 获取fabric.js画布的数据URL，这样可以保持对象的精确位置和大小
     const fabricImage = new Image();
-    fabricImage.src = canvas.toDataURL({
-        format: 'png',
-        quality: 1,
-        multiplier: 1,
-        left: 0,
-        top: 0,
-        width: canvas.width,
-        height: canvas.height
-    });
+    if (currentCanvas) {
+        fabricImage.src = currentCanvas.toDataURL({
+            format: 'png',
+            quality: 1,
+            multiplier: 1,
+            left: 0,
+            top: 0,
+            width: currentCanvas.width,
+            height: currentCanvas.height
+        });
+    } else {
+        console.error('无法找到当前canvas实例');
+        return Promise.resolve(null);
+    }
     // 等待图片加载完成后再绘制
     return new Promise((resolve) => {
         fabricImage.onload = function () {
