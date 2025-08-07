@@ -213,7 +213,12 @@ const layersApp = Vue.createApp({
 
     setup() {
         const store = useCanvasStore();
-        const {layers, activeObjectId, layerGroups, activeGroupId} = Vue.toRefs(store);
+        
+        // 使用计算属性来确保响应式更新
+        const layers = Vue.computed(() => store.layers);
+        const activeObjectId = Vue.computed(() => store.activeObjectId);
+        const layerGroups = Vue.computed(() => store.layerGroups);
+        const activeGroupId = Vue.computed(() => store.activeGroupId);
 
         // 图层组相关响应式数据
         const showGroupDialog = Vue.ref(false);
@@ -227,6 +232,17 @@ const layersApp = Vue.createApp({
         const ungroupedLayers = Vue.computed(() => {
             return layers.value.filter(layer => !layer.groupId);
         });
+        
+        // 监听视图切换，确保图层数据正确更新
+        Vue.watch(() => store.activeViewId, (newViewId) => {
+            if (newViewId) {
+                console.log('视图切换到:', newViewId, '图层数量:', store.layers.length);
+                // 强制更新组件
+                Vue.nextTick(() => {
+                    console.log('图层数据已更新:', store.layers);
+                });
+            }
+        }, { immediate: true });
 
         // 获取画布实例的统一函数
         const getCanvasInstance = () => { // 尝试多种方式获取画布实例

@@ -99,10 +99,29 @@ export const useCanvasStore = defineStore('canvas', {
         // 视图相关方法
         setViews(views) { this.views = views; },
         setActiveViewId(viewId) { 
+            const previousViewId = this.activeViewId;
+            
+            // 如果切换到相同视图，直接返回
+            if (previousViewId === viewId) {
+                return;
+            }
+            
+            // 保存当前视图的图层数据
+            if (previousViewId && this.layers.length > 0) {
+                this.viewLayers[previousViewId] = [...this.layers];
+            }
+            if (previousViewId && this.layerGroups.length > 0) {
+                this.viewLayerGroups[previousViewId] = [...this.layerGroups];
+            }
+            
+            // 切换到新视图
             this.activeViewId = viewId;
-            // 切换视图时，更新当前显示的图层和图层组
+            
+            // 加载新视图的图层数据
             this.layers = this.viewLayers[viewId] || [];
             this.layerGroups = this.viewLayerGroups[viewId] || [];
+            
+            console.log(`视图切换: ${previousViewId} -> ${viewId}, 图层数量: ${this.layers.length}`);
         },
         addViewCanvas(viewId, canvas) { this.viewCanvases[viewId] = canvas; },
         removeViewCanvas(viewId) { delete this.viewCanvases[viewId]; },
