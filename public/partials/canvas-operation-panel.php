@@ -625,7 +625,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                     }
 
                     // 添加到上传列表（只存base64和文件名）
-                    if (imgElement.src && !uploadedImages.some(img => img.src === imgElement.src)) {
+                    if (imgElement.src && !window.uploadedImages.some(img => img.src === imgElement.src)) {
                         addImageToUploadedList({
                             src: imgElement.src,
                             fileName: fileName
@@ -660,13 +660,13 @@ $plugin_url = plugin_dir_url(__FILE__);
             </div>
             <script>
                 // 存储已上传图片的数组（对象：{src, fileName}）
-                let uploadedImages = [];
+                window.uploadedImages = [];
 
                 // 添加图片到上传列表
                 function addImageToUploadedList(imgObj) {
                     // 检查图片是否已存在于列表中
-                    if (!uploadedImages.some(img => img.src === imgObj.src)) {
-                        uploadedImages.push(imgObj);
+                    if (!window.uploadedImages.some(img => img.src === imgObj.src)) {
+                        window.uploadedImages.push(imgObj);
                         renderUploadedImages();
                     }
                 }
@@ -675,11 +675,11 @@ $plugin_url = plugin_dir_url(__FILE__);
                 function renderUploadedImages() {
                     const container = document.getElementById('uploaded-images-container');
                     container.innerHTML = '';
-                    if (uploadedImages.length === 0) {
+                    if (window.uploadedImages.length === 0) {
                         container.innerHTML = '<div style="color:#888;">暂无已上传图片</div>';
                         return;
                     }
-                    uploadedImages.forEach((imgObj, idx) => {
+                    window.uploadedImages.forEach((imgObj, idx) => {
                         const src = imgObj.src;
                         const fileName = imgObj.fileName || '未知';
                         const wrapper = document.createElement('div');
@@ -774,7 +774,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                         delBtn.title = '删除图片';
                         delBtn.onclick = function(e) {
                             e.stopPropagation();
-                            uploadedImages.splice(idx, 1);
+                            window.uploadedImages.splice(idx, 1);
                             renderUploadedImages();
                         };
 

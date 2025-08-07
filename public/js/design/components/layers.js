@@ -39,7 +39,11 @@ const layersApp = Vue.createApp({
                                         <button @click.stop="deleteLayer(layer)" class="layer-btn delete">🗑️</button>
                                     </div>
                                 </div>
-                                <div class="layer-img-info">
+                                <div v-if="layer.type === 'image'" class="layer-img-info">
+                                    <div v-if="getImageLayerInfo(layer)" class="image-details">
+                                        <div class="image-name">{{ getImageLayerInfo(layer).name }}</div>
+                                        <div class="image-meta">{{ getImageLayerInfo(layer).format }} / {{ getImageLayerInfo(layer).dpi }}</div>
+                                    </div>
                                 </div>
                                 <div class="layer-actions">
                                     <button @click.stop="showGroupAssignDialog(layer)" class="assign-btn">Switch Printing Method</button>                               
@@ -107,6 +111,12 @@ const layersApp = Vue.createApp({
                             <div class="layer-info">
                                 <div class="layer-name">{{ layer.name || layer.id }}</div>
                                 <div class="layer-type">{{ layer.type || 'unknown' }}</div>
+                                <div v-if="layer.type === 'image'" class="layer-img-info">
+                                    <div v-if="getImageLayerInfo(layer)" class="image-details">
+                                        <div class="image-name">{{ getImageLayerInfo(layer).name }}</div>
+                                        <div class="image-meta">{{ getImageLayerInfo(layer).format }} / {{ getImageLayerInfo(layer).dpi }}</div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="layer-actions">
                                 <button @click.stop="removeFromGroup(layer)" class="ungroup-btn">移出</button>
@@ -231,6 +241,180 @@ const layersApp = Vue.createApp({
                 console.warn('生成缩略图失败:', error);
                 return '';
             }
+        };
+
+        // 获取图片图层信息的方法
+        const getImageLayerInfo = (layer) => {
+            const canvasInstance = getCanvasInstance();
+            if (!canvasInstance) return null;
+
+            const obj = canvasInstance.getObjects().find(o => o.id === layer.id);
+            if (!obj || obj.type !== 'image') return null;
+
+            try {
+                let imageName = 'Unknown';
+                let src = '';
+                
+                // 获取图片源
+                if (obj._element && obj._element.src) {
+                    src = obj._element.src;
+                } else if (obj.src) {
+                    src = obj.src;
+                }
+                
+                // 从上传图片列表中查找匹配的文件名（参考用户提供的代码）
+                if (src && window.uploadedImages) {
+                    const matchedImg = window.uploadedImages.find(img => img.src === src);
+                    if (matchedImg && matchedImg.fileName) {
+                        imageName = matchedImg.fileName; // 直接使用原始文件名
+                    }
+                }
+                
+                // 如果没有找到匹配的文件名，尝试从URL提取
+                if (imageName === 'Unknown' && src) {
+                    if (src.startsWith('data:image/')) {
+                        // base64图片，使用默认名称
+                        imageName = 'image.jpg';
+                    } else {
+                        // URL图片，提取文件名
+                        const urlParts = src.split('/');
+                        imageName = urlParts[urlParts.length - 1];
+                        // 移除查询参数
+                        if (imageName.includes('?')) {
+                            imageName = imageName.split('?')[0];
+                        }
+                    }
+                }
+                
+                // 最后的回退方案
+                if (imageName === 'Unknown' || imageName === '') {
+                    if (layer.name && layer.name !== layer.id) {
+                        imageName = layer.name;
+                    } else {
+                        imageName = `Image_${layer.id.replace('layer_', '')}.jpg`;
+                    }
+                }
+
+                // 获取图片格式
+                let format = 'Unknown';
+                if (src && src.startsWith('data:image/')) {
+                    const match = src.match(/^data:(image\/[a-zA-Z0-9.+-]+);/);
+                    if (match) {
+                        format = match[1].replace('image/', '').toUpperCase();
+                    }
+                } else if (imageName.includes('.')) {
+                    const extension = imageName.split('.').pop().toLowerCase();
+                    switch (extension) {
+                        case 'jpg':
+                        case 'jpeg':
+                            format = 'JPEG';
+                            break;
+                        case 'png':
+                            format = 'PNG';
+                            break;
+                        case 'gif':
+                            format = 'GIF';
+                            break;
+                        case 'svg':
+                            format = 'SVG';
+                            break;
+                        case 'webp':
+                            format = 'WebP';
+                            break;
+                        default:
+                            format = extension.toUpperCase();
+                    }
+                }
+
+                // 获取DPI信息（参考用户提供的代码实现）
+                let dpiText = 'Unknown DPI';
+                
+                // 尝试从图片元素获取DPI信息
+                if (obj._element && obj._element.src && obj._element.src.startsWith('data:image/')) {
+                    // 对于base64图片，尝试解析DPI
+                    try {
+                        const base64Data = obj._element.src.split(',')[1];
+                        const binaryString = atob(base64Data);
+                        const bytes = new Uint8Array(binaryString.length);
+                        for (let i = 0; i < binaryString.length; i++) {
+                            bytes[i] = binaryString.charCodeAt(i);
+                        }
+                        const dpi = getDpiFromJPEG(bytes.buffer);
+                        if (dpi && dpi.x > 0) {
+                            if (dpi.x >= 300) {
+                                dpiText = `Good ${dpi.x}DPI`;
+                            } else if (dpi.x >= 150) {
+                                dpiText = `${dpi.x}DPI`;
+                            } else {
+                                dpiText = `Low ${dpi.x}DPI`;
+                            }
+                        } else {
+                            dpiText = 'Low 72DPI'; // 默认值
+                        }
+                    } catch (error) {
+                        dpiText = 'Low 72DPI'; // 解析失败时的默认值
+                    }
+                } else {
+                    dpiText = 'Low 72DPI'; // 非base64图片的默认值
+                }
+
+                return {
+                    name: imageName,
+                    format: format,
+                    dpi: dpiText
+                };
+            } catch (error) {
+                console.warn('获取图片信息失败:', error);
+                return null;
+            }
+        };
+        
+        // DPI解析函数（参考用户提供的代码）
+        const getDpiFromJPEG = (arrayBuffer) => {
+            const view = new DataView(arrayBuffer);
+            let offset = 0;
+
+            // 检查文件是否为JPEG (SOI marker 0xFFD8)
+            if (view.getUint16(offset) !== 0xFFD8) {
+                return null;
+            }
+            offset += 2;
+
+            // 遍历JPEG段来寻找APP0 (JFIF) 段
+            while (offset < view.byteLength) {
+                const marker = view.getUint16(offset);
+                offset += 2;
+
+                // 如果是APP0 (JFIF) 段 (0xFFE0)
+                if (marker === 0xFFE0) {
+                    const length = view.getUint16(offset);
+                    const identifier = String.fromCharCode(
+                        view.getUint8(offset + 2), 
+                        view.getUint8(offset + 3), 
+                        view.getUint8(offset + 4), 
+                        view.getUint8(offset + 5), 
+                        view.getUint8(offset + 6)
+                    );
+                    
+                    if (identifier.startsWith('JFIF')) {
+                        const units = view.getUint8(offset + 9);
+                        const xDensity = view.getUint16(offset + 10);
+                        const yDensity = view.getUint16(offset + 12);
+                        
+                        // units === 1 表示DPI, units === 2 表示DPCm
+                        if (units === 1 && xDensity > 0 && yDensity > 0) {
+                            return { x: xDensity, y: yDensity };
+                        }
+                    }
+                }
+                
+                // 移动到下一个段
+                const segmentLength = view.getUint16(offset);
+                if (segmentLength === 0) break;
+                offset += segmentLength;
+            }
+
+            return null; // 没有找到DPI信息
         };
 
         // 添加图层的方法
@@ -659,6 +843,7 @@ const layersApp = Vue.createApp({
             duplicateLayer,
             deleteLayer,
             getLayerThumbnail,
+            getImageLayerInfo,
 
             // 图层组方法
             getGroupLayers,
