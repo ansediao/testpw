@@ -8,17 +8,11 @@ const layersApp = Vue.createApp({
     template: `
         <div class="layers-panel">
             <div class="layers-list">
-                <div class="layers-list-header">
-                    <span>图层管理 ({{ layers.length }})</span>
-                    <button @click="showGroupDialog = true" class="create-group-btn">创建组</button>
-                </div>
+              
                 
                 <!-- 未分组图层提示区域 -->
                 <div v-if="ungroupedLayers.length > 0" class="ungrouped-warning">
-                    <div class="warning-header">
-                        ⚠️ 未分组图层 ({{ungroupedLayers.length}})
-                    </div>
-                    <div class="ungrouped-layers">
+                     <div class="ungrouped-layers">
                         <div v-for="layer in ungroupedLayers" :key="layer.id" 
                              class="layer-item ungrouped"
                              :class="{ active: layer.id === activeObjectId }"
