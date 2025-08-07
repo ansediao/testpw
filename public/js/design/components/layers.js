@@ -41,8 +41,8 @@ const layersApp = Vue.createApp({
                                 </div>
                                 <div v-if="layer.type === 'image'" class="layer-img-info">
                                     <div v-if="getImageLayerInfo(layer)" class="image-details">
-                                        <div class="image-name">{{ getImageLayerInfo(layer).name }}</div>
-                                        <div class="image-meta">{{ getImageLayerInfo(layer).format }} / {{ getImageLayerInfo(layer).dpi }}</div>
+                                                                              <div class="image-meta">{{ getImageLayerInfo(layer).name }} <br> {{ getImageLayerInfo(layer).dpi }}</div>
+
                                     </div>
                                 </div>
                                 <div class="layer-actions">
@@ -113,8 +113,7 @@ const layersApp = Vue.createApp({
                                 <div class="layer-type">{{ layer.type || 'unknown' }}</div>
                                 <div v-if="layer.type === 'image'" class="layer-img-info">
                                     <div v-if="getImageLayerInfo(layer)" class="image-details">
-                                        <div class="image-name">{{ getImageLayerInfo(layer).name }}</div>
-                                        <div class="image-meta">{{ getImageLayerInfo(layer).format }} / {{ getImageLayerInfo(layer).dpi }}</div>
+                                        <div class="image-meta">{{ getImageLayerInfo(layer).name }} <br> {{ getImageLayerInfo(layer).dpi }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -326,7 +325,7 @@ const layersApp = Vue.createApp({
                     }
                 }
 
-                // 获取DPI信息（参考用户提供的代码实现）
+                // 获取DPI信息（参考用户提供的demo代码实现）
                 let dpiText = 'Unknown DPI';
                 
                 // 尝试从图片元素获取DPI信息
@@ -339,7 +338,15 @@ const layersApp = Vue.createApp({
                         for (let i = 0; i < binaryString.length; i++) {
                             bytes[i] = binaryString.charCodeAt(i);
                         }
-                        const dpi = getDpiFromJPEG(bytes.buffer);
+                        
+                        let dpi = null;
+                        // 根据图片格式选择相应的DPI解析函数
+                        if (format === 'JPEG') {
+                            dpi = getDpiFromJPEG(bytes.buffer);
+                        } else if (format === 'PNG') {
+                            dpi = getDpiFromPNG(bytes.buffer);
+                        }
+                        
                         if (dpi && dpi.x > 0) {
                             if (dpi.x >= 300) {
                                 dpiText = `Good ${dpi.x}DPI`;
@@ -369,25 +376,27 @@ const layersApp = Vue.createApp({
             }
         };
         
-        // DPI解析函数（参考用户提供的代码）
+        // DPI解析函数（根据用户提供的demo代码实现）
         const getDpiFromJPEG = (arrayBuffer) => {
             const view = new DataView(arrayBuffer);
             let offset = 0;
 
             // 检查文件是否为JPEG (SOI marker 0xFFD8)
-            if (view.getUint16(offset) !== 0xFFD8) {
+            if (view.getUint16(offset, false) !== 0xFFD8) {
                 return null;
             }
             offset += 2;
 
             // 遍历JPEG段来寻找APP0 (JFIF) 段
-            while (offset < view.byteLength) {
-                const marker = view.getUint16(offset);
+            while (offset < view.byteLength - 1) {
+                const marker = view.getUint16(offset, false);
                 offset += 2;
 
                 // 如果是APP0 (JFIF) 段 (0xFFE0)
                 if (marker === 0xFFE0) {
-                    const length = view.getUint16(offset);
+                    const length = view.getUint16(offset, false);
+                    if (offset + length > view.byteLength) break;
+                    
                     const identifier = String.fromCharCode(
                         view.getUint8(offset + 2), 
                         view.getUint8(offset + 3), 
@@ -396,22 +405,72 @@ const layersApp = Vue.createApp({
                         view.getUint8(offset + 6)
                     );
                     
-                    if (identifier.startsWith('JFIF')) {
+                    if (identifier === 'JFIF\0') {
                         const units = view.getUint8(offset + 9);
-                        const xDensity = view.getUint16(offset + 10);
-                        const yDensity = view.getUint16(offset + 12);
+                        const xDensity = view.getUint16(offset + 10, false);
+                        const yDensity = view.getUint16(offset + 12, false);
                         
                         // units === 1 表示DPI, units === 2 表示DPCm
                         if (units === 1 && xDensity > 0 && yDensity > 0) {
                             return { x: xDensity, y: yDensity };
+                        } else if (units === 2 && xDensity > 0 && yDensity > 0) {
+                            // 转换DPCm到DPI (1 inch = 2.54 cm)
+                            return { x: Math.round(xDensity * 2.54), y: Math.round(yDensity * 2.54) };
                         }
                     }
+                    offset += length;
+                } else {
+                    // 移动到下一个段
+                    if (offset >= view.byteLength - 1) break;
+                    const segmentLength = view.getUint16(offset, false);
+                    if (segmentLength === 0 || offset + segmentLength > view.byteLength) break;
+                    offset += segmentLength;
                 }
-                
-                // 移动到下一个段
-                const segmentLength = view.getUint16(offset);
-                if (segmentLength === 0) break;
-                offset += segmentLength;
+            }
+
+            return null; // 没有找到DPI信息
+        };
+
+        // PNG DPI解析函数（根据用户提供的demo代码实现）
+        const getDpiFromPNG = (arrayBuffer) => {
+            const view = new DataView(arrayBuffer);
+            let offset = 0;
+
+            // 检查PNG文件头 (89 50 4E 47 0D 0A 1A 0A)
+            const pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+            for (let i = 0; i < pngSignature.length; i++) {
+                if (view.getUint8(offset + i) !== pngSignature[i]) {
+                    return null;
+                }
+            }
+            offset += 8;
+
+            // 遍历PNG块来寻找pHYs块
+            while (offset < view.byteLength - 8) {
+                const length = view.getUint32(offset, false);
+                const type = String.fromCharCode(
+                    view.getUint8(offset + 4),
+                    view.getUint8(offset + 5),
+                    view.getUint8(offset + 6),
+                    view.getUint8(offset + 7)
+                );
+
+                if (type === 'pHYs') {
+                    const pixelsPerUnitX = view.getUint32(offset + 8, false);
+                    const pixelsPerUnitY = view.getUint32(offset + 12, false);
+                    const unitSpecifier = view.getUint8(offset + 16);
+
+                    // unitSpecifier === 1 表示每米像素数
+                    if (unitSpecifier === 1 && pixelsPerUnitX > 0 && pixelsPerUnitY > 0) {
+                        // 转换为DPI (1 meter = 39.3701 inches)
+                        const dpiX = Math.round(pixelsPerUnitX / 39.3701);
+                        const dpiY = Math.round(pixelsPerUnitY / 39.3701);
+                        return { x: dpiX, y: dpiY };
+                    }
+                }
+
+                // 移动到下一个块
+                offset += 8 + length + 4; // 4 bytes length + 4 bytes type + data + 4 bytes CRC
             }
 
             return null; // 没有找到DPI信息
