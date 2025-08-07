@@ -17,6 +17,17 @@ const layersApp = Vue.createApp({
                              class="layer-item ungrouped"
                              :class="{ active: layer.id === activeObjectId }"
                              @click="selectLayer(layer.id)">
+                            <div class="layer-icon">
+                                <div v-if="layer.type === 'image'" class="layer-thumbnail">
+                                    <img :src="getLayerThumbnail(layer)" alt="缩略图" class="thumbnail-img" />
+                                </div>
+                                <div v-else-if="layer.type === 'text'" class="layer-text-icon">
+                                    T
+                                </div>
+                                <div v-else class="layer-default-icon">
+                                    📄
+                                </div>
+                            </div>
                             <div class="layer-controls">
                                 <button @click.stop="toggleVisibility(layer)" class="layer-btn">
                                     {{ layer.visible ? '👁️' : '🙈' }}
@@ -71,6 +82,17 @@ const layersApp = Vue.createApp({
                              class="layer-item grouped"
                              :class="{active: activeObjectId === layer.id}"
                              @click="selectLayer(layer.id)">
+                            <div class="layer-icon">
+                                <div v-if="layer.type === 'image'" class="layer-thumbnail">
+                                    <img :src="getLayerThumbnail(layer)" alt="缩略图" class="thumbnail-img" />
+                                </div>
+                                <div v-else-if="layer.type === 'text'" class="layer-text-icon">
+                                    T
+                                </div>
+                                <div v-else class="layer-default-icon">
+                                    📄
+                                </div>
+                            </div>
                             <div class="layer-controls">
                                 <button @click.stop="toggleVisibility(layer)" class="layer-btn">
                                     {{ layer.visible ? '👁️' : '🙈' }}
@@ -169,7 +191,48 @@ const layersApp = Vue.createApp({
             return canvasInstance;
         };
 
-
+        // 获取图层缩略图的方法
+        const getLayerThumbnail = (layer) => {
+            const canvasInstance = getCanvasInstance();
+            if (!canvasInstance) return '';
+            
+            const obj = canvasInstance.getObjects().find(o => o.id === layer.id);
+            if (!obj) return '';
+            
+            try {
+                // 如果是图片对象，尝试获取其源图片
+                if (obj.type === 'image' && obj._element) {
+                    return obj._element.src || obj.src || '';
+                }
+                
+                // 对于其他类型，生成小尺寸的canvas缩略图
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = 32;
+                tempCanvas.height = 32;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                // 创建临时fabric canvas
+                const tempFabricCanvas = new fabric.Canvas(tempCanvas);
+                
+                // 克隆对象并缩放到缩略图尺寸
+                obj.clone((cloned) => {
+                    const scale = Math.min(30 / cloned.width, 30 / cloned.height);
+                    cloned.set({
+                        left: 16,
+                        top: 16,
+                        scaleX: scale,
+                        scaleY: scale
+                    });
+                    tempFabricCanvas.add(cloned);
+                    tempFabricCanvas.renderAll();
+                });
+                
+                return tempCanvas.toDataURL('image/png');
+            } catch (error) {
+                console.warn('生成缩略图失败:', error);
+                return '';
+            }
+        };
 
         // 添加图层的方法
         const addLayer = () => {
@@ -550,6 +613,7 @@ const layersApp = Vue.createApp({
             toggleLock,
             duplicateLayer,
             deleteLayer,
+            getLayerThumbnail,
             
             // 图层组方法
             getGroupLayers,
