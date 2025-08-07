@@ -143,20 +143,68 @@ const layersApp = Vue.createApp({
                 </div>
             </div>
             
-            <!-- 分配图层到组对话框 -->
-            <div v-if="showAssignDialog" class="assign-dialog-overlay" @click="showAssignDialog = false">
-                <div class="assign-dialog" @click.stop>
-                    <h3>分配图层到组</h3>
-                    <p>图层: {{selectedLayerForAssign?.name}}</p>
-                    <select v-model="selectedGroupForAssign">
-                        <option value="">选择图层组</option>
-                        <option v-for="group in layerGroups" :key="group.id" :value="group.id">
-                            {{group.name}}
-                        </option>
-                    </select>
+            <!-- 打印方法选择对话框 -->
+            <div v-if="showPrintMethodDialog" class="print-method-dialog-overlay" @click="showPrintMethodDialog = false">
+                <div class="print-method-dialog" @click.stop>
+                    <div class="dialog-header">
+                        <h3>Print Method Setting</h3>
+                        <button class="close-btn" @click="showPrintMethodDialog = false">×</button>
+                    </div>
+                    
+                    <div class="print-methods">
+                        <div class="method-row">
+                            <label class="method-option">
+                                <input type="radio" v-model="selectedPrintMethod" value="method-a" name="printMethod" />
+                                <span class="method-label">Print Method A</span>
+                            </label>
+                            <label class="method-option">
+                                <input type="radio" v-model="selectedPrintMethod" value="method-b" name="printMethod" />
+                                <span class="method-label">Print Method B</span>
+                            </label>
+                            <label class="method-option">
+                                <input type="radio" v-model="selectedPrintMethod" value="method-c" name="printMethod" />
+                                <span class="method-label">Print Method C</span>
+                            </label>
+                        </div>
+                        <div class="method-row">
+                            <label class="method-option">
+                                <input type="radio" v-model="selectedPrintMethod" value="method-d" name="printMethod" />
+                                <span class="method-label">Print Method D</span>
+                            </label>
+                            <label class="method-option">
+                                <input type="radio" v-model="selectedPrintMethod" value="method-e" name="printMethod" />
+                                <span class="method-label">Print Method E</span>
+                            </label>
+                            <label class="method-option">
+                                <input type="radio" v-model="selectedPrintMethod" value="method-f" name="printMethod" />
+                                <span class="method-label">Print Method F</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="method-tabs">
+                        <div class="tab" :class="{active: activeTab === 'color'}" @click="activeTab = 'color'">Color</div>
+                        <div class="tab" :class="{active: activeTab === 'moq'}" @click="activeTab = 'moq'">MOQ</div>
+                        <div class="tab" :class="{active: activeTab === 'printarea'}" @click="activeTab = 'printarea'">Print Area</div>
+                    </div>
+                    
+                    <div class="tab-content">
+                        <div v-if="activeTab === 'color'" class="color-content">
+                            <!-- Color 选项卡内容 -->
+                            <p>Color settings will be displayed here</p>
+                        </div>
+                        <div v-if="activeTab === 'moq'" class="moq-content">
+                            <!-- MOQ 选项卡内容 -->
+                            <p>MOQ settings will be displayed here</p>
+                        </div>
+                        <div v-if="activeTab === 'printarea'" class="printarea-content">
+                            <!-- Print Area 选项卡内容 -->
+                            <p>Print Area settings will be displayed here</p>
+                        </div>
+                    </div>
+                    
                     <div class="dialog-actions">
-                        <button @click="assignLayerToGroup">分配</button>
-                        <button @click="showAssignDialog = false">取消</button>
+                        <button @click="assignLayerToPrintMethod" class="save-btn">Save</button>
                     </div>
                 </div>
             </div>
@@ -169,10 +217,11 @@ const layersApp = Vue.createApp({
 
         // 图层组相关响应式数据
         const showGroupDialog = Vue.ref(false);
-        const showAssignDialog = Vue.ref(false);
+        const showPrintMethodDialog = Vue.ref(false);
         const newGroupName = Vue.ref('');
         const selectedLayerForAssign = Vue.ref(null);
-        const selectedGroupForAssign = Vue.ref('');
+        const selectedPrintMethod = Vue.ref('');
+        const activeTab = Vue.ref('color');
 
         // 计算属性：未分组的图层
         const ungroupedLayers = Vue.computed(() => {
@@ -704,33 +753,66 @@ const layersApp = Vue.createApp({
 
         const showGroupAssignDialog = (layer) => {
             selectedLayerForAssign.value = layer;
-            selectedGroupForAssign.value = '';
-            showAssignDialog.value = true;
+            selectedPrintMethod.value = '';
+            activeTab.value = 'color';
+            showPrintMethodDialog.value = true;
         };
 
-        const assignLayerToGroup = () => {
-            if (! selectedLayerForAssign.value || ! selectedGroupForAssign.value) 
+        const assignLayerToPrintMethod = () => {
+            if (!selectedLayerForAssign.value || !selectedPrintMethod.value) {
+                alert('请选择一个打印方法');
                 return;
-            
+            }
 
+            // 创建或获取对应的打印方法分组
+            const printMethodGroups = {
+                'method-a': { id: 'print-method-a', name: 'Print Method A', color: '#FF6B6B' },
+                'method-b': { id: 'print-method-b', name: 'Print Method B', color: '#4ECDC4' },
+                'method-c': { id: 'print-method-c', name: 'Print Method C', color: '#45B7D1' },
+                'method-d': { id: 'print-method-d', name: 'Print Method D', color: '#96CEB4' },
+                'method-e': { id: 'print-method-e', name: 'Print Method E', color: '#FFEAA7' },
+                'method-f': { id: 'print-method-f', name: 'Print Method F', color: '#DDA0DD' }
+            };
+
+            const selectedGroup = printMethodGroups[selectedPrintMethod.value];
+            if (!selectedGroup) return;
+
+            // 检查分组是否已存在，如果不存在则创建
+            let existingGroup = layerGroups.value.find(g => g.id === selectedGroup.id);
+            if (!existingGroup) {
+                const newGroup = {
+                    id: selectedGroup.id,
+                    name: selectedGroup.name,
+                    color: selectedGroup.color,
+                    visible: true,
+                    locked: false,
+                    expanded: true,
+                    printMethod: selectedPrintMethod.value
+                };
+                const updatedGroups = [...layerGroups.value, newGroup];
+                store.setLayerGroups(updatedGroups);
+                existingGroup = newGroup;
+            }
+
+            // 将图层分配到选定的打印方法分组
             const currentViewId = store.activeViewId;
-            if (! currentViewId) 
-                return;
-            
+            if (!currentViewId) return;
 
             const currentViewLayers = store.getViewLayers(currentViewId);
             const layerIndex = currentViewLayers.findIndex(l => l.id === selectedLayerForAssign.value.id);
             if (layerIndex !== -1) {
-                const updatedLayers = [... currentViewLayers];
+                const updatedLayers = [...currentViewLayers];
                 updatedLayers[layerIndex] = {
-                    ... updatedLayers[layerIndex],
-                    groupId: selectedGroupForAssign.value,
-                    groupOrder: getGroupLayers(selectedGroupForAssign.value).length
+                    ...updatedLayers[layerIndex],
+                    groupId: selectedGroup.id,
+                    printMethod: selectedPrintMethod.value,
+                    groupOrder: getGroupLayers(selectedGroup.id).length
                 };
                 store.setViewLayers(currentViewId, updatedLayers);
             }
 
-            showAssignDialog.value = false;
+            showPrintMethodDialog.value = false;
+            console.log(`图层 ${selectedLayerForAssign.value.name || selectedLayerForAssign.value.id} 已分配到 ${selectedGroup.name}`);
         };
 
         const removeFromGroup = (layer) => {
@@ -888,10 +970,11 @@ const layersApp = Vue.createApp({
 
             // 图层组相关数据
             showGroupDialog,
-            showAssignDialog,
+            showPrintMethodDialog,
             newGroupName,
             selectedLayerForAssign,
-            selectedGroupForAssign,
+            selectedPrintMethod,
+            activeTab,
 
             // 方法
             switchCanvas: (id) => store.setActiveCanvasId(id),
@@ -908,7 +991,7 @@ const layersApp = Vue.createApp({
             getGroupLayers,
             createGroup,
             showGroupAssignDialog,
-            assignLayerToGroup,
+            assignLayerToPrintMethod,
             removeFromGroup,
             toggleGroup,
             toggleGroupExpand,
