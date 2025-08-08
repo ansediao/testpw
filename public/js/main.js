@@ -567,6 +567,151 @@ function getLayerType(obj) {
   }
 }
 
+// 导出所有视图的画板图片
+async function exportAllViewsAsImages() {
+    const store = window.useCanvasStore();
+    if (!store || !store.views || store.views.length === 0) {
+        console.error('没有找到视图数据');
+        return;
+    }
+
+    const originalActiveViewId = store.activeViewId;
+    const exportedImages = [];
+
+    try {
+        for (const view of store.views) {
+            console.log(`正在导出视图: ${view.name}`);
+            
+            // 切换到当前视图
+            store.setActiveViewId(view.id);
+            
+            // 手动触发视图切换逻辑
+            const viewContainer = document.getElementById(`view-container-${view.id}`);
+            if (viewContainer) {
+                // 隐藏所有视图容器
+                document.querySelectorAll('.view-container').forEach(container => {
+                    container.style.display = 'none';
+                });
+                // 显示当前视图容器
+                viewContainer.style.display = 'block';
+            }
+            
+            // 更新全局 canvas 引用
+            const canvas = store.viewCanvases[view.id];
+            if (canvas) {
+                // 取消所有视图上所有元素的选中状态
+                Object.values(store.viewCanvases).forEach(viewCanvas => {
+                    if (viewCanvas && typeof viewCanvas.discardActiveObject === 'function') {
+                        viewCanvas.discardActiveObject();
+                        viewCanvas.renderAll();
+                    }
+                });
+                
+                // 更新全局 canvas 引用
+                if (window.setGlobalCanvas) {
+                    window.setGlobalCanvas(canvas);
+                } else {
+                    window.canvas = canvas;
+                    window.fabricCanvas = canvas;
+                }
+                
+                // 重新渲染 canvas
+                canvas.renderAll();
+            }
+            
+            // 等待视图切换和渲染完成
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            // 捕获当前视图的画板内容
+            const imageDataUrl = await captureCanvas();
+            if (imageDataUrl) {
+                exportedImages.push({
+                    viewName: view.name,
+                    imageData: imageDataUrl
+                });
+                console.log(`视图 ${view.name} 导出成功`);
+            } else {
+                console.warn(`视图 ${view.name} 导出失败`);
+            }
+        }
+
+        // 在新窗口中展示所有图片
+        if (exportedImages.length > 0) {
+            const newWindow = window.open('', '_blank');
+            let htmlContent = `
+                <html>
+                    <head>
+                        <title>所有视图导出</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; padding: 20px; }
+                            .view-section { margin-bottom: 30px; border: 1px solid #ddd; padding: 15px; }
+                            .view-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+                            .download-link { display: inline-block; margin-top: 10px; padding: 8px 16px; background: #007cba; color: white; text-decoration: none; border-radius: 4px; }
+                            .download-link:hover { background: #005a87; }
+                            img { max-width: 100%; height: auto; border: 1px solid #ccc; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>所有视图画板导出</h1>
+            `;
+            
+            exportedImages.forEach((item, index) => {
+                htmlContent += `
+                    <div class="view-section">
+                        <div class="view-title">${item.viewName}</div>
+                        <img src="${item.imageData}" alt="${item.viewName}" />
+                        <br>
+                        <a href="${item.imageData}" download="${item.viewName}.png" class="download-link">下载 ${item.viewName}</a>
+                    </div>
+                `;
+            });
+            
+            htmlContent += `
+                    </body>
+                </html>
+            `;
+            
+            newWindow.document.write(htmlContent);
+            newWindow.document.close();
+            
+            console.log(`成功导出 ${exportedImages.length} 个视图`);
+        } else {
+            console.warn('没有成功导出任何视图');
+        }
+    } catch (error) {
+        console.error('导出所有视图时发生错误:', error);
+    } finally {
+        // 恢复到原始激活视图
+        if (originalActiveViewId) {
+            console.log(`恢复到原始视图: ${originalActiveViewId}`);
+            store.setActiveViewId(originalActiveViewId);
+            
+            // 手动触发视图切换逻辑以恢复显示
+            const originalViewContainer = document.getElementById(`view-container-${originalActiveViewId}`);
+            if (originalViewContainer) {
+                // 隐藏所有视图容器
+                document.querySelectorAll('.view-container').forEach(container => {
+                    container.style.display = 'none';
+                });
+                // 显示原始视图容器
+                originalViewContainer.style.display = 'block';
+            }
+            
+            // 更新全局 canvas 引用
+            const originalCanvas = store.viewCanvases[originalActiveViewId];
+            if (originalCanvas) {
+                if (window.setGlobalCanvas) {
+                    window.setGlobalCanvas(originalCanvas);
+                } else {
+                    window.canvas = originalCanvas;
+                    window.fabricCanvas = originalCanvas;
+                }
+                originalCanvas.renderAll();
+            }
+        }
+    }
+}
+
 // 计算弧形文字的每个字符的属性
 function calculateArcTextProperties(textObject, arcValue) {
   const originalText = textObject.text;

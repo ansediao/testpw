@@ -18,7 +18,7 @@ function captureCanvas(includeBoundary = false) {
     
     // 创建一个临时画布来合成所有图层
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = currentColorCanvas.width /2;
+    tempCanvas.width = currentColorCanvas.width;
     tempCanvas.height = currentColorCanvas.height;
     const tempCtx = tempCanvas.getContext('2d');
     // 首先绘制白色背景
