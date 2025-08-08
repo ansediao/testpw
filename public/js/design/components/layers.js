@@ -623,22 +623,15 @@ const layersApp = Vue.createApp({
                 return;
             
 
-            // 先在画布中复制对象
-            duplicateCanvasObject(layer.id);
-
-            // 创建新的图层数据
-            const newLayer = {
-                id: 'layer_' + Date.now(),
+            // 在画布中复制对象，图层会通过 object:added 事件自动同步到 store
+            duplicateCanvasObject(layer.id, {
                 name: layer.name + '_副本',
                 type: layer.type,
                 visible: layer.visible,
                 locked: layer.locked,
                 groupId: targetGroupId || layer.groupId,
                 groupOrder: targetGroupId ? getGroupLayers(targetGroupId).length : layer.groupOrder
-            };
-
-            // 添加到当前视图
-            store.addLayerToView(currentViewId, newLayer);
+            });
         };
 
         // 删除图层
@@ -705,19 +698,25 @@ const layersApp = Vue.createApp({
         };
 
         // 复制画布对象
-        const duplicateCanvasObject = (layerId) => {
+        const duplicateCanvasObject = (layerId, layerInfo = {}) => {
             const canvasInstance = getCanvasInstance();
 
             if (canvasInstance) {
                 const obj = canvasInstance.getObjects().find(o => o.id === layerId);
                 if (obj) {
                     obj.clone((cloned) => {
+                        const newId = `layer_${Date.now()}`;
                         cloned.set({
                             left: cloned.left + 10,
                             top: cloned.top + 10,
-                            id: `layer_${
-                                Date.now()
-                            }`
+                            id: newId,
+                            // 设置图层信息，供 syncCanvasObjectToStore 使用
+                            layerName: layerInfo.name || (obj.layerName || obj.text || 'Layer') + '_副本',
+                            layerType: layerInfo.type || obj.layerType || obj.type,
+                            visible: layerInfo.visible !== undefined ? layerInfo.visible : (obj.visible !== false),
+                            selectable: layerInfo.locked !== undefined ? !layerInfo.locked : obj.selectable,
+                            groupId: layerInfo.groupId || null,
+                            groupOrder: layerInfo.groupOrder || 0
                         });
                         canvasInstance.add(cloned);
                         canvasInstance.setActiveObject(cloned);

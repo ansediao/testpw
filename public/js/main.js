@@ -500,8 +500,8 @@ function syncCanvasObjectToStore(obj, action) {
             type: layerType,
             visible: obj.visible !== false,
             locked: !obj.selectable,
-            groupId: null,
-            groupOrder: 0
+            groupId: obj.groupId || null,
+            groupOrder: obj.groupOrder || 0
           };
           
           // 添加图层到当前视图
@@ -536,6 +536,11 @@ function syncSelectionToStore(objectId) {
 
 // 获取图层名称的辅助函数
 function getLayerName(obj) {
+  // 优先使用对象上设置的 layerName 属性（用于复制等场景）
+  if (obj.layerName) {
+    return obj.layerName;
+  }
+  
   if (obj.type === 'text' || obj.type === 'i-text') {
     const text = obj.text || '';
     return text.length > 15 ? text.substring(0, 15) + '...' : text;
@@ -548,6 +553,11 @@ function getLayerName(obj) {
 
 // 获取图层类型的辅助函数
 function getLayerType(obj) {
+  // 优先使用对象上设置的 layerType 属性（用于复制等场景）
+  if (obj.layerType) {
+    return obj.layerType;
+  }
+  
   if (obj.type === 'text' || obj.type === 'i-text') {
     return 'text';
   } else if (obj.type === 'image') {
