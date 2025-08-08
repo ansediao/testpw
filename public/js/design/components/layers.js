@@ -33,10 +33,14 @@ const layersApp = Vue.createApp({
                                     <div class="layer-type">{{ layer.type || 'unknown' }}</div>
                                     <div class="layer-controls">                               
                                         <button @click.stop="toggleLock(layer)" class="layer-btn">
-                                            {{ layer.locked ? '🔒' : '🔓' }}
+                                            <i :class="layer.locked ? 'iconfont icon-suoding' : 'iconfont icon-jiesuo'"></i>
                                         </button>
-                                        <button @click.stop="duplicateLayer(layer)" class="layer-btn">📋</button>
-                                        <button @click.stop="deleteLayer(layer)" class="layer-btn delete">🗑️</button>
+                                        <button @click.stop="duplicateLayer(layer)" class="layer-btn">
+                                            <i class="iconfont icon-fuzhi"></i>
+                                        </button>
+                                        <button @click.stop="deleteLayer(layer)" class="layer-btn delete">
+                                            <i class="iconfont icon-shanchu"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <div v-if="layer.type === 'image'" class="layer-img-info">
@@ -68,17 +72,17 @@ const layersApp = Vue.createApp({
                         <span class="group-name">📁 {{group.name}}</span>
                         
                         <!-- 图层组操作按钮 -->
-                        <div class="group-actions">
-                            <button @click.stop="toggleGroupVisibility(group)" 
-                                    :class="{hidden: !group.visible}" class="layer-btn">
-                                {{group.visible ? '👁️' : '🙈'}}
-                            </button>
+                        <div class="group-actions">                           
                             <button @click.stop="toggleGroupLock(group)"
                                     :class="{locked: group.locked}" class="layer-btn">
-                                {{group.locked ? '🔒' : '🔓'}}
+                                <i :class="group.locked ? 'iconfont icon-suoding' : 'iconfont icon-jiesuo'"></i>
                             </button>
-                            <button @click.stop="duplicateGroup(group)" class="layer-btn">📋</button>
-                            <button @click.stop="deleteGroup(group)" class="layer-btn delete">🗑️</button>
+                            <button @click.stop="duplicateGroup(group)" class="layer-btn">
+                                <i class="iconfont icon-fuzhi"></i>
+                            </button>
+                            <button @click.stop="deleteGroup(group)" class="layer-btn delete">
+                                <i class="iconfont icon-shanchu"></i>
+                            </button>
                         </div>
                     </div>
                     
@@ -100,27 +104,30 @@ const layersApp = Vue.createApp({
                                     📄
                                 </div>
                             </div>
-                            <div class="layer-controls">
-                                <button @click.stop="toggleVisibility(layer)" class="layer-btn">
-                                    {{ layer.visible ? '👁️' : '🙈' }}
-                                </button>
-                                <button @click.stop="toggleLock(layer)" class="layer-btn">
-                                    {{ layer.locked ? '🔒' : '🔓' }}
-                                </button>
-                            </div>
                             <div class="layer-info">
-                                <div class="layer-name">{{ layer.name || layer.id }}</div>
-                                <div class="layer-type">{{ layer.type || 'unknown' }}</div>
-                                <div v-if="layer.type === 'image'" class="layer-img-info">
-                                    <div v-if="getImageLayerInfo(layer)" class="image-details">
-                                        <div class="image-meta">{{ getImageLayerInfo(layer).name }} <br> {{ getImageLayerInfo(layer).dpi }}</div>
+                                <div class="layer-name">
+                                    <div class="layer-type">{{ layer.type || 'unknown' }}</div>
+                                    <div class="layer-controls">                               
+                                        <button @click.stop="toggleLock(layer)" class="layer-btn">
+                                            <i :class="layer.locked ? 'iconfont icon-suoding' : 'iconfont icon-jiesuo'"></i>
+                                        </button>
+                                        <button @click.stop="duplicateLayer(layer)" class="layer-btn">
+                                            <i class="iconfont icon-fuzhi"></i>
+                                        </button>
+                                        <button @click.stop="deleteLayer(layer)" class="layer-btn delete">
+                                            <i class="iconfont icon-shanchu"></i>
+                                        </button>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="layer-actions">
-                                <button @click.stop="removeFromGroup(layer)" class="ungroup-btn">移出</button>
-                                <button @click.stop="duplicateLayer(layer)" class="layer-btn">📋</button>
-                                <button @click.stop="deleteLayer(layer)" class="layer-btn delete">🗑️</button>
+                                <div v-if="layer.type === 'image'" class="layer-img-info">
+                                    <div v-if="getImageLayerInfo(layer)" class="image-details">
+                                                                              <div class="image-meta">{{ getImageLayerInfo(layer).name }} <br> {{ getImageLayerInfo(layer).dpi }}</div>
+
+                                    </div>
+                                </div>
+                                <div class="layer-actions">
+                                    <button @click.stop="showGroupAssignDialog(layer)" class="assign-btn">Switch Printing Method</button>                               
+                                </div>
                             </div>
                         </div>
                     </div>
