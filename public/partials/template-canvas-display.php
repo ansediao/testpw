@@ -285,14 +285,29 @@ if ($product_id > 0) {
     document.getElementById('generatePdfBtn').addEventListener('click', async function() {
       // 获取产品名称
       const productName = '<?php echo esc_js($product_name); ?>';
+      
+      // 检查是否为多视图模式
+      const store = window.useCanvasStore && window.useCanvasStore();
+      const isMultiViewMode = store && store.views && store.views.length > 0;
+      
+      if (isMultiViewMode) {
+        // 多视图模式：生成包含所有视图的PDF
+        await generateMultiViewPDF(productName, store);
+      } else {
+        // 单视图模式：使用原有逻辑
+        await generateSingleViewPDF(productName);
+      }
+    });
+    
+    // 单视图PDF生成函数
+    async function generateSingleViewPDF(productName) {
       // 检查是否存在预览容器
       const previewContainer = document.querySelector('.preview-canvas-container');
       // 根据是否存在预览容器选择不同的捕获函数
       const imageData = await (previewContainer ? capturePreviewCanvas() : captureCanvas());
+      
       // 创建PDF
-      const {
-        jsPDF
-      } = window.jspdf;
+      const { jsPDF } = window.jspdf;
       const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -302,53 +317,204 @@ if ($product_id > 0) {
         creator: 'PW在线定制系统',
         format: 'a4'
       });
-      // // 设置中文字体
-      // doc.addFont('Noto-Sans-SC-normal.ttf', 'Noto-Sans-SC', 'normal');
-      // doc.setFont('Noto-Sans-SC');
+      
       // 添加标题
       doc.setFontSize(16);
-      doc.text('Preview', 105, 20, {
-        align: 'center'
-      });
+      doc.text('Preview', 105, 20, { align: 'center' });
       if (productName) {
         doc.setFontSize(14);
-        doc.text(`Product: ${productName}`, 105, 30, {
-          align: 'center'
-        });
+        doc.text(`Product: ${productName}`, 105, 30, { align: 'center' });
       }
-      // 添加canvas图像
+      
       // 计算图像尺寸，使其适应A4页面宽度（210mm x 297mm）
       const pageWidth = 210;
       const pageHeight = 297;
       const margin = 20;
       const maxWidth = pageWidth - (margin * 2);
+      
       // 将base64图像添加到PDF
-      doc.addImage(
-        imageData,
-        'PNG',
-        margin,
-        40,
-        maxWidth,
-        maxWidth // 保持宽高比
-      );
+      doc.addImage(imageData, 'PNG', margin, 40, maxWidth, maxWidth);
+      
       // 添加生成时间
       const currentTime = new Date();
       doc.setFontSize(10);
-      doc.text(
-        `Time: ${currentTime.toLocaleString()}`,
-        105,
-        pageHeight - 10, {
-          align: 'center'
-        }
-      );
-      // 打开PDF预览
-      // doc.output('dataurlnewwindow');
-      // doc.output('dataurinewwindow');
-      // 使用产品名+规格书+时间作为文件名
+      doc.text(`Time: ${currentTime.toLocaleString()}`, 105, pageHeight - 10, { align: 'center' });
+      
+      // 保存PDF
       const timeStr = currentTime.toLocaleString().replace(/[:\/]/g, '-').replace(/,/g, '');
       const fileName = `${productName}_规格书_${timeStr}.pdf`;
       doc.save(fileName);
-    });
+    }
+    
+    // 多视图PDF生成函数
+    async function generateMultiViewPDF(productName, store) {
+      if (!store || !store.views || store.views.length === 0) {
+        console.error('没有找到视图数据');
+        return;
+      }
+      
+      const originalActiveViewId = store.activeViewId;
+      const exportedImages = [];
+      
+      try {
+        // 遍历所有视图并捕获图像
+        for (const view of store.views) {
+          console.log(`正在捕获视图用于PDF: ${view.name}`);
+          
+          // 切换到当前视图
+          store.setActiveViewId(view.id);
+          
+          // 手动触发视图切换逻辑
+          const viewContainer = document.getElementById(`view-container-${view.id}`);
+          if (viewContainer) {
+            document.querySelectorAll('.view-container').forEach(container => {
+              container.style.display = 'none';
+            });
+            viewContainer.style.display = 'block';
+          }
+          
+          // 更新全局 canvas 引用
+          const canvas = store.viewCanvases[view.id];
+          if (canvas) {
+            Object.values(store.viewCanvases).forEach(viewCanvas => {
+              if (viewCanvas && typeof viewCanvas.discardActiveObject === 'function') {
+                viewCanvas.discardActiveObject();
+                viewCanvas.renderAll();
+              }
+            });
+            
+            if (window.setGlobalCanvas) {
+              window.setGlobalCanvas(canvas);
+            } else {
+              window.canvas = canvas;
+              window.fabricCanvas = canvas;
+            }
+            
+            canvas.renderAll();
+          }
+          
+          // 等待视图切换和渲染完成
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          // 捕获当前视图的画板内容
+          const imageDataUrl = await captureCanvas();
+          if (imageDataUrl) {
+            exportedImages.push({
+              viewName: view.name,
+              imageData: imageDataUrl
+            });
+            console.log(`视图 ${view.name} 已捕获用于PDF`);
+          }
+        }
+        
+        // 创建包含所有视图的PDF
+        if (exportedImages.length > 0) {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            title: `${productName} - 多视图定制预览`,
+            subject: '在线定制预览',
+            author: 'PW在线定制系统',
+            creator: 'PW在线定制系统',
+            format: 'a4'
+          });
+          
+          const pageWidth = 210;
+          const pageHeight = 297;
+          const margin = 20;
+          const maxWidth = pageWidth - (margin * 2);
+          const maxImageHeight = 120; // 限制每个图像的最大高度
+          
+          // 添加封面
+          doc.setFontSize(18);
+          doc.text('Multi-View Preview', 105, 30, { align: 'center' });
+          if (productName) {
+            doc.setFontSize(16);
+            doc.text(`Product: ${productName}`, 105, 45, { align: 'center' });
+          }
+          doc.setFontSize(12);
+          doc.text(`Total Views: ${exportedImages.length}`, 105, 60, { align: 'center' });
+          
+          // 为每个视图添加页面
+          exportedImages.forEach((item, index) => {
+            if (index > 0) {
+              doc.addPage(); // 为每个视图添加新页面
+            }
+            
+            // 添加视图标题
+            doc.setFontSize(16);
+            doc.text(`View: ${item.viewName}`, 105, 80, { align: 'center' });
+            
+            // 添加视图图像
+            doc.addImage(
+              item.imageData,
+              'PNG',
+              margin,
+              90,
+              maxWidth,
+              maxImageHeight
+            );
+            
+            // 添加页码
+            doc.setFontSize(10);
+            doc.text(
+              `Page ${index + 1} of ${exportedImages.length}`,
+              105,
+              pageHeight - 20,
+              { align: 'center' }
+            );
+          });
+          
+          // 添加生成时间到最后一页
+          const currentTime = new Date();
+          doc.setFontSize(10);
+          doc.text(
+            `Generated: ${currentTime.toLocaleString()}`,
+            105,
+            pageHeight - 10,
+            { align: 'center' }
+          );
+          
+          // 保存PDF
+          const timeStr = currentTime.toLocaleString().replace(/[:\/]/g, '-').replace(/,/g, '');
+          const fileName = `${productName}_多视图规格书_${timeStr}.pdf`;
+          doc.save(fileName);
+          
+          console.log(`成功生成包含 ${exportedImages.length} 个视图的PDF`);
+        } else {
+          console.warn('没有成功捕获任何视图用于PDF生成');
+        }
+        
+      } catch (error) {
+        console.error('生成多视图PDF时发生错误:', error);
+      } finally {
+        // 恢复到原始激活视图
+        if (originalActiveViewId) {
+          console.log(`恢复到原始视图: ${originalActiveViewId}`);
+          store.setActiveViewId(originalActiveViewId);
+          
+          const originalViewContainer = document.getElementById(`view-container-${originalActiveViewId}`);
+          if (originalViewContainer) {
+            document.querySelectorAll('.view-container').forEach(container => {
+              container.style.display = 'none';
+            });
+            originalViewContainer.style.display = 'block';
+          }
+          
+          const originalCanvas = store.viewCanvases[originalActiveViewId];
+          if (originalCanvas) {
+            if (window.setGlobalCanvas) {
+              window.setGlobalCanvas(originalCanvas);
+            } else {
+              window.canvas = originalCanvas;
+              window.fabricCanvas = originalCanvas;
+            }
+            originalCanvas.renderAll();
+          }
+        }
+      }
+    }
   </script>
  <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/stores/index.js?time=' . microtime(true); ?>" type="module"></script>
  <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/main.js?time=' . microtime(true); ?>" type="module"></script>
