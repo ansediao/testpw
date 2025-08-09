@@ -85,9 +85,8 @@ class Pw_CDN_Loader {
             <!-- 产品页 按钮 -->
             <?php $css_timestamp = time(); ?>
             <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/241.css?v=<?php echo $css_timestamp; ?>">
-            
             <!-- 组件样式文件 -->
-            <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ColorVariants.css?v=' . time(); ?>">
+            <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/244.css?v=<?php echo $css_timestamp; ?>">
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/CheckboxOptions.css?v=' . time(); ?>">
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductPriceInfo.css?v=' . time(); ?>">
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductQuantity.css?v=' . time(); ?>">
