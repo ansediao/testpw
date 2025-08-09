@@ -11,8 +11,7 @@ const layersApp = Vue.createApp({
               
                 
                 <!-- 未分组图层提示区域 -->
-                <div v-if="ungroupedLayers.length > 0" class="ungrouped-warning">
-                     <div class="ungrouped-layers">
+                <div v-if="ungroupedLayers.length > 0">
                         <div v-for="layer in ungroupedLayers" :key="layer.id" 
                              class="layer-item ungrouped"
                              :class="{ active: layer.id === activeObjectId }"
@@ -57,7 +56,6 @@ const layersApp = Vue.createApp({
                            
                             
                         </div>
-                    </div>
                 </div>
                 
                 <!-- 图层组列表 -->
