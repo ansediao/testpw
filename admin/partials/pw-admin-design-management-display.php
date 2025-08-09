@@ -113,7 +113,7 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
             wp_reset_postdata(); // Restore original Post Data
         else :
             ?>
-            <p>没有找到任何设计。</p>
+            <p>No designs found.</p>
         <?php endif; ?>
     </div>
 
@@ -339,7 +339,7 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
 <!-- Add Design Modal -->
 <div id="pw-add-design-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1001;">
     <div class="pw-modal-content" style="background:white; width:600px; margin:50px auto; padding:30px; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-        <h2 style="margin-top:0; margin-bottom:25px; color:#333;">添加新设计</h2>
+        <h2 style="margin-top:0; margin-bottom:25px; color:#333;">Add New Design</h2>
         
         <form id="pw-add-design-form" enctype="multipart/form-data">
             <?php wp_nonce_field('pw_add_design_nonce', 'pw_add_design_nonce_field'); ?>
@@ -350,8 +350,8 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
                 <div id="pw-image-upload-area" style="border:2px dashed #ccc; border-radius:8px; padding:40px; text-align:center; background:#fafafa; cursor:pointer; transition:all 0.3s ease;">
                     <div id="pw-upload-placeholder">
                         <span class="dashicons dashicons-cloud-upload" style="font-size:48px; color:#999; display:block; margin-bottom:15px;"></span>
-                        <p style="margin:0; color:#666; font-size:16px;">点击或拖拽图片到此区域上传</p>
-                        <p style="margin:5px 0 0; color:#999; font-size:14px;">支持 JPG, PNG, GIF 格式</p>
+                        <p style="margin:0; color:#666; font-size:16px;">Click or drag image here to upload</p>
+                        <p style="margin:5px 0 0; color:#999; font-size:14px;">Supports JPG, PNG, GIF formats</p>
                     </div>
                     <div id="pw-image-preview" style="display:none;">
                         <img id="pw-preview-img" style="max-width:100%; max-height:200px; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
@@ -364,13 +364,13 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
             
             <!-- 名称字段 -->
             <div class="pw-form-field" style="margin-bottom:25px;">
-                <label for="pw-design-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">设计名称</label>
+                <label for="pw-design-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Design Name</label>
                 <input type="text" id="pw-design-name" name="design_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
             </div>
             
             <!-- 分类选择 -->
             <div class="pw-form-field" style="margin-bottom:30px;">
-                <label for="pw-design-category" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">设计分类</label>
+                <label for="pw-design-category" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Design Category</label>
                 <select id="pw-design-category" name="design_category" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
                     <option value="">选择分类</option>
                     <?php
@@ -393,7 +393,7 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
             
             <div class="pw-modal-footer" style="text-align: right; border-top:1px solid #eee; padding-top:20px; margin-top:30px;">
                 <button type="button" class="button" id="pw-add-design-cancel">取消</button>
-                <button type="submit" class="button button-primary" id="pw-add-design-submit">添加设计</button>
+                <button type="submit" class="button button-primary" id="pw-add-design-submit">Add Design</button>
             </div>
         </form>
     </div>
@@ -402,30 +402,30 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
 <!-- Add Category Modal -->
 <div id="pw-add-category-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1002;">
     <div class="pw-modal-content" style="background:white; width:500px; margin:100px auto; padding:30px; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-        <h2 style="margin-top:0; margin-bottom:25px; color:#333;">添加新分类</h2>
+        <h2 style="margin-top:0; margin-bottom:25px; color:#333;">Add New Category</h2>
         
         <form id="pw-add-category-form">
             <?php wp_nonce_field('pw_add_category_nonce', 'pw_add_category_nonce_field'); ?>
             
             <!-- 分类名称字段 -->
             <div class="pw-form-field" style="margin-bottom:25px;">
-                <label for="pw-category-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">分类名称</label>
-                <input type="text" id="pw-category-name" name="category_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" placeholder="输入分类名称">
+                <label for="pw-category-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category Name</label>
+                <input type="text" id="pw-category-name" name="category_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" placeholder="Enter category name">
             </div>
             
             <!-- 分类类型选择 -->
             <div class="pw-form-field" style="margin-bottom:30px;">
-                <label for="pw-category-type" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">分类类型</label>
+                <label for="pw-category-type" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category Type</label>
                 <select id="pw-category-type" name="category_type" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
-                    <option value="general">通用分类</option>
-                    <option value="product">产品分类</option>
-                    <option value="style">风格分类</option>
+                    <option value="general">General</option>
+                    <option value="product">Product</option>
+                    <option value="style">Style</option>
                 </select>
             </div>
             
             <div class="pw-modal-footer" style="text-align: right; border-top:1px solid #eee; padding-top:20px; margin-top:30px;">
                 <button type="button" class="button" id="pw-add-category-cancel">取消</button>
-                <button type="submit" class="button button-primary" id="pw-add-category-submit">添加分类</button>
+                <button type="submit" class="button button-primary" id="pw-add-category-submit">Add Category</button>
             </div>
         </form>
     </div>
