@@ -390,7 +390,7 @@ const useProductStore = Pinia.defineStore('product', () => {
             try {
                 // 使用统一的 API 模块获取数据
                 if (typeof window.productDataAPI === 'undefined') {
-                    throw new Error('ProductDataAPI 未加载');
+                    throw new Error('ProductDataAPI not loaded');
                 }
 
                 const apiData = await window.productDataAPI.fetchCurrentProductData();

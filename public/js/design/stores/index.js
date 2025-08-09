@@ -121,7 +121,7 @@ export const useCanvasStore = defineStore('canvas', {
             this.layers = this.viewLayers[viewId] || [];
             this.layerGroups = this.viewLayerGroups[viewId] || [];
             
-            console.log(`视图切换: ${previousViewId} -> ${viewId}, 图层数量: ${this.layers.length}`);
+            console.log(`View switched: ${previousViewId} -> ${viewId}, layers count: ${this.layers.length}`);
         },
         addViewCanvas(viewId, canvas) { this.viewCanvases[viewId] = canvas; },
         removeViewCanvas(viewId) { delete this.viewCanvases[viewId]; },
@@ -133,13 +133,13 @@ export const useCanvasStore = defineStore('canvas', {
             try {
                 const response = await axios.get(`/wp-json/pw/v1/product-data/${pwId}`);
                 this.setProductData(response.data);
-                console.log('产品数据获取成功:', response.data);
+                console.log('Product data retrieved successfully:', response.data);
                 // 从产品数据中提取视图信息
                 this.extractViewsFromProductData(response.data);
                 return response.data;
             } catch (error) {
-                console.error('获取产品数据失败:', error);
-                this.setProductDataError(error.message || '获取产品数据失败');
+                console.error('Failed to retrieve product data:', error);
+                this.setProductDataError(error.message || 'Failed to retrieve product data');
                 throw error;
             } finally {
                 this.setLoadingProductData(false);
@@ -178,7 +178,7 @@ export const useCanvasStore = defineStore('canvas', {
                 this.setActiveViewId(views[0].id);
             }
             
-            console.log('提取的视图信息:', views);
+            console.log('Extracted view information:', views);
         }
     },
 });

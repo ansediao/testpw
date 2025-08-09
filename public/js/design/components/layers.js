@@ -139,11 +139,11 @@ const layersApp = Vue.createApp({
             <!-- 创建图层组对话框 -->
             <div v-if="showGroupDialog" class="group-dialog-overlay" @click="showGroupDialog = false">
                 <div class="group-dialog" @click.stop>
-                    <h3>创建图层组</h3>
-                    <input v-model="newGroupName" placeholder="输入图层组名称" @keyup.enter="createGroup" />
+                    <h3>Create Layer Group</h3>
+                    <input v-model="newGroupName" placeholder="Enter layer group name" @keyup.enter="createGroup" />
                     <div class="dialog-actions">
-                        <button @click="createGroup">创建</button>
-                        <button @click="showGroupDialog = false">取消</button>
+                        <button @click="createGroup">Create</button>
+                        <button @click="showGroupDialog = false">Cancel</button>
                     </div>
                 </div>
             </div>

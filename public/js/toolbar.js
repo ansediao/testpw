@@ -207,7 +207,7 @@ function updateDynamicToolbar(obj) {
                 if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
                     canvas.getActiveObject().set('angle', parseInt(this.value, 10));
                     canvas.renderAll();
-                    console.log('文本旋转已更新为：', this.value);
+                    console.log('Text rotation updated to:', this.value);
                 }
             });
         }
@@ -677,7 +677,7 @@ function updateDynamicToolbar(obj) {
 function addImage(event) {
     const file = event.target.files[0];
     if (!file) return;
-    console.log('addImage 函数被调用，文件名称：', file.name);
+    console.log('addImage function called, file name:', file.name);
     const reader = new FileReader();
     reader.onload = function (e) {
         fabric.Image.fromURL(e.target.result, function (img) {
@@ -695,9 +695,9 @@ function addImage(event) {
             if (!existingObject) {
                 canvas.add(img);
                 canvas.setActiveObject(img);
-                console.log('图片已添加到画布，ID：', newId);
+                console.log('Image added to canvas, ID:', newId);
             } else {
-                console.log('图片已存在，避免重复添加，ID：', newId);
+                console.log('Image already exists, avoiding duplicate addition, ID:', newId);
             }
         });
     }
@@ -724,13 +724,13 @@ function addDesignToCanvas(designId) {
             if (!existingObject) {
                 canvas.add(img);
                 canvas.setActiveObject(img);
-                console.log('设计图片已添加到画布，ID：', newId);
+                console.log('Design image added to canvas, ID:', newId);
             } else {
-                console.log('设计图片已存在，避免重复添加，ID：', newId);
+                console.log('Design image already exists, avoiding duplicate addition, ID:', newId);
             }
         });
     } else {
-        console.error('无法找到设计图片，ID：', designId);
+        console.error('Cannot find design image, ID:', designId);
     }
 }
 

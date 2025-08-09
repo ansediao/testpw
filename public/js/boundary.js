@@ -15,13 +15,13 @@ function drawBoundary() {
     }
     
     if (!boundaryCanvas) {
-        console.warn('未找到 boundary canvas 元素');
+        console.warn('Boundary canvas element not found');
         return;
     }
     
     const boundaryCtx = boundaryCanvas.getContext('2d');
     if (!boundaryCtx) {
-        console.warn('无法获取 boundary canvas 上下文');
+        console.warn('Cannot get boundary canvas context');
         return;
     }
     

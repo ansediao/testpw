@@ -90,7 +90,7 @@ function initializeModularApp(productId) {
                 try {
                     await store.fetchProductData();
                 } catch (error) {
-                    console.error('App: 产品数据初始化失败:', error);
+                    console.error('App: Product data initialization failed:', error);
                 }
             });
 

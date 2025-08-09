@@ -5,7 +5,7 @@ function init() {
     
     if (canvasStore && canvasStore.views && canvasStore.views.length > 0) {
         // 多视图模式：跳过传统初始化，由多视图系统处理
-        console.log('多视图模式已激活，跳过传统 canvas 初始化');
+        console.log('Multi-view mode activated, skipping traditional canvas initialization');
         return;
     }
     
@@ -14,7 +14,7 @@ function init() {
     const shadowCanvas = document.getElementById('shadowLayer');
     
     if (!colorCanvas || !shadowCanvas) {
-        console.warn('未找到传统 canvas 元素，可能处于多视图模式');
+        console.warn('Traditional canvas elements not found, may be in multi-view mode');
         return;
     }
     
@@ -97,13 +97,13 @@ function loadColorImage1(imageUrl, color) {
     }
     
     if (!shadowCanvas) {
-        console.warn('未找到 shadow canvas 元素');
+        console.warn('Shadow canvas element not found');
         return;
     }
     
     shadowCtx = shadowCanvas.getContext('2d');
     if (!shadowCtx) {
-        console.warn('无法获取 shadow canvas 上下文');
+        console.warn('Cannot get shadow canvas context');
         return;
     }
     
@@ -143,12 +143,12 @@ if (zoomSlider && zoomValue) {
         updateCanvasZoom();
     });
 } else {
-    console.error('缩放滑块或数值显示元素未找到');
+    console.error('Zoom slider or value display element not found');
 }
 // 更新画布缩放
 function updateCanvasZoom() { 
     if (!canvasContainer) {
-        console.error('画布容器未找到');
+        console.error('Canvas container not found');
         return;
     }
     // 获取所有画布元素
@@ -163,7 +163,7 @@ function updateCanvasZoom() {
     // 调整容器高度以适应缩放后的画布
     // 注意：这里假设原始高度为600px，如在HTML中设置的
     canvasContainer.style.height = (600 * scale) + 'px';
-    console.log('画布缩放比例更新为：', scale);
+    console.log('Canvas zoom ratio updated to:', scale);
 }
 
 
@@ -206,13 +206,13 @@ function loadColorImage(imageUrl, color) {
     }
     
     if (!shadowCanvas) {
-        console.warn('未找到 shadow canvas 元素');
+        console.warn('Shadow canvas element not found');
         return;
     }
     
     shadowCtx = shadowCanvas.getContext('2d');
     if (!shadowCtx) {
-        console.warn('无法获取 shadow canvas 上下文');
+        console.warn('Cannot get shadow canvas context');
         return;
     }
     

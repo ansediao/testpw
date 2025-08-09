@@ -124,7 +124,7 @@ function initializeCanvasEventListeners(fabricCanvas) {
   addCanvas3DModelListeners(fabricCanvas);
   addCanvasLayerListeners(fabricCanvas);
   
-  console.log('Canvas 事件监听器已初始化');
+  console.log('Canvas event listeners initialized');
 }
 
 // 暴露给全局使用
@@ -412,7 +412,7 @@ function addCanvasLayerListeners(fabricCanvas) {
     // 确保对象有 ID
     if (!obj.id) {
       obj.id = `layer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      console.log('为对象分配ID:', obj.id);
+      console.log('Assigned ID to object:', obj.id);
     }
     
     // 保持旧的图层面板功能
@@ -482,7 +482,7 @@ function syncCanvasObjectToStore(obj, action) {
       const currentViewId = store.activeViewId;
       
       if (!currentViewId) {
-        console.warn('没有激活的视图，无法同步图层');
+        console.warn('No active view, cannot sync layer');
         return;
       }
       
@@ -517,7 +517,7 @@ function syncCanvasObjectToStore(obj, action) {
         }
       }
     } catch (error) {
-      console.error('同步画布对象到图层管理系统失败:', error);
+      console.error('Failed to sync canvas object to layer management system:', error);
     }
   }
 }
@@ -529,7 +529,7 @@ function syncSelectionToStore(objectId) {
       const store = window.useCanvasStore();
       store.setActiveObjectId(objectId);
     } catch (error) {
-      console.error('同步选中状态失败:', error);
+      console.error('Failed to sync selection state:', error);
     }
   }
 }
@@ -571,7 +571,7 @@ function getLayerType(obj) {
 async function exportAllViewsAsImages() {
     const store = window.useCanvasStore();
     if (!store || !store.views || store.views.length === 0) {
-        console.error('没有找到视图数据');
+        console.error('No view data found');
         return;
     }
 
@@ -580,7 +580,7 @@ async function exportAllViewsAsImages() {
 
     try {
         for (const view of store.views) {
-            console.log(`正在导出视图: ${view.name}`);
+            console.log(`Exporting view: ${view.name}`);
             
             // 切换到当前视图
             store.setActiveViewId(view.id);
@@ -629,9 +629,9 @@ async function exportAllViewsAsImages() {
                     viewName: view.name,
                     imageData: imageDataUrl
                 });
-                console.log(`视图 ${view.name} 导出成功`);
+                console.log(`View ${view.name} exported successfully`);
             } else {
-                console.warn(`视图 ${view.name} 导出失败`);
+                console.warn(`View ${view.name} export failed`);
             }
         }
 
@@ -674,16 +674,16 @@ async function exportAllViewsAsImages() {
             newWindow.document.write(htmlContent);
             newWindow.document.close();
             
-            console.log(`成功导出 ${exportedImages.length} 个视图`);
+            console.log(`Successfully exported ${exportedImages.length} views`);
         } else {
-            console.warn('没有成功导出任何视图');
+            console.warn('No views were successfully exported');
         }
     } catch (error) {
-        console.error('导出所有视图时发生错误:', error);
+        console.error('Error occurred while exporting all views:', error);
     } finally {
         // 恢复到原始激活视图
         if (originalActiveViewId) {
-            console.log(`恢复到原始视图: ${originalActiveViewId}`);
+            console.log(`Restored to original view: ${originalActiveViewId}`);
             store.setActiveViewId(originalActiveViewId);
             
             // 手动触发视图切换逻辑以恢复显示

@@ -12,7 +12,7 @@ function captureCanvas(includeBoundary = false) {
     const currentCanvas = activeCanvas || window.canvas || window.fabricCanvas;
     
     if (!currentColorCanvas) {
-        console.error('无法找到colorCanvas元素');
+        console.error('Cannot find colorCanvas element');
         return Promise.resolve(null);
     }
     
@@ -50,7 +50,7 @@ function captureCanvas(includeBoundary = false) {
             height: currentCanvas.height
         });
     } else {
-        console.error('无法找到当前canvas实例');
+        console.error('Cannot find current canvas instance');
         return Promise.resolve(null);
     }
     // 等待图片加载完成后再绘制
