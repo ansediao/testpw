@@ -25,16 +25,16 @@ if ($product_id > 0) {
   <title>在线定制<?php echo $product_name ? ' - ' . esc_html($product_name) : ''; ?></title>
 
 
- <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/vue-demi@0.14.7/lib/index.iife.js"></script>
-    <script src="https://unpkg.com/pinia@2/dist/pinia.iife.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/vue-demi@0.14.7/lib/index.iife.js"></script>
+  <script src="https://unpkg.com/pinia@2/dist/pinia.iife.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  
+
   <link rel="stylesheet" href="//at.alicdn.com/t/c/font_4970780_pfyts3fzl6.css?time=<?php echo  microtime(true); ?>" />
   <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/203.css?time=<?php echo  microtime(true); ?>" />
-    <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/240.css?time=<?php echo  microtime(true); ?>" />
+  <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/240.css?time=<?php echo  microtime(true); ?>" />
 
   <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../css/layers.css?time=' . microtime(true); ?>" />
 
@@ -96,7 +96,7 @@ if ($product_id > 0) {
       </div>
     </main>
     <footer class="footer" id="footer">
-        <div class="product-card">
+      <div class="product-card">
         <div class="product-card__info">
           <div class="product-card__detail">
             <span class="product-card__label">Minimum Order Quantity</span>
@@ -110,8 +110,17 @@ if ($product_id > 0) {
           </div>
           <div class="product-card__detail">
             <span class="product-card__label">Estimated delivery date:<br>Estimated arrival date:</span>
-            <span class="product-card__value">YYYY-MM-DD<br>YYYY-MM-DD</span>
+            <span class="product-card__value"><span id="estimatedDeliveryDate"></span><br><span id="estimatedArrivalDate"></span></span>
 
+            <script>
+              document.addEventListener('DOMContentLoaded', () => {
+                syncPiniaToElement(
+                  "estimatedDeliveryDate",
+                  () => window.useCanvasStore(),
+                  "estimatedDeliveryDate"
+                );
+              });
+            </script>
           </div>
         </div>
         <div class="product-card__quantity">
@@ -171,13 +180,21 @@ if ($product_id > 0) {
         </script>
       <?php endif; ?>
       <div class="product-card-btn">
-        
+
         <button id="addToCartBtn" class="product-card__add-to-cart">Add to Cart</button>
       </div>
     </footer>
   </div>
 
 
+
+  <!-- 加载 Pinia 同步工具 -->
+  <script src="<?php echo 'https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/246.js?time=' . microtime(true); ?>"></script>
+
+  <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>
+    <!-- 开发环境：画布同步示例 -->
+    <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/utils/canvas-sync-examples.js?time=' . microtime(true); ?>"></script>
+  <?php endif; ?>
 
   <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/export.js?time=' . microtime(true); ?>"></script>
   <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/toolbar.js?time=' . microtime(true); ?>"></script>
@@ -217,7 +234,10 @@ if ($product_id > 0) {
           console.error('加载产品数据失败:', error);
         }
       } else {
-        console.warn('pw_id 未找到或 Pinia store 未初始化:', { pwId, storeAvailable: typeof window.useCanvasStore !== 'undefined' });
+        console.warn('pw_id 未找到或 Pinia store 未初始化:', {
+          pwId,
+          storeAvailable: typeof window.useCanvasStore !== 'undefined'
+        });
       }
 
       // 加入购物车功能
@@ -287,11 +307,11 @@ if ($product_id > 0) {
     document.getElementById('generatePdfBtn').addEventListener('click', async function() {
       // 获取产品名称
       const productName = '<?php echo esc_js($product_name); ?>';
-      
+
       // 检查是否为多视图模式
       const store = window.useCanvasStore && window.useCanvasStore();
       const isMultiViewMode = store && store.views && store.views.length > 0;
-      
+
       if (isMultiViewMode) {
         // 多视图模式：生成包含所有视图的PDF
         await generateMultiViewPDF(productName, store);
@@ -300,16 +320,18 @@ if ($product_id > 0) {
         await generateSingleViewPDF(productName);
       }
     });
-    
+
     // 单视图PDF生成函数
     async function generateSingleViewPDF(productName) {
       // 检查是否存在预览容器
       const previewContainer = document.querySelector('.preview-canvas-container');
       // 根据是否存在预览容器选择不同的捕获函数
       const imageData = await (previewContainer ? capturePreviewCanvas() : captureCanvas());
-      
+
       // 创建PDF
-      const { jsPDF } = window.jspdf;
+      const {
+        jsPDF
+      } = window.jspdf;
       const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -319,53 +341,59 @@ if ($product_id > 0) {
         creator: 'PW在线定制系统',
         format: 'a4'
       });
-      
+
       // 添加标题
       doc.setFontSize(16);
-      doc.text('Preview', 105, 20, { align: 'center' });
+      doc.text('Preview', 105, 20, {
+        align: 'center'
+      });
       if (productName) {
         doc.setFontSize(14);
-        doc.text(`Product: ${productName}`, 105, 30, { align: 'center' });
+        doc.text(`Product: ${productName}`, 105, 30, {
+          align: 'center'
+        });
       }
-      
+
       // 计算图像尺寸，使其适应A4页面宽度（210mm x 297mm）
       const pageWidth = 210;
       const pageHeight = 297;
       const margin = 20;
       const maxWidth = pageWidth - (margin * 2);
-      
+
       // 将base64图像添加到PDF
       doc.addImage(imageData, 'PNG', margin, 40, maxWidth, maxWidth);
-      
+
       // 添加生成时间
       const currentTime = new Date();
       doc.setFontSize(10);
-      doc.text(`Time: ${currentTime.toLocaleString()}`, 105, pageHeight - 10, { align: 'center' });
-      
+      doc.text(`Time: ${currentTime.toLocaleString()}`, 105, pageHeight - 10, {
+        align: 'center'
+      });
+
       // 保存PDF
       const timeStr = currentTime.toLocaleString().replace(/[:\/]/g, '-').replace(/,/g, '');
       const fileName = `${productName}_规格书_${timeStr}.pdf`;
       doc.save(fileName);
     }
-    
+
     // 多视图PDF生成函数
     async function generateMultiViewPDF(productName, store) {
       if (!store || !store.views || store.views.length === 0) {
         console.error('没有找到视图数据');
         return;
       }
-      
+
       const originalActiveViewId = store.activeViewId;
       const exportedImages = [];
-      
+
       try {
         // 遍历所有视图并捕获图像
         for (const view of store.views) {
           console.log(`正在捕获视图用于PDF: ${view.name}`);
-          
+
           // 切换到当前视图
           store.setActiveViewId(view.id);
-          
+
           // 手动触发视图切换逻辑
           const viewContainer = document.getElementById(`view-container-${view.id}`);
           if (viewContainer) {
@@ -374,7 +402,7 @@ if ($product_id > 0) {
             });
             viewContainer.style.display = 'block';
           }
-          
+
           // 更新全局 canvas 引用
           const canvas = store.viewCanvases[view.id];
           if (canvas) {
@@ -384,20 +412,20 @@ if ($product_id > 0) {
                 viewCanvas.renderAll();
               }
             });
-            
+
             if (window.setGlobalCanvas) {
               window.setGlobalCanvas(canvas);
             } else {
               window.canvas = canvas;
               window.fabricCanvas = canvas;
             }
-            
+
             canvas.renderAll();
           }
-          
+
           // 等待视图切换和渲染完成
           await new Promise(resolve => setTimeout(resolve, 300));
-          
+
           // 捕获当前视图的画板内容
           const imageDataUrl = await captureCanvas();
           if (imageDataUrl) {
@@ -408,10 +436,12 @@ if ($product_id > 0) {
             console.log(`视图 ${view.name} 已捕获用于PDF`);
           }
         }
-        
+
         // 创建包含所有视图的PDF
         if (exportedImages.length > 0) {
-          const { jsPDF } = window.jspdf;
+          const {
+            jsPDF
+          } = window.jspdf;
           const doc = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
@@ -421,33 +451,41 @@ if ($product_id > 0) {
             creator: 'PW在线定制系统',
             format: 'a4'
           });
-          
+
           const pageWidth = 210;
           const pageHeight = 297;
           const margin = 20;
           const maxWidth = pageWidth - (margin * 2);
           const maxImageHeight = 120; // 限制每个图像的最大高度
-          
+
           // 添加封面
           doc.setFontSize(18);
-          doc.text('Multi-View Preview', 105, 30, { align: 'center' });
+          doc.text('Multi-View Preview', 105, 30, {
+            align: 'center'
+          });
           if (productName) {
             doc.setFontSize(16);
-            doc.text(`Product: ${productName}`, 105, 45, { align: 'center' });
+            doc.text(`Product: ${productName}`, 105, 45, {
+              align: 'center'
+            });
           }
           doc.setFontSize(12);
-          doc.text(`Total Views: ${exportedImages.length}`, 105, 60, { align: 'center' });
-          
+          doc.text(`Total Views: ${exportedImages.length}`, 105, 60, {
+            align: 'center'
+          });
+
           // 为每个视图添加页面
           exportedImages.forEach((item, index) => {
             if (index > 0) {
               doc.addPage(); // 为每个视图添加新页面
             }
-            
+
             // 添加视图标题
             doc.setFontSize(16);
-            doc.text(`View: ${item.viewName}`, 105, 80, { align: 'center' });
-            
+            doc.text(`View: ${item.viewName}`, 105, 80, {
+              align: 'center'
+            });
+
             // 添加视图图像
             doc.addImage(
               item.imageData,
@@ -457,37 +495,39 @@ if ($product_id > 0) {
               maxWidth,
               maxImageHeight
             );
-            
+
             // 添加页码
             doc.setFontSize(10);
             doc.text(
               `Page ${index + 1} of ${exportedImages.length}`,
               105,
-              pageHeight - 20,
-              { align: 'center' }
+              pageHeight - 20, {
+                align: 'center'
+              }
             );
           });
-          
+
           // 添加生成时间到最后一页
           const currentTime = new Date();
           doc.setFontSize(10);
           doc.text(
             `Generated: ${currentTime.toLocaleString()}`,
             105,
-            pageHeight - 10,
-            { align: 'center' }
+            pageHeight - 10, {
+              align: 'center'
+            }
           );
-          
+
           // 保存PDF
           const timeStr = currentTime.toLocaleString().replace(/[:\/]/g, '-').replace(/,/g, '');
           const fileName = `${productName}_多视图规格书_${timeStr}.pdf`;
           doc.save(fileName);
-          
+
           console.log(`成功生成包含 ${exportedImages.length} 个视图的PDF`);
         } else {
           console.warn('没有成功捕获任何视图用于PDF生成');
         }
-        
+
       } catch (error) {
         console.error('生成多视图PDF时发生错误:', error);
       } finally {
@@ -495,7 +535,7 @@ if ($product_id > 0) {
         if (originalActiveViewId) {
           console.log(`恢复到原始视图: ${originalActiveViewId}`);
           store.setActiveViewId(originalActiveViewId);
-          
+
           const originalViewContainer = document.getElementById(`view-container-${originalActiveViewId}`);
           if (originalViewContainer) {
             document.querySelectorAll('.view-container').forEach(container => {
@@ -503,7 +543,7 @@ if ($product_id > 0) {
             });
             originalViewContainer.style.display = 'block';
           }
-          
+
           const originalCanvas = store.viewCanvases[originalActiveViewId];
           if (originalCanvas) {
             if (window.setGlobalCanvas) {
@@ -518,8 +558,52 @@ if ($product_id > 0) {
       }
     }
   </script>
- <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/stores/index.js?time=' . microtime(true); ?>" type="module"></script>
- <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/main.js?time=' . microtime(true); ?>" type="module"></script>
+  <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/stores/index.js?time=' . microtime(true); ?>" type="module"></script>
+  <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/main.js?time=' . microtime(true); ?>" type="module"></script>
+
+  <!-- 初始化 Pinia 应用 -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 确保 Vue 和 Pinia 已加载
+      if (window.Vue && window.Pinia && window.useCanvasStore) {
+        const {
+          createApp
+        } = window.Vue;
+        const {
+          createPinia
+        } = window.Pinia;
+
+        // 创建 Pinia 实例
+        const pinia = createPinia();
+
+        // 创建 Vue 应用（如果需要）
+        const app = createApp({
+          setup() {
+            // 可以在这里添加全局的 Vue 逻辑
+            return {};
+          }
+        });
+
+        // 使用 Pinia
+        app.use(pinia);
+
+        // 如果有需要挂载的元素，可以挂载应用
+        // app.mount('#app');
+
+        console.log('[Canvas] Pinia 应用已初始化');
+
+        // 触发自定义事件，通知其他脚本 Pinia 已准备就绪
+        document.dispatchEvent(new CustomEvent('canvasPiniaReady', {
+          detail: {
+            pinia,
+            useCanvasStore: window.useCanvasStore
+          }
+        }));
+      } else {
+        console.warn('[Canvas] Vue、Pinia 或 useCanvasStore 未正确加载');
+      }
+    });
+  </script>
 
 
   <?php //wp_footer();

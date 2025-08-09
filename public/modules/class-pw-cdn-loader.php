@@ -73,6 +73,9 @@ class Pw_CDN_Loader {
             <!-- 引入 Pinia Store -->
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/stores/productStore.js?v=' . time(); ?>"></script>
             
+            <!-- 引入工具函数 -->
+            <script src="<?php echo 'https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/246.js?v=' . time(); ?>"></script>
+            
             <!-- 引入 Vue 组件 -->
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/QuantityDiscountSlider.js?v=' . time(); ?>"></script>
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductQuantity.js?v=' . time(); ?>"></script>
@@ -101,6 +104,8 @@ class Pw_CDN_Loader {
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/component-validator.js?v=' . time(); ?>"></script>
             <!-- 开发环境：MOQ调试工具 -->
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/debug/moq-debugger.js?v=' . time(); ?>"></script>
+            <!-- 开发环境：Pinia同步示例 -->
+            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/utils/pinia-sync-examples.js?v=' . time(); ?>"></script>
             <?php endif; ?>
         </div>
         <div id="vue-dynamic-product-area" 

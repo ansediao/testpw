@@ -10,6 +10,12 @@ const { createPinia, defineStore } = window.Pinia;
 export const useCanvasStore = defineStore('canvas', {
     // 3. state 定义所有需要全局管理的数据
     state: () => ({
+        // 预期发货日期
+        estimatedDeliveryDate: '2024-12-31',
+        // 预期到货日期
+        estimatedArrivalDate: '2025-01-15',
+
+
         // canvasStates：存储每个画板的状态（如对象、图层等），初始有3个画板
         canvasStates: { canvas1: null, canvas2: null, canvas3: null },
         // activeCanvasId：当前激活的画板 id，默认是 canvas1
@@ -145,6 +151,12 @@ export const useCanvasStore = defineStore('canvas', {
                 this.setLoadingProductData(false);
             }
         },
+        // 更新预期日期
+        updateEstimatedDates(deliveryDate, arrivalDate) {
+            if (deliveryDate) this.estimatedDeliveryDate = deliveryDate;
+            if (arrivalDate) this.estimatedArrivalDate = arrivalDate;
+        },
+        
         // 从产品数据中提取视图信息
         extractViewsFromProductData(productData) {
             const views = [];
