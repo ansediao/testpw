@@ -132,7 +132,7 @@ const layersApp = Vue.createApp({
                 </div>
                 
                 <div v-if="layers.length === 0" class="no-layers">
-                    暂无图层
+                    No Layers
                 </div>
             </div>
             

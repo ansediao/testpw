@@ -507,7 +507,7 @@ $plugin_url = plugin_dir_url(__FILE__);
     <div id="content-pianquan" class="content-pane">
         <div id="img_origin_controls">
             <div id="dropZone" style="border: 2px dashed #ccc; padding: 20px; text-align: center; margin-bottom: 10px;">
-                将图片拖放到此处或点击上传
+                Drag and drop your image here or click to upload
             </div>
             <input type="file" id="imageInput" accept="image/*" style="display: none;" />
             <script>
@@ -546,7 +546,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                     // 获取当前激活的画布
                     const activeCanvas = getActiveCanvas();
                     if (!activeCanvas) {
-                        console.warn('未找到激活的画布');
+                        console.warn('No active canvas found');
                         return;
                     }
 
@@ -648,12 +648,12 @@ $plugin_url = plugin_dir_url(__FILE__);
                     <path fill="currentColor"
                         d="M21,19V5c0-1.1-0.9-2-2-2H5c-1.1,0-2,0.9-2,2v14c0,1.1,0.9,2,2,2h14C20.1,21,21,20.1,21,19z M8.5,13.5l2.5,3.01L14.5,12l4.5,6H5l3.5-4.5z" />
                 </svg>
-                添加图片
+                Add Image
             </button>
 
             <!-- 已上传过的图片 列表显示在这 -->
             <div id="uploaded-images-list" style="margin-top: 20px;">
-                <h3 style="font-size: 1rem; margin-bottom: 10px;">已上传图片</h3>
+                <h3 style="font-size: 1rem; margin-bottom: 10px;">Uploaded Images</h3>
                 <div id="uploaded-images-container" style="display: flex; flex-wrap: wrap; gap: 10px;">
                     <!-- 图片缩略图将通过JS动态插入 -->
                 </div>
@@ -676,7 +676,8 @@ $plugin_url = plugin_dir_url(__FILE__);
                     const container = document.getElementById('uploaded-images-container');
                     container.innerHTML = '';
                     if (window.uploadedImages.length === 0) {
-                        container.innerHTML = '<div style="color:#888;">暂无已上传图片</div>';
+                        container.innerHTML = '<div style="color:#888;">No uploaded images</div>';
+
                         return;
                     }
                     window.uploadedImages.forEach((imgObj, idx) => {
