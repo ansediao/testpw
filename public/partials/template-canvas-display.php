@@ -200,6 +200,7 @@ if ($product_id > 0) {
   <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/toolbar.js?time=' . microtime(true); ?>"></script>
   <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/boundary.js?time=' . microtime(true); ?>"></script>
   <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/model-3d.js?time=' . microtime(true); ?>"></script>
+  <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/canvas-api-renderer.js?time=' . microtime(true); ?>"></script>
   <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/canvas-init.js?time=' . microtime(true); ?>"></script>
   <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/main.js?time=' . microtime(true); ?>"></script>
 
@@ -230,6 +231,103 @@ if ($product_id > 0) {
           const store = window.useCanvasStore();
           await store.fetchProductData(pwId);
           console.log('产品数据已加载到 Pinia store');
+          
+          // 尝试从API数据初始化画布
+          if (typeof window.initCanvasFromAPI === 'function') {
+            // 监听多视图画布初始化完成事件
+            document.addEventListener('canvasInitializedFromAPI', function(event) {
+              console.log('收到画布初始化完成事件:', event.detail);
+            });
+            
+            // 监听视图特定的画布初始化完成事件
+            document.addEventListener('viewCanvasInitialized', function(event) {
+              console.log('视图画布初始化完成:', event.detail.viewData.name);
+            });
+            
+            // 添加调试按钮（仅在开发环境显示）
+            <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>
+            const debugButton = document.createElement('button');
+            debugButton.textContent = '测试API渲染';
+            debugButton.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 9999; padding: 10px; background: #007cba; color: white; border: none; border-radius: 4px; cursor: pointer;';
+            debugButton.onclick = async function() {
+              console.log('开始测试API渲染...');
+              const pwId = '<?php echo esc_js($pw_id); ?>';
+              if (pwId) {
+                try {
+                  // 测试API数据获取
+                  const response = await fetch(`/wp-json/pw/v1/product-data/${pwId}`);
+                  const data = await response.json();
+                  console.log('API数据:', data);
+                  
+                  // 测试画布渲染
+                  if (typeof window.renderCanvasFromAPI === 'function') {
+                    // 查找一个可用的画布
+                    const testCanvas = document.querySelector('canvas[id*="mainCanvas"]');
+                    if (testCanvas) {
+                      console.log('找到测试画布:', testCanvas.id);
+                      // 这里可以添加测试渲染逻辑
+                    }
+                  }
+                } catch (error) {
+                  console.error('测试失败:', error);
+                }
+              }
+            };
+            document.body.appendChild(debugButton);
+            <?php endif; ?>
+            
+            // 等待多视图系统初始化完成后再初始化API数据
+            setTimeout(async () => {
+              // 检查是否有多视图系统
+              if (store.views && store.views.length > 0) {
+                console.log('检测到多视图系统，为每个视图初始化API数据...');
+                
+                // 为每个视图初始化API数据
+                for (const view of store.views) {
+                  const canvasId = `mainCanvas-${view.id}`;
+                  const canvasElement = document.getElementById(canvasId);
+                  
+                  if (canvasElement) {
+                    console.log(`正在为视图 ${view.name} 初始化API数据...`);
+                    try {
+                      // 使用视图特定的初始化函数
+                      const canvas = await window.initCanvasForView(canvasId, view);
+                      if (canvas) {
+                        console.log(`视图 ${view.name} 的画布已从API数据成功初始化`);
+                        // 更新store中的canvas引用
+                        store.addViewCanvas(view.id, canvas);
+                        
+                        // 如果是当前激活的视图，设置为全局canvas
+                        if (view.id === store.activeViewId) {
+                          window.canvas = canvas;
+                          window.fabricCanvas = canvas;
+                          
+                          // 如果存在全局的setGlobalCanvas函数，调用它
+                          if (typeof window.setGlobalCanvas === 'function') {
+                            window.setGlobalCanvas(canvas);
+                          }
+                        }
+                      }
+                    } catch (error) {
+                      console.error(`视图 ${view.name} API初始化失败:`, error);
+                    }
+                  }
+                }
+              } else {
+                // 单视图模式，查找主画布元素
+                const mainCanvas = document.querySelector('#mainCanvas');
+                if (mainCanvas) {
+                  console.log('正在从API数据初始化单视图画布...');
+                  const canvas = await window.initCanvasFromAPI('mainCanvas', pwId);
+                  if (canvas) {
+                    console.log('单视图画布已从API数据成功初始化');
+                  }
+                } else {
+                  console.log('未找到主画布元素，跳过API初始化');
+                }
+              }
+            }, 1000); // 等待1秒让多视图系统完成初始化
+          }
         } catch (error) {
           console.error('加载产品数据失败:', error);
         }
