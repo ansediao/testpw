@@ -13,26 +13,41 @@ const AddToCart = {
             await store.addToCart();
         };
         
+        const customizeNow = () => {
+            const productId = window.pwProductConfig?.productId || store.productId;
+            const customizeUrl = `https://woo-cuz-cart-checkout.local/pwcanvas/?product_id=${productId}`;
+            window.location.href = customizeUrl;
+        };
+        
         return {
             store,
-            addToCart
+            addToCart,
+            customizeNow
         };
     },
     
     template: `
-        <div class="add-to-cart">
-            <button 
-                @click="addToCart"
-                :disabled="!store.canAddToCart"
-                :class="['cart-btn', { 'loading': store.loading }]"
-            >
-                {{ store.loading ? 'Adding...' : 'Add to Cart' }}
-            </button>
+            <div class="button-group">
+                <button 
+                    @click="addToCart"
+                    :disabled="!store.canAddToCart"
+                    :class="['cart-btn', { 'loading': store.loading }]"
+                >
+                    {{ store.loading ? 'Adding...' : 'Add to Cart' }}
+                </button>
+                
+                <button 
+                    @click="customizeNow"
+                    class="customize-btn"
+                >
+                    Customizing Now
+                </button>
+            </div>
             
             <div v-if="store.error" class="error-message">
                 {{ store.error }}
             </div>
-        </div>
+       
     `
 };
 

@@ -123,12 +123,10 @@ class Pw_Admin_Public
      */
     public function enqueue_styles()
     {
-        wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/pw-admin-public.css', array(), $this->version, 'all');
 
         // Add canvas CSS to product pages with timestamp to prevent caching
         if (is_product()) {
             wp_enqueue_style('pw-canvas-css', 'https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/224.css', array(), microtime(true), 'all');
-            wp_enqueue_style('pw-view-switcher-css', plugin_dir_url(__FILE__) . 'css/pw-view-switcher.css', array(), $this->version, 'all');
         }
     }
 
