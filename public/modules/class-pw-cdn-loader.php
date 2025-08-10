@@ -90,6 +90,9 @@ class Pw_CDN_Loader {
             <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/241.css?v=<?php echo $css_timestamp; ?>">
             <!-- 组件样式文件 -->
             <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/244.css?v=<?php echo $css_timestamp; ?>">
+            <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/248.css?v=<?php echo $css_timestamp; ?>">
+
+
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/CheckboxOptions.css?v=' . time(); ?>">
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductPriceInfo.css?v=' . time(); ?>">
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductQuantity.css?v=' . time(); ?>">
@@ -100,10 +103,6 @@ class Pw_CDN_Loader {
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/main.js?v=' . time(); ?>"></script>
             
             <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>
-            <!-- 开发环境：组件验证器 -->
-            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/component-validator.js?v=' . time(); ?>"></script>
-            <!-- 开发环境：MOQ调试工具 -->
-            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/debug/moq-debugger.js?v=' . time(); ?>"></script>
             <!-- 开发环境：Pinia同步示例 -->
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/utils/pinia-sync-examples.js?v=' . time(); ?>"></script>
             <?php endif; ?>

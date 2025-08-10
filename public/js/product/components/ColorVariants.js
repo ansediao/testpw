@@ -15,7 +15,7 @@ const ColorVariants = {
             
             <div class="pw-color-variants-grid">
                 <div v-if="store.loading" class="pw-loading-variants">
-                    <img src="../assets/images/icons/spinner.gif" alt="Loading..." class="pw-loading-spinner">
+                    <div class="pw-loading-spinner"></div>
                 </div>
                 <div v-else-if="store.error" class="pw-loading-variants error">{{ store.error }}</div>
                 <div v-else-if="!store.variants || store.variants.length === 0" class="pw-loading-variants">该产品暂无颜色变体</div>
@@ -51,12 +51,7 @@ const ColorVariants = {
         // 直接使用 Store 中的响应式数据
         const showVariants = computed(() => {
             const hasVariants = !store.loading && store.variants.length > 0;
-            console.log('ColorVariants: showVariants 计算', {
-                loading: store.loading,
-                variantsLength: store.variants.length,
-                variants: store.variants,
-                hasVariants
-            });
+            // ColorVariants: showVariants 计算
             return hasVariants;
         });
 
@@ -73,12 +68,23 @@ const ColorVariants = {
         const selectVariant = (variant) => {
             // 检查是否可以点击
             if (!isVariantClickable.value) {
-                console.log('颜色变体不可点击：买样品模式但不提供颜色样品服务');
+                // 颜色变体不可点击：买样品模式但不提供颜色样品服务
                 return;
             }
             
-            console.log('选择了颜色变体:', variant);
+            // 选择了颜色变体
             store.setSelectedVariant(variant);
+            
+            // 触发产品图片Canvas替换功能
+            if (variant.variant_color && window.ProductImageCanvas) {
+                window.ProductImageCanvas.switchToCanvas(variant.variant_color);
+            }
+            
+            // 发送自定义事件，供其他组件监听
+            const event = new CustomEvent('pw-color-variant-selected', {
+                detail: { variant: variant }
+            });
+            document.dispatchEvent(event);
         };
 
         return {

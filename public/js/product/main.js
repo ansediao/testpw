@@ -19,8 +19,50 @@ function loadCSS(href, id) {
 
 
 
+// 加载产品图片Canvas功能脚本和样式
+function loadProductImageCanvasAssets() {
+    // 获取当前脚本的基础路径
+    const currentScript = document.currentScript || document.querySelector('script[src*="main.js"]');
+    let basePath = '';
+    
+    if (currentScript && currentScript.src) {
+        const scriptPath = currentScript.src;
+        // 从 /js/product/main.js 回到根目录
+        basePath = scriptPath.replace(/\/js\/product\/main\.js.*$/, '/');
+    } else {
+        // 备用方案：使用相对路径
+        basePath = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/').replace(/\/product\/$/, '/');
+    }
+    
+
+    
+    // 首先加载Fabric.js库
+    const fabricScript = document.createElement('script');
+    fabricScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js';
+    fabricScript.onload = function() {
+        // Fabric.js库已加载
+        
+        // Fabric.js加载完成后，再加载Canvas功能脚本
+        const canvasScript = document.createElement('script');
+        canvasScript.src = basePath + 'js/product/product-image-canvas.js';
+        canvasScript.onload = function() {
+            // 产品图片Canvas功能已加载
+        };
+        canvasScript.onerror = function() {
+            // 产品图片Canvas功能加载失败
+        };
+        document.head.appendChild(canvasScript);
+    };
+    fabricScript.onerror = function() {
+        // Fabric.js库加载失败
+    };
+    document.head.appendChild(fabricScript);
+}
+
 // Wait for DOM and all scripts to load
 document.addEventListener('DOMContentLoaded', function () {
+    // 加载Canvas功能资源
+    loadProductImageCanvasAssets();
    
 
 
