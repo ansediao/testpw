@@ -198,5 +198,42 @@ export const useCanvasStore = defineStore('canvas', {
 // 5. 创建 Pinia 实例，后续所有 Vue 应用都要 use(pinia) 才能访问全局状态
 export const pinia = createPinia();
 
-// 6. 将 store 暴露到全局，让非 Vue 组件也能访问
+// 6. 导入打印方式store
+import { usePrintMethodStore } from './printMethodStore.js';
+
+// 7. 重新导出打印方式store
+export { usePrintMethodStore };
+
+// 8. 将 store 暴露到全局，让非 Vue 组件也能访问
 window.useCanvasStore = useCanvasStore;
+window.usePrintMethodStore = usePrintMethodStore;
+
+// 9. 通知其他脚本stores已准备就绪
+let eventTriggered = false;
+
+const triggerReadyEvent = () => {
+    if (eventTriggered) {
+        return;
+    }
+    
+    // 触发自定义事件，通知其他脚本 Pinia 已准备就绪
+    document.dispatchEvent(new CustomEvent('canvasPiniaReady', {
+        detail: {
+            pinia,
+            useCanvasStore: window.useCanvasStore,
+            usePrintMethodStore: window.usePrintMethodStore
+        }
+    }));
+    
+    eventTriggered = true;
+};
+
+document.addEventListener('DOMContentLoaded', triggerReadyEvent);
+
+// 如果DOM已经加载完成，立即触发
+if (document.readyState === 'loading') {
+    // DOM还在加载中，等待DOMContentLoaded事件
+} else {
+    // DOM已经加载完成，立即触发
+    setTimeout(triggerReadyEvent, 0);
+}

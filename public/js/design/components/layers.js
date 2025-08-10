@@ -1,7 +1,7 @@
 // src/components/layers.js
 
 // 导入 Pinia 仓库和 pinia 实例
-import {useCanvasStore, pinia} from '../stores/index.js';
+import { useCanvasStore, usePrintMethodStore, pinia } from '../stores/index.js';
 
 // 创建图层管理 Vue 应用
 const layersApp = Vue.createApp({
@@ -34,7 +34,13 @@ const layersApp = Vue.createApp({
                                         <button @click.stop="toggleLock(layer)" class="layer-btn">
                                             <i :class="layer.locked ? 'iconfont icon-suoding' : 'iconfont icon-jiesuo'"></i>
                                         </button>
-                                        <button @click.stop="duplicateLayer(layer)" class="layer-btn">
+                                        <button 
+                                            @click.stop="duplicateLayer(layer)" 
+                                            class="layer-btn"
+                                            :class="{ 'disabled': !isLayerCopyAllowed(layer.id) }"
+                                            :disabled="!isLayerCopyAllowed(layer.id)"
+                                            :title="isLayerCopyAllowed(layer.id) ? 'Copy layer' : 'Copy not allowed for this print method'"
+                                        >
                                             <i class="iconfont icon-fuzhi"></i>
                                         </button>
                                         <button @click.stop="deleteLayer(layer)" class="layer-btn delete">
@@ -75,10 +81,22 @@ const layersApp = Vue.createApp({
                                     :class="{locked: group.locked}" class="layer-btn">
                                 <i :class="group.locked ? 'iconfont icon-suoding' : 'iconfont icon-jiesuo'"></i>
                             </button>
-                            <button @click.stop="duplicateGroup(group)" class="layer-btn">
+                            <button 
+                                @click.stop="duplicateGroup(group)" 
+                                class="layer-btn"
+                                :class="{ 'disabled': !isGroupCopyAllowed(group.id) }"
+                                :disabled="!isGroupCopyAllowed(group.id)"
+                                :title="isGroupCopyAllowed(group.id) ? 'Copy group' : 'Copy not allowed for this print method'"
+                            >
                                 <i class="iconfont icon-fuzhi"></i>
                             </button>
-                            <button @click.stop="deleteGroup(group)" class="layer-btn delete">
+                            <button 
+                                @click.stop="deleteGroup(group)" 
+                                class="layer-btn delete"
+                                :class="{ 'disabled': !isGroupDeleteAllowed(group.id) }"
+                                :disabled="!isGroupDeleteAllowed(group.id)"
+                                :title="isGroupDeleteAllowed(group.id) ? 'Delete group' : 'Delete not allowed for this print method'"
+                            >
                                 <i class="iconfont icon-shanchu"></i>
                             </button>
                         </div>
@@ -109,7 +127,13 @@ const layersApp = Vue.createApp({
                                         <button @click.stop="toggleLock(layer)" class="layer-btn">
                                             <i :class="layer.locked ? 'iconfont icon-suoding' : 'iconfont icon-jiesuo'"></i>
                                         </button>
-                                        <button @click.stop="duplicateLayer(layer)" class="layer-btn">
+                                        <button 
+                                            @click.stop="duplicateLayer(layer)" 
+                                            class="layer-btn"
+                                            :class="{ 'disabled': !isLayerCopyAllowed(layer.id) }"
+                                            :disabled="!isLayerCopyAllowed(layer.id)"
+                                            :title="isLayerCopyAllowed(layer.id) ? 'Copy layer' : 'Copy not allowed for this print method'"
+                                        >
                                             <i class="iconfont icon-fuzhi"></i>
                                         </button>
                                         <button @click.stop="deleteLayer(layer)" class="layer-btn delete">
@@ -157,32 +181,21 @@ const layersApp = Vue.createApp({
                     </div>
                     
                     <div class="print-methods">
-                        <div class="method-row">
-                            <label class="method-option">
-                                <input type="radio" v-model="selectedPrintMethod" value="method-a" name="printMethod" />
-                                <span class="method-label">Print Method A</span>
-                            </label>
-                            <label class="method-option">
-                                <input type="radio" v-model="selectedPrintMethod" value="method-b" name="printMethod" />
-                                <span class="method-label">Print Method B</span>
-                            </label>
-                            <label class="method-option">
-                                <input type="radio" v-model="selectedPrintMethod" value="method-c" name="printMethod" />
-                                <span class="method-label">Print Method C</span>
-                            </label>
-                        </div>
-                        <div class="method-row">
-                            <label class="method-option">
-                                <input type="radio" v-model="selectedPrintMethod" value="method-d" name="printMethod" />
-                                <span class="method-label">Print Method D</span>
-                            </label>
-                            <label class="method-option">
-                                <input type="radio" v-model="selectedPrintMethod" value="method-e" name="printMethod" />
-                                <span class="method-label">Print Method E</span>
-                            </label>
-                            <label class="method-option">
-                                <input type="radio" v-model="selectedPrintMethod" value="method-f" name="printMethod" />
-                                <span class="method-label">Print Method F</span>
+                        <div class="method-grid">
+                            <label v-for="method in printMethods" :key="method.id" class="method-option">
+                                <input 
+                                    type="radio" 
+                                    v-model="selectedPrintMethodId" 
+                                    :value="method.id" 
+                                    name="printMethod" 
+                                />
+                                <span class="method-label">{{ method.label }}</span>
+                                <div class="method-features" v-if="method.features">
+                                    <span v-if="!method.features.allowCopy" class="feature-tag no-copy">No Copy</span>
+                                    <span v-if="method.features.maxLayers" class="feature-tag max-layers">Max {{ method.features.maxLayers }} layers</span>
+                                    <span v-if="method.features.colorLimitations" class="feature-tag color-limit">{{ method.features.colorLimitations }} colors</span>
+                                    <span class="feature-tag moq">MOQ: {{ method.features.minQuantity }}</span>
+                                </div>
                             </label>
                         </div>
                     </div>
@@ -217,34 +230,64 @@ const layersApp = Vue.createApp({
     `,
 
     setup() {
-        const store = useCanvasStore();
-        
+        // 确保store在Pinia初始化后才调用
+        let store, printMethodStore;
+
+        try {
+            store = useCanvasStore();
+            printMethodStore = usePrintMethodStore();
+        } catch (error) {
+            console.error('Failed to initialize stores:', error);
+            // 返回空的响应式对象作为fallback
+            return {
+                layers: Vue.ref([]),
+                activeObjectId: Vue.ref(null),
+                layerGroups: Vue.ref([]),
+                printMethods: Vue.ref([]),
+                ungroupedLayers: Vue.computed(() => []),
+                showGroupDialog: Vue.ref(false),
+                showPrintMethodDialog: Vue.ref(false),
+                isLayerCopyAllowed: () => true,
+                selectLayer: () => { },
+                duplicateLayer: () => { },
+                deleteLayer: () => { },
+                toggleLock: () => { },
+                getLayerThumbnail: () => '',
+                getImageLayerInfo: () => null,
+                showGroupAssignDialog: () => { },
+                assignLayerToPrintMethod: () => { }
+            };
+        }
+
         // 使用计算属性来确保响应式更新
         const layers = Vue.computed(() => store.layers);
         const activeObjectId = Vue.computed(() => store.activeObjectId);
         const layerGroups = Vue.computed(() => store.layerGroups);
         const activeGroupId = Vue.computed(() => store.activeGroupId);
 
+        // 打印方式相关的计算属性
+        const printMethods = Vue.computed(() => printMethodStore.printMethods);
+        const selectedPrintMethod = Vue.computed(() => printMethodStore.selectedPrintMethod);
+
         // 图层组相关响应式数据
         const showGroupDialog = Vue.ref(false);
         const showPrintMethodDialog = Vue.ref(false);
         const newGroupName = Vue.ref('');
         const selectedLayerForAssign = Vue.ref(null);
-        const selectedPrintMethod = Vue.ref('');
+        const selectedPrintMethodId = Vue.ref(printMethodStore.selectedPrintMethodId);
         const activeTab = Vue.ref('color');
 
         // 计算属性：未分组的图层
         const ungroupedLayers = Vue.computed(() => {
             return layers.value.filter(layer => !layer.groupId);
         });
-        
+
         // 监听视图切换，确保图层数据正确更新
         Vue.watch(() => store.activeViewId, (newViewId) => {
             if (newViewId) {
-                console.log('视图切换到:', newViewId, '图层数量:', store.layers.length);
                 // 强制更新组件
                 Vue.nextTick(() => {
-                    console.log('图层数据已更新:', store.layers);
+                    // 图层数据已更新
                 });
             }
         }, { immediate: true });
@@ -253,7 +296,7 @@ const layersApp = Vue.createApp({
         const getCanvasInstance = () => { // 尝试多种方式获取画布实例
             let canvasInstance = window.canvas || window.fabricCanvas;
 
-            if (! canvasInstance) {
+            if (!canvasInstance) {
                 const canvasElement = document.querySelector('#mainCanvas');
                 if (canvasElement && canvasElement.__fabric) {
                     canvasInstance = canvasElement.__fabric;
@@ -261,7 +304,7 @@ const layersApp = Vue.createApp({
             }
 
             // 如果还是没找到，尝试通过 fabric 全局对象查找
-            if (! canvasInstance && window.fabric && window.fabric.Canvas) {
+            if (!canvasInstance && window.fabric && window.fabric.Canvas) {
                 const canvasElement = document.querySelector('#mainCanvas');
                 if (canvasElement) { // 尝试从 fabric 的内部实例列表中查找
                     canvasInstance = canvasElement.__fabric;
@@ -274,14 +317,14 @@ const layersApp = Vue.createApp({
         // 获取图层缩略图的方法
         const getLayerThumbnail = (layer) => {
             const canvasInstance = getCanvasInstance();
-            if (! canvasInstance) 
+            if (!canvasInstance)
                 return '';
-            
+
 
             const obj = canvasInstance.getObjects().find(o => o.id === layer.id);
-            if (! obj) 
+            if (!obj)
                 return '';
-            
+
 
             try { // 如果是图片对象，尝试获取其源图片
                 if (obj.type === 'image' && obj._element) {
@@ -300,7 +343,7 @@ const layersApp = Vue.createApp({
                 // 克隆对象并缩放到缩略图尺寸
                 obj.clone((cloned) => {
                     const scale = Math.min(30 / cloned.width, 30 / cloned.height);
-                    cloned.set({left: 16, top: 16, scaleX: scale, scaleY: scale});
+                    cloned.set({ left: 16, top: 16, scaleX: scale, scaleY: scale });
                     tempFabricCanvas.add(cloned);
                     tempFabricCanvas.renderAll();
                 });
@@ -323,14 +366,14 @@ const layersApp = Vue.createApp({
             try {
                 let imageName = 'Unknown';
                 let src = '';
-                
+
                 // 获取图片源
                 if (obj._element && obj._element.src) {
                     src = obj._element.src;
                 } else if (obj.src) {
                     src = obj.src;
                 }
-                
+
                 // 从上传图片列表中查找匹配的文件名（参考用户提供的代码）
                 if (src && window.uploadedImages) {
                     const matchedImg = window.uploadedImages.find(img => img.src === src);
@@ -338,7 +381,7 @@ const layersApp = Vue.createApp({
                         imageName = matchedImg.fileName; // 直接使用原始文件名
                     }
                 }
-                
+
                 // 如果没有找到匹配的文件名，尝试从URL提取
                 if (imageName === 'Unknown' && src) {
                     if (src.startsWith('data:image/')) {
@@ -354,7 +397,7 @@ const layersApp = Vue.createApp({
                         }
                     }
                 }
-                
+
                 // 最后的回退方案
                 if (imageName === 'Unknown' || imageName === '') {
                     if (layer.name && layer.name !== layer.id) {
@@ -397,7 +440,7 @@ const layersApp = Vue.createApp({
 
                 // 获取DPI信息（参考用户提供的demo代码实现）
                 let dpiText = 'Unknown DPI';
-                
+
                 // 尝试从图片元素获取DPI信息
                 if (obj._element && obj._element.src && obj._element.src.startsWith('data:image/')) {
                     // 对于base64图片，尝试解析DPI
@@ -408,7 +451,7 @@ const layersApp = Vue.createApp({
                         for (let i = 0; i < binaryString.length; i++) {
                             bytes[i] = binaryString.charCodeAt(i);
                         }
-                        
+
                         let dpi = null;
                         // 根据图片格式选择相应的DPI解析函数
                         if (format === 'JPEG') {
@@ -416,7 +459,7 @@ const layersApp = Vue.createApp({
                         } else if (format === 'PNG') {
                             dpi = getDpiFromPNG(bytes.buffer);
                         }
-                        
+
                         if (dpi && dpi.x > 0) {
                             if (dpi.x >= 300) {
                                 dpiText = `Good ${dpi.x}DPI`;
@@ -445,7 +488,7 @@ const layersApp = Vue.createApp({
                 return null;
             }
         };
-        
+
         // DPI解析函数（根据用户提供的demo代码实现）
         const getDpiFromJPEG = (arrayBuffer) => {
             const view = new DataView(arrayBuffer);
@@ -466,20 +509,20 @@ const layersApp = Vue.createApp({
                 if (marker === 0xFFE0) {
                     const length = view.getUint16(offset, false);
                     if (offset + length > view.byteLength) break;
-                    
+
                     const identifier = String.fromCharCode(
-                        view.getUint8(offset + 2), 
-                        view.getUint8(offset + 3), 
-                        view.getUint8(offset + 4), 
-                        view.getUint8(offset + 5), 
+                        view.getUint8(offset + 2),
+                        view.getUint8(offset + 3),
+                        view.getUint8(offset + 4),
+                        view.getUint8(offset + 5),
                         view.getUint8(offset + 6)
                     );
-                    
+
                     if (identifier === 'JFIF\0') {
                         const units = view.getUint8(offset + 9);
                         const xDensity = view.getUint16(offset + 10, false);
                         const yDensity = view.getUint16(offset + 12, false);
-                        
+
                         // units === 1 表示DPI, units === 2 表示DPCm
                         if (units === 1 && xDensity > 0 && yDensity > 0) {
                             return { x: xDensity, y: yDensity };
@@ -549,19 +592,17 @@ const layersApp = Vue.createApp({
         // 添加图层的方法
         const addLayer = () => {
             const newLayer = {
-                id: `layer_${
-                    Date.now()
-                }`,
-                name: `图层 ${
-                    store.layers.length + 1
-                }`,
+                id: `layer_${Date.now()
+                    }`,
+                name: `图层 ${store.layers.length + 1
+                    }`,
                 type: 'text',
                 visible: true,
                 locked: false
             };
 
             const updatedLayers = [
-                ... store.layers,
+                ...store.layers,
                 newLayer
             ];
             store.setLayers(updatedLayers);
@@ -579,9 +620,9 @@ const layersApp = Vue.createApp({
         // 切换可见性
         const toggleVisibility = (layer) => {
             const currentViewId = store.activeViewId;
-            if (! currentViewId) 
+            if (!currentViewId)
                 return;
-            
+
 
             const newVisible = !layer.visible;
             const currentViewLayers = store.getViewLayers(currentViewId);
@@ -598,9 +639,9 @@ const layersApp = Vue.createApp({
         // 切换锁定状态
         const toggleLock = (layer) => {
             const currentViewId = store.activeViewId;
-            if (! currentViewId) 
+            if (!currentViewId)
                 return;
-            
+
 
             const newLocked = !layer.locked;
             const currentViewLayers = store.getViewLayers(currentViewId);
@@ -614,12 +655,36 @@ const layersApp = Vue.createApp({
             syncLayerLockToCanvas(layer.id, newLocked);
         };
 
+        // 检查图层是否允许复制
+        const isLayerCopyAllowed = (layerId) => {
+            return printMethodStore.isLayerCopyAllowed(layerId);
+        };
+
+        // 检查图层是否允许删除
+        const isLayerDeleteAllowed = (layerId) => {
+            return printMethodStore.isLayerDeleteAllowed(layerId);
+        };
+        
+        // 检查图层组是否允许复制
+        const isGroupCopyAllowed = (groupId) => {
+            return printMethodStore.isGroupCopyAllowed(groupId);
+        };
+        
+        // 检查图层组是否允许删除
+        const isGroupDeleteAllowed = (groupId) => {
+            return printMethodStore.isGroupDeleteAllowed(groupId);
+        };
+
         // 复制图层
         const duplicateLayer = (layer, targetGroupId = null) => {
-            const currentViewId = store.activeViewId;
-            if (! currentViewId) 
+            // 检查是否允许复制
+            if (!isLayerCopyAllowed(layer.id)) {
                 return;
-            
+            }
+            const currentViewId = store.activeViewId;
+            if (!currentViewId)
+                return;
+
 
             // 在画布中复制对象，图层会通过 object:added 事件自动同步到 store
             duplicateCanvasObject(layer.id, {
@@ -634,13 +699,12 @@ const layersApp = Vue.createApp({
 
         // 删除图层
         const deleteLayer = (layer) => {
-            if (confirm(`确定要删除图层 "${
-                layer.name
-            }" 吗？`)) {
+            if (confirm(`确定要删除图层 "${layer.name
+                }" 吗？`)) {
                 const currentViewId = store.activeViewId;
-                if (! currentViewId) 
+                if (!currentViewId)
                     return;
-                
+
 
                 // 先从画布中删除对象
                 deleteCanvasObject(layer.id);
@@ -743,14 +807,14 @@ const layersApp = Vue.createApp({
         };
 
         const createGroup = () => {
-            if (! newGroupName.value.trim()) 
+            if (!newGroupName.value.trim())
                 return;
-            
+
 
             const currentViewId = store.activeViewId;
-            if (! currentViewId) 
+            if (!currentViewId)
                 return;
-            
+
 
             const newGroup = {
                 id: 'group_' + Date.now(),
@@ -762,7 +826,7 @@ const layersApp = Vue.createApp({
 
             const currentViewGroups = store.getViewLayerGroups(currentViewId);
             const updatedGroups = [
-                ... currentViewGroups,
+                ...currentViewGroups,
                 newGroup
             ];
             store.setViewLayerGroups(currentViewId, updatedGroups);
@@ -773,41 +837,48 @@ const layersApp = Vue.createApp({
 
         const showGroupAssignDialog = (layer) => {
             selectedLayerForAssign.value = layer;
-            selectedPrintMethod.value = '';
+            // 获取图层当前的打印方式
+            const currentMethod = printMethodStore.getLayerPrintMethod(layer.id);
+            selectedPrintMethodId.value = currentMethod ? currentMethod.id : printMethodStore.selectedPrintMethodId;
             activeTab.value = 'color';
             showPrintMethodDialog.value = true;
         };
 
         const assignLayerToPrintMethod = () => {
-            if (!selectedLayerForAssign.value || !selectedPrintMethod.value) {
+            if (!selectedLayerForAssign.value || !selectedPrintMethodId.value) {
                 alert('请选择一个打印方法');
                 return;
             }
 
+            const selectedMethod = printMethodStore.getPrintMethodById(selectedPrintMethodId.value);
+            if (!selectedMethod) {
+                alert('选择的打印方法无效');
+                return;
+            }
+
+            // 验证图层是否符合打印方式要求
+            const validation = printMethodStore.validateLayerForPrintMethod(selectedLayerForAssign.value, selectedPrintMethodId.value);
+            if (!validation.valid) {
+                alert(`图层不符合打印方式要求：\n${validation.errors.join('\n')}`);
+                return;
+            }
+
+            // 为图层分配打印方式
+            printMethodStore.assignLayerPrintMethod(selectedLayerForAssign.value.id, selectedPrintMethodId.value);
+
             // 创建或获取对应的打印方法分组
-            const printMethodGroups = {
-                'method-a': { id: 'print-method-a', name: 'Print Method A', color: '#FF6B6B' },
-                'method-b': { id: 'print-method-b', name: 'Print Method B', color: '#4ECDC4' },
-                'method-c': { id: 'print-method-c', name: 'Print Method C', color: '#45B7D1' },
-                'method-d': { id: 'print-method-d', name: 'Print Method D', color: '#96CEB4' },
-                'method-e': { id: 'print-method-e', name: 'Print Method E', color: '#FFEAA7' },
-                'method-f': { id: 'print-method-f', name: 'Print Method F', color: '#DDA0DD' }
-            };
+            const groupId = `print-method-${selectedPrintMethodId.value}`;
+            let existingGroup = layerGroups.value.find(g => g.id === groupId);
 
-            const selectedGroup = printMethodGroups[selectedPrintMethod.value];
-            if (!selectedGroup) return;
-
-            // 检查分组是否已存在，如果不存在则创建
-            let existingGroup = layerGroups.value.find(g => g.id === selectedGroup.id);
             if (!existingGroup) {
                 const newGroup = {
-                    id: selectedGroup.id,
-                    name: selectedGroup.name,
-                    color: selectedGroup.color,
+                    id: groupId,
+                    name: selectedMethod.name,
+                    color: getPrintMethodColor(selectedPrintMethodId.value),
                     visible: true,
                     locked: false,
                     expanded: true,
-                    printMethod: selectedPrintMethod.value
+                    printMethodId: selectedPrintMethodId.value
                 };
                 const updatedGroups = [...layerGroups.value, newGroup];
                 store.setLayerGroups(updatedGroups);
@@ -824,29 +895,41 @@ const layersApp = Vue.createApp({
                 const updatedLayers = [...currentViewLayers];
                 updatedLayers[layerIndex] = {
                     ...updatedLayers[layerIndex],
-                    groupId: selectedGroup.id,
-                    printMethod: selectedPrintMethod.value,
-                    groupOrder: getGroupLayers(selectedGroup.id).length
+                    groupId: groupId,
+                    printMethodId: selectedPrintMethodId.value,
+                    groupOrder: getGroupLayers(groupId).length
                 };
                 store.setViewLayers(currentViewId, updatedLayers);
             }
 
             showPrintMethodDialog.value = false;
-            console.log(`图层 ${selectedLayerForAssign.value.name || selectedLayerForAssign.value.id} 已分配到 ${selectedGroup.name}`);
+        };
+
+        // 获取打印方式对应的颜色
+        const getPrintMethodColor = (methodId) => {
+            const colors = {
+                'method-a': '#FF6B6B',
+                'method-b': '#4ECDC4',
+                'method-c': '#45B7D1',
+                'method-d': '#96CEB4',
+                'method-e': '#FFEAA7',
+                'method-f': '#DDA0DD'
+            };
+            return colors[methodId] || '#999999';
         };
 
         const removeFromGroup = (layer) => {
             const currentViewId = store.activeViewId;
-            if (! currentViewId) 
+            if (!currentViewId)
                 return;
-            
+
 
             const currentViewLayers = store.getViewLayers(currentViewId);
             const layerIndex = currentViewLayers.findIndex(l => l.id === layer.id);
             if (layerIndex !== -1) {
-                const updatedLayers = [... currentViewLayers];
+                const updatedLayers = [...currentViewLayers];
                 updatedLayers[layerIndex] = {
-                    ... updatedLayers[layerIndex],
+                    ...updatedLayers[layerIndex],
                     groupId: null,
                     groupOrder: 0
                 };
@@ -863,8 +946,8 @@ const layersApp = Vue.createApp({
             if (groupIndex !== -1) {
                 const updatedGroups = [...layerGroups.value];
                 updatedGroups[groupIndex] = {
-                    ... updatedGroups[groupIndex],
-                    expanded: ! updatedGroups[groupIndex].expanded
+                    ...updatedGroups[groupIndex],
+                    expanded: !updatedGroups[groupIndex].expanded
                 };
                 store.setLayerGroups(updatedGroups);
             }
@@ -878,7 +961,7 @@ const layersApp = Vue.createApp({
             if (groupIndex !== -1) {
                 const updatedGroups = [...layerGroups.value];
                 updatedGroups[groupIndex] = {
-                    ... updatedGroups[groupIndex],
+                    ...updatedGroups[groupIndex],
                     visible: newVisible
                 };
                 store.setLayerGroups(updatedGroups);
@@ -891,7 +974,7 @@ const layersApp = Vue.createApp({
                 if (layerIndex !== -1) {
                     const updatedLayers = [...layers.value];
                     updatedLayers[layerIndex] = {
-                        ... updatedLayers[layerIndex],
+                        ...updatedLayers[layerIndex],
                         visible: newVisible
                     };
                     store.setLayers(updatedLayers);
@@ -908,7 +991,7 @@ const layersApp = Vue.createApp({
             if (groupIndex !== -1) {
                 const updatedGroups = [...layerGroups.value];
                 updatedGroups[groupIndex] = {
-                    ... updatedGroups[groupIndex],
+                    ...updatedGroups[groupIndex],
                     locked: newLocked
                 };
                 store.setLayerGroups(updatedGroups);
@@ -921,7 +1004,7 @@ const layersApp = Vue.createApp({
                 if (layerIndex !== -1) {
                     const updatedLayers = [...layers.value];
                     updatedLayers[layerIndex] = {
-                        ... updatedLayers[layerIndex],
+                        ...updatedLayers[layerIndex],
                         locked: newLocked
                     };
                     store.setLayers(updatedLayers);
@@ -930,7 +1013,13 @@ const layersApp = Vue.createApp({
             });
         };
 
-        const duplicateGroup = (group) => { // 复制组
+        const duplicateGroup = (group) => { 
+            // 检查是否允许复制
+            if (!isGroupCopyAllowed(group.id)) {
+                return;
+            }
+            
+            // 复制组
             const newGroup = {
                 id: 'group_' + Date.now(),
                 name: group.name + '_副本',
@@ -953,9 +1042,12 @@ const layersApp = Vue.createApp({
         };
 
         const deleteGroup = (group) => {
-            if (confirm(`确定要删除图层组 "${
-                group.name
-            }" 吗？组内的所有图层也将被删除。`)) { // 获取组内所有图层并删除
+            // 检查是否允许删除
+            if (!isGroupDeleteAllowed(group.id)) {
+                return;
+            }
+            
+            if (confirm(`确定要删除图层组 "${group.name}" 吗？组内的所有图层也将被删除。`)) { // 获取组内所有图层并删除
                 const groupLayers = getGroupLayers(group.id);
                 groupLayers.forEach(layer => { // 从画布中删除对象
                     deleteCanvasObject(layer.id);
@@ -977,6 +1069,9 @@ const layersApp = Vue.createApp({
         };
 
         return {
+            // Store 引用
+            store,
+            
             // 从 store 获取的数据
             canvasIds: Vue.computed(() => Object.keys(store.canvasStates)),
             activeCanvasId: Vue.computed(() => store.activeCanvasId),
@@ -993,8 +1088,12 @@ const layersApp = Vue.createApp({
             showPrintMethodDialog,
             newGroupName,
             selectedLayerForAssign,
-            selectedPrintMethod,
+            selectedPrintMethodId,
             activeTab,
+
+            // 打印方式相关数据
+            printMethods,
+            selectedPrintMethod,
 
             // 方法
             switchCanvas: (id) => store.setActiveCanvasId(id),
@@ -1006,6 +1105,13 @@ const layersApp = Vue.createApp({
             deleteLayer,
             getLayerThumbnail,
             getImageLayerInfo,
+
+            // 打印方式权限检查方法
+            isLayerCopyAllowed,
+            isLayerDeleteAllowed,
+            isGroupCopyAllowed,
+            isGroupDeleteAllowed,
+            getPrintMethodColor,
 
             // 图层组方法
             getGroupLayers,
@@ -1026,16 +1132,39 @@ const layersApp = Vue.createApp({
 // 挂载 Pinia 状态管理到 Vue 应用
 layersApp.use(pinia);
 
-// 等待 DOM 加载完成后挂载应用
-document.addEventListener('DOMContentLoaded', () => {
+// 防止重复挂载的标志
+let isAppMounted = false;
+
+// 挂载应用的函数
+const mountApp = () => {
+    if (isAppMounted) {
+        return;
+    }
+    
     const container = document.getElementById('layers-box');
     if (container) {
         try {
             layersApp.mount('#layers-box');
+            isAppMounted = true;
         } catch (error) {
-            console.error('挂载图层管理应用失败:', error);
+            // 挂载失败
         }
     }
+};
+
+// 监听Pinia准备就绪事件
+document.addEventListener('canvasPiniaReady', (event) => {
+    mountApp();
+});
+
+// 备用方案：如果事件没有触发，使用DOM加载完成事件
+document.addEventListener('DOMContentLoaded', () => {
+    // 延迟检查，如果应用还没有挂载，则尝试挂载
+    setTimeout(() => {
+        if (!isAppMounted) {
+            mountApp();
+        }
+    }, 1000);
 });
 
 // 全局函数：添加图层到 store（供外部调用）
@@ -1045,7 +1174,7 @@ window.addLayerToStore = function (layerId, layerName, layerType) {
             const store = window.useCanvasStore();
             const currentViewId = store.activeViewId;
 
-            if (! currentViewId) {
+            if (!currentViewId) {
                 console.warn('没有激活的视图，无法添加图层');
                 return;
             }
