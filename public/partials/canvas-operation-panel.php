@@ -1305,7 +1305,7 @@ $plugin_url = plugin_dir_url(__FILE__);
     });
 
 
-
+    // 主选项卡 tabs-nav 切换逻辑
     document.addEventListener('DOMContentLoaded', () => {
         const tabs = document.querySelectorAll('.tab');
         const contentPanes = document.querySelectorAll('.content-pane');
@@ -1314,6 +1314,22 @@ $plugin_url = plugin_dir_url(__FILE__);
         // 选项卡切换功能
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
+                // 移除 .main-content 上 .panel-collapsed
+                const mainContent = document.querySelector('.main-content');
+                if (mainContent) {
+                    mainContent.classList.remove('panel-collapsed');
+                }
+
+                // 移除 .operation-panel 上 .panel-collapsed
+                const operationPanel = document.querySelector('.operation-panel');
+                if (operationPanel) {
+                    operationPanel.classList.remove('collapsed');
+                }
+
+    
+
+
+
                 // 1. 移除所有选项卡的 'active' 类
                 tabs.forEach(t => t.classList.remove('active'));
                 // 2. 为被点击的选项卡添加 'active' 类
@@ -1348,6 +1364,15 @@ $plugin_url = plugin_dir_url(__FILE__);
             collapseBtn.addEventListener('click', () => {
                 operationPanel.classList.toggle('collapsed');
                 mainContent.classList.toggle('panel-collapsed');
+
+                // 清除 tabs-nav 中tab   active  class
+                const tabsNav = document.querySelector('.tabs-nav');
+                if (tabsNav) {
+                    tabsNav.querySelectorAll('.tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                }
+
                 
                 // 切换箭头方向
                 const arrow = collapseBtn.querySelector('svg path');
