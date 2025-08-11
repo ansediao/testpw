@@ -242,37 +242,7 @@ if ($product_id > 0) {
               console.log('视图画布初始化完成:', event.detail.viewData.name);
             });
             
-            // 添加调试按钮（仅在开发环境显示）
-            <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>
-            const debugButton = document.createElement('button');
-            debugButton.textContent = '测试API渲染';
-            debugButton.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 9999; padding: 10px; background: #007cba; color: white; border: none; border-radius: 4px; cursor: pointer;';
-            debugButton.onclick = async function() {
-              console.log('开始测试API渲染...');
-              const pwId = '<?php echo esc_js($pw_id); ?>';
-              if (pwId) {
-                try {
-                  // 测试API数据获取
-                  const response = await fetch(`/wp-json/pw/v1/product-data/${pwId}`);
-                  const data = await response.json();
-                  console.log('API数据:', data);
-                  
-                  // 测试画布渲染
-                  if (typeof window.renderCanvasFromAPI === 'function') {
-                    // 查找一个可用的画布
-                    const testCanvas = document.querySelector('canvas[id*="mainCanvas"]');
-                    if (testCanvas) {
-                      console.log('找到测试画布:', testCanvas.id);
-                      // 这里可以添加测试渲染逻辑
-                    }
-                  }
-                } catch (error) {
-                  console.error('测试失败:', error);
-                }
-              }
-            };
-            document.body.appendChild(debugButton);
-            <?php endif; ?>
+
             
             // 等待多视图系统初始化完成后再初始化API数据
             setTimeout(async () => {

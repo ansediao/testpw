@@ -19,68 +19,44 @@ echo '</div>';
 ?>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    console.log('Canvas customization area script loaded');
-    
     // Wait for Pinia store to be available
     function waitForStore() {
-        console.log('Checking for Pinia store...', typeof window.useCanvasStore);
-        
         if (typeof window.useCanvasStore === "function") {
-            console.log('Pinia store found, setting up watcher');
             const store = window.useCanvasStore();
             let previousLoadingState = store.isLoadingProductData;
             
-            console.log('Initial loading state:', previousLoadingState);
-            console.log('Current productData:', store.productData);
-            
             // If data is already loaded, create buttons immediately
             if (!store.isLoadingProductData && store.productData) {
-                console.log('Data already loaded, creating buttons immediately');
                 createViewButtons(store.productData);
             }
             
             // Monitor isLoadingProductData changes
             const unwatch = store.$subscribe((mutation, state) => {
-                console.log('Store state changed:', {
-                    storeId: mutation.storeId,
-                    previousLoading: previousLoadingState,
-                    currentLoading: state.isLoadingProductData,
-                    hasProductData: !!state.productData
-                });
-                
                 if (mutation.storeId === "canvas" && 
                     previousLoadingState === true && 
                     state.isLoadingProductData === false) {
                     
-                    console.log('Loading completed, creating buttons');
                     // Loading completed, create buttons
                     createViewButtons(state.productData);
                 }
                 previousLoadingState = state.isLoadingProductData;
             });
         } else {
-            console.log('Pinia store not available yet, retrying in 100ms');
             // Retry if store not available yet
             setTimeout(waitForStore, 100);
         }
     }
     
     function createViewButtons(productData) {
-        console.log('createViewButtons called with:', productData);
-        
         const store = window.useCanvasStore();
         if (!store) {
-            console.log('Store not available');
             return;
         }
         
         const container = document.getElementById("pw-view-switcher-container");
         if (!container) {
-            console.log('Container not found!');
             return;
         }
-        
-        console.log('Container found, clearing existing content');
         
         // Clear existing buttons
         container.innerHTML = "";
@@ -88,11 +64,8 @@ document.addEventListener("DOMContentLoaded", function() {
         // 从 store 获取视图信息
         const views = store.views;
         if (!views || views.length === 0) {
-            console.log('No views found in store');
             return;
         }
-        
-        console.log('Creating buttons for views:', views);
         
         views.forEach((view, index) => {
             const button = document.createElement('button');
@@ -108,6 +81,11 @@ document.addEventListener("DOMContentLoaded", function() {
             
             // 添加点击事件
             button.addEventListener('click', function() {
+                // 检查是否已经是当前激活的按钮
+                if (button.classList.contains('active')) {
+                    return;
+                }
+                
                 // 移除所有按钮的激活状态
                 container.querySelectorAll('.viewer-switch-btn').forEach(btn => {
                     btn.classList.remove('active');
@@ -121,12 +99,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 
                 // 触发视图切换
                 switchToView(view);
-                
-                console.log('Switched to view:', view.name);
             });
             
             container.appendChild(button);
-            console.log('Button created for view:', view.name);
         });
         
         // 默认激活第一个视图
@@ -135,11 +110,39 @@ document.addEventListener("DOMContentLoaded", function() {
             switchToView(views[0]);
         }
         
-        console.log('View buttons creation completed. Total buttons created:', views.length);
+        // 监听图层面板的视图切换事件
+        document.addEventListener('layerPanelViewSwitch', function(event) {
+            const viewId = event.detail.viewId;
+
+            
+            // 找到对应的视图按钮并激活
+            const targetButton = container.querySelector(`[data-view-id="${viewId}"]`);
+            if (targetButton && !targetButton.classList.contains('active')) {
+                // 移除所有按钮的激活状态
+                container.querySelectorAll('.viewer-switch-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // 激活目标按钮
+                targetButton.classList.add('active');
+                
+                // 找到对应的视图数据
+                const targetView = views.find(v => v.id === viewId);
+                if (targetView) {
+                    switchToView(targetView);
+                }
+            }
+        });
     }
     
     function switchToView(view) {
-        console.log('Switching to view:', view);
+        
+        const store = window.useCanvasStore();
+        
+        // 检查是否已经是当前视图，避免重复切换
+        if (store.activeViewId === view.id) {
+            return;
+        }
         
         // 隐藏所有视图容器
         const allViewContainers = document.querySelectorAll('.view-container');
@@ -154,9 +157,11 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         
         // 获取对应的 canvas 实例
-        const store = window.useCanvasStore();
         const canvas = store.viewCanvases[view.id];
+        
         if (canvas) {
+
+            
             // 取消所有视图上所有元素的选中状态
             Object.values(store.viewCanvases).forEach(viewCanvas => {
                 if (viewCanvas && typeof viewCanvas.discardActiveObject === 'function') {
@@ -175,7 +180,103 @@ document.addEventListener("DOMContentLoaded", function() {
             
             // 重新渲染 canvas
             canvas.renderAll();
+            
+            // 如果画布为空且有API数据，则渲染API数据
+            if (canvas.getObjects().length === 0 && view.data) {
+                renderViewFromApiData(view, canvas);
+            }
+        } else {
+            
+            // 如果canvas不存在，创建新的canvas
+            if (view.data) {
+                createCanvasForView(view);
+            }
         }
+    }
+    
+    // 从API数据渲染视图内容
+    function renderViewFromApiData(view, canvas) {
+        if (!view.data || !canvas) return;
+        
+        const layerConfig = getLayerConfigFromViewData(view.data);
+        if (!layerConfig || !layerConfig.layer_config || !layerConfig.layer_config.layers) {
+            return;
+        }
+        
+        // 使用现有的renderCanvasFromAPI函数
+        if (typeof window.renderCanvasFromAPI === 'function') {
+            // 清空现有内容
+            canvas.clear();
+            
+            // 重新渲染
+            window.renderCanvasFromAPI(canvas.lowerCanvasEl.id, layerConfig)
+                .then(newCanvas => {
+                    
+                    // 更新store中的canvas引用
+                    const store = window.useCanvasStore();
+                    store.addViewCanvas(view.id, newCanvas);
+                    
+                    // 更新全局引用
+                    if (window.setGlobalCanvas) {
+                        window.setGlobalCanvas(newCanvas);
+                    } else {
+                        window.canvas = newCanvas;
+                        window.fabricCanvas = newCanvas;
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to render view from API data:', error);
+                });
+        }
+    }
+    
+    // 为视图创建新的canvas
+    function createCanvasForView(view) {
+        if (!view.data) return;
+        
+        const canvasId = `mainCanvas-${view.id}`;
+        const canvasElement = document.getElementById(canvasId);
+        
+        if (!canvasElement) {
+            return;
+        }
+        
+        if (typeof window.initCanvasForView === 'function') {
+            window.initCanvasForView(canvasId, view)
+                .then(newCanvas => {
+                    if (newCanvas) {
+                        
+                        const store = window.useCanvasStore();
+                        store.addViewCanvas(view.id, newCanvas);
+                        
+                        // 更新全局引用
+                        if (window.setGlobalCanvas) {
+                            window.setGlobalCanvas(newCanvas);
+                        } else {
+                            window.canvas = newCanvas;
+                            window.fabricCanvas = newCanvas;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to create canvas for view:', error);
+                });
+        }
+    }
+    
+    // 从视图数据获取图层配置
+    function getLayerConfigFromViewData(viewData) {
+        if (!viewData) return null;
+        
+        if (viewData.layer_config) {
+            return viewData;
+        }
+        
+        if (viewData.data && viewData.data.layer_config) {
+            return viewData.data;
+        }
+        
+        return null;
     }
     
     // Start monitoring

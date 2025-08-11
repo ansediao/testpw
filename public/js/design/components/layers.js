@@ -7,12 +7,12 @@ import { useCanvasStore, usePrintMethodStore, pinia } from '../stores/index.js';
 const layersApp = Vue.createApp({
     template: `
         <div class="layers-panel">
+            
+            
             <div class="layers-list">
-              
-                
                 <!-- 未分组图层提示区域 -->
-                <div v-if="ungroupedLayers.length > 0">
-                        <div v-for="layer in ungroupedLayers" :key="layer.id" 
+                <div v-if="currentViewUngroupedLayers.length > 0">
+                        <div v-for="layer in currentViewUngroupedLayers" :key="layer.id" 
                              class="layer-item ungrouped"
                              :class="{ active: layer.id === activeObjectId }"
                              @click="selectLayer(layer.id)">
@@ -65,7 +65,7 @@ const layersApp = Vue.createApp({
                 </div>
                 
                 <!-- 图层组列表 -->
-                <div v-for="group in layerGroups" :key="group.id" class="layer-group">
+                <div v-for="group in currentViewLayerGroups" :key="group.id" class="layer-group">
                     <!-- 图层组头部 -->
                     <div class="group-header" 
                          :class="{active: activeGroupId === group.id}"
@@ -264,6 +264,19 @@ const layersApp = Vue.createApp({
         const activeObjectId = Vue.computed(() => store.activeObjectId);
         const layerGroups = Vue.computed(() => store.layerGroups);
         const activeGroupId = Vue.computed(() => store.activeGroupId);
+        const views = Vue.computed(() => store.views);
+        const activeViewId = Vue.computed(() => store.activeViewId);
+        
+        // 当前视图的图层和图层组
+        const currentViewLayers = Vue.computed(() => {
+            if (!activeViewId.value) return [];
+            return store.getViewLayers(activeViewId.value);
+        });
+        
+        const currentViewLayerGroups = Vue.computed(() => {
+            if (!activeViewId.value) return [];
+            return store.getViewLayerGroups(activeViewId.value);
+        });
 
         // 打印方式相关的计算属性
         const printMethods = Vue.computed(() => printMethodStore.printMethods);
@@ -277,11 +290,34 @@ const layersApp = Vue.createApp({
         const selectedPrintMethodId = Vue.ref(printMethodStore.selectedPrintMethodId);
         const activeTab = Vue.ref('color');
 
-        // 计算属性：未分组的图层
+        // 计算属性：当前视图未分组的图层
+        const currentViewUngroupedLayers = Vue.computed(() => {
+            return currentViewLayers.value.filter(layer => !layer.groupId);
+        });
+        
+        // 兼容性：保持原有的ungroupedLayers计算属性
         const ungroupedLayers = Vue.computed(() => {
             return layers.value.filter(layer => !layer.groupId);
         });
 
+        // 视图切换方法
+        const switchToView = (viewId) => {
+            store.setActiveViewId(viewId);
+            
+            // 触发视图切换事件，让其他组件也能响应
+            const event = new CustomEvent('layerPanelViewSwitch', {
+                detail: { viewId: viewId }
+            });
+            document.dispatchEvent(event);
+        };
+        
+        // 获取当前视图名称
+        const getCurrentViewName = () => {
+            if (!activeViewId.value) return 'No View';
+            const currentView = views.value.find(view => view.id === activeViewId.value);
+            return currentView ? currentView.name : 'Unknown View';
+        };
+        
         // 监听视图切换，确保图层数据正确更新
         Vue.watch(() => store.activeViewId, (newViewId) => {
             if (newViewId) {
@@ -1360,6 +1396,13 @@ const layersApp = Vue.createApp({
             activeObjectId: Vue.computed(() => store.activeObjectId),
             layerGroups: Vue.computed(() => store.layerGroups),
             activeGroupId: Vue.computed(() => store.activeGroupId),
+            
+            // 多视图相关数据
+            views,
+            activeViewId,
+            currentViewLayers,
+            currentViewLayerGroups,
+            currentViewUngroupedLayers,
 
             // 计算属性
             ungroupedLayers,
@@ -1378,6 +1421,8 @@ const layersApp = Vue.createApp({
 
             // 方法
             switchCanvas: (id) => store.setActiveCanvasId(id),
+            switchToView,
+            getCurrentViewName,
             addLayer,
             selectLayer,
             toggleVisibility,
