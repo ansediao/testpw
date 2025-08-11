@@ -415,11 +415,6 @@ function addCanvasLayerListeners(fabricCanvas) {
       console.log('Assigned ID to object:', obj.id);
     }
     
-    // 保持旧的图层面板功能
-    if (typeof addLayerItem === 'function') {
-      addLayerItem(obj);
-    }
-    
     // 同步到新的 Pinia store 系统
     syncCanvasObjectToStore(obj, 'added');
   });
@@ -428,24 +423,12 @@ function addCanvasLayerListeners(fabricCanvas) {
   fabricCanvas.on('object:removed', function (e) {
     const obj = e.target;
     
-    // 保持旧的图层面板功能
-    if (obj.id) {
-      const layerItem = document.querySelector(`.layer-item[data-id="${obj.id}"]`);
-      if (layerItem) {
-        layerItem.remove();
-      }
-    }
-    
     // 同步到新的 Pinia store 系统
     syncCanvasObjectToStore(obj, 'removed');
   });
 
   // 监听选择事件，更新图层面板中的选中状态
   fabricCanvas.on('selection:created', function (e) {
-    if (typeof updateLayerSelection === 'function') {
-      updateLayerSelection(e.selected[0]);
-    }
-    
     // 同步选中状态到 Pinia store
     if (e.selected && e.selected.length > 0 && e.selected[0].id) {
       syncSelectionToStore(e.selected[0].id);
@@ -453,10 +436,6 @@ function addCanvasLayerListeners(fabricCanvas) {
   });
 
   fabricCanvas.on('selection:updated', function (e) {
-    if (typeof updateLayerSelection === 'function') {
-      updateLayerSelection(e.selected[0]);
-    }
-    
     // 同步选中状态到 Pinia store
     if (e.selected && e.selected.length > 0 && e.selected[0].id) {
       syncSelectionToStore(e.selected[0].id);
@@ -464,13 +443,22 @@ function addCanvasLayerListeners(fabricCanvas) {
   });
 
   fabricCanvas.on('selection:cleared', function () {
-    // 保持旧的图层面板功能
-    document.querySelectorAll('.layer-item').forEach(item => {
-      item.classList.remove('selected');
-    });
-    
     // 清除 Pinia store 中的选中状态
     syncSelectionToStore(null);
+  });
+  
+  // 监听对象修改事件（用于更新缩略图）
+  fabricCanvas.on('object:modified', function(e) {
+    const obj = e.target;
+    if (obj && obj.id) {
+      // 触发缩略图刷新
+      setTimeout(() => {
+        const refreshEvent = new CustomEvent('layerThumbnailRefresh', {
+          detail: { layerId: obj.id }
+        });
+        document.dispatchEvent(refreshEvent);
+      }, 100);
+    }
   });
 }
 

@@ -160,6 +160,11 @@ async function renderCanvasFromAPI(canvasId, apiData) {
     // 为画布添加事件监听器以支持图层管理
     setupCanvasEventListeners(canvas);
     
+    // 如果存在全局的初始化事件监听器函数，也调用它
+    if (typeof window.initializeCanvasEventListeners === 'function') {
+        window.initializeCanvasEventListeners(canvas);
+    }
+    
     // 同步图层到Pinia store（如果可用）
     syncLayersToStore(canvas, layers);
     
@@ -288,7 +293,41 @@ function setupCanvasEventListeners(canvas) {
             obj.id = 'layer_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
         
-        // 如果存在图层管理系统，添加图层项
+        // 同步到Pinia store的图层管理系统
+        if (window.useCanvasStore && obj && obj.id) {
+            try {
+                const store = window.useCanvasStore();
+                const currentViewId = store.activeViewId;
+                
+                if (currentViewId) {
+                    // 检查图层是否已存在，避免重复添加
+                    const currentViewLayers = store.getViewLayers(currentViewId);
+                    const existingLayer = currentViewLayers.find(layer => layer.id === obj.id);
+                    
+                    if (!existingLayer) {
+                        const layerName = getLayerNameFromObject(obj);
+                        const layerType = getLayerTypeFromObject(obj);
+                        
+                        const newLayer = {
+                            id: obj.id,
+                            name: layerName,
+                            type: layerType,
+                            visible: obj.visible !== false,
+                            locked: !obj.selectable,
+                            groupId: obj.groupId || null,
+                            groupOrder: obj.groupOrder || 0
+                        };
+                        
+                        store.addLayerToView(currentViewId, newLayer);
+                        console.log('Layer added to store:', newLayer);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to sync added object to store:', error);
+            }
+        }
+        
+        // 兼容旧的图层管理系统
         if (typeof window.addLayerItem === 'function') {
             window.addLayerItem(obj);
         }
@@ -296,6 +335,18 @@ function setupCanvasEventListeners(canvas) {
     
     // 监听对象选择事件
     canvas.on('selection:created', function(e) {
+        const activeObject = e.selected[0];
+        if (activeObject && activeObject.id) {
+            // 同步选择状态到store
+            if (window.useCanvasStore) {
+                const store = window.useCanvasStore();
+                store.setActiveObjectId(activeObject.id);
+            }
+        }
+    });
+    
+    // 监听对象选择更新事件
+    canvas.on('selection:updated', function(e) {
         const activeObject = e.selected[0];
         if (activeObject && activeObject.id) {
             // 同步选择状态到store
@@ -324,10 +375,76 @@ function setupCanvasEventListeners(canvas) {
                 const currentViewId = store.activeViewId;
                 if (currentViewId) {
                     store.removeLayerFromView(currentViewId, obj.id);
+                    
+                    // 如果删除的是当前选中的图层，清除选中状态
+                    if (store.activeObjectId === obj.id) {
+                        store.setActiveObjectId(null);
+                    }
                 }
             }
         }
     });
+    
+    // 监听对象修改事件（用于更新缩略图）
+    canvas.on('object:modified', function(e) {
+        const obj = e.target;
+        if (obj && obj.id) {
+            // 触发缩略图刷新
+            setTimeout(() => {
+                const refreshEvent = new CustomEvent('layerThumbnailRefresh', {
+                    detail: { layerId: obj.id }
+                });
+                document.dispatchEvent(refreshEvent);
+            }, 100);
+        }
+    });
+}
+
+/**
+ * 从Fabric对象获取图层名称
+ * @param {fabric.Object} obj - Fabric对象
+ * @returns {string} 图层名称
+ */
+function getLayerNameFromObject(obj) {
+    // 优先使用对象上设置的 layerName 属性
+    if (obj.layerName) {
+        return obj.layerName;
+    }
+    
+    // 根据对象类型生成名称
+    if (obj.type === 'text' || obj.type === 'i-text') {
+        const text = obj.text || '';
+        return text.length > 15 ? text.substring(0, 15) + '...' : text || 'Text Layer';
+    } else if (obj.type === 'image') {
+        return 'Image Layer';
+    } else if (obj.type === 'rect') {
+        return 'Rectangle';
+    } else if (obj.type === 'circle') {
+        return 'Circle';
+    } else {
+        return 'Layer';
+    }
+}
+
+/**
+ * 从Fabric对象获取图层类型
+ * @param {fabric.Object} obj - Fabric对象
+ * @returns {string} 图层类型
+ */
+function getLayerTypeFromObject(obj) {
+    // 优先使用对象上设置的 layerType 属性
+    if (obj.layerType) {
+        return obj.layerType;
+    }
+    
+    // 根据Fabric对象类型映射
+    if (obj.type === 'text' || obj.type === 'i-text') {
+        return 'text';
+    } else if (obj.type === 'image') {
+        return 'image';
+    } else {
+        return 'other';
+    }
 }
 
 /**

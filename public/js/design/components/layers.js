@@ -317,20 +317,39 @@ const layersApp = Vue.createApp({
         });
 
         // 获取画布实例的统一函数
-        const getCanvasInstance = () => { // 尝试多种方式获取画布实例
+        const getCanvasInstance = () => {
+            // 优先从 store 获取当前激活视图的画布实例
+            if (store.activeViewId && store.viewCanvases && store.viewCanvases[store.activeViewId]) {
+                return store.viewCanvases[store.activeViewId];
+            }
+            
+            // 尝试多种方式获取画布实例
             let canvasInstance = window.canvas || window.fabricCanvas;
 
             if (!canvasInstance) {
-                const canvasElement = document.querySelector('#mainCanvas');
-                if (canvasElement && canvasElement.__fabric) {
-                    canvasInstance = canvasElement.__fabric;
+                // 多视图模式：尝试获取当前激活视图的画布
+                if (store.activeViewId) {
+                    const canvasElement = document.querySelector(`#mainCanvas-${store.activeViewId}`);
+                    if (canvasElement && canvasElement.__fabric) {
+                        canvasInstance = canvasElement.__fabric;
+                    }
+                }
+                
+                // 单视图模式：尝试获取主画布
+                if (!canvasInstance) {
+                    const canvasElement = document.querySelector('#mainCanvas');
+                    if (canvasElement && canvasElement.__fabric) {
+                        canvasInstance = canvasElement.__fabric;
+                    }
                 }
             }
 
             // 如果还是没找到，尝试通过 fabric 全局对象查找
             if (!canvasInstance && window.fabric && window.fabric.Canvas) {
-                const canvasElement = document.querySelector('#mainCanvas');
-                if (canvasElement) { // 尝试从 fabric 的内部实例列表中查找
+                const canvasElement = store.activeViewId 
+                    ? document.querySelector(`#mainCanvas-${store.activeViewId}`)
+                    : document.querySelector('#mainCanvas');
+                if (canvasElement) {
                     canvasInstance = canvasElement.__fabric;
                 }
             }
@@ -992,21 +1011,59 @@ const layersApp = Vue.createApp({
                 if (obj) {
                     obj.clone((cloned) => {
                         const newId = `layer_${Date.now()}`;
+                        const newLayerName = layerInfo.name || (obj.layerName || obj.text || 'Layer') + '_副本';
+                        const newLayerType = layerInfo.type || obj.layerType || obj.type;
+                        
                         cloned.set({
                             left: cloned.left + 10,
                             top: cloned.top + 10,
                             id: newId,
                             // 设置图层信息，供 syncCanvasObjectToStore 使用
-                            layerName: layerInfo.name || (obj.layerName || obj.text || 'Layer') + '_副本',
-                            layerType: layerInfo.type || obj.layerType || obj.type,
+                            layerName: newLayerName,
+                            layerType: newLayerType,
                             visible: layerInfo.visible !== undefined ? layerInfo.visible : (obj.visible !== false),
                             selectable: layerInfo.locked !== undefined ? !layerInfo.locked : obj.selectable,
                             groupId: layerInfo.groupId || null,
                             groupOrder: layerInfo.groupOrder || 0
                         });
+                        
+                        // 添加到画布
                         canvasInstance.add(cloned);
                         canvasInstance.setActiveObject(cloned);
                         canvasInstance.renderAll();
+                        
+                        // 手动同步到图层列表（确保图层显示在列表中）
+                        const currentViewId = store.activeViewId;
+                        if (currentViewId) {
+                            const newLayer = {
+                                id: newId,
+                                name: newLayerName,
+                                type: newLayerType,
+                                visible: layerInfo.visible !== undefined ? layerInfo.visible : true,
+                                locked: layerInfo.locked !== undefined ? layerInfo.locked : false,
+                                groupId: layerInfo.groupId || null,
+                                groupOrder: layerInfo.groupOrder || 0
+                            };
+                            
+                            // 检查图层是否已存在，避免重复添加
+                            const currentViewLayers = store.getViewLayers(currentViewId);
+                            const existingLayer = currentViewLayers.find(layer => layer.id === newId);
+                            if (!existingLayer) {
+                                store.addLayerToView(currentViewId, newLayer);
+                                console.log('图层已手动同步到列表:', newLayer);
+                            }
+                            
+                            // 设置为当前选中的图层
+                            store.setActiveObjectId(newId);
+                            
+                            // 触发缩略图刷新事件
+                            setTimeout(() => {
+                                const refreshEvent = new CustomEvent('layerThumbnailRefresh', {
+                                    detail: { layerId: newId }
+                                });
+                                document.dispatchEvent(refreshEvent);
+                            }, 100);
+                        }
                     });
                 }
             }
