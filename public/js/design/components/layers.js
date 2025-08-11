@@ -363,113 +363,210 @@ const layersApp = Vue.createApp({
             }
 
             try {
-                // 如果是图片对象，尝试获取其源图片
-                if (obj.type === 'image') {
-                    // 优先从多个可能的属性中获取图片源
-                    let imageSrc = '';
-
-                    // 方法1: 从 _element 获取
-                    if (obj._element && obj._element.src) {
-                        imageSrc = obj._element.src;
-                    }
-                    // 方法2: 从 src 属性获取
-                    else if (obj.src) {
-                        imageSrc = obj.src;
-                    }
-                    // 方法3: 从 _originalElement 获取（备用）
-                    else if (obj._originalElement && obj._originalElement.src) {
-                        imageSrc = obj._originalElement.src;
-                    }
-                    // 方法4: 尝试从对象的 toDataURL 方法获取
-                    else if (obj.getElement && obj.getElement()) {
-                        const element = obj.getElement();
-                        if (element && element.src) {
-                            imageSrc = element.src;
-                        }
-                    }
-                    // 方法5: 从上传图片列表中查找
-                    else if (window.uploadedImages) {
-                        const matchedImg = window.uploadedImages.find(img => {
-                            // 尝试通过图层名称或其他属性匹配
-                            return img.fileName === layer.name ||
-                                (obj.layerName && img.fileName === obj.layerName);
-                        });
-                        if (matchedImg && matchedImg.src) {
-                            imageSrc = matchedImg.src;
-                            // 同时修复对象的属性
-                            if (!obj._element || !obj._element.src) {
-                                const img = new Image();
-                                img.src = imageSrc;
-                                obj._element = img;
-                            }
-                            if (!obj.src) {
-                                obj.src = imageSrc;
-                            }
-                        }
-                    }
-
-                    // 如果找到了图片源，缓存并返回
-                    if (imageSrc) {
-                        thumbnailCache.value.set(layer.id, {
-                            src: imageSrc,
-                            timestamp: Date.now()
-                        });
-                        return imageSrc;
-                    }
-
-                    // 如果没有找到图片源，尝试生成缩略图
-                    console.warn('图片对象没有找到源地址，尝试生成缩略图:', layer.id);
-                }
-
-                // 对于其他类型或无法获取源的图片，生成小尺寸的canvas缩略图
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = 32;
-                tempCanvas.height = 32;
-                const tempCtx = tempCanvas.getContext('2d');
-
-                // 创建临时fabric canvas
-                const tempFabricCanvas = new fabric.Canvas(tempCanvas);
-
-                // 同步克隆对象并缩放到缩略图尺寸
-                try {
-                    obj.clone((cloned) => {
-                        try {
-                            const scale = Math.min(30 / (cloned.width || 100), 30 / (cloned.height || 100));
-                            cloned.set({
-                                left: 16,
-                                top: 16,
-                                scaleX: scale,
-                                scaleY: scale
-                            });
-                            tempFabricCanvas.add(cloned);
-                            tempFabricCanvas.renderAll();
-                        } catch (error) {
-                            console.warn('生成克隆缩略图失败:', error);
-                        }
-                    });
-
-                    const dataUrl = tempCanvas.toDataURL('image/png');
-                    tempFabricCanvas.dispose();
-
-                    // 缓存生成的缩略图
-                    if (dataUrl) {
-                        thumbnailCache.value.set(layer.id, {
-                            src: dataUrl,
-                            timestamp: Date.now()
-                        });
-                    }
-
-                    return dataUrl;
-                } catch (error) {
-                    console.warn('克隆对象失败:', error);
-                    tempFabricCanvas.dispose();
-                    return '';
-                }
+                // 统一生成缩略图的方法，确保所有类型的图层都有合适的缩略图大小
+                return generateThumbnail(obj, layer.id);
 
             } catch (error) {
                 console.warn('生成缩略图失败:', error);
                 return '';
             }
+        };
+
+        // 生成缩略图的统一方法
+        const generateThumbnail = (obj, layerId) => {
+            try {
+                // 设置缩略图的固定尺寸
+                const THUMBNAIL_SIZE = 32;
+                const THUMBNAIL_PADDING = 2;
+                const CONTENT_SIZE = THUMBNAIL_SIZE - (THUMBNAIL_PADDING * 2);
+
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = THUMBNAIL_SIZE;
+                tempCanvas.height = THUMBNAIL_SIZE;
+                const tempCtx = tempCanvas.getContext('2d');
+
+                // 清除画布并设置背景
+                tempCtx.fillStyle = '#f5f5f5';
+                tempCtx.fillRect(0, 0, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+
+                // 如果是图片对象，直接绘制图片
+                if (obj.type === 'image') {
+                    return generateImageThumbnail(obj, layerId, tempCanvas, tempCtx, CONTENT_SIZE, THUMBNAIL_PADDING);
+                }
+
+                // 对于其他类型，使用 Fabric.js 渲染
+                const tempFabricCanvas = new fabric.Canvas(tempCanvas);
+
+                obj.clone((cloned) => {
+                    try {
+                        // 计算缩放比例，确保对象适合缩略图
+                        const objWidth = cloned.width * cloned.scaleX || cloned.width || 100;
+                        const objHeight = cloned.height * cloned.scaleY || cloned.height || 100;
+                        
+                        const scale = Math.min(
+                            CONTENT_SIZE / objWidth,
+                            CONTENT_SIZE / objHeight
+                        );
+
+                        cloned.set({
+                            left: THUMBNAIL_SIZE / 2,
+                            top: THUMBNAIL_SIZE / 2,
+                            scaleX: scale,
+                            scaleY: scale,
+                            originX: 'center',
+                            originY: 'center'
+                        });
+
+                        tempFabricCanvas.add(cloned);
+                        tempFabricCanvas.renderAll();
+                    } catch (error) {
+                        console.warn('生成克隆缩略图失败:', error);
+                    }
+                });
+
+                const dataUrl = tempCanvas.toDataURL('image/png');
+                tempFabricCanvas.dispose();
+
+                // 缓存生成的缩略图
+                if (dataUrl) {
+                    thumbnailCache.value.set(layerId, {
+                        src: dataUrl,
+                        timestamp: Date.now()
+                    });
+                }
+
+                return dataUrl;
+
+            } catch (error) {
+                console.warn('生成缩略图失败:', error);
+                return '';
+            }
+        };
+
+        // 专门为图片对象生成缩略图
+        const generateImageThumbnail = (obj, layerId, canvas, ctx, contentSize, padding) => {
+            try {
+                // 获取图片源
+                let imageElement = null;
+                let imageSrc = '';
+
+                // 尝试多种方式获取图片元素和源
+                if (obj._element && obj._element.src) {
+                    imageElement = obj._element;
+                    imageSrc = obj._element.src;
+                } else if (obj.src) {
+                    imageSrc = obj.src;
+                } else if (obj._originalElement && obj._originalElement.src) {
+                    imageElement = obj._originalElement;
+                    imageSrc = obj._originalElement.src;
+                } else if (obj.getElement && obj.getElement()) {
+                    const element = obj.getElement();
+                    if (element && element.src) {
+                        imageElement = element;
+                        imageSrc = element.src;
+                    }
+                }
+
+                // 如果没有找到图片源，从上传列表中查找
+                if (!imageSrc && window.uploadedImages) {
+                    const matchedImg = window.uploadedImages.find(img => {
+                        return img.fileName === obj.layerName || 
+                               (obj.id && img.layerId === obj.id);
+                    });
+                    if (matchedImg && matchedImg.src) {
+                        imageSrc = matchedImg.src;
+                    }
+                }
+
+                if (!imageSrc) {
+                    console.warn('无法获取图片源，使用默认方法生成缩略图');
+                    return generateThumbnail(obj, layerId);
+                }
+
+                // 如果有图片元素，直接绘制
+                if (imageElement && imageElement.complete) {
+                    drawImageThumbnail(ctx, imageElement, contentSize, padding);
+                    const dataUrl = canvas.toDataURL('image/png');
+                    
+                    // 缓存缩略图
+                    thumbnailCache.value.set(layerId, {
+                        src: dataUrl,
+                        timestamp: Date.now()
+                    });
+                    
+                    return dataUrl;
+                }
+
+                // 如果没有图片元素或图片未加载完成，创建新的图片元素
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                
+                // 使用 Promise 处理异步加载，但返回占位符
+                img.onload = () => {
+                    try {
+                        drawImageThumbnail(ctx, img, contentSize, padding);
+                        const dataUrl = canvas.toDataURL('image/png');
+                        
+                        // 更新缓存
+                        thumbnailCache.value.set(layerId, {
+                            src: dataUrl,
+                            timestamp: Date.now()
+                        });
+
+                        // 触发重新渲染
+                        const refreshEvent = new CustomEvent('layerThumbnailRefresh', {
+                            detail: { layerId: layerId }
+                        });
+                        document.dispatchEvent(refreshEvent);
+                        
+                    } catch (error) {
+                        console.warn('绘制图片缩略图失败:', error);
+                    }
+                };
+
+                img.onerror = () => {
+                    console.warn('图片加载失败:', imageSrc);
+                };
+
+                img.src = imageSrc;
+
+                // 返回加载中的占位符
+                ctx.fillStyle = '#e0e0e0';
+                ctx.fillRect(padding, padding, contentSize, contentSize);
+                ctx.fillStyle = '#999';
+                ctx.font = '10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('...', canvas.width / 2, canvas.height / 2 + 3);
+
+                return canvas.toDataURL('image/png');
+
+            } catch (error) {
+                console.warn('生成图片缩略图失败:', error);
+                return '';
+            }
+        };
+
+        // 绘制图片缩略图的辅助函数
+        const drawImageThumbnail = (ctx, imageElement, contentSize, padding) => {
+            const imgWidth = imageElement.naturalWidth || imageElement.width;
+            const imgHeight = imageElement.naturalHeight || imageElement.height;
+
+            if (imgWidth === 0 || imgHeight === 0) {
+                console.warn('图片尺寸无效');
+                return;
+            }
+
+            // 计算缩放比例，保持宽高比
+            const scale = Math.min(contentSize / imgWidth, contentSize / imgHeight);
+            const scaledWidth = imgWidth * scale;
+            const scaledHeight = imgHeight * scale;
+
+            // 计算居中位置
+            const x = padding + (contentSize - scaledWidth) / 2;
+            const y = padding + (contentSize - scaledHeight) / 2;
+
+            // 绘制图片
+            ctx.drawImage(imageElement, x, y, scaledWidth, scaledHeight);
         };
 
         // 获取图片图层信息的方法
@@ -1233,6 +1330,8 @@ const layersApp = Vue.createApp({
             getLayerThumbnail,
             getImageLayerInfo,
             clearThumbnailCache,
+            generateThumbnail,
+            generateImageThumbnail,
 
             // 打印方式权限检查方法
             isLayerCopyAllowed,
