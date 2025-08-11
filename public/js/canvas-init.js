@@ -2,8 +2,9 @@
 function init() {
     // 检查是否为多视图模式
     const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
+    const hasMultiViewContainer = document.querySelector('.multi-view-container') !== null;
     
-    if (canvasStore && canvasStore.views && canvasStore.views.length > 0) {
+    if ((canvasStore && canvasStore.views && canvasStore.views.length > 0) || hasMultiViewContainer) {
         // 多视图模式：跳过传统初始化，由多视图系统处理
         console.log('Multi-view mode activated, skipping traditional canvas initialization');
         return;
@@ -14,7 +15,7 @@ function init() {
     const shadowCanvas = document.getElementById('shadowLayer');
     
     if (!colorCanvas || !shadowCanvas) {
-        console.warn('Traditional canvas elements not found, may be in multi-view mode');
+        console.log('Traditional canvas elements not found, likely in multi-view mode');
         return;
     }
     

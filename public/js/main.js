@@ -251,8 +251,9 @@ let currentColor = defaultColor;
 // 检查是否为多视图模式
 const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
 const isMultiViewMode = canvasStore && canvasStore.views && canvasStore.views.length > 0;
+const hasMultiViewContainer = document.querySelector('.multi-view-container') !== null;
 
-if (!isMultiViewMode) {
+if (!isMultiViewMode && !hasMultiViewContainer) {
   // 单视图模式：执行传统初始化
   init();
   // 检查是否存在 boundary canvas 元素再绘制
