@@ -139,10 +139,10 @@ document.addEventListener("DOMContentLoaded", function() {
         
         const store = window.useCanvasStore();
         
-        // 检查是否已经是当前视图，避免重复切换
-        if (store.activeViewId === view.id) {
-            return;
-        }
+        // 注释掉重复切换检查，因为图层面板可能已经更新了activeViewId
+        // if (store.activeViewId === view.id) {
+        //     return;
+        // }
         
         // 隐藏所有视图容器
         const allViewContainers = document.querySelectorAll('.view-container');

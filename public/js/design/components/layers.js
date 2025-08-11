@@ -1198,7 +1198,15 @@ const layersApp = Vue.createApp({
                     printMethodId: selectedPrintMethodId.value
                 };
                 const updatedGroups = [...layerGroups.value, newGroup];
-                store.setLayerGroups(updatedGroups);
+                
+                // 更新当前视图的图层组
+                const currentViewId = store.activeViewId;
+                if (currentViewId) {
+                    store.setViewLayerGroups(currentViewId, updatedGroups);
+                } else {
+                    store.setLayerGroups(updatedGroups);
+                }
+                
                 existingGroup = newGroup;
             }
 
@@ -1345,11 +1353,21 @@ const layersApp = Vue.createApp({
                 expanded: true
             };
 
-            const updatedGroups = [
-                ...layerGroups.value,
-                newGroup
-            ];
-            store.setLayerGroups(updatedGroups);
+            // 获取当前视图ID
+            const currentViewId = store.activeViewId;
+            if (currentViewId) {
+                // 更新当前视图的图层组
+                const currentViewGroups = store.getViewLayerGroups(currentViewId) || [];
+                const updatedViewGroups = [...currentViewGroups, newGroup];
+                store.setViewLayerGroups(currentViewId, updatedViewGroups);
+            } else {
+                // 如果没有当前视图，则更新全局图层组
+                const updatedGroups = [
+                    ...layerGroups.value,
+                    newGroup
+                ];
+                store.setLayerGroups(updatedGroups);
+            }
 
             // 复制组内图层
             const groupLayers = getGroupLayers(group.id);
