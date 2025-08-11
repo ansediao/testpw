@@ -292,6 +292,30 @@ const layersApp = Vue.createApp({
             }
         }, { immediate: true });
 
+        // 监听图层缩略图刷新事件
+        Vue.onMounted(() => {
+            const handleThumbnailRefresh = (event) => {
+                if (event.detail && event.detail.layerId) {
+                    // 清除特定图层的缓存
+                    clearThumbnailCache(event.detail.layerId);
+                } else {
+                    // 清除所有缓存
+                    clearThumbnailCache();
+                }
+                // 强制重新渲染
+                Vue.nextTick(() => {
+                    // 触发响应式更新
+                });
+            };
+
+            document.addEventListener('layerThumbnailRefresh', handleThumbnailRefresh);
+
+            // 组件卸载时清除事件监听
+            Vue.onUnmounted(() => {
+                document.removeEventListener('layerThumbnailRefresh', handleThumbnailRefresh);
+            });
+        });
+
         // 获取画布实例的统一函数
         const getCanvasInstance = () => { // 尝试多种方式获取画布实例
             let canvasInstance = window.canvas || window.fabricCanvas;
@@ -314,24 +338,90 @@ const layersApp = Vue.createApp({
             return canvasInstance;
         };
 
+        // 缩略图缓存
+        const thumbnailCache = Vue.ref(new Map());
+
         // 获取图层缩略图的方法
         const getLayerThumbnail = (layer) => {
-            const canvasInstance = getCanvasInstance();
-            if (!canvasInstance)
-                return '';
+            // 首先检查缓存
+            if (thumbnailCache.value.has(layer.id)) {
+                const cached = thumbnailCache.value.get(layer.id);
+                // 检查缓存是否仍然有效（缓存时间不超过5分钟）
+                if (Date.now() - cached.timestamp < 300000) {
+                    return cached.src;
+                }
+            }
 
+            const canvasInstance = getCanvasInstance();
+            if (!canvasInstance) {
+                return '';
+            }
 
             const obj = canvasInstance.getObjects().find(o => o.id === layer.id);
-            if (!obj)
+            if (!obj) {
                 return '';
+            }
 
+            try {
+                // 如果是图片对象，尝试获取其源图片
+                if (obj.type === 'image') {
+                    // 优先从多个可能的属性中获取图片源
+                    let imageSrc = '';
 
-            try { // 如果是图片对象，尝试获取其源图片
-                if (obj.type === 'image' && obj._element) {
-                    return obj._element.src || obj.src || '';
+                    // 方法1: 从 _element 获取
+                    if (obj._element && obj._element.src) {
+                        imageSrc = obj._element.src;
+                    }
+                    // 方法2: 从 src 属性获取
+                    else if (obj.src) {
+                        imageSrc = obj.src;
+                    }
+                    // 方法3: 从 _originalElement 获取（备用）
+                    else if (obj._originalElement && obj._originalElement.src) {
+                        imageSrc = obj._originalElement.src;
+                    }
+                    // 方法4: 尝试从对象的 toDataURL 方法获取
+                    else if (obj.getElement && obj.getElement()) {
+                        const element = obj.getElement();
+                        if (element && element.src) {
+                            imageSrc = element.src;
+                        }
+                    }
+                    // 方法5: 从上传图片列表中查找
+                    else if (window.uploadedImages) {
+                        const matchedImg = window.uploadedImages.find(img => {
+                            // 尝试通过图层名称或其他属性匹配
+                            return img.fileName === layer.name ||
+                                (obj.layerName && img.fileName === obj.layerName);
+                        });
+                        if (matchedImg && matchedImg.src) {
+                            imageSrc = matchedImg.src;
+                            // 同时修复对象的属性
+                            if (!obj._element || !obj._element.src) {
+                                const img = new Image();
+                                img.src = imageSrc;
+                                obj._element = img;
+                            }
+                            if (!obj.src) {
+                                obj.src = imageSrc;
+                            }
+                        }
+                    }
+
+                    // 如果找到了图片源，缓存并返回
+                    if (imageSrc) {
+                        thumbnailCache.value.set(layer.id, {
+                            src: imageSrc,
+                            timestamp: Date.now()
+                        });
+                        return imageSrc;
+                    }
+
+                    // 如果没有找到图片源，尝试生成缩略图
+                    console.warn('图片对象没有找到源地址，尝试生成缩略图:', layer.id);
                 }
 
-                // 对于其他类型，生成小尺寸的canvas缩略图
+                // 对于其他类型或无法获取源的图片，生成小尺寸的canvas缩略图
                 const tempCanvas = document.createElement('canvas');
                 tempCanvas.width = 32;
                 tempCanvas.height = 32;
@@ -340,15 +430,42 @@ const layersApp = Vue.createApp({
                 // 创建临时fabric canvas
                 const tempFabricCanvas = new fabric.Canvas(tempCanvas);
 
-                // 克隆对象并缩放到缩略图尺寸
-                obj.clone((cloned) => {
-                    const scale = Math.min(30 / cloned.width, 30 / cloned.height);
-                    cloned.set({ left: 16, top: 16, scaleX: scale, scaleY: scale });
-                    tempFabricCanvas.add(cloned);
-                    tempFabricCanvas.renderAll();
-                });
+                // 同步克隆对象并缩放到缩略图尺寸
+                try {
+                    obj.clone((cloned) => {
+                        try {
+                            const scale = Math.min(30 / (cloned.width || 100), 30 / (cloned.height || 100));
+                            cloned.set({
+                                left: 16,
+                                top: 16,
+                                scaleX: scale,
+                                scaleY: scale
+                            });
+                            tempFabricCanvas.add(cloned);
+                            tempFabricCanvas.renderAll();
+                        } catch (error) {
+                            console.warn('生成克隆缩略图失败:', error);
+                        }
+                    });
 
-                return tempCanvas.toDataURL('image/png');
+                    const dataUrl = tempCanvas.toDataURL('image/png');
+                    tempFabricCanvas.dispose();
+
+                    // 缓存生成的缩略图
+                    if (dataUrl) {
+                        thumbnailCache.value.set(layer.id, {
+                            src: dataUrl,
+                            timestamp: Date.now()
+                        });
+                    }
+
+                    return dataUrl;
+                } catch (error) {
+                    console.warn('克隆对象失败:', error);
+                    tempFabricCanvas.dispose();
+                    return '';
+                }
+
             } catch (error) {
                 console.warn('生成缩略图失败:', error);
                 return '';
@@ -664,12 +781,12 @@ const layersApp = Vue.createApp({
         const isLayerDeleteAllowed = (layerId) => {
             return printMethodStore.isLayerDeleteAllowed(layerId);
         };
-        
+
         // 检查图层组是否允许复制
         const isGroupCopyAllowed = (groupId) => {
             return printMethodStore.isGroupCopyAllowed(groupId);
         };
-        
+
         // 检查图层组是否允许删除
         const isGroupDeleteAllowed = (groupId) => {
             return printMethodStore.isGroupDeleteAllowed(groupId);
@@ -697,20 +814,30 @@ const layersApp = Vue.createApp({
             });
         };
 
+        // 清除缩略图缓存的方法
+        const clearThumbnailCache = (layerId = null) => {
+            if (layerId) {
+                thumbnailCache.value.delete(layerId);
+            } else {
+                thumbnailCache.value.clear();
+            }
+        };
+
         // 删除图层
         const deleteLayer = (layer) => {
-            if (confirm(`确定要删除图层 "${layer.name
-                }" 吗？`)) {
+            if (confirm(`确定要删除图层 "${layer.name}" 吗？`)) {
                 const currentViewId = store.activeViewId;
                 if (!currentViewId)
                     return;
-
 
                 // 先从画布中删除对象
                 deleteCanvasObject(layer.id);
 
                 // 然后从当前视图的store中删除
                 store.removeLayerFromView(currentViewId, layer.id);
+
+                // 清除对应的缩略图缓存
+                clearThumbnailCache(layer.id);
 
                 // 如果删除的是当前选中的图层，清除选中状态
                 if (store.activeObjectId === layer.id) {
@@ -1013,12 +1140,12 @@ const layersApp = Vue.createApp({
             });
         };
 
-        const duplicateGroup = (group) => { 
+        const duplicateGroup = (group) => {
             // 检查是否允许复制
             if (!isGroupCopyAllowed(group.id)) {
                 return;
             }
-            
+
             // 复制组
             const newGroup = {
                 id: 'group_' + Date.now(),
@@ -1046,7 +1173,7 @@ const layersApp = Vue.createApp({
             if (!isGroupDeleteAllowed(group.id)) {
                 return;
             }
-            
+
             if (confirm(`确定要删除图层组 "${group.name}" 吗？组内的所有图层也将被删除。`)) { // 获取组内所有图层并删除
                 const groupLayers = getGroupLayers(group.id);
                 groupLayers.forEach(layer => { // 从画布中删除对象
@@ -1071,7 +1198,7 @@ const layersApp = Vue.createApp({
         return {
             // Store 引用
             store,
-            
+
             // 从 store 获取的数据
             canvasIds: Vue.computed(() => Object.keys(store.canvasStates)),
             activeCanvasId: Vue.computed(() => store.activeCanvasId),
@@ -1105,6 +1232,7 @@ const layersApp = Vue.createApp({
             deleteLayer,
             getLayerThumbnail,
             getImageLayerInfo,
+            clearThumbnailCache,
 
             // 打印方式权限检查方法
             isLayerCopyAllowed,
@@ -1140,7 +1268,7 @@ const mountApp = () => {
     if (isAppMounted) {
         return;
     }
-    
+
     const container = document.getElementById('layers-box');
     if (container) {
         try {

@@ -561,6 +561,15 @@ $plugin_url = plugin_dir_url(__FILE__);
                     // 生成唯一的图层ID
                     const layerId = 'layer_' + Date.now();
 
+                    // 保存现有图片对象的引用，防止它们的属性被修改
+                    const existingImageObjects = activeCanvas.getObjects().filter(obj => obj.type === 'image');
+                    const existingImageSources = existingImageObjects.map(obj => ({
+                        id: obj.id,
+                        src: obj._element ? obj._element.src : (obj.src || ''),
+                        element: obj._element,
+                        originalElement: obj._originalElement
+                    }));
+
                     const fabricImage = new fabric.Image(imgElement, {
                         left: activeCanvas.width / 2,
                         top: activeCanvas.height / 2,
@@ -573,8 +582,8 @@ $plugin_url = plugin_dir_url(__FILE__);
 
                     // 检查画布上是否已存在相同来源的图片
                     let imageExists = false;
-                    activeCanvas.getObjects().forEach(obj => {
-                        if (obj.type === 'image' && obj.getElement().src === imgElement.src) {
+                    existingImageSources.forEach(imgInfo => {
+                        if (imgInfo.src === imgElement.src) {
                             imageExists = true;
                         }
                     });
@@ -582,6 +591,21 @@ $plugin_url = plugin_dir_url(__FILE__);
                     if (!imageExists) {
                         activeCanvas.add(fabricImage);
                         activeCanvas.setActiveObject(fabricImage);
+                        
+                        // 确保现有图片对象的属性不被修改
+                        existingImageObjects.forEach((obj, index) => {
+                            const originalInfo = existingImageSources[index];
+                            if (originalInfo.element && !obj._element) {
+                                obj._element = originalInfo.element;
+                            }
+                            if (originalInfo.originalElement && !obj._originalElement) {
+                                obj._originalElement = originalInfo.originalElement;
+                            }
+                            if (originalInfo.src && !obj.src) {
+                                obj.src = originalInfo.src;
+                            }
+                        });
+                        
                         activeCanvas.renderAll();
 
                         // 强制更新全局canvas引用并触发渲染
@@ -594,6 +618,17 @@ $plugin_url = plugin_dir_url(__FILE__);
 
                         // 延迟再次渲染以确保显示
                          setTimeout(() => {
+                             // 再次确保现有图片对象的属性完整
+                             existingImageObjects.forEach((obj, index) => {
+                                 const originalInfo = existingImageSources[index];
+                                 if (originalInfo.element && !obj._element) {
+                                     obj._element = originalInfo.element;
+                                 }
+                                 if (originalInfo.src && (!obj.src || obj.src === '')) {
+                                     obj.src = originalInfo.src;
+                                 }
+                             });
+                             
                              activeCanvas.renderAll();
                              
                              // 强制刷新当前视图显示
@@ -619,6 +654,21 @@ $plugin_url = plugin_dir_url(__FILE__);
                         const layerName = fileName || '图片';
                         if (typeof window.addLayerToStore === 'function') {
                             window.addLayerToStore(layerId, layerName, 'image');
+                            
+                            // 延迟触发图层面板刷新，确保缩略图正确显示
+                            setTimeout(() => {
+                                // 触发Vue组件的强制更新
+                                const layersApp = document.querySelector('#layers-box').__vue_app__;
+                                if (layersApp && layersApp._instance) {
+                                    layersApp._instance.proxy.$forceUpdate();
+                                }
+                                
+                                // 或者通过事件通知图层组件刷新
+                                const refreshEvent = new CustomEvent('layerThumbnailRefresh', {
+                                    detail: { layerId: layerId }
+                                });
+                                document.dispatchEvent(refreshEvent);
+                            }, 100);
                         } else {
                             console.warn('图层管理系统未初始化');
                         }
