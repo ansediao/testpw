@@ -34,18 +34,18 @@ const layersApp = Vue.createApp({
                                         <button @click.stop="toggleLock(layer)" class="layer-btn">
                                             <i :class="layer.locked ? 'iconfont icon-suoding' : 'iconfont icon-jiesuo'"></i>
                                         </button>
+                                        <button @click.stop="deleteLayer(layer)" class="layer-btn delete">
+                                            <i class="iconfont icon-shanchu"></i>
+                                        </button>
                                         <button 
                                             @click.stop="duplicateLayer(layer)" 
-                                            class="layer-btn"
+                                            class="layer-btn layer-copy"
                                             :class="{ 'disabled': !isLayerCopyAllowed(layer.id) }"
                                             :disabled="!isLayerCopyAllowed(layer.id)"
                                             :title="isLayerCopyAllowed(layer.id) ? 'Copy layer' : 'Copy not allowed for this print method'"
                                         >
                                             <i class="iconfont icon-fuzhi"></i>
-                                        </button>
-                                        <button @click.stop="deleteLayer(layer)" class="layer-btn delete">
-                                            <i class="iconfont icon-shanchu"></i>
-                                        </button>
+                                        </button>                                       
                                     </div>
                                 </div>
                                 <div v-if="layer.type === 'image'" class="layer-img-info">
@@ -55,7 +55,7 @@ const layersApp = Vue.createApp({
                                     </div>
                                 </div>
                                 <div class="layer-actions">
-                                    <button @click.stop="showGroupAssignDialog(layer)" class="assign-btn">Switch Printing Method</button>                               
+                                    <button @click.stop="showGroupAssignDialog(layer)" class="assign-btn"><i class="iconfont icon-dayin"></i>Switch Printing Method</button>                               
                                 </div>
                             </div>
                             
@@ -70,35 +70,40 @@ const layersApp = Vue.createApp({
                     <div class="group-header" 
                          :class="{active: activeGroupId === group.id}"
                          @click="toggleGroup(group.id)">
-                        <span class="expand-icon" @click.stop="toggleGroupExpand(group.id)">
-                            {{group.expanded ? '▼' : '▶'}}
-                        </span>
-                        <span class="group-name">📁 {{group.name}}</span>
+                   
+                        <div class="group-name">{{group.name}}</div>
                         
                         <!-- 图层组操作按钮 -->
-                        <div class="group-actions">                           
-                            <button @click.stop="toggleGroupLock(group)"
-                                    :class="{locked: group.locked}" class="layer-btn">
-                                <i :class="group.locked ? 'iconfont icon-suoding' : 'iconfont icon-jiesuo'"></i>
-                            </button>
-                            <button 
-                                @click.stop="duplicateGroup(group)" 
-                                class="layer-btn"
-                                :class="{ 'disabled': !isGroupCopyAllowed(group.id) }"
-                                :disabled="!isGroupCopyAllowed(group.id)"
-                                :title="isGroupCopyAllowed(group.id) ? 'Copy group' : 'Copy not allowed for this print method'"
-                            >
-                                <i class="iconfont icon-fuzhi"></i>
-                            </button>
-                            <button 
-                                @click.stop="deleteGroup(group)" 
-                                class="layer-btn delete"
-                                :class="{ 'disabled': !isGroupDeleteAllowed(group.id) }"
-                                :disabled="!isGroupDeleteAllowed(group.id)"
-                                :title="isGroupDeleteAllowed(group.id) ? 'Delete group' : 'Delete not allowed for this print method'"
-                            >
-                                <i class="iconfont icon-shanchu"></i>
-                            </button>
+                        <div class="group-actions">       
+                            <div class="selectOnlyLayer">
+                                <input type="checkbox" v-model="group.selectOnly" />
+                                <label>Select Only Layer</label>
+                            </div>
+                            <div class="group-actions-buttonBox">
+                                <button @click.stop="toggleGroupLock(group)"
+                                        :class="{locked: group.locked}" class="layer-btn">
+                                    <i :class="group.locked ? 'iconfont icon-suoding' : 'iconfont icon-jiesuo'"></i>
+                                </button>
+                                <button 
+                                    @click.stop="deleteGroup(group)" 
+                                    class="layer-btn delete"
+                                    :class="{ 'disabled': !isGroupDeleteAllowed(group.id) }"
+                                    :disabled="!isGroupDeleteAllowed(group.id)"
+                                    :title="isGroupDeleteAllowed(group.id) ? 'Delete group' : 'Delete not allowed for this print method'"
+                                >
+                                    <i class="iconfont icon-shanchu"></i>
+                                </button>
+                                <button 
+                                    @click.stop="duplicateGroup(group)" 
+                                    class="layer-btn group-copy"
+
+                                    :class="{ 'disabled': !isGroupCopyAllowed(group.id) }"
+                                    :disabled="!isGroupCopyAllowed(group.id)"
+                                    :title="isGroupCopyAllowed(group.id) ? 'Copy group' : 'Copy not allowed for this print method'"
+                                >
+                                    <i class="iconfont icon-fuzhi"></i>
+                                </button>  
+                            </div>                                                                                                          
                         </div>
                     </div>
                     
@@ -109,16 +114,17 @@ const layersApp = Vue.createApp({
                              class="layer-item grouped"
                              :class="{active: activeObjectId === layer.id}"
                              @click="selectLayer(layer.id)">
+                            <div class="layer-xiaji-icon">
+                                <i class="iconfont icon-xiaji"></i>                            
+                            </div>
                             <div class="layer-icon">
+                                
                                 <div v-if="layer.type === 'image'" class="layer-thumbnail">
                                     <img :src="getLayerThumbnail(layer)" alt="缩略图" class="thumbnail-img" />
                                 </div>
                                 <div v-else-if="layer.type === 'text'" class="layer-text-icon">
                                     T
-                                </div>
-                                <div v-else class="layer-default-icon">
-                                    📄
-                                </div>
+                                </div>                               
                             </div>
                             <div class="layer-info">
                                 <div class="layer-name">
@@ -127,18 +133,18 @@ const layersApp = Vue.createApp({
                                         <button @click.stop="toggleLock(layer)" class="layer-btn">
                                             <i :class="layer.locked ? 'iconfont icon-suoding' : 'iconfont icon-jiesuo'"></i>
                                         </button>
+                                        <button @click.stop="deleteLayer(layer)" class="layer-btn delete">
+                                            <i class="iconfont icon-shanchu"></i>
+                                        </button>
                                         <button 
                                             @click.stop="duplicateLayer(layer)" 
-                                            class="layer-btn"
+                                            class="layer-btn layer-copy"
                                             :class="{ 'disabled': !isLayerCopyAllowed(layer.id) }"
                                             :disabled="!isLayerCopyAllowed(layer.id)"
                                             :title="isLayerCopyAllowed(layer.id) ? 'Copy layer' : 'Copy not allowed for this print method'"
                                         >
                                             <i class="iconfont icon-fuzhi"></i>
-                                        </button>
-                                        <button @click.stop="deleteLayer(layer)" class="layer-btn delete">
-                                            <i class="iconfont icon-shanchu"></i>
-                                        </button>
+                                        </button>                                       
                                     </div>
                                 </div>
                                 <div v-if="layer.type === 'image'" class="layer-img-info">
@@ -148,7 +154,7 @@ const layersApp = Vue.createApp({
                                     </div>
                                 </div>
                                 <div class="layer-actions">
-                                    <button @click.stop="showGroupAssignDialog(layer)" class="assign-btn">Switch Printing Method</button>                               
+                                    <button @click.stop="showGroupAssignDialog(layer)" class="assign-btn"><i class="iconfont icon-dayin"></i>Switch Printing Method</button>                               
                                 </div>
                             </div>
                         </div>
@@ -189,13 +195,7 @@ const layersApp = Vue.createApp({
                                     :value="method.id" 
                                     name="printMethod" 
                                 />
-                                <span class="method-label">{{ method.label }}</span>
-                                <div class="method-features" v-if="method.features">
-                                    <span v-if="!method.features.allowCopy" class="feature-tag no-copy">No Copy</span>
-                                    <span v-if="method.features.maxLayers" class="feature-tag max-layers">Max {{ method.features.maxLayers }} layers</span>
-                                    <span v-if="method.features.colorLimitations" class="feature-tag color-limit">{{ method.features.colorLimitations }} colors</span>
-                                    <span class="feature-tag moq">MOQ: {{ method.features.minQuantity }}</span>
-                                </div>
+                                <span class="method-label">{{ method.label }}</span>                               
                             </label>
                         </div>
                     </div>
