@@ -153,7 +153,7 @@ if ($first_image_url) {
                 <canvas id="boundaryLayer-${view.id}"
                     data-img-width="<?php echo esc_attr($first_image_width); ?>"
                     data-img-height="<?php echo esc_attr($first_image_height); ?>"
-                    style="position: absolute; top: 0; left: 0; z-index: 4;"></canvas>
+                    style="position: absolute; top: 0; left: 0; z-index: 10; pointer-events: none;"></canvas>
             `;
             
             viewContainer.innerHTML = canvasHtml;

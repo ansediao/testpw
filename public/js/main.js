@@ -255,7 +255,10 @@ const isMultiViewMode = canvasStore && canvasStore.views && canvasStore.views.le
 if (!isMultiViewMode) {
   // 单视图模式：执行传统初始化
   init();
-  drawBoundary();
+  // 检查是否存在 boundary canvas 元素再绘制
+  if (document.getElementById('boundaryLayer')) {
+    drawBoundary();
+  }
   // 只有在 canvas 存在时才初始化
   if (canvas) {
     initializeCanvas();

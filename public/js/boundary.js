@@ -8,16 +8,18 @@ function drawBoundary() {
     
     if (canvasStore && canvasStore.activeViewId) {
         // 多视图模式：获取当前激活视图的 boundary canvas
-        boundaryCanvas = document.querySelector(`#view-container-${canvasStore.activeViewId} .boundary-layer`);
+        boundaryCanvas = document.getElementById(`boundaryLayer-${canvasStore.activeViewId}`);
     } else {
         // 兼容模式：尝试获取原有的 boundaryLayer
         boundaryCanvas = document.getElementById('boundaryLayer');
     }
     
     if (!boundaryCanvas) {
-        console.warn('Boundary canvas element not found');
+        console.warn('Boundary canvas element not found. Active view ID:', canvasStore ? canvasStore.activeViewId : 'No store');
         return;
     }
+    
+    console.log('Found boundary canvas:', boundaryCanvas.id || 'no-id');
     
     const boundaryCtx = boundaryCanvas.getContext('2d');
     if (!boundaryCtx) {
@@ -45,7 +47,7 @@ function drawBoundaryForAllViews() {
     if (canvasStore && canvasStore.views) {
         // 多视图模式：为每个视图绘制边界
         canvasStore.views.forEach(view => {
-            const boundaryCanvas = document.querySelector(`#view-container-${view.id} .boundary-layer`);
+            const boundaryCanvas = document.getElementById(`boundaryLayer-${view.id}`);
             if (boundaryCanvas) {
                 const boundaryCtx = boundaryCanvas.getContext('2d');
                 if (boundaryCtx) {
