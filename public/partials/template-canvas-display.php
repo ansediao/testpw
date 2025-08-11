@@ -259,7 +259,7 @@ if ($product_id > 0) {
                     console.log(`正在为视图 ${view.name} 初始化API数据...`);
                     try {
                       // 使用视图特定的初始化函数
-                      const canvas = await window.initCanvasForView(canvasId, view);
+                      // const canvas = await window.initCanvasForView(canvasId, view);
                       if (canvas) {
                         console.log(`视图 ${view.name} 的画布已从API数据成功初始化`);
                         // 更新store中的canvas引用
@@ -286,7 +286,7 @@ if ($product_id > 0) {
                 const mainCanvas = document.querySelector('#mainCanvas');
                 if (mainCanvas) {
                   console.log('正在从API数据初始化单视图画布...');
-                  const canvas = await window.initCanvasFromAPI('mainCanvas', pwId);
+                  // const canvas = await window.initCanvasFromAPI('mainCanvas', pwId);
                   if (canvas) {
                     console.log('单视图画布已从API数据成功初始化');
                   }
