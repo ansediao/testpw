@@ -862,7 +862,17 @@ $plugin_url = plugin_dir_url(__FILE__);
                 fontFamily: 'Arial',
                 originX: 'center',
                 originY: 'center',
-                id: layerId
+                id: layerId,
+                cornerSize: 10,
+                transparentCorners: false,
+                lockUniScaling: false,
+                lockMovementX: false,
+                lockMovementX: false,
+                lockMovementX: false,
+                lockMovementX: false,
+                angle: 0,          // Provide a number value
+                hasControls: true, // Provide a boolean value
+                selectable: true   // Add a colon and provide a boolean value
             });
 
             // 添加到画布并设为活动对象
@@ -878,28 +888,28 @@ $plugin_url = plugin_dir_url(__FILE__);
                 window.fabricCanvas = activeCanvas;
             }
 
-            // 延迟再次渲染以确保显示
-            setTimeout(() => {
-                activeCanvas.renderAll();
+            // // 延迟再次渲染以确保显示
+            // setTimeout(() => {
+            //     activeCanvas.renderAll();
                 
-                // 强制刷新当前视图显示
-                const store = window.useCanvasStore && window.useCanvasStore();
-                if (store && store.activeViewId) {
-                    const viewContainer = document.getElementById(`view-container-${store.activeViewId}`);
-                    if (viewContainer) {
-                        // 隐藏所有视图容器
-                        document.querySelectorAll('.view-container').forEach(container => {
-                            container.style.display = 'none';
-                        });
-                        // 重新显示当前视图容器
-                        viewContainer.style.display = 'block';
-                    }
-                }
+            //     // 强制刷新当前视图显示
+            //     const store = window.useCanvasStore && window.useCanvasStore();
+            //     if (store && store.activeViewId) {
+            //         const viewContainer = document.getElementById(`view-container-${store.activeViewId}`);
+            //         if (viewContainer) {
+            //             // 隐藏所有视图容器
+            //             document.querySelectorAll('.view-container').forEach(container => {
+            //                 container.style.display = 'none';
+            //             });
+            //             // 重新显示当前视图容器
+            //             viewContainer.style.display = 'block';
+            //         }
+            //     }
                 
-                if (typeof window.updatePreviewCanvas === 'function') {
-                    window.updatePreviewCanvas();
-                }
-            }, 50);
+            //     if (typeof window.updatePreviewCanvas === 'function') {
+            //         window.updatePreviewCanvas();
+            //     }
+            // }, 50);
 
             // 同时添加到图层管理系统
             if (typeof window.addLayerToStore === 'function') {
