@@ -34,6 +34,12 @@ $plugin_url = plugin_dir_url(__FILE__);
 
 <!-- 右侧内容区域 -->
 <div class="content-area">
+    <!-- 收缩按钮 -->
+    <div class="panel-collapse-btn" id="panelCollapseBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </div>
     <!-- 品名内容 -->
     <div id="content-pinming" class="content-pane active">
         <div class="tab_header">
@@ -1332,5 +1338,25 @@ $plugin_url = plugin_dir_url(__FILE__);
                 swatch.classList.add('selected');
             });
         });
+
+        // 操作面板收缩功能
+        const collapseBtn = document.getElementById('panelCollapseBtn');
+        const operationPanel = document.querySelector('.operation-panel');
+        const mainContent = document.querySelector('.main-content');
+        
+        if (collapseBtn && operationPanel && mainContent) {
+            collapseBtn.addEventListener('click', () => {
+                operationPanel.classList.toggle('collapsed');
+                mainContent.classList.toggle('panel-collapsed');
+                
+                // 切换箭头方向
+                const arrow = collapseBtn.querySelector('svg path');
+                if (operationPanel.classList.contains('collapsed')) {
+                    arrow.setAttribute('d', 'M9 18L15 12L9 6'); // 向右箭头
+                } else {
+                    arrow.setAttribute('d', 'M15 18L9 12L15 6'); // 向左箭头
+                }
+            });
+        }
     });
 </script>
