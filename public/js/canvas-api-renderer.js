@@ -196,6 +196,9 @@ async function renderCanvasContent(canvas, apiData) {
     // 同步图层到Pinia store（如果可用）
     syncLayersToStore(canvas, layers);
 
+    // 自动调整缩放以适应容器高度
+    autoAdjustCanvasZoom(canvas);
+
     console.log('Canvas content rendered from API data with', layers.length, 'layers');
 
     return canvas;
@@ -277,6 +280,11 @@ async function initCanvasFromAPI(canvasId, pwId) {
 
         // 渲染画布
         const canvas = await renderCanvasFromAPI(canvasId, layerConfig);
+
+        // 自动调整缩放以适应容器高度（额外调用确保API初始化时也生效）
+        if (canvas) {
+            autoAdjustCanvasZoom(canvas);
+        }
 
         // 触发自定义事件，通知其他组件画布已初始化
         document.dispatchEvent(new CustomEvent('canvasInitializedFromAPI', {
@@ -723,6 +731,73 @@ function handleViewSwitchLayerSync(viewId, canvas) {
     }, 200);
 }
 
+/**
+ * 自动调整画布缩放以适应容器高度
+ * @param {fabric.Canvas} canvas - Fabric.js画布实例
+ */
+function autoAdjustCanvasZoom(canvas) {
+    try {
+        // 获取画布容器元素
+        const canvasBox = document.querySelector('.canvas-box');
+        const zoomSlider = document.getElementById('zoomSlider');
+        
+        if (!canvasBox || !zoomSlider) {
+            console.warn('Canvas box or zoom slider not found, skipping auto zoom adjustment');
+            return;
+        }
+
+        // 等待DOM更新后再计算
+        setTimeout(() => {
+            // 获取容器的可用高度（减去padding和margin）
+            const containerStyle = window.getComputedStyle(canvasBox);
+            const containerHeight = canvasBox.clientHeight - 
+                parseFloat(containerStyle.paddingTop) - 
+                parseFloat(containerStyle.paddingBottom);
+
+            // 获取画布的实际高度
+            const canvasHeight = canvas.getHeight();
+            
+            // 获取画布元素的当前显示高度
+            const canvasElement = canvas.getElement();
+            const currentDisplayHeight = canvasElement.offsetHeight;
+
+            console.log('Container height:', containerHeight, 'Canvas height:', canvasHeight, 'Current display height:', currentDisplayHeight);
+
+            // 如果当前显示高度超出容器高度，需要调整缩放
+            if (currentDisplayHeight > containerHeight) {
+                // 计算需要的缩放比例
+                const requiredZoom = (containerHeight * 0.95) / canvasHeight; // 留5%的边距
+                
+                // 将缩放比例转换为滑块值（假设滑块范围是10-200，对应0.1-2.0的缩放）
+                const sliderValue = Math.max(10, Math.min(200, Math.round(requiredZoom * 100)));
+                
+                console.log('Auto adjusting zoom to:', requiredZoom, 'Slider value:', sliderValue);
+                
+                // 设置滑块值
+                zoomSlider.value = sliderValue;
+                
+                // 触发滑块的change事件以应用缩放
+                const changeEvent = new Event('input', { bubbles: true });
+                zoomSlider.dispatchEvent(changeEvent);
+                
+                // 如果有自定义的缩放处理函数，也调用它
+                if (typeof window.handleZoomChange === 'function') {
+                    window.handleZoomChange(sliderValue);
+                }
+                
+                // 或者直接应用缩放到画布
+                if (canvas && canvas.setZoom) {
+                    canvas.setZoom(requiredZoom);
+                    canvas.renderAll();
+                }
+            }
+        }, 100); // 延迟100ms确保DOM已更新
+        
+    } catch (error) {
+        console.error('Error in autoAdjustCanvasZoom:', error);
+    }
+}
+
 // 将函数暴露到全局作用域
 window.renderCanvasFromAPI = renderCanvasFromAPI;
 window.renderCanvasContent = renderCanvasContent;
@@ -733,3 +808,4 @@ window.syncLayersToStore = syncLayersToStore;
 window.generateLayerId = generateLayerId;
 window.forceSyncCanvasToLayers = forceSyncCanvasToLayers;
 window.handleViewSwitchLayerSync = handleViewSwitchLayerSync;
+window.autoAdjustCanvasZoom = autoAdjustCanvasZoom;
