@@ -104,6 +104,47 @@ class Pw_Admin_Promowares_Api
     }
 
     /**
+     * Get composite products from Promowares API.
+     * 
+     * This method fetches composite product data from the Promowares API using
+     * the hardcoded authentication token.
+     *
+     * @since    1.0.0
+     * @return   array|false    The composite products data or false on error.
+     */
+    public function get_composite_products_from_api()
+    {
+        $response = wp_remote_get($this->api_base_url . 'products', array(
+            'headers' => array(
+                'accept' => 'application/json',
+                'Authorization' => $this->hardcoded_token,
+            ),
+            'timeout' => 30
+        ));
+
+        if (is_wp_error($response)) {
+            error_log('Promowares API Error: ' . $response->get_error_message());
+            return false;
+        }
+
+        $response_code = wp_remote_retrieve_response_code($response);
+        if ($response_code !== 200) {
+            error_log('Promowares API HTTP Error: ' . $response_code);
+            return false;
+        }
+
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log('Promowares API JSON Error: ' . json_last_error_msg());
+            return false;
+        }
+
+        return isset($data['data']['list']['composite_products']) ? $data['data']['list']['composite_products'] : false;
+    }
+
+    /**
      * Handle AJAX proxy API requests to Promowares API.
      * 
      * This method acts as a proxy for frontend AJAX requests to the

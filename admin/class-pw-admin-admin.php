@@ -816,15 +816,31 @@ function get_products_from_api()
     return $api->get_products_from_api();
 }
 
+// 获取组合产品API数据
+function get_composite_products_from_api()
+{
+    $api = new Pw_Admin_Promowares_Api();
+    return $api->get_composite_products_from_api();
+}
+
 // 调度产品导入任务
 function schedule_product_import()
 {
+    // 导入单个产品
     $products = get_products_from_api();
-
     if (!empty($products)) {
         foreach ($products as $product) {
             // 为每个产品添加一个任务到 Action Scheduler
             as_schedule_single_action(time(), 'import_single_product', array($product));
+        }
+    }
+
+    // 导入组合产品
+    $composite_products = get_composite_products_from_api();
+    if (!empty($composite_products)) {
+        foreach ($composite_products as $composite_group) {
+            // 为每个组合产品组添加一个任务到 Action Scheduler
+            as_schedule_single_action(time(), 'import_composite_product_group', array($composite_group));
         }
     }
 }
@@ -847,7 +863,6 @@ function import_single_product($product)
         update_post_meta($post_id, 'pw_id', $product['id']);
         update_post_meta($post_id, 'pw_blank_item', $product['blank_item']);
         update_post_meta($post_id, 'pw_inquiry_button', $product['inquiry_button']);
-
         update_post_meta($post_id, '_price', $product['price']);
         update_post_meta($post_id, '_regular_price', $product['anchor_price']);
         update_post_meta($post_id, '_sku', $product['sku']);
@@ -857,10 +872,84 @@ function import_single_product($product)
         if (!empty($product['product_image'])) {
              pw_set_product_featured_image($post_id, $product['product_image']);
         }
-        // 
     }
-    
+}
 
+// 处理组合产品组导入
+add_action('import_composite_product_group', 'import_composite_product_group');
+function import_composite_product_group($composite_group)
+{
+    if (empty($composite_group['main_product_id']) || empty($composite_group['products'])) {
+        return;
+    }
+
+    $main_product_id = $composite_group['main_product_id'];
+    $products = $composite_group['products'];
+    $created_product_ids = array();
+    $main_post_id = null;
+
+    // 导入组合产品组中的所有产品
+    foreach ($products as $product) {
+        $post_id = wp_insert_post(array(
+            'post_title' => $product['name'],
+            'post_content' => $product['description'],
+            'post_excerpt' => $product['short_description'],
+            'post_status' => 'publish',
+            'post_type' => 'product',
+        ));
+
+        if ($post_id) {
+            // 设置产品元数据
+            update_post_meta($post_id, 'pw_id', $product['id']);
+            update_post_meta($post_id, 'pw_blank_item', $product['blank_item']);
+            update_post_meta($post_id, 'pw_inquiry_button', $product['inquiry_button']);
+            update_post_meta($post_id, '_price', $product['price']);
+            update_post_meta($post_id, '_regular_price', $product['anchor_price']);
+            update_post_meta($post_id, '_sku', $product['sku']);
+            update_post_meta($post_id, 'pw_isSyncProduct', true);
+            update_post_meta($post_id, 'pw_product_type', $product['product_type']);
+
+            // 设置封面图片
+            if (!empty($product['product_image'])) {
+                pw_set_product_featured_image($post_id, $product['product_image']);
+            }
+
+            // 记录创建的产品ID
+            $created_product_ids[$product['id']] = $post_id;
+
+            // 如果是主产品，记录其WordPress ID
+            if ($product['id'] == $main_product_id) {
+                $main_post_id = $post_id;
+                // 标记为组合产品主产品
+                update_post_meta($post_id, 'pw_is_composite_main', true);
+                update_post_meta($post_id, 'pw_composite_main_id', $main_product_id);
+                
+                // 设置产品类型为Grouped Product
+                wp_set_object_terms($post_id, 'grouped', 'product_type');
+            }
+        }
+    }
+
+    // 建立产品关联关系
+    if ($main_post_id && !empty($created_product_ids)) {
+        $related_product_ids = array();
+        
+        foreach ($created_product_ids as $pw_id => $wp_post_id) {
+            if ($pw_id != $main_product_id) {
+                $related_product_ids[] = $wp_post_id;
+                // 为关联产品设置主产品ID
+                update_post_meta($wp_post_id, 'pw_composite_main_id', $main_product_id);
+                update_post_meta($wp_post_id, 'pw_composite_main_post_id', $main_post_id);
+            }
+        }
+        
+        // 为主产品设置关联产品列表
+        update_post_meta($main_post_id, 'pw_composite_related_products', $related_product_ids);
+        update_post_meta($main_post_id, 'pw_composite_all_product_ids', array_values($created_product_ids));
+        
+        // 设置Grouped products - 将其他同组产品添加到主产品的Linked Products中
+        update_post_meta($main_post_id, '_children', $related_product_ids);
+    }
 }
 
 /**
