@@ -7,8 +7,44 @@
     <button class="toolbar_button" id="text_color"><i class="iconfont icon-yanse"></i>Color</button>    
 </div>
 <script>
+// 检查元素是否属于分组的函数
+function checkElementGroupStatus(activeObject) {
+    if (!activeObject) return false;
+    
+    // 检查是否有 groupId 属性
+    if (activeObject.groupId) {
+        return true;
+    }
+    
+    // 检查是否通过 Pinia store 分配了打印方式
+    if (window.usePrintMethodStore) {
+        const printMethodStore = window.usePrintMethodStore();
+        const layerPrintMethod = printMethodStore.getLayerPrintMethod(activeObject.id);
+        if (layerPrintMethod) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// 显示绑定印刷方式提示
+function showPrintMethodBindingAlert() {
+    alert('请先为此元素绑定印刷方式后再使用此工具。\n\n您可以在图层面板中点击"Switch Printing Method"按钮来绑定印刷方式。');
+}
+
 document.querySelectorAll('.toolbar_button').forEach(button => {
     button.addEventListener('click', function() {
+        // 获取当前激活的画布和对象
+        const activeCanvas = window.CanvasManager ? window.CanvasManager.getActiveCanvas() : (window.canvas || window.fabricCanvas);
+        const activeObject = activeCanvas ? activeCanvas.getActiveObject() : null;
+        
+        // 检查元素是否属于分组
+        if (activeObject && !checkElementGroupStatus(activeObject)) {
+            showPrintMethodBindingAlert();
+            return; // 阻止工具的使用
+        }
+        
         // 移除所有按钮的激活样式
         document.querySelectorAll('.toolbar_button').forEach(btn => {
             btn.classList.remove('active');
@@ -16,8 +52,8 @@ document.querySelectorAll('.toolbar_button').forEach(button => {
         // 为当前点击的按钮添加激活样式
         this.classList.add('active');
         // 更新工具栏显示
-        if (canvas.getActiveObject()) {
-            updateDynamicToolbar(canvas.getActiveObject());
+        if (activeObject) {
+            updateDynamicToolbar(activeObject);
         }
     });
 });
@@ -35,6 +71,16 @@ document.querySelectorAll('.toolbar_button').forEach(button => {
 <script>
 document.querySelectorAll('.img_toolbar .toolbar_button').forEach(button => {
     button.addEventListener('click', function() {
+        // 获取当前激活的画布和对象
+        const activeCanvas = window.CanvasManager ? window.CanvasManager.getActiveCanvas() : (window.canvas || window.fabricCanvas);
+        const activeObject = activeCanvas ? activeCanvas.getActiveObject() : null;
+        
+        // 检查元素是否属于分组
+        if (activeObject && !checkElementGroupStatus(activeObject)) {
+            showPrintMethodBindingAlert();
+            return; // 阻止工具的使用
+        }
+        
         // 移除所有按钮的激活样式
         document.querySelectorAll('.toolbar_button').forEach(btn => {
             btn.classList.remove('active');
@@ -42,8 +88,8 @@ document.querySelectorAll('.img_toolbar .toolbar_button').forEach(button => {
         // 为当前点击的按钮添加激活样式
         this.classList.add('active');
         // 更新工具栏显示
-        if (canvas.getActiveObject()) {
-            updateDynamicToolbar(canvas.getActiveObject());
+        if (activeObject) {
+            updateDynamicToolbar(activeObject);
         }
     });
 });
