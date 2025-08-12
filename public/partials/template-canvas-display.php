@@ -200,6 +200,7 @@ if ($product_id > 0) {
   <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/boundary.js?time=' . microtime(true); ?>"></script>
   <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/model-3d.js?time=' . microtime(true); ?>"></script>
   <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/canvas-api-renderer.js?time=' . microtime(true); ?>"></script>
+  <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/canvas-manager.js?time=' . microtime(true); ?>"></script>
   <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/canvas-init.js?time=' . microtime(true); ?>"></script>
   <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/main.js?time=' . microtime(true); ?>"></script>
 

@@ -159,6 +159,11 @@ document.addEventListener("DOMContentLoaded", function() {
         // 获取对应的 canvas 实例
         const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(view.id) : null;
         
+        // 更新 CanvasManager 的激活画布
+        if (window.CanvasManager) {
+            window.CanvasManager.setActiveCanvas(view.id);
+        }
+        
         if (canvas) {
 
             

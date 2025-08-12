@@ -216,5 +216,5 @@ const canvasManager = new CanvasManager();
 // 暴露到全局
 window.CanvasManager = canvasManager;
 
-// 兼容旧代码的导出
-export { CanvasManager, canvasManager };
+// 兼容旧代码的导出（注释掉以避免在非模块环境中的语法错误）
+// export { CanvasManager, canvasManager };

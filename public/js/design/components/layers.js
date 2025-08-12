@@ -304,6 +304,11 @@ const layersApp = Vue.createApp({
         const switchToView = (viewId) => {
             store.setActiveViewId(viewId);
             
+            // 更新 CanvasManager 的激活画布
+            if (window.CanvasManager) {
+                window.CanvasManager.setActiveCanvas(viewId);
+            }
+            
             // 触发视图切换事件，让其他组件也能响应
             const event = new CustomEvent('layerPanelViewSwitch', {
                 detail: { viewId: viewId }

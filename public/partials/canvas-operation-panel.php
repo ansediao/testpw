@@ -614,13 +614,8 @@ $plugin_url = plugin_dir_url(__FILE__);
                         
                         activeCanvas.renderAll();
 
-                        // 强制更新全局canvas引用并触发渲染
-                        if (window.setGlobalCanvas) {
-                            window.setGlobalCanvas(activeCanvas);
-                        } else {
-                            window.canvas = activeCanvas;
-                            window.fabricCanvas = activeCanvas;
-                        }
+                        // 不再强制更新全局canvas引用，让CanvasManager管理画布实例
+                        // 这样可以确保每个视图的画布独立工作
 
                         // 延迟再次渲染以确保显示
                          setTimeout(() => {
@@ -691,10 +686,25 @@ $plugin_url = plugin_dir_url(__FILE__);
 
                 // 获取当前激活的画布实例
                 function getActiveCanvas() {
+                    // 优先使用 CanvasManager 获取当前激活视图的画布
+                    if (window.CanvasManager) {
+                        const canvas = window.CanvasManager.getActiveCanvas();
+                        if (canvas) {
+                            return canvas;
+                        }
+                    }
+                    
+                    // 回退方案：通过 store 和 DOM 获取画布实例
                     const store = window.useCanvasStore && window.useCanvasStore();
                     if (store && store.activeViewId) {
-                        return store.getActiveViewCanvas();
+                        // 从 DOM 获取对应视图的画布元素
+                        const canvasElement = document.getElementById(`mainCanvas-${store.activeViewId}`);
+                        if (canvasElement && canvasElement.__fabricCanvas) {
+                            return canvasElement.__fabricCanvas;
+                        }
                     }
+                    
+                    // 最后的回退方案
                     return window.canvas || window.fabricCanvas;
                 }
             </script>
@@ -936,13 +946,8 @@ $plugin_url = plugin_dir_url(__FILE__);
             activeCanvas.setActiveObject(fabricText);
             activeCanvas.renderAll();
 
-            // 强制更新全局canvas引用并触发渲染
-            if (window.setGlobalCanvas) {
-                window.setGlobalCanvas(activeCanvas);
-            } else {
-                window.canvas = activeCanvas;
-                window.fabricCanvas = activeCanvas;
-            }
+            // 不再强制更新全局canvas引用，让CanvasManager管理画布实例
+            // 这样可以确保每个视图的画布独立工作
 
             // // 延迟再次渲染以确保显示
             // setTimeout(() => {
