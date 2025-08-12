@@ -290,23 +290,36 @@ if (zoomSlider && zoomValue) {
 }
 // 更新画布缩放
 function updateCanvasZoom() { 
-    if (!canvasContainer) {
+    // 每次都重新查找画布容器，因为容器可能是动态创建的
+    const currentCanvasContainer = document.querySelector('.multi-view-container') || document.querySelector('.canvas-container');
+    
+    if (!currentCanvasContainer) {
         console.error('Canvas container not found');
         return;
     }
+    
     // 获取所有画布元素
-    const canvasElements = canvasContainer.querySelectorAll('canvas');
+    const canvasElements = currentCanvasContainer.querySelectorAll('canvas');
+    
+    if (canvasElements.length === 0) {
+        console.warn('No canvas elements found in container');
+        return;
+    }
+    
     // 计算缩放比例
     const scale = currentZoom / 100;
+    
     // 应用缩放到所有画布元素
     canvasElements.forEach(canvasElem => {
         canvasElem.style.transform = `scale(${scale})`;
         canvasElem.style.transformOrigin = 'center center';
     });
+    
     // 调整容器高度以适应缩放后的画布
     // 注意：这里假设原始高度为600px，如在HTML中设置的
-    canvasContainer.style.height = (600 * scale) + 'px';
-    console.log('Canvas zoom ratio updated to:', scale);
+    currentCanvasContainer.style.height = (600 * scale) + 'px';
+    
+    console.log('画布缩放比例更新为：', scale);
 }
 
 
