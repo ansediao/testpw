@@ -354,39 +354,29 @@ const layersApp = Vue.createApp({
 
         // 获取画布实例的统一函数
         const getCanvasInstance = () => {
-            // 优先从 store 获取当前激活视图的画布实例
-            if (store.activeViewId && store.viewCanvases && store.viewCanvases[store.activeViewId]) {
-                return store.viewCanvases[store.activeViewId];
+            // 使用 Canvas 管理器获取当前激活视图的画布实例
+            if (window.CanvasManager) {
+                return window.CanvasManager.getActiveCanvas();
             }
             
-            // 尝试多种方式获取画布实例
+            // 尝试多种方式获取画布实例（向后兼容）
             let canvasInstance = window.canvas || window.fabricCanvas;
 
             if (!canvasInstance) {
                 // 多视图模式：尝试获取当前激活视图的画布
                 if (store.activeViewId) {
                     const canvasElement = document.querySelector(`#mainCanvas-${store.activeViewId}`);
-                    if (canvasElement && canvasElement.__fabric) {
-                        canvasInstance = canvasElement.__fabric;
+                    if (canvasElement && canvasElement.__fabricCanvas) {
+                        canvasInstance = canvasElement.__fabricCanvas;
                     }
                 }
                 
                 // 单视图模式：尝试获取主画布
                 if (!canvasInstance) {
                     const canvasElement = document.querySelector('#mainCanvas');
-                    if (canvasElement && canvasElement.__fabric) {
-                        canvasInstance = canvasElement.__fabric;
+                    if (canvasElement && canvasElement.__fabricCanvas) {
+                        canvasInstance = canvasElement.__fabricCanvas;
                     }
-                }
-            }
-
-            // 如果还是没找到，尝试通过 fabric 全局对象查找
-            if (!canvasInstance && window.fabric && window.fabric.Canvas) {
-                const canvasElement = store.activeViewId 
-                    ? document.querySelector(`#mainCanvas-${store.activeViewId}`)
-                    : document.querySelector('#mainCanvas');
-                if (canvasElement) {
-                    canvasInstance = canvasElement.__fabric;
                 }
             }
 

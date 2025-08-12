@@ -736,10 +736,14 @@ function addDesignToCanvas(designId) {
 
 // 添加键盘快捷键支持
 document.addEventListener('keydown', function (e) {
+    // 获取当前激活的画布
+    const activeCanvas = window.CanvasManager ? window.CanvasManager.getActiveCanvas() : (window.canvas || window.fabricCanvas);
+    if (!activeCanvas) return;
+    
     // 如果正在编辑文本，不处理快捷键
-    if (canvas.getActiveObject() && canvas.getActiveObject().isEditing) return;
+    if (activeCanvas.getActiveObject() && activeCanvas.getActiveObject().isEditing) return;
     // Delete 或 Backspace 键删除选中对象
-    if ((e.key === 'Delete' || e.key === 'Backspace') && canvas.getActiveObject()) {
-        canvas.remove(canvas.getActiveObject());
+    if ((e.key === 'Delete' || e.key === 'Backspace') && activeCanvas.getActiveObject()) {
+        activeCanvas.remove(activeCanvas.getActiveObject());
     }
 });

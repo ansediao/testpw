@@ -209,8 +209,14 @@ if ($first_image_url) {
             window.initializeCanvasEventListeners(fabricCanvas);
         }
         
-        // 存储 canvas 实例到 store
-        store.addViewCanvas(view.id, fabricCanvas);
+        // 使用 CanvasManager 管理 canvas 实例
+        if (window.CanvasManager) {
+            // 将 canvas 实例注册到 CanvasManager
+            window.CanvasManager._canvasMap[view.id] = fabricCanvas;
+            if (store.activeViewId === view.id) {
+                window.CanvasManager.setActiveCanvas(view.id);
+            }
+        }
         
         // 设置其他 canvas 层的尺寸
         const shadowLayer = document.getElementById(`shadowLayer-${view.id}`);

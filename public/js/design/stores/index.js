@@ -40,7 +40,6 @@ export const useCanvasStore = defineStore('canvas', {
         // 视图相关状态
         views: [],              // 存储所有视图信息
         activeViewId: null,     // 当前激活的视图ID
-        viewCanvases: {},       // 存储每个视图的canvas实例
     }),
     // 4. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
     actions: {
@@ -129,9 +128,6 @@ export const useCanvasStore = defineStore('canvas', {
             
             console.log(`View switched: ${previousViewId} -> ${viewId}, layers count: ${this.layers.length}`);
         },
-        addViewCanvas(viewId, canvas) { this.viewCanvases[viewId] = canvas; },
-        removeViewCanvas(viewId) { delete this.viewCanvases[viewId]; },
-        getActiveViewCanvas() { return this.viewCanvases[this.activeViewId]; },
         // 异步获取产品数据
         async fetchProductData(pwId) {
             this.setLoadingProductData(true);

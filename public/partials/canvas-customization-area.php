@@ -157,13 +157,15 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         
         // 获取对应的 canvas 实例
-        const canvas = store.viewCanvases[view.id];
+        const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(view.id) : null;
         
         if (canvas) {
 
             
             // 取消所有视图上所有元素的选中状态
-            Object.values(store.viewCanvases).forEach(viewCanvas => {
+            const allCanvasIds = window.CanvasManager ? window.CanvasManager.getAllCanvasIds() : [];
+            allCanvasIds.forEach(canvasId => {
+                const viewCanvas = window.CanvasManager ? window.CanvasManager.getCanvas(canvasId) : null;
                 if (viewCanvas && typeof viewCanvas.discardActiveObject === 'function') {
                     viewCanvas.discardActiveObject();
                     viewCanvas.renderAll();
@@ -212,9 +214,7 @@ document.addEventListener("DOMContentLoaded", function() {
             window.renderCanvasFromAPI(canvas.lowerCanvasEl.id, layerConfig)
                 .then(newCanvas => {
                     
-                    // 更新store中的canvas引用
-                    const store = window.useCanvasStore();
-                    store.addViewCanvas(view.id, newCanvas);
+                    // CanvasManager 会自动管理 Canvas 实例，无需更新 store
                     
                     // 更新全局引用
                     if (window.setGlobalCanvas) {
@@ -246,8 +246,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 .then(newCanvas => {
                     if (newCanvas) {
                         
-                        const store = window.useCanvasStore();
-                        store.addViewCanvas(view.id, newCanvas);
+                        // CanvasManager 会自动管理 Canvas 实例，无需手动添加到 store
                         
                         // 更新全局引用
                         if (window.setGlobalCanvas) {

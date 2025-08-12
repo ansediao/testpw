@@ -263,8 +263,10 @@ if ($product_id > 0) {
                       // const canvas = await window.initCanvasForView(canvasId, view);
                       if (canvas) {
                         console.log(`视图 ${view.name} 的画布已从API数据成功初始化`);
-                        // 更新store中的canvas引用
-                        store.addViewCanvas(view.id, canvas);
+                        // 使用 CanvasManager 管理 canvas 实例
+                        if (window.CanvasManager) {
+                            window.CanvasManager._canvasMap[view.id] = canvas;
+                        }
                         
                         // 如果是当前激活的视图，设置为全局canvas
                         if (view.id === store.activeViewId) {
@@ -471,9 +473,12 @@ if ($product_id > 0) {
           }
 
           // 更新全局 canvas 引用
-          const canvas = store.viewCanvases[view.id];
+          const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(view.id) : null;
           if (canvas) {
-            Object.values(store.viewCanvases).forEach(viewCanvas => {
+            // 取消所有视图上所有元素的选中状态
+            const allCanvasIds = window.CanvasManager ? window.CanvasManager.getAllCanvasIds() : [];
+            allCanvasIds.forEach(canvasId => {
+              const viewCanvas = window.CanvasManager ? window.CanvasManager.getCanvas(canvasId) : null;
               if (viewCanvas && typeof viewCanvas.discardActiveObject === 'function') {
                 viewCanvas.discardActiveObject();
                 viewCanvas.renderAll();
@@ -611,7 +616,7 @@ if ($product_id > 0) {
             originalViewContainer.style.display = 'block';
           }
 
-          const originalCanvas = store.viewCanvases[originalActiveViewId];
+          const originalCanvas = window.CanvasManager ? window.CanvasManager.getCanvas(originalActiveViewId) : null;
           if (originalCanvas) {
             if (window.setGlobalCanvas) {
               window.setGlobalCanvas(originalCanvas);

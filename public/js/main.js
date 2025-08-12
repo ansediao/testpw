@@ -101,9 +101,19 @@ let canvas = null;
 
 // 获取当前激活的 canvas 实例
 function getActiveCanvas() {
+    // 优先使用 CanvasManager
+    if (window.CanvasManager) {
+        return window.CanvasManager.getActiveCanvas();
+    }
+    
+    // 回退到传统方式
     const store = window.useCanvasStore && window.useCanvasStore();
     if (store && store.activeViewId) {
-        return store.getActiveViewCanvas();
+        // 从 DOM 获取 Canvas 实例
+        const canvasElement = document.getElementById(`mainCanvas-${store.activeViewId}`);
+        if (canvasElement && canvasElement.__fabricCanvas) {
+            return canvasElement.__fabricCanvas;
+        }
     }
     return window.canvas || window.fabricCanvas;
 }
@@ -255,7 +265,11 @@ const hasMultiViewContainer = document.querySelector('.multi-view-container') !=
 
 if (!isMultiViewMode && !hasMultiViewContainer) {
   // 单视图模式：执行传统初始化
-  init();
+  if (typeof window.initCanvasSystem === 'function') {
+    window.initCanvasSystem();
+  } else if (typeof init === 'function') {
+    init();
+  }
   // 检查是否存在 boundary canvas 元素再绘制
   if (document.getElementById('boundaryLayer')) {
     drawBoundary();
@@ -588,27 +602,31 @@ async function exportAllViewsAsImages() {
                 viewContainer.style.display = 'block';
             }
             
-            // 更新全局 canvas 引用
-            const canvas = store.viewCanvases[view.id];
-            if (canvas) {
-                // 取消所有视图上所有元素的选中状态
-                Object.values(store.viewCanvases).forEach(viewCanvas => {
-                    if (viewCanvas && typeof viewCanvas.discardActiveObject === 'function') {
-                        viewCanvas.discardActiveObject();
-                        viewCanvas.renderAll();
+            // 使用 CanvasManager 获取当前视图的画布
+            if (window.CanvasManager) {
+                const canvas = window.CanvasManager.getCanvas(view.id);
+                if (canvas) {
+                    // 取消所有视图上所有元素的选中状态
+                    const allCanvasIds = window.CanvasManager.getAllCanvasIds();
+                    allCanvasIds.forEach(canvasId => {
+                        const viewCanvas = window.CanvasManager.getCanvas(canvasId);
+                        if (viewCanvas && typeof viewCanvas.discardActiveObject === 'function') {
+                            viewCanvas.discardActiveObject();
+                            viewCanvas.renderAll();
+                        }
+                    });
+                    
+                    // 更新全局 canvas 引用
+                    if (window.setGlobalCanvas) {
+                        window.setGlobalCanvas(canvas);
+                    } else {
+                        window.canvas = canvas;
+                        window.fabricCanvas = canvas;
                     }
-                });
-                
-                // 更新全局 canvas 引用
-                if (window.setGlobalCanvas) {
-                    window.setGlobalCanvas(canvas);
-                } else {
-                    window.canvas = canvas;
-                    window.fabricCanvas = canvas;
+                    
+                    // 重新渲染 canvas
+                    canvas.renderAll();
                 }
-                
-                // 重新渲染 canvas
-                canvas.renderAll();
             }
             
             // 等待视图切换和渲染完成
@@ -689,16 +707,20 @@ async function exportAllViewsAsImages() {
                 originalViewContainer.style.display = 'block';
             }
             
-            // 更新全局 canvas 引用
-            const originalCanvas = store.viewCanvases[originalActiveViewId];
-            if (originalCanvas) {
-                if (window.setGlobalCanvas) {
-                    window.setGlobalCanvas(originalCanvas);
-                } else {
-                    window.canvas = originalCanvas;
-                    window.fabricCanvas = originalCanvas;
+            // 使用 CanvasManager 恢复原始视图的画布
+            if (window.CanvasManager) {
+                const originalCanvas = window.CanvasManager.getCanvas(originalActiveViewId);
+                if (originalCanvas) {
+                    window.CanvasManager.setActiveCanvas(originalActiveViewId);
+                    
+                    if (window.setGlobalCanvas) {
+                        window.setGlobalCanvas(originalCanvas);
+                    } else {
+                        window.canvas = originalCanvas;
+                        window.fabricCanvas = originalCanvas;
+                    }
+                    originalCanvas.renderAll();
                 }
-                originalCanvas.renderAll();
             }
         }
     }

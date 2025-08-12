@@ -9,9 +9,10 @@
 
     // Canvas相关变量
     let canvasContainer = null;
-    let fabricCanvas = null;
     let originalImageContainer = null;
     let isCanvasMode = false;
+    const CANVAS_ID = 'pw-product-canvas';
+    const VIEW_ID = 'product-view';
 
     /**
      * 初始化产品图片Canvas功能
@@ -206,7 +207,7 @@
 
         // 创建Canvas元素
         const canvasElement = document.createElement('canvas');
-        canvasElement.id = 'pw-product-canvas';
+        canvasElement.id = CANVAS_ID;
         canvasElement.width = 400;
         canvasElement.height = 400;
         
@@ -239,20 +240,24 @@
      * @param {string} backgroundColor - 背景颜色
      */
     function initializeFabricCanvas(backgroundColor) {
-        // 检查Fabric.js是否已加载
+        // 检查Canvas管理器和Fabric.js是否已加载
+        if (typeof window.CanvasManager === 'undefined') {
+            console.error('CanvasManager未加载，无法初始化Canvas');
+            return;
+        }
         if (typeof fabric === 'undefined') {
             console.error('Fabric.js未加载，无法初始化Canvas');
             return;
         }
 
-        const canvasElement = document.getElementById('pw-product-canvas');
+        const canvasElement = document.getElementById(CANVAS_ID);
         if (!canvasElement) {
             console.error('Canvas元素未找到');
             return;
         }
 
-        // 初始化Fabric Canvas（不设置背景色）
-        fabricCanvas = new fabric.Canvas('pw-product-canvas', {
+        // 使用Canvas管理器创建Fabric Canvas实例
+        const canvas = window.CanvasManager.createCanvas(CANVAS_ID, VIEW_ID, {
             width: 400,
             height: 400,
             backgroundColor: 'transparent'
@@ -261,8 +266,8 @@
         // 加载底层图片（color.png）
         fabric.Image.fromURL('https://pwfiles.939666.xyz/t-shirt/color.png', function(img) {
             img.set({
-                left: fabricCanvas.width / 2,
-                top: fabricCanvas.height / 2,
+                left: canvas.width / 2,
+                top: canvas.height / 2,
                 originX: 'center',
                 originY: 'center',
                 selectable: false,
@@ -270,11 +275,11 @@
             });
             
             // 缩放图片以适应Canvas
-            const scale = Math.min(fabricCanvas.width / img.width, fabricCanvas.height / img.height) * 0.8;
+            const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.8;
             img.scale(scale);
             
-            fabricCanvas.add(img);
-            fabricCanvas.sendToBack(img);
+            canvas.add(img);
+            canvas.sendToBack(img);
             
             // 加载顶层图片（details.png）并应用颜色
             loadTopLayerImage(backgroundColor);
@@ -282,14 +287,21 @@
     }
 
     /**
+    /**
      * 加载顶层图片并应用颜色
      * @param {string} color - 要应用的颜色
      */
     function loadTopLayerImage(color) {
+        const canvas = window.CanvasManager.getCanvas(VIEW_ID);
+        if (!canvas) {
+            console.error('Canvas实例未找到');
+            return;
+        }
+
         fabric.Image.fromURL('https://pwfiles.939666.xyz/t-shirt/details.png', function(img) {
             img.set({
-                left: fabricCanvas.width / 2,
-                top: fabricCanvas.height / 2,
+                left: canvas.width / 2,
+                top: canvas.height / 2,
                 originX: 'center',
                 originY: 'center',
                 selectable: false,
@@ -297,7 +309,7 @@
             });
             
             // 缩放图片以适应Canvas
-            const scale = Math.min(fabricCanvas.width / img.width, fabricCanvas.height / img.height) * 0.8;
+            const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.8;
             img.scale(scale);
             
             // 应用颜色滤镜
@@ -308,9 +320,9 @@
             }));
             img.applyFilters();
             
-            fabricCanvas.add(img);
-            fabricCanvas.bringToFront(img);
-            fabricCanvas.renderAll();
+            canvas.add(img);
+            canvas.bringToFront(img);
+            canvas.renderAll();
         }, { crossOrigin: 'anonymous' });
     }
 
@@ -319,12 +331,13 @@
      * @param {string} color - 新的颜色
      */
     function updateCanvasBackgroundColor(color) {
-        if (fabricCanvas) {
+        const canvas = window.CanvasManager.getCanvas(VIEW_ID);
+        if (canvas) {
             // 移除现有的顶层图片
-            const objects = fabricCanvas.getObjects();
+            const objects = canvas.getObjects();
             for (let i = objects.length - 1; i >= 0; i--) {
                 if (objects[i].type === 'image' && objects[i] !== objects[0]) {
-                    fabricCanvas.remove(objects[i]);
+                    canvas.remove(objects[i]);
                 }
             }
             
@@ -338,9 +351,9 @@
      * 销毁Canvas实例
      */
     function destroyCanvas() {
-        if (fabricCanvas) {
-            fabricCanvas.dispose();
-            fabricCanvas = null;
+        // 使用Canvas管理器销毁Canvas实例
+        if (window.CanvasManager) {
+            window.CanvasManager.destroyCanvas(VIEW_ID);
         }
         
         if (canvasContainer) {

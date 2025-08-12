@@ -1,86 +1,228 @@
-// 初始化
-function init() {
-    // 检查是否为多视图模式
-    const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
-    const hasMultiViewContainer = document.querySelector('.multi-view-container') !== null;
-    
-    if ((canvasStore && canvasStore.views && canvasStore.views.length > 0) || hasMultiViewContainer) {
-        // 多视图模式：跳过传统初始化，由多视图系统处理
-        console.log('Multi-view mode activated, skipping traditional canvas initialization');
-        return;
-    }
-    
-    // 兼容模式：尝试获取传统 canvas 元素
-    const colorCanvas = document.getElementById('colorLayer');
-    const shadowCanvas = document.getElementById('shadowLayer');
-    
-    if (!colorCanvas || !shadowCanvas) {
-        console.log('Traditional canvas elements not found, likely in multi-view mode');
-        return;
-    }
-    
-    const colorCtx = colorCanvas.getContext('2d');
-    const shadowCtx = shadowCanvas.getContext('2d');
-    
-    const productImageUrl = colorCanvas.getAttribute('data-product-image');
-    const colorImageUrl = shadowCanvas.getAttribute('data-color-image');
-    // 设置高分辨率画布（4倍像素密度）
-    const ratio = 4;
-    // colorCanvas
-    colorCanvas.width = colorCanvas.clientWidth * ratio;
-    colorCanvas.height = colorCanvas.clientHeight * ratio;
-    colorCanvas.style.width = colorCanvas.clientWidth + 'px';
-    colorCanvas.style.height = colorCanvas.clientHeight + 'px';
-    colorCtx.setTransform(1, 0, 0, 1, 0, 0);
-    colorCtx.imageSmoothingEnabled = true;
+// Canvas 初始化脚本 - 使用新的 CanvasManager
+(function() {
+    'use strict';
 
-    // shadowCanvas
-    shadowCanvas.width = shadowCanvas.clientWidth * ratio;
-    shadowCanvas.height = shadowCanvas.clientHeight * ratio;
-    shadowCanvas.style.width = shadowCanvas.clientWidth + 'px';
-    shadowCanvas.style.height = shadowCanvas.clientHeight + 'px';
-    shadowCtx.setTransform(1, 0, 0, 1, 0, 0);
-    shadowCtx.imageSmoothingEnabled = true;
+    // 初始化函数
+    function init() {
+        // 检查 CanvasManager 是否已加载
+        if (typeof window.CanvasManager === 'undefined') {
+            console.log('CanvasManager not loaded, waiting...');
+            return;
+        }
 
-    // 如果存在产品图片URL，则加载并绘制到 colorCanvas
-    if (productImageUrl) {
-        const img = new Image();
-        img.onload = function () {
-            // 计算缩放比例，使图片宽度撑满画布宽度，高度等比缩放
-            const scale = colorCanvas.width / img.width;
-            let drawW = colorCanvas.width; // 绘制宽度为画布宽度
-            let drawH = colorCanvas.height; // 绘制高度等比缩放           
-            // 清空画布
-            colorCtx.clearRect(0, 0, colorCanvas.width, colorCanvas.height);
-            // 绘制图片到画布
-            // 参数说明：
-            // img: 要绘制的图片对象
-            // 0, 0: 源图片的起始坐标（左上角）
-            // img.width, img.height: 源图片的宽度和高度（全部绘制）
-            // x, y: 目标画布上的起始坐标（左上角，已计算居中）
-            // drawW, drawH: 绘制到画布上的宽度和高度（已按比例缩放）
-            colorCtx.drawImage(img, 0, 0, img.width, img.height, 0, 0, drawW, drawH);
-        };
-        // 设置图片源地址，开始加载
-        img.src = productImageUrl;
+        // 检查是否为多视图模式
+        const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
+        const hasMultiViewContainer = document.querySelector('.multi-view-container') !== null;
+        
+        if ((canvasStore && canvasStore.views && canvasStore.views.length > 0) || hasMultiViewContainer) {
+            // 多视图模式：使用 CanvasManager 管理多个视图
+            console.log('Multi-view mode activated, using CanvasManager');
+            initializeMultiViewCanvases(canvasStore);
+            return;
+        }
+        
+        // 兼容模式：使用 CanvasManager 管理传统 canvas
+        initializeTraditionalCanvases();
     }
-    // 加载颜色图片到 shadowLayer
-    if (colorImageUrl) {
-        const colorImg = new Image();
-        colorImg.onload = function () {
-            // 让图片宽度撑满画布宽度，高度等比缩放，不超出画布
-            const scale = shadowCanvas.width / colorImg.width;
-            let drawW = shadowCanvas.width;
-            let drawH = shadowCanvas.height;
-           
-            shadowCtx.clearRect(0, 0, shadowCanvas.width, shadowCanvas.height);
-            shadowCtx.drawImage(colorImg, 0, 0, colorImg.width, colorImg.height, 0, 0, drawW, drawH);
-        };
-        colorImg.src = colorImageUrl;
+
+    /**
+     * 初始化多视图 Canvas
+     * @param {Object} canvasStore - Pinia store 实例
+     */
+    function initializeMultiViewCanvases(canvasStore) {
+        if (!canvasStore || !canvasStore.views) return;
+
+        canvasStore.views.forEach(view => {
+            const canvasId = `mainCanvas-${view.id}`;
+            const canvasElement = document.getElementById(canvasId);
+            
+            if (canvasElement) {
+                // 使用 CanvasManager 创建 Canvas 实例
+                const canvas = window.CanvasManager.createCanvas(canvasId, view.id, {
+                    width: canvasElement.clientWidth || 800,
+                    height: canvasElement.clientHeight || 600,
+                    backgroundColor: 'transparent'
+                });
+
+                // 设置当前激活的 Canvas
+                if (view.id === canvasStore.activeViewId) {
+                    window.CanvasManager.setActiveCanvas(view.id);
+                }
+            }
+        });
     }
-    // 移除原有的阴影绘制
-    // drawTShirtShadows(shadowCtx);
-}
+
+    /**
+     * 初始化传统 Canvas（兼容模式）
+     */
+    function initializeTraditionalCanvases() {
+        const colorCanvas = document.getElementById('colorLayer');
+        const shadowCanvas = document.getElementById('shadowLayer');
+        
+        if (!colorCanvas || !shadowCanvas) {
+            console.log('Traditional canvas elements not found');
+            return;
+        }
+
+        // 使用 CanvasManager 创建传统 Canvas 实例
+        const colorCanvasInstance = window.CanvasManager.createCanvas('colorLayer', 'traditional-color', {
+            width: colorCanvas.clientWidth * 4,
+            height: colorCanvas.clientHeight * 4,
+            backgroundColor: 'transparent'
+        });
+
+        const shadowCanvasInstance = window.CanvasManager.createCanvas('shadowLayer', 'traditional-shadow', {
+            width: shadowCanvas.clientWidth * 4,
+            height: shadowCanvas.clientHeight * 4,
+            backgroundColor: 'transparent'
+        });
+
+        if (!colorCanvasInstance || !shadowCanvasInstance) {
+            console.error('Failed to create traditional canvas instances');
+            return;
+        }
+
+        // 设置 Canvas 样式
+        setupCanvasStyles(colorCanvas, colorCanvasInstance);
+        setupCanvasStyles(shadowCanvas, shadowCanvasInstance);
+
+        // 加载图片
+        loadTraditionalImages(colorCanvasInstance, shadowCanvasInstance);
+    }
+
+    /**
+     * 设置 Canvas 样式
+     * @param {HTMLCanvasElement} element - DOM Canvas 元素
+     * @param {fabric.Canvas} canvas - Fabric Canvas 实例
+     */
+    function setupCanvasStyles(element, canvas) {
+        const ratio = 4;
+        element.style.width = element.clientWidth + 'px';
+        element.style.height = element.clientHeight + 'px';
+    }
+
+    /**
+     * 加载传统模式图片
+     * @param {fabric.Canvas} colorCanvasInstance - 颜色 Canvas 实例
+     * @param {fabric.Canvas} shadowCanvasInstance - 阴影 Canvas 实例
+     */
+    function loadTraditionalImages(colorCanvasInstance, shadowCanvasInstance) {
+        const colorCanvas = document.getElementById('colorLayer');
+        const shadowCanvas = document.getElementById('shadowLayer');
+        
+        const productImageUrl = colorCanvas.getAttribute('data-product-image');
+        const colorImageUrl = shadowCanvas.getAttribute('data-color-image');
+
+        // 加载产品图片
+        if (productImageUrl) {
+            fabric.Image.fromURL(productImageUrl, function(img) {
+                img.set({
+                    left: colorCanvasInstance.width / 2,
+                    top: colorCanvasInstance.height / 2,
+                    originX: 'center',
+                    originY: 'center',
+                    selectable: false,
+                    evented: false
+                });
+                
+                const scale = Math.min(
+                    colorCanvasInstance.width / img.width,
+                    colorCanvasInstance.height / img.height
+                );
+                img.scale(scale);
+                
+                colorCanvasInstance.add(img);
+                colorCanvasInstance.renderAll();
+            });
+        }
+
+        // 加载颜色图片
+        if (colorImageUrl) {
+            fabric.Image.fromURL(colorImageUrl, function(img) {
+                img.set({
+                    left: shadowCanvasInstance.width / 2,
+                    top: shadowCanvasInstance.height / 2,
+                    originX: 'center',
+                    originY: 'center',
+                    selectable: false,
+                    evented: false
+                });
+                
+                const scale = Math.min(
+                    shadowCanvasInstance.width / img.width,
+                    shadowCanvasInstance.height / img.height
+                );
+                img.scale(scale);
+                
+                shadowCanvasInstance.add(img);
+                shadowCanvasInstance.renderAll();
+            });
+        }
+    }
+
+    // 初始化缩放功能
+    function initializeZoom() {
+        const zoomSlider = document.getElementById('zoomSlider');
+        const zoomValue = document.getElementById('zoomValue');
+        const canvasContainer = document.querySelector('.multi-view-container') || 
+                               document.querySelector('.canvas-container');
+
+        if (zoomSlider && zoomValue) {
+            let currentZoom = 100;
+            
+            zoomSlider.addEventListener('input', function() {
+                currentZoom = parseInt(this.value);
+                zoomValue.textContent = currentZoom + '%';
+                updateCanvasZoom(currentZoom / 100);
+            });
+        }
+    }
+
+    /**
+     * 更新 Canvas 缩放
+     * @param {number} scale - 缩放比例
+     */
+    function updateCanvasZoom(scale) {
+        const canvasContainer = document.querySelector('.multi-view-container') || 
+                               document.querySelector('.canvas-container');
+        
+        if (canvasContainer) {
+            const canvasElements = canvasContainer.querySelectorAll('canvas');
+            canvasElements.forEach(element => {
+                element.style.transform = `scale(${scale})`;
+                element.style.transformOrigin = 'center center';
+            });
+            
+            canvasContainer.style.height = (600 * scale) + 'px';
+        }
+    }
+
+    // 监听视图切换事件
+    function handleViewSwitch(event) {
+        const { viewId } = event.detail;
+        
+        if (window.CanvasManager) {
+            window.CanvasManager.setActiveCanvas(viewId);
+        }
+    }
+
+    // 事件监听
+    document.addEventListener('viewSwitched', handleViewSwitch);
+    
+    // 监听 DOM 加载完成
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    // 监听 CanvasManager 加载完成
+    document.addEventListener('canvasManagerReady', init);
+    
+    // 暴露 init 函数到全局作用域
+    window.initCanvasSystem = init;
+
+})();
 
 // 新增：加载并着色图片的函数
 function loadColorImage1(imageUrl, color) {
