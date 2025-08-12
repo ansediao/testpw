@@ -97,6 +97,9 @@ class Pw_CDN_Loader {
             <!-- 组件样式文件 -->
             <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/244.css?v=<?php echo $css_timestamp; ?>">
             <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/248.css?v=<?php echo $css_timestamp; ?>">
+                        <!-- 产品页 规格选择 -->
+
+            <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/250.css?v=<?php echo $css_timestamp; ?>">
 
 
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/CheckboxOptions.css?v=' . time(); ?>">

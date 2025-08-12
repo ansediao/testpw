@@ -14,7 +14,7 @@
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cdn-loader.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cart-handler.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-inquiry.php';
-
+require_once plugin_dir_path(__FILE__) . 'modules/class-pw-composite-products.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-auxiliary-functions.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-template-handler.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cart-admin-actions.php';
@@ -101,6 +101,7 @@ class Pw_Admin_Public
         new Pw_CDN_Loader();
         new Pw_Cart_Handler();
         new Pw_Product_Inquiry();
+        new Pw_Composite_Products();
         new Pw_Auxiliary_Functions();
         new Pw_Template_Handler();
         new Pw_Cart_Admin_Actions();
@@ -126,7 +127,9 @@ class Pw_Admin_Public
 
         // Add canvas CSS to product pages with timestamp to prevent caching
         if (is_product()) {
+            //产品页 颜色选择模块
             wp_enqueue_style('pw-canvas-css', 'https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/224.css', array(), microtime(true), 'all');
+            
         }
     }
 
