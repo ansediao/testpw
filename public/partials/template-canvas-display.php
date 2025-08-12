@@ -31,7 +31,10 @@ if ($product_id > 0) {
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+  <!-- 引入 Layui CSS -->
+  <link href="//unpkg.com/layui@2.11.5/dist/css/layui.css" rel="stylesheet">
+  <!-- 引入 Layui JS -->
+  <script src="//unpkg.com/layui@2.11.5/dist/layui.js"></script>
   <link rel="stylesheet" href="//at.alicdn.com/t/c/font_4970780_pfyts3fzl6.css?time=<?php echo  microtime(true); ?>" />
   <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/203.css?time=<?php echo  microtime(true); ?>" />
   <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/240.css?time=<?php echo  microtime(true); ?>" />
@@ -231,32 +234,32 @@ if ($product_id > 0) {
           const store = window.useCanvasStore();
           await store.fetchProductData(pwId);
           console.log('产品数据已加载到 Pinia store');
-          
+
           // 尝试从API数据初始化画布
           if (typeof window.initCanvasFromAPI === 'function') {
             // 监听多视图画布初始化完成事件
             document.addEventListener('canvasInitializedFromAPI', function(event) {
               console.log('收到画布初始化完成事件:', event.detail);
             });
-            
+
             // 监听视图特定的画布初始化完成事件
             document.addEventListener('viewCanvasInitialized', function(event) {
               console.log('视图画布初始化完成:', event.detail.viewData.name);
             });
-            
 
-            
+
+
             // 等待多视图系统初始化完成后再初始化API数据
             setTimeout(async () => {
               // 检查是否有多视图系统
               if (store.views && store.views.length > 0) {
                 console.log('检测到多视图系统，为每个视图初始化API数据...');
-                
+
                 // 为每个视图初始化API数据
                 for (const view of store.views) {
                   const canvasId = `mainCanvas-${view.id}`;
                   const canvasElement = document.getElementById(canvasId);
-                  
+
                   if (canvasElement) {
                     console.log(`正在为视图 ${view.name} 初始化API数据...`);
                     try {
@@ -266,14 +269,14 @@ if ($product_id > 0) {
                         console.log(`视图 ${view.name} 的画布已从API数据成功初始化`);
                         // 使用 CanvasManager 管理 canvas 实例
                         if (window.CanvasManager) {
-                            window.CanvasManager._canvasMap[view.id] = canvas;
+                          window.CanvasManager._canvasMap[view.id] = canvas;
                         }
-                        
+
                         // 如果是当前激活的视图，设置为全局canvas
                         if (view.id === store.activeViewId) {
                           window.canvas = canvas;
                           window.fabricCanvas = canvas;
-                          
+
                           // 如果存在全局的setGlobalCanvas函数，调用它
                           if (typeof window.setGlobalCanvas === 'function') {
                             window.setGlobalCanvas(canvas);

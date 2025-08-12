@@ -55,6 +55,11 @@ class Pw_CDN_Loader {
         ?>
         <!-- PW Canvas CDN Scripts -->
         <div id="pw-cdn-scripts">
+            <!-- 引入 Layui CSS -->
+            <link href="//unpkg.com/layui@2.11.5/dist/css/layui.css" rel="stylesheet">
+            <!-- 引入 Layui JS -->
+            <script src="//unpkg.com/layui@2.11.5/dist/layui.js"></script>
+            
             <!-- 引入 Vue 3 -->
             <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
             
