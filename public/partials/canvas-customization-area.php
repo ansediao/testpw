@@ -184,15 +184,15 @@ document.addEventListener("DOMContentLoaded", function() {
             canvas.renderAll();
             
             // 如果画布为空且有API数据，则渲染API数据
-            if (canvas.getObjects().length === 0 && view.data) {
-                renderViewFromApiData(view, canvas);
-            }
+            // if (canvas.getObjects().length === 0 && view.data) {
+            //     renderViewFromApiData(view, canvas);
+            // }
         } else {
             
             // 如果canvas不存在，创建新的canvas
-            if (view.data) {
-                createCanvasForView(view);
-            }
+            // if (view.data) {
+            //     createCanvasForView(view);
+            // }
         }
     }
     

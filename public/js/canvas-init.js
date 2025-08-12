@@ -312,22 +312,22 @@ function updateCanvasZoom() {
 
 
 // 获取所有 .viewer-switch-btn 按钮
-const switchButtons = document.querySelectorAll('.viewer-switch-btn');
+// const switchButtons = document.querySelectorAll('.viewer-switch-btn');
 
-// 遍历每个按钮并为其添加点击事件监听器
-switchButtons.forEach(function(button) {
-    button.addEventListener('click', function() {
-        // 获取被点击对象的 data-image-url
-        const newImageUrl = this.getAttribute('data-image-url');
-        // 检查是否有新的图片URL
-        if (newImageUrl) {
-            // 更新 shadowLayer 图层 的 data-color-image 属性
-            shadowCanvas.setAttribute('data-color-image', newImageUrl);
-            // 加载新的颜色图片
-            loadColorImage(newImageUrl, currentColor);
-        }
-    });
-});
+// // 遍历每个按钮并为其添加点击事件监听器
+// switchButtons.forEach(function(button) {
+//     button.addEventListener('click', function() {
+//         // 获取被点击对象的 data-image-url
+//         const newImageUrl = this.getAttribute('data-image-url');
+//         // 检查是否有新的图片URL
+//         if (newImageUrl) {
+//             // 更新 shadowLayer 图层 的 data-color-image 属性
+//             shadowCanvas.setAttribute('data-color-image', newImageUrl);
+//             // 加载新的颜色图片
+//             loadColorImage(newImageUrl, currentColor);
+//         }
+//     });
+// });
 
 
 
