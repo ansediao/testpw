@@ -823,6 +823,13 @@ function get_composite_products_from_api()
     return $api->get_composite_products_from_api();
 }
 
+// 获取容器信息
+function get_container_info($container_id)
+{
+    $api = new Pw_Admin_Promowares_Api();
+    return $api->get_container_info($container_id);
+}
+
 // 调度产品导入任务
 function schedule_product_import()
 {
@@ -846,7 +853,6 @@ function schedule_product_import()
 }
 
 // 处理单个产品导入
-add_action('import_single_product', 'import_single_product');
 function import_single_product($product)
 {
     // 创建 WooCommerce 产品
@@ -876,7 +882,6 @@ function import_single_product($product)
 }
 
 // 处理组合产品组导入
-add_action('import_composite_product_group', 'import_composite_product_group');
 function import_composite_product_group($composite_group)
 {
     if (empty($composite_group['main_product_id']) || empty($composite_group['products'])) {
@@ -949,6 +954,107 @@ function import_composite_product_group($composite_group)
         
         // 设置Grouped products - 将其他同组产品添加到主产品的Linked Products中
         update_post_meta($main_post_id, '_children', $related_product_ids);
+        
+        // 获取主产品的container_id并处理容器规则
+        $main_product_data = null;
+        foreach ($products as $product) {
+            if ($product['id'] == $main_product_id) {
+                $main_product_data = $product;
+                break;
+            }
+        }
+        
+        if ($main_product_data && isset($main_product_data['container_id']) && $main_product_data['container_id'] > 0) {
+            // 为容器规则处理添加一个任务到 Action Scheduler
+            error_log("Scheduling container rules processing for container_id: " . $main_product_data['container_id']);
+            // 将所有参数序列化为JSON字符串
+            $args_json = json_encode(array(
+                'container_id' => $main_product_data['container_id'],
+                'composite_group' => $composite_group,
+                'created_product_ids' => $created_product_ids
+            ));
+            
+            $scheduled = as_schedule_single_action(time() + 5, 'process_container_rules', array($args_json));
+            
+            if ($scheduled) {
+                error_log("Container rules task scheduled successfully with ID: " . $scheduled);
+            } else {
+                error_log("Failed to schedule container rules task");
+            }
+        } else {
+            error_log("Container rules processing not scheduled. Main product container_id: " . (isset($main_product_data['container_id']) ? $main_product_data['container_id'] : 'not set'));
+        }
+    }
+}
+
+// 处理容器规则
+function process_container_rules($args_json)
+{
+    // 解析JSON字符串
+    $args = json_decode($args_json, true);
+    
+    if (!$args || !is_array($args)) {
+        error_log("Failed to decode JSON arguments for process_container_rules: " . var_export($args_json, true));
+        return;
+    }
+    
+    // 从解析后的数组中提取数据
+    if (isset($args['container_id']) && isset($args['composite_group']) && isset($args['created_product_ids'])) {
+        $container_id = $args['container_id'];
+        $composite_group = $args['composite_group'];
+        $created_product_ids = $args['created_product_ids'];
+    } else {
+        error_log("Missing required arguments in process_container_rules: " . var_export($args, true));
+        return;
+    }
+    
+    if (!isset($container_id) || empty($created_product_ids)) {
+        error_log("Container rules processing skipped: container_id=" . var_export($container_id, true) . ", created_product_ids=" . var_export($created_product_ids, true));
+        return;
+    }
+    
+    // 如果container_id为0，跳过处理
+    if ($container_id == 0) {
+        error_log("Container rules processing skipped: container_id is 0");
+        return;
+    }
+    
+    // 获取容器信息
+    error_log("Getting container info for container_id: " . $container_id);
+    $container_info = get_container_info($container_id);
+    
+    if (!$container_info) {
+        error_log("Failed to get container info for container_id: " . $container_id);
+        return;
+    }
+    
+    if (empty($container_info['label_values'])) {
+        error_log("No label_values found in container info: " . json_encode($container_info));
+        return;
+    }
+    
+    error_log("Container info retrieved successfully: " . json_encode($container_info));
+    
+    // 为每个产品设置container_value
+    foreach ($container_info['label_values'] as $label_value) {
+        $pw_product_id = $label_value['product_id'];
+        $label_value_text = $label_value['label_value'];
+        $is_default = $label_value['is_default'];
+        
+        // 查找对应的WordPress产品ID
+        if (isset($created_product_ids[$pw_product_id])) {
+            $wp_post_id = $created_product_ids[$pw_product_id];
+            
+            // 设置容器相关的元数据
+            update_post_meta($wp_post_id, 'pw_container_id', $container_id);
+            update_post_meta($wp_post_id, 'pw_container_value', $label_value_text);
+            update_post_meta($wp_post_id, 'pw_container_name', $container_info['container_name']);
+            update_post_meta($wp_post_id, 'pw_container_label', $container_info['container_label']);
+            update_post_meta($wp_post_id, 'pw_container_is_default', $is_default);
+            
+            // 记录日志
+            error_log("Container rule applied: Product ID {$pw_product_id} (WP ID: {$wp_post_id}) -> Container Value: {$label_value_text}");
+        }
     }
 }
 
