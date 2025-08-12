@@ -1377,19 +1377,26 @@ const layersApp = Vue.createApp({
                 return;
             }
 
-            if (confirm(`确定要删除图层组 "${group.name}" 吗？组内的所有图层也将被删除。`)) { // 获取组内所有图层并删除
+            if (confirm(`确定要删除图层组 "${group.name}" 吗？组内的所有图层也将被删除。`)) {
+                const currentViewId = store.activeViewId;
+                if (!currentViewId) return;
+
+                // 获取组内所有图层并删除
                 const groupLayers = getGroupLayers(group.id);
-                groupLayers.forEach(layer => { // 从画布中删除对象
+                groupLayers.forEach(layer => {
+                    // 从画布中删除对象
                     deleteCanvasObject(layer.id);
                 });
 
-                // 从图层列表中删除组内所有图层
-                const updatedLayers = layers.value.filter(layer => layer.groupId !== group.id);
-                store.setLayers(updatedLayers);
+                // 从当前视图的图层列表中删除组内所有图层
+                const currentViewLayers = store.getViewLayers(currentViewId);
+                const updatedLayers = currentViewLayers.filter(layer => layer.groupId !== group.id);
+                store.setViewLayers(currentViewId, updatedLayers);
 
-                // 删除组
-                const updatedGroups = layerGroups.value.filter(g => g.id !== group.id);
-                store.setLayerGroups(updatedGroups);
+                // 从当前视图删除图层组
+                const currentViewGroups = store.getViewLayerGroups(currentViewId);
+                const updatedGroups = currentViewGroups.filter(g => g.id !== group.id);
+                store.setViewLayerGroups(currentViewId, updatedGroups);
 
                 // 清除选中状态
                 if (activeGroupId.value === group.id) {
