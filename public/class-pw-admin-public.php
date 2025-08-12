@@ -139,6 +139,12 @@ class Pw_Admin_Public
     {
         wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/pw-admin-public.js', array('jquery'), $this->version, false);
 
+        // 设置 AJAX URL 和 nonce 供前端使用
+        wp_localize_script($this->plugin_name, 'pwAjax', array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('custom-product-nonce')
+        ));
+
         // 确保WooCommerce脚本可用
         if (class_exists('WooCommerce')) {
             wp_enqueue_script('wc-add-to-cart');

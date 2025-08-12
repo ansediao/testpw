@@ -69,8 +69,27 @@ class Pw_Cart_Handler {
             wp_send_json_error('无效的产品ID');
         }
 
+        // 验证产品是否为 WooCommerce 产品且可购买
+        $product = wc_get_product($product_id);
+        if (!$product || !$product->is_purchasable()) {
+            wp_send_json_error('产品不可购买');
+        }
+
+        // 检查库存
+        if (!$product->is_in_stock()) {
+            wp_send_json_error('产品缺货');
+        }
+
+        $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
+        if ($quantity < 1) {
+            $quantity = 1;
+        }
+
         $custom_image = isset($_POST['custom_image']) ? wp_kses_post(wp_unslash($_POST['custom_image'])) : '';
         $color = isset($_POST['color']) ? sanitize_text_field(wp_unslash($_POST['color'])) : '';
+        $color_name = isset($_POST['color_name']) ? sanitize_text_field(wp_unslash($_POST['color_name'])) : '默认颜色';
+        $color_value = isset($_POST['color_value']) ? sanitize_text_field(wp_unslash($_POST['color_value'])) : '';
+        $variant_id = isset($_POST['variant_id']) ? sanitize_text_field(wp_unslash($_POST['variant_id'])) : '';
 
         if (empty($custom_image)) {
             wp_send_json_error('缺少自定义图片数据');
@@ -107,7 +126,10 @@ class Pw_Cart_Handler {
         $cart_item_data = array(
             'custom_data' => array(
                 'custom_image' => $image_url,
-                'color' => $color
+                'color' => $color,
+                'color_name' => $color_name,
+                'color_value' => $color_value,
+                'variant_id' => $variant_id
             )
         );
 
@@ -116,16 +138,26 @@ class Pw_Cart_Handler {
             wp_send_json_error('购物车功能不可用');
         }
 
-        $cart_item_key = WC()->cart->add_to_cart($product_id, 1, 0, array(), $cart_item_data);
+        $cart_item_key = WC()->cart->add_to_cart($product_id, $quantity, 0, array(), $cart_item_data);
 
         if ($cart_item_key) {
             wp_send_json_success(array(
                 'message' => '产品已成功添加到购物车',
-                'cart_item_key' => $cart_item_key
+                'cart_item_key' => $cart_item_key,
+                'product_id' => $product_id,
+                'quantity' => $quantity
             ));
         } else {
+            // 获取 WooCommerce 错误信息
+            $notices = wc_get_notices('error');
+            $error_message = '添加到购物车失败';
+            if (!empty($notices)) {
+                $error_message .= ': ' . implode(', ', array_column($notices, 'notice'));
+                wc_clear_notices();
+            }
+            
             unlink($file_path);
-            wp_send_json_error('添加到购物车失败');
+            wp_send_json_error($error_message);
         }
     }
 
@@ -143,20 +175,30 @@ class Pw_Cart_Handler {
                 ),
                 'display' => ''
             );
-
-            if (!empty($cart_item['custom_data']['color'])) {
-                $color_value = esc_attr($cart_item['custom_data']['color']);
-                $item_data[] = array(
-                    'key'     => '颜色',
-                    'value'   => sprintf(
-                        '<span style="display:inline-block; width:20px; height:20px; background-color:%s; vertical-align:middle; margin-right:5px; border: 1px solid #ccc;"></span>%s',
-                        $color_value,
-                        esc_html(ucfirst($color_value))
-                    ),
-                    'display' => ''
+        }
+        
+        // 显示选择的颜色信息
+        if (isset($cart_item['custom_data']) && !empty($cart_item['custom_data']['color_name'])) {
+            $color_name = esc_html($cart_item['custom_data']['color_name']);
+            $color_value = isset($cart_item['custom_data']['color_value']) ? esc_attr($cart_item['custom_data']['color_value']) : '';
+            
+            $color_display = $color_name;
+            if (!empty($color_value)) {
+                $color_display = sprintf(
+                    '%s <span style="display: inline-block; width: 16px; height: 16px; background-color: %s; border: 1px solid #ddd; border-radius: 3px; vertical-align: middle; margin-left: 5px;"></span>',
+                    $color_name,
+                    $color_value
                 );
             }
-        } else {
+            
+            $item_data[] = array(
+                'key'     => '选择颜色',
+                'value'   => $color_display,
+                'display' => ''
+            );
+        }
+        
+        if (!isset($cart_item['custom_data']) || empty($cart_item['custom_data']['custom_image'])) {
             $pw_isSyncProduct = get_post_meta($cart_item['product_id'], 'pw_isSyncProduct', true);
             if ($pw_isSyncProduct == '1') {
                 $item_data[] = array(

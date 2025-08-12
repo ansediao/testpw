@@ -10,7 +10,16 @@ const AddToCart = {
         const store = useProductStore();
         
         const addToCart = async () => {
-            await store.addToCart();
+            // 获取页面上数量输入框的值
+            const qtyInput = document.querySelector('.qty-input');
+            let quantity = 100; // 默认值
+            
+            if (qtyInput) {
+                quantity = parseInt(qtyInput.value) || 100;
+            }
+            
+            // 将数量传递给 store 的 addToCart 方法
+            await store.addToCart(quantity);
         };
         
         const customizeNow = () => {

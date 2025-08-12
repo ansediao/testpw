@@ -529,22 +529,66 @@ const useProductStore = Pinia.defineStore('product', () => {
         return fetchPromise.value;
     };
 
-    const addToCart = async () => {
+    const addToCart = async (customQuantity = null) => {
         if (!canAddToCart.value) return;
 
         setLoading(true);
         try {
-            const cartData = {
-                productId: productId.value,
-                quantity: quantity.value,
-                options: selectedOptions,
-                variant: selectedVariant.value // 包含选中的变体信息
+            // 使用传入的数量参数，如果没有则使用 store 中的数量
+            const finalQuantity = customQuantity !== null ? customQuantity : quantity.value;
+            
+            // 准备 WordPress AJAX 请求数据
+            const formData = new FormData();
+            formData.append('action', 'add_customized_product_to_cart');
+            formData.append('product_id', productId.value);
+            formData.append('quantity', finalQuantity);
+            formData.append('custom_image', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='); // 临时占位图片
+            // 传递完整的颜色信息
+            const colorInfo = selectedVariant.value ? {
+                color_name: selectedVariant.value.variant_name || selectedVariant.value.name || '默认颜色',
+                color_value: selectedVariant.value.variant_color || selectedVariant.value.color || '#000000',
+                variant_id: selectedVariant.value.id
+            } : {
+                color_name: '默认颜色',
+                color_value: '#000000',
+                variant_id: null
             };
+            
+            formData.append('color_name', colorInfo.color_name);
+            formData.append('color_value', colorInfo.color_value);
+            formData.append('variant_id', colorInfo.variant_id || '');
+            formData.append('color', colorInfo.color_value); // 保持向后兼容
+            formData.append('security', window.pwAjax?.nonce || '');
 
-            // Mock API call - replace with actual endpoint
-            await axios.post('/api/cart/add', cartData);
+             // 发送到 WordPress AJAX 端点
+             const response = await fetch(window.pwAjax?.ajaxurl || '/wp-admin/admin-ajax.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.data || '添加到购物车失败');
+            }
+            
+            // 成功添加到购物车
+            console.log('产品已成功添加到购物车:', result.data);
+            
+            // 显示成功提示
+            showSuccessMessage(`已成功添加 ${finalQuantity} 件商品到购物车！`);
+            
+            // 可选：触发页面刷新购物车数量显示
+            if (typeof jQuery !== 'undefined' && jQuery(document.body).trigger) {
+                jQuery(document.body).trigger('added_to_cart');
+            }
+            
         } catch (err) {
             setError(err.message);
+            // 显示错误提示
+            if (typeof showErrorMessage === 'function') {
+                showErrorMessage(err.message || '添加到购物车时发生错误');
+            }
         } finally {
             setLoading(false);
         }

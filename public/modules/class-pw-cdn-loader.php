@@ -75,6 +75,7 @@ class Pw_CDN_Loader {
             
             <!-- 引入工具函数 -->
             <script src="<?php echo 'https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/246.js?v=' . time(); ?>"></script>
+            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/utils/messageUtils.js?v=' . time(); ?>"></script>
             
             <!-- 引入 Vue 组件 -->
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/QuantityDiscountSlider.js?v=' . time(); ?>"></script>
