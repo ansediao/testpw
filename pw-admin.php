@@ -192,11 +192,20 @@ add_action('wp_footer', 'add_custom_cart_js2');
 add_action('manage_product_posts_custom_column', function ($column, $post_id) {
     if ($column === 'name') {
         $product = wc_get_product($post_id);
-        if ($cross_ids = $product->get_cross_sell_ids()) {
-            echo '<div class="cross-sells-tooltip">▲ ' . count($cross_ids) . ' sub-products
+        // if ($cross_ids = $product->get_cross_sell_ids()) {
+        //     echo '<div class="cross-sells-tooltip">▲ ' . count($cross_ids) . ' sub-products
+        //         <div class="tooltip">' . implode(
+        //         '<br>',
+        //         array_map('get_the_title', $cross_ids)
+        //     ) . '</div>
+        //         </div>';
+        // }
+        $child_product_ids = get_post_meta($post_id, '_children', true);
+        if ($child_product_ids) {
+            echo '<div class="cross-sells-tooltip">▲ ' . count($child_product_ids) . ' sub-products
                 <div class="tooltip">' . implode(
                 '<br>',
-                array_map('get_the_title', $cross_ids)
+                array_map('get_the_title', $child_product_ids)
             ) . '</div>
                 </div>';
         }
