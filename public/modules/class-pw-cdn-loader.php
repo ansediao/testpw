@@ -72,6 +72,15 @@ class Pw_CDN_Loader {
             <!-- 引入 Axios -->
             <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
             
+            <!-- 引入 Fabric.js for Canvas functionality -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+            
+            <!-- 引入 Canvas 管理器 -->
+            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/canvas-manager.js?v=' . time(); ?>"></script>
+            
+            <!-- 引入产品图片Canvas功能 -->
+            <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/product-image-canvas.js?v=' . time(); ?>"></script>
+            
             <!-- 引入数据获取模块 -->
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/api/productDataAPI.js?v=' . time(); ?>"></script>
             

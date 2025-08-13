@@ -20,6 +20,8 @@ function loadCSS(href, id) {
 
 
 // 加载产品图片Canvas功能脚本和样式
+// 注意：Canvas功能资源现在通过CDN加载器统一加载，此函数已废弃
+/*
 function loadProductImageCanvasAssets() {
     // 获取当前脚本的基础路径
     const currentScript = document.currentScript || document.querySelector('script[src*="main.js"]');
@@ -33,8 +35,6 @@ function loadProductImageCanvasAssets() {
         // 备用方案：使用相对路径
         basePath = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/').replace(/\/product\/$/, '/');
     }
-    
-
     
     // 首先加载Fabric.js库
     const fabricScript = document.createElement('script');
@@ -58,13 +58,11 @@ function loadProductImageCanvasAssets() {
     };
     document.head.appendChild(fabricScript);
 }
+*/
 
 // Wait for DOM and all scripts to load
 document.addEventListener('DOMContentLoaded', function () {
-    // 加载Canvas功能资源
-    loadProductImageCanvasAssets();
-   
-
+    // Canvas功能资源已通过CDN加载器加载，无需重复加载
 
     // Check if required dependencies are loaded
     if (typeof Vue === 'undefined' || typeof Pinia === 'undefined') {

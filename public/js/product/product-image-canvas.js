@@ -4,7 +4,7 @@
  * 兼容新旧WooCommerce版本
  */
 
-(function() {
+(function () {
     'use strict';
 
     // Canvas相关变量
@@ -27,14 +27,47 @@
     }
 
     /**
+     * 等待依赖加载完成
+     */
+    function waitForDependencies(callback, maxAttempts = 50) {
+        let attempts = 0;
+
+        function checkDependencies() {
+            attempts++;
+
+            console.log(`Checking dependencies (attempt ${attempts}):`, {
+                CanvasManager: typeof window.CanvasManager !== 'undefined',
+                fabric: typeof fabric !== 'undefined'
+            });
+
+            if (typeof window.CanvasManager !== 'undefined' && typeof fabric !== 'undefined') {
+                console.log('All canvas dependencies loaded successfully');
+                callback();
+                return;
+            }
+
+            if (attempts < maxAttempts) {
+                setTimeout(checkDependencies, 100);
+            } else {
+                console.warn('Canvas dependencies not loaded after maximum attempts');
+            }
+        }
+
+        checkDependencies();
+    }
+
+    /**
      * 设置图片Canvas功能
      */
     function setupImageCanvasFeature() {
-        // 查找产品主图容器（兼容多种WooCommerce版本）
-        findProductImageContainer();
-        
-        // 监听颜色样本点击事件
-        setupColorSwatchListeners();
+        // 等待依赖加载完成
+        waitForDependencies(function () {
+            // 查找产品主图容器（兼容多种WooCommerce版本）
+            findProductImageContainer();
+
+            // 监听颜色样本点击事件
+            setupColorSwatchListeners();
+        });
     }
 
     /**
@@ -79,7 +112,7 @@
      */
     function setupColorSwatchListeners() {
         // 使用事件委托监听颜色样本点击
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             const colorSwatch = event.target.closest('.pw-color-swatch');
             if (colorSwatch) {
                 handleColorSwatchClick(colorSwatch, event);
@@ -87,7 +120,7 @@
         });
 
         // 也监听Vue组件的颜色选择事件
-        document.addEventListener('pw-color-variant-selected', function(event) {
+        document.addEventListener('pw-color-variant-selected', function (event) {
             if (event.detail && event.detail.variant) {
                 const color = event.detail.variant.variant_color;
                 if (color) {
@@ -111,7 +144,7 @@
         }
 
         // 颜色样本被点击
-        
+
         // 切换到Canvas模式
         switchToCanvasMode(color);
     }
@@ -158,30 +191,35 @@
      * @param {string} backgroundColor - 背景颜色
      */
     function switchToCanvasMode(backgroundColor) {
+        console.log('switchToCanvasMode called with color:', backgroundColor);
+
         if (!originalImageContainer) {
             console.error('未找到原始图片容器，无法切换到Canvas模式');
             return;
         }
 
         // 如果已经是Canvas模式，只更新背景色
-        if (isCanvasMode && fabricCanvas) {
+        if (isCanvasMode && window.CanvasManager && window.CanvasManager.hasCanvas(VIEW_ID)) {
+            console.log('Canvas already in mode, updating background color');
             updateCanvasBackgroundColor(backgroundColor);
             return;
         }
 
+        console.log('Creating new canvas with background color:', backgroundColor);
+
         // 创建Canvas容器
         createCanvasContainer();
-        
+
         // 隐藏原始图片
         hideOriginalImage();
-        
+
         // 初始化Fabric.js Canvas
         initializeFabricCanvas(backgroundColor);
-        
+
         // 标记为Canvas模式
         isCanvasMode = true;
-        
-        // 已切换到Canvas模式
+
+        console.log('Canvas mode activated');
     }
 
     /**
@@ -210,9 +248,9 @@
         canvasElement.id = CANVAS_ID;
         canvasElement.width = 400;
         canvasElement.height = 400;
-        
+
         canvasContainer.appendChild(canvasElement);
-        
+
         // 插入到原始图片容器之后
         originalImageContainer.parentNode.insertBefore(canvasContainer, originalImageContainer.nextSibling);
     }
@@ -256,37 +294,40 @@
             return;
         }
 
-        // 使用Canvas管理器创建Fabric Canvas实例
-        const canvas = window.CanvasManager.createCanvas(CANVAS_ID, VIEW_ID, {
-            width: 400,
-            height: 400,
-            backgroundColor: 'transparent'
-        });
-
-        // 加载底层图片（color.png）
-        fabric.Image.fromURL('https://pwfiles.939666.xyz/t-shirt/color.png', function(img) {
-            img.set({
-                left: canvas.width / 2,
-                top: canvas.height / 2,
-                originX: 'center',
-                originY: 'center',
-                selectable: false,
-                evented: false
+        try {
+            // 使用Canvas管理器创建Fabric Canvas实例
+            const canvas = window.CanvasManager.createCanvas(CANVAS_ID, VIEW_ID, {
+                width: 400,
+                height: 400,
+                backgroundColor: 'transparent'
             });
-            
-            // 缩放图片以适应Canvas
-            const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.8;
-            img.scale(scale);
-            
-            canvas.add(img);
-            canvas.sendToBack(img);
-            
-            // 加载顶层图片（details.png）并应用颜色
-            loadTopLayerImage(backgroundColor);
-        }, { crossOrigin: 'anonymous' });
+
+            // 加载底层图片（color.png）
+            fabric.Image.fromURL('https://pwfiles.939666.xyz/t-shirt/color.png', function (img) {
+                img.set({
+                    left: canvas.width / 2,
+                    top: canvas.height / 2,
+                    originX: 'center',
+                    originY: 'center',
+                    selectable: false,
+                    evented: false
+                });
+
+                // 缩放图片以适应Canvas
+                const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.8;
+                img.scale(scale);
+
+                canvas.add(img);
+                canvas.sendToBack(img);
+
+                // 加载顶层图片（details.png）并应用颜色
+                loadTopLayerImage(backgroundColor);
+            }, { crossOrigin: 'anonymous' });
+        } catch (error) {
+            console.error('初始化Canvas失败:', error);
+        }
     }
 
-    /**
     /**
      * 加载顶层图片并应用颜色
      * @param {string} color - 要应用的颜色
@@ -298,7 +339,7 @@
             return;
         }
 
-        fabric.Image.fromURL('https://pwfiles.939666.xyz/t-shirt/details.png', function(img) {
+        fabric.Image.fromURL('https://pwfiles.939666.xyz/t-shirt/details.png', function (img) {
             img.set({
                 left: canvas.width / 2,
                 top: canvas.height / 2,
@@ -307,11 +348,11 @@
                 selectable: false,
                 evented: false
             });
-            
+
             // 缩放图片以适应Canvas
             const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.8;
             img.scale(scale);
-            
+
             // 应用颜色滤镜
             img.filters.push(new fabric.Image.filters.BlendColor({
                 color: color,
@@ -319,7 +360,7 @@
                 alpha: 0.8
             }));
             img.applyFilters();
-            
+
             canvas.add(img);
             canvas.bringToFront(img);
             canvas.renderAll();
@@ -340,7 +381,7 @@
                     canvas.remove(objects[i]);
                 }
             }
-            
+
             // 重新加载顶层图片并应用新颜色
             loadTopLayerImage(color);
             // Canvas颜色已更新
@@ -355,12 +396,12 @@
         if (window.CanvasManager) {
             window.CanvasManager.destroyCanvas(VIEW_ID);
         }
-        
+
         if (canvasContainer) {
             canvasContainer.remove();
             canvasContainer = null;
         }
-        
+
         isCanvasMode = false;
     }
 
@@ -374,5 +415,8 @@
 
     // 自动初始化
     initProductImageCanvas();
+
+    // 调试信息
+    console.log('ProductImageCanvas module loaded');
 
 })();
