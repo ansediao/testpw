@@ -134,15 +134,15 @@ if ($first_image_url) {
             // 创建 canvas 元素
             const canvasHtml = `
                 <canvas id="shadowLayer-${view.id}"
-                    data-color-image="<?php echo esc_attr($first_image_url); ?>"
-                    data-img-width="<?php echo esc_attr($first_image_width); ?>"
-                    data-img-height="<?php echo esc_attr($first_image_height); ?>"
+                    data-color-image="https://promowares-cloud-storage.s3.amazonaws.com/uploads/1754962751517847000-ds.png"
+                    data-img-width="667"
+                    data-img-height="500"
                     style="position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
                 
                 <canvas id="colorLayer-${view.id}"
-                    data-img-width="<?php echo esc_attr($first_image_width); ?>"
-                    data-img-height="<?php echo esc_attr($first_image_height); ?>"
-                    data-product-image="<?php echo esc_attr($image_url); ?>"
+                    data-img-width="667"
+                    data-img-height="500"
+                    data-product-image="https://promowares-cloud-storage.s3.amazonaws.com/uploads/1754962801560791000-gytc.png"
                     style="position: absolute; top: 0; left: 0; z-index: 2;"></canvas>
                 
                 <canvas id="mainCanvas-${view.id}"
@@ -178,8 +178,8 @@ if ($first_image_url) {
         }
         
         // 设置 canvas 尺寸为 400x300
-        const canvasWidth = 400;
-        const canvasHeight = 300;
+        const canvasWidth = 667;
+        const canvasHeight = 500;
         
         // 创建 Fabric.js canvas 实例
         const fabricCanvas = new fabric.Canvas(mainCanvasId, {

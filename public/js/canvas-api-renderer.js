@@ -249,9 +249,9 @@ async function initCanvasFromAPI(canvasId, pwId) {
             // 如果没有找到layer_config，创建一个简单的示例画布
             console.log('Creating fallback canvas with sample content');
             const canvas = new fabric.Canvas(canvasId, {
-                width: 400,
-                height: 300,
-                backgroundColor: '#f9fafb'
+                width: 800,
+                height: 600,
+                backgroundColor: '#fff'
             });
 
             // 添加一个示例文本

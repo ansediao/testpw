@@ -408,6 +408,25 @@ class Pw_Admin_Promowares_Api
     }
 
     /**
+     * Get custom templates data for a specific product.
+     *
+     * @since    1.0.0
+     * @param    int       $product_id    The product ID to fetch templates for.
+     * @param    string    $token         Optional. Custom token to use.
+     * @return   array|WP_Error          The templates data or error.
+     */
+    public function get_product_templates($product_id, $token = null)
+    {
+        $auth_token = $token ?: $this->hardcoded_token;
+        
+        if (empty($auth_token)) {
+            return new WP_Error('missing_token', 'API token is required');
+        }
+        
+        return $this->call_promowares_api("custom-templates/product/{$product_id}", $auth_token);
+    }
+
+    /**
      * Register AJAX hooks for API proxy functionality.
      *
      * @since    1.0.0

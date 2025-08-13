@@ -880,6 +880,29 @@ function import_single_product($product)
         update_post_meta($post_id, '_sku', $product['sku']);
         update_post_meta($post_id, 'pw_isSyncProduct', true);
         
+        // 获取并保存 layer_config 数据
+        $api = new Pw_Admin_Promowares_Api();
+        $token = get_option('pw_api_token', '');
+        
+        if (!empty($product['id'])) {
+            $templates_response = $api->get_product_templates($product['id'], $token);
+            
+            if (!is_wp_error($templates_response) && isset($templates_response['data']['custom_view']['main_custom_view']['layer_config'])) {
+                $layer_config = $templates_response['data']['custom_view']['main_custom_view']['layer_config'];
+                update_post_meta($post_id, 'pw_layer_config', $layer_config);
+                
+                // 记录成功日志
+                error_log('Layer config saved for product ID: ' . $product['id'] . ', WooCommerce ID: ' . $post_id);
+            } else {
+                // 记录错误日志
+                if (is_wp_error($templates_response)) {
+                    error_log('Failed to fetch layer config for product ID: ' . $product['id'] . ', Error: ' . $templates_response->get_error_message());
+                } else {
+                    error_log('Layer config not found in API response for product ID: ' . $product['id']);
+                }
+            }
+        }
+        
         // 设置封面图片
         if (!empty($product['product_image'])) {
              pw_set_product_featured_image($post_id, $product['product_image']);
