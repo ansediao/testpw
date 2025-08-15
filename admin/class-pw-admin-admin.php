@@ -878,9 +878,10 @@ function import_single_product($product)
         update_post_meta($post_id, '_price', $product['price']);
         update_post_meta($post_id, '_regular_price', $product['anchor_price']);
         update_post_meta($post_id, '_sku', $product['sku']);
-        update_post_meta($post_id, 'pw_isSyncProduct', true);
-        
-        // 获取并保存 layer_config 数据
+        update_post_meta($post_id, 'pw_isSyncProduct', true);      
+
+
+        // 获取并保存 产品视图 数据
         $api = new Pw_Admin_Promowares_Api();
         $token = get_option('pw_api_token', '');
         
@@ -888,8 +889,12 @@ function import_single_product($product)
             $templates_response = $api->get_product_templates($product['id'], $token);
             
             if (!is_wp_error($templates_response) && isset($templates_response['data']['custom_view']['main_custom_view']['layer_config'])) {
-                $layer_config = $templates_response['data']['custom_view']['main_custom_view']['layer_config'];
-                update_post_meta($post_id, 'pw_layer_config', $layer_config);
+                $pw_main_custom_view = $templates_response['data']['custom_view']['main_custom_view'];
+                update_post_meta($post_id, 'pw_main_custom_view', $pw_main_custom_view);
+
+                $pw_sub_custom_view = $templates_response['data']['custom_view']['sub_custom_view'];
+                update_post_meta($post_id, 'pw_sub_custom_view', $pw_sub_custom_view);
+
                 
                 // 记录成功日志
                 error_log('Layer config saved for product ID: ' . $product['id'] . ', WooCommerce ID: ' . $post_id);
