@@ -82,6 +82,19 @@ async function renderCanvasContent(canvas, apiData) {
     const viewId = canvasId.replace('mainCanvas-', ''); 
     console.log('Canvas ID:', canvasId, 'Extracted viewId:', viewId);
 
+    // 检查是否存在 Background Layer，如果存在则提取其尺寸作为默认尺寸
+    let defaultDimensions = null;
+    const backgroundLayer = layers.find(layer => layer.name === 'Background Layer');
+    if (backgroundLayer && backgroundLayer.layerData.dimensions && backgroundLayer.layerData.dimensions.contentArea) {
+        defaultDimensions = {
+            width: backgroundLayer.layerData.dimensions.contentArea.width,
+            height: backgroundLayer.layerData.dimensions.contentArea.height
+        };
+        console.log('Found Background Layer with dimensions:', defaultDimensions);
+    } else {
+        console.log('No Background Layer found or no dimensions available');
+    }
+
     // Helper function to get originX and originY from the anchorPoint string.
     const getOriginFromAnchor = (anchor) => {
         const parts = anchor.split('-'); // e.g., 'top-center' -> ['top', 'center']
@@ -170,10 +183,12 @@ async function renderCanvasContent(canvas, apiData) {
                         colorCanvas = colorLayerElement.__fabric;
                         colorCanvas.clear(); // 清空现有内容
                     } else {
-                        // 创建新的Fabric画布实例
+                        // 创建新的Fabric画布实例，使用默认尺寸或原有尺寸
+                        const canvasWidth = defaultDimensions ? defaultDimensions.width : data.dimensions.layerSize.width;
+                        const canvasHeight = defaultDimensions ? defaultDimensions.height : data.dimensions.layerSize.height;
                         colorCanvas = new fabric.Canvas(colorLayerId, {
-                            width: data.dimensions.layerSize.width,
-                            height: data.dimensions.layerSize.height,
+                            width: canvasWidth,
+                            height: canvasHeight,
                             backgroundColor: 'transparent'
                         });
                     }
@@ -181,6 +196,9 @@ async function renderCanvasContent(canvas, apiData) {
                     // 加载图像到colorLayer画布
                     await new Promise(resolve => {
                         fabric.Image.fromURL(data.content.imageUrl, (img) => {
+                            const targetWidth = defaultDimensions ? defaultDimensions.width : data.dimensions.layerSize.width;
+                            const targetHeight = defaultDimensions ? defaultDimensions.height : data.dimensions.layerSize.height;
+                            
                             img.set({
                                 ...commonProps,
                                 left: 0, // colorLayer中的图像从左上角开始
@@ -188,9 +206,9 @@ async function renderCanvasContent(canvas, apiData) {
                                 originX: 'left',
                                 originY: 'top'
                             });
-                            img.scaleToWidth(data.dimensions.layerSize.width);
+                            img.scaleToWidth(targetWidth);
                             if (!data.controls.constraints?.keepAspectRatio) {
-                                img.scaleToHeight(data.dimensions.layerSize.height);
+                                img.scaleToHeight(targetHeight);
                             }
                             colorCanvas.add(img);
                             colorCanvas.renderAll();
@@ -236,10 +254,12 @@ async function renderCanvasContent(canvas, apiData) {
                        shadowCanvas = shadowLayerElement.__fabric;
                        shadowCanvas.clear(); // 清空现有内容
                    } else {
-                       // 创建新的Fabric画布实例
+                       // 创建新的Fabric画布实例，使用默认尺寸或原有尺寸
+                       const canvasWidth = defaultDimensions ? defaultDimensions.width : data.dimensions.layerSize.width;
+                       const canvasHeight = defaultDimensions ? defaultDimensions.height : data.dimensions.layerSize.height;
                        shadowCanvas = new fabric.Canvas(shadowLayerId, {
-                           width: data.dimensions.layerSize.width,
-                           height: data.dimensions.layerSize.height,
+                           width: canvasWidth,
+                           height: canvasHeight,
                            backgroundColor: 'transparent'
                        });
                    }
@@ -247,6 +267,9 @@ async function renderCanvasContent(canvas, apiData) {
                    // 加载图像到shadowLayer画布
                    await new Promise(resolve => {
                        fabric.Image.fromURL(data.content.imageUrl, (img) => {
+                           const targetWidth = defaultDimensions ? defaultDimensions.width : data.dimensions.layerSize.width;
+                           const targetHeight = defaultDimensions ? defaultDimensions.height : data.dimensions.layerSize.height;
+                           
                            img.set({
                                ...commonProps,
                                left: 0, // shadowLayer中的图像从左上角开始
@@ -254,9 +277,9 @@ async function renderCanvasContent(canvas, apiData) {
                                originX: 'left',
                                originY: 'top'
                            });
-                           img.scaleToWidth(data.dimensions.layerSize.width);
+                           img.scaleToWidth(targetWidth);
                            if (!data.controls.constraints?.keepAspectRatio) {
-                               img.scaleToHeight(data.dimensions.layerSize.height);
+                               img.scaleToHeight(targetHeight);
                            }
                            shadowCanvas.add(img);
                            shadowCanvas.renderAll();
