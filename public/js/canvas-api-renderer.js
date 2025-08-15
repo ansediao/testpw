@@ -4,6 +4,28 @@
  */
 
 /**
+ * 验证图片URL是否为有效的绝对路径
+ * @param {string} url - 要验证的URL
+ * @returns {boolean} 如果是有效的绝对路径图片URL则返回true
+ */
+function isValidAbsoluteImageUrl(url) {
+    if (!url || typeof url !== 'string' || url.trim() === '') {
+        return false;
+    }
+    
+    // 检查是否为绝对路径 (http://, https://, 或 //)
+    const isAbsolute = /^(https?:\/\/|^\/\/)/.test(url.trim());
+    
+    if (!isAbsolute) {
+        return false;
+    }
+    
+    // 检查是否为常见的图片格式
+    const imageExtensions = /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i;
+    return imageExtensions.test(url.trim());
+}
+
+/**
  * @description Renders a Fabric.js canvas from API data with the new structure.
  * @param {string} canvasId - The ID of the <canvas> element.
  * @param {object} apiData - The API response data containing the layer configuration.
@@ -119,21 +141,21 @@ async function renderCanvasContent(canvas, apiData) {
             canvas.add(fabricObject);
         }
         // Handle IMAGE layers and other visual elements
-        else if (layer.type === 'image') {
+        else if (layer.type === 'image' && isValidAbsoluteImageUrl(data.content.imageUrl)) {
             // If a background color is specified, create a rectangle.
             if (data.content.backgroundColor) {
-                fabricObject = new fabric.Rect({
-                    ...commonProps,
-                    width: data.dimensions.layerSize.width,
-                    height: data.dimensions.layerSize.height,
-                    fill: data.content.backgroundColor,
-                    selectable: false, // Background should not be selectable
-                    evented: false,
-                });
-                canvas.add(fabricObject);
+                // fabricObject = new fabric.Rect({
+                //     ...commonProps,
+                //     width: data.dimensions.layerSize.width,
+                //     height: data.dimensions.layerSize.height,
+                //     fill: data.content.backgroundColor,
+                //     selectable: false, // Background should not be selectable
+                //     evented: false,
+                // });
+                // canvas.add(fabricObject);
             }
-            // If an image URL is provided, load the image.
-            else if (data.content.imageUrl) {
+            // If an image URL is provided and is a valid absolute path, load the image.
+            else if (data.content.imageUrl ) {
                 await new Promise(resolve => {
                     fabric.Image.fromURL(data.content.imageUrl, (img) => {
                         img.set({ ...commonProps });
@@ -147,18 +169,18 @@ async function renderCanvasContent(canvas, apiData) {
                 });
             }
             // Otherwise, create a placeholder rectangle to show the area.
-            else {
-                fabricObject = new fabric.Rect({
-                    ...commonProps,
-                    width: data.dimensions.layerSize.width,
-                    height: data.dimensions.layerSize.height,
-                    fill: 'rgba(156, 163, 175, 0.2)', // gray-400 with 20% opacity
-                    stroke: '#6b7280', // gray-500
-                    strokeDashArray: [5, 5],
-                    strokeWidth: 1,
-                });
-                canvas.add(fabricObject);
-            }
+            // else {
+            //     fabricObject = new fabric.Rect({
+            //         ...commonProps,
+            //         width: data.dimensions.layerSize.width,
+            //         height: data.dimensions.layerSize.height,
+            //         fill: 'rgba(156, 163, 175, 0.2)', // gray-400 with 20% opacity
+            //         stroke: '#6b7280', // gray-500
+            //         strokeDashArray: [5, 5],
+            //         strokeWidth: 1,
+            //     });
+            //     canvas.add(fabricObject);
+            // }
         }
 
         // Note: Modifying the prototype globally can have unintended side effects.
@@ -194,7 +216,7 @@ async function renderCanvasContent(canvas, apiData) {
     }
 
     // 同步图层到Pinia store（如果可用）
-    syncLayersToStore(canvas, layers);
+    // syncLayersToStore(canvas, layers);
 
     // 自动调整缩放以适应容器高度
     autoAdjustCanvasZoom(canvas);
@@ -614,6 +636,28 @@ async function initCanvasForView(canvasId, viewData) {
     console.log('Initializing canvas for view:', viewData.name, 'with config:', layerConfig);
 
     try {
+        // 获取已存在的fabric实例
+        const existingCanvasElement = document.getElementById(canvasId);
+        if (!existingCanvasElement) {
+            console.warn('Canvas element not found for:', canvasId);
+            return null;
+        }
+
+        // 尝试多种方式获取fabric实例
+        let canvas = existingCanvasElement.__fabric || existingCanvasElement.__fabricCanvas;
+        
+        // 如果还没有找到，尝试通过CanvasManager获取
+        if (!canvas && window.CanvasManager) {
+            const viewId = viewData.id || canvasId.replace('mainCanvas-', '');
+            canvas = window.CanvasManager.getCanvas(viewId);
+        }
+        
+        if (!canvas) {
+            console.warn('No existing fabric canvas found for:', canvasId);
+            return null;
+        }
+        console.log('Using existing fabric canvas instance for view:', viewData.name);
+
         // 在渲染前，确保store中有正确的视图ID
         if (window.useCanvasStore) {
             const store = window.useCanvasStore();
@@ -622,7 +666,8 @@ async function initCanvasForView(canvasId, viewData) {
             const viewId = viewData.id || canvasId.replace('mainCanvas-', '');
             store.setActiveViewId(viewId);
 
-            const canvas = await renderCanvasFromAPI(canvasId, layerConfig);
+            // 直接渲染内容到已有的fabric实例
+            await renderCanvasContent(canvas, layerConfig);
 
             // 恢复原始视图ID（如果需要）
             if (originalViewId && originalViewId !== viewId) {
@@ -642,7 +687,8 @@ async function initCanvasForView(canvasId, viewData) {
 
             return canvas;
         } else {
-            const canvas = await renderCanvasFromAPI(canvasId, layerConfig);
+            // 直接渲染内容到已有的fabric实例
+            await renderCanvasContent(canvas, layerConfig);
 
             // 触发视图特定的初始化完成事件
             document.dispatchEvent(new CustomEvent('viewCanvasInitialized', {
@@ -799,6 +845,7 @@ function autoAdjustCanvasZoom(canvas) {
 }
 
 // 将函数暴露到全局作用域
+window.isValidAbsoluteImageUrl = isValidAbsoluteImageUrl;
 window.renderCanvasFromAPI = renderCanvasFromAPI;
 window.renderCanvasContent = renderCanvasContent;
 window.initCanvasFromAPI = initCanvasFromAPI;

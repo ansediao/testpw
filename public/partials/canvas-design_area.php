@@ -209,6 +209,10 @@ if ($first_image_url) {
             window.initializeCanvasEventListeners(fabricCanvas);
         }
         
+        // 将 Canvas 实例与 DOM 元素关联
+        mainCanvasElement.__fabricCanvas = fabricCanvas;
+        mainCanvasElement.__viewId = view.id;
+        
         // 使用 CanvasManager 管理 canvas 实例
         if (window.CanvasManager) {
             // 将 canvas 实例注册到 CanvasManager
