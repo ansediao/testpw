@@ -6,6 +6,7 @@
       "Bash(ls:*)",
       "Bash(rg:*)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }

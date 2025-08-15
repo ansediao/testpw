@@ -76,6 +76,12 @@ async function renderCanvasContent(canvas, apiData) {
         return a.layerData.position.zIndex.value - b.layerData.position.zIndex.value;
     });
 
+    // 从canvas的ID中提取viewId，用于构建colorLayer的ID
+    const canvasId = canvas.lowerCanvasEl.id;
+    // 修正viewId提取逻辑，支持 'mainCanvas-{viewId}' 格式
+    const viewId = canvasId.replace('mainCanvas-', ''); 
+    console.log('Canvas ID:', canvasId, 'Extracted viewId:', viewId);
+
     // Helper function to get originX and originY from the anchorPoint string.
     const getOriginFromAnchor = (anchor) => {
         const parts = anchor.split('-'); // e.g., 'top-center' -> ['top', 'center']
@@ -142,45 +148,181 @@ async function renderCanvasContent(canvas, apiData) {
         }
         // Handle IMAGE layers and other visual elements
         else if (layer.type === 'image' && isValidAbsoluteImageUrl(data.content.imageUrl)) {
-            // If a background color is specified, create a rectangle.
-            if (data.content.backgroundColor) {
-                // fabricObject = new fabric.Rect({
-                //     ...commonProps,
-                //     width: data.dimensions.layerSize.width,
-                //     height: data.dimensions.layerSize.height,
-                //     fill: data.content.backgroundColor,
-                //     selectable: false, // Background should not be selectable
-                //     evented: false,
-                // });
-                // canvas.add(fabricObject);
+            // 检查是否为Base Layer且需要显示到colorLayer画布
+             console.log('Processing layer:', layer.name, 'Type:', layer.type, 'ImageUrl valid:', isValidAbsoluteImageUrl(data.content.imageUrl));
+             if (layer.name === 'Base Layer' && isValidAbsoluteImageUrl(data.content.imageUrl)) {
+                 // 获取colorLayer画布元素
+                 const colorLayerId = `colorLayer-${viewId}`;
+                 console.log('Looking for colorLayer element with ID:', colorLayerId);
+                 const colorLayerElement = document.getElementById(colorLayerId);
+                 console.log('ColorLayer element found:', !!colorLayerElement);
+                 
+                 // 如果找不到，尝试查找所有可能的colorLayer元素
+                 if (!colorLayerElement) {
+                     const allCanvasElements = document.querySelectorAll('canvas[id*="colorLayer"]');
+                     console.log('All colorLayer canvas elements found:', Array.from(allCanvasElements).map(el => el.id));
+                 }
+                
+                if (colorLayerElement) {
+                    // 如果colorLayer画布已存在Fabric实例，使用它；否则创建新的
+                    let colorCanvas;
+                    if (colorLayerElement.__fabric) {
+                        colorCanvas = colorLayerElement.__fabric;
+                        colorCanvas.clear(); // 清空现有内容
+                    } else {
+                        // 创建新的Fabric画布实例
+                        colorCanvas = new fabric.Canvas(colorLayerId, {
+                            width: data.dimensions.layerSize.width,
+                            height: data.dimensions.layerSize.height,
+                            backgroundColor: 'transparent'
+                        });
+                    }
+                    
+                    // 加载图像到colorLayer画布
+                    await new Promise(resolve => {
+                        fabric.Image.fromURL(data.content.imageUrl, (img) => {
+                            img.set({
+                                ...commonProps,
+                                left: 0, // colorLayer中的图像从左上角开始
+                                top: 0,
+                                originX: 'left',
+                                originY: 'top'
+                            });
+                            img.scaleToWidth(data.dimensions.layerSize.width);
+                            if (!data.controls.constraints?.keepAspectRatio) {
+                                img.scaleToHeight(data.dimensions.layerSize.height);
+                            }
+                            colorCanvas.add(img);
+                            colorCanvas.renderAll();
+                            resolve();
+                        }, { crossOrigin: 'anonymous' });
+                    });
+                    
+                    console.log('Base Layer image loaded to colorLayer:', colorLayerId);
+                } else {
+                    console.warn('ColorLayer element not found:', colorLayerId);
+                    // 如果找不到colorLayer，回退到主画布
+                    await new Promise(resolve => {
+                        fabric.Image.fromURL(data.content.imageUrl, (img) => {
+                            img.set({ ...commonProps });
+                            img.scaleToWidth(data.dimensions.layerSize.width);
+                            if (!data.controls.constraints?.keepAspectRatio) {
+                                img.scaleToHeight(data.dimensions.layerSize.height);
+                            }
+                            canvas.add(img);
+                            resolve();
+                        }, { crossOrigin: 'anonymous' });
+                    });
+                }
             }
-            // If an image URL is provided and is a valid absolute path, load the image.
-            else if (data.content.imageUrl ) {
-                await new Promise(resolve => {
-                    fabric.Image.fromURL(data.content.imageUrl, (img) => {
-                        img.set({ ...commonProps });
-                        img.scaleToWidth(data.dimensions.layerSize.width);
-                        if (!data.controls.constraints?.keepAspectRatio) {
-                            img.scaleToHeight(data.dimensions.layerSize.height);
-                        }
-                        canvas.add(img);
-                        resolve();
-                    }, { crossOrigin: 'anonymous' });
-                });
+            // 处理Overlay Layer到shadowLayer画布
+            else if (layer.name === 'Overlay Layer' && isValidAbsoluteImageUrl(data.content.imageUrl)) {
+                // 获取shadowLayer画布元素
+                const shadowLayerId = `shadowLayer-${viewId}`;
+                console.log('Looking for shadowLayer element with ID:', shadowLayerId);
+                const shadowLayerElement = document.getElementById(shadowLayerId);
+                console.log('ShadowLayer element found:', !!shadowLayerElement);
+                
+                // 如果找不到，尝试查找所有可能的shadowLayer元素
+                if (!shadowLayerElement) {
+                    const allCanvasElements = document.querySelectorAll('canvas[id*="shadowLayer"]');
+                    console.log('All shadowLayer canvas elements found:', Array.from(allCanvasElements).map(el => el.id));
+                }
+               
+               if (shadowLayerElement) {
+                   // 如果shadowLayer画布已存在Fabric实例，使用它；否则创建新的
+                   let shadowCanvas;
+                   if (shadowLayerElement.__fabric) {
+                       shadowCanvas = shadowLayerElement.__fabric;
+                       shadowCanvas.clear(); // 清空现有内容
+                   } else {
+                       // 创建新的Fabric画布实例
+                       shadowCanvas = new fabric.Canvas(shadowLayerId, {
+                           width: data.dimensions.layerSize.width,
+                           height: data.dimensions.layerSize.height,
+                           backgroundColor: 'transparent'
+                       });
+                   }
+                   
+                   // 加载图像到shadowLayer画布
+                   await new Promise(resolve => {
+                       fabric.Image.fromURL(data.content.imageUrl, (img) => {
+                           img.set({
+                               ...commonProps,
+                               left: 0, // shadowLayer中的图像从左上角开始
+                               top: 0,
+                               originX: 'left',
+                               originY: 'top'
+                           });
+                           img.scaleToWidth(data.dimensions.layerSize.width);
+                           if (!data.controls.constraints?.keepAspectRatio) {
+                               img.scaleToHeight(data.dimensions.layerSize.height);
+                           }
+                           shadowCanvas.add(img);
+                           shadowCanvas.renderAll();
+                           resolve();
+                       }, { crossOrigin: 'anonymous' });
+                   });
+                   
+                   console.log('Overlay Layer image loaded to shadowLayer:', shadowLayerId);
+               } else {
+                   console.warn('ShadowLayer element not found:', shadowLayerId);
+                   // 如果找不到shadowLayer，回退到主画布
+                   await new Promise(resolve => {
+                       fabric.Image.fromURL(data.content.imageUrl, (img) => {
+                           img.set({ ...commonProps });
+                           img.scaleToWidth(data.dimensions.layerSize.width);
+                           if (!data.controls.constraints?.keepAspectRatio) {
+                               img.scaleToHeight(data.dimensions.layerSize.height);
+                           }
+                           canvas.add(img);
+                           resolve();
+                       }, { crossOrigin: 'anonymous' });
+                   });
+               }
+           }
+            // 处理其他图像图层（非Base Layer）
+            else {
+                // If a background color is specified, create a rectangle.
+                if (data.content.backgroundColor) {
+                    // fabricObject = new fabric.Rect({
+                    //     ...commonProps,
+                    //     width: data.dimensions.layerSize.width,
+                    //     height: data.dimensions.layerSize.height,
+                    //     fill: data.content.backgroundColor,
+                    //     selectable: false, // Background should not be selectable
+                    //     evented: false,
+                    // });
+                    // canvas.add(fabricObject);
+                }
+                // If an image URL is provided and is a valid absolute path, load the image.
+                else if (data.content.imageUrl ) {
+                    await new Promise(resolve => {
+                        fabric.Image.fromURL(data.content.imageUrl, (img) => {
+                            img.set({ ...commonProps });
+                            img.scaleToWidth(data.dimensions.layerSize.width);
+                            if (!data.controls.constraints?.keepAspectRatio) {
+                                img.scaleToHeight(data.dimensions.layerSize.height);
+                            }
+                            canvas.add(img);
+                            resolve();
+                        }, { crossOrigin: 'anonymous' });
+                    });
+                }
+                // Otherwise, create a placeholder rectangle to show the area.
+                // else {
+                //     fabricObject = new fabric.Rect({
+                //         ...commonProps,
+                //         width: data.dimensions.layerSize.width,
+                //         height: data.dimensions.layerSize.height,
+                //         fill: 'rgba(156, 163, 175, 0.2)', // gray-400 with 20% opacity
+                //         stroke: '#6b7280', // gray-500
+                //         strokeDashArray: [5, 5],
+                //         strokeWidth: 1,
+                //     });
+                //     canvas.add(fabricObject);
+                // }
             }
-            // Otherwise, create a placeholder rectangle to show the area.
-            // else {
-            //     fabricObject = new fabric.Rect({
-            //         ...commonProps,
-            //         width: data.dimensions.layerSize.width,
-            //         height: data.dimensions.layerSize.height,
-            //         fill: 'rgba(156, 163, 175, 0.2)', // gray-400 with 20% opacity
-            //         stroke: '#6b7280', // gray-500
-            //         strokeDashArray: [5, 5],
-            //         strokeWidth: 1,
-            //     });
-            //     canvas.add(fabricObject);
-            // }
         }
 
         // Note: Modifying the prototype globally can have unintended side effects.
