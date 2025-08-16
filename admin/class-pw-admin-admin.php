@@ -78,8 +78,8 @@ class Pw_Admin_Admin
         // 引入阿里图标库CSS
         wp_enqueue_style('pw-admin-iconfont', '//at.alicdn.com/t/c/font_4970780_pfyts3fzl6.css', array(), $this->version, 'all');
         
-        // 引入 Layui CSS
-        wp_enqueue_style('layui-css', '//unpkg.com/layui@2.11.5/dist/css/layui.css', array(), '2.11.5', 'all');
+        // 引入 Element Plus CSS
+        wp_enqueue_style('element-plus-css', 'https://unpkg.com/element-plus@2.4.4/dist/index.css', array(), '2.4.4', 'all');
         
         wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/pw-admin-admin.css', array(), $this->version, 'all');
     }
@@ -103,8 +103,14 @@ class Pw_Admin_Admin
          * class.
          */
 
-        // 引入 Layui JS
-        wp_enqueue_script('layui-js', '//unpkg.com/layui@2.11.5/dist/layui.js', array(), '2.11.5', true);
+        // 引入 Vue 3
+        wp_enqueue_script('vue3', 'https://unpkg.com/vue@3/dist/vue.global.js', array(), '3.3.8', true);
+        
+        // 引入 Element Plus JS
+        wp_enqueue_script('element-plus-js', 'https://unpkg.com/element-plus@2.4.4/dist/index.full.js', array('vue3'), '2.4.4', true);
+        
+        // 引入 Element Plus 中文语言包
+        wp_enqueue_script('element-plus-locale-zh-cn', 'https://unpkg.com/element-plus@2.4.4/dist/locale/zh-cn.js', array('element-plus-js'), '2.4.4', true);
         
         // 加载 jsPDF 库 (This is for another feature, keeping it)
         wp_enqueue_script('jspdf', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', array(), '2.5.1', true);
@@ -117,7 +123,7 @@ class Pw_Admin_Admin
 
         // 最后加载自定义脚本
         $js_file = plugin_dir_url(__FILE__) . 'js/pw-admin-admin.js';
-        wp_enqueue_script($this->plugin_name, $js_file, array('jquery', 'layui-js', 'jspdf'), $this->version, true);
+        wp_enqueue_script($this->plugin_name, $js_file, array('jquery', 'layui-js', 'jspdf', 'element-plus-js'), $this->version, true);
 
     }
     
