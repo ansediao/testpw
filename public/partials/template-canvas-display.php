@@ -38,6 +38,9 @@ if ($product_id > 0) {
   <link rel="stylesheet" href="//at.alicdn.com/t/c/font_4970780_pfyts3fzl6.css?time=<?php echo  microtime(true); ?>" />
   <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/203.css?time=<?php echo  microtime(true); ?>" />
   <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/240.css?time=<?php echo  microtime(true); ?>" />
+  <!-- 设计页面 画布区域 css -->
+  <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/251.css?time=<?php echo  microtime(true); ?>" />
+
   <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../css/operation-panel.css?time=' . microtime(true); ?>" />
 
   <!-- 加载 Three.js -->

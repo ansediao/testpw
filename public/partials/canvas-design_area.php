@@ -185,7 +185,7 @@ if ($first_image_url) {
         const fabricCanvas = new fabric.Canvas(mainCanvasId, {
             width: canvasWidth,
             height: canvasHeight,
-            backgroundColor: '#ffffff'
+            // backgroundColor: '#ffffff'
         });
         
         // 在右上角添加视图名称文本
