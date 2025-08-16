@@ -133,27 +133,35 @@ if ($first_image_url) {
             
             // 创建 canvas 元素
             const canvasHtml = `
-                <canvas id="shadowLayer-${view.id}"
-                    data-color-image="https://promowares-cloud-storage.s3.amazonaws.com/uploads/1754962751517847000-ds.png"
-                    data-img-width="667"
-                    data-img-height="500"
-                    style="position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
+                <div class="canvas-wrapper" id="shadowWrapper-${view.id}">
+                    <canvas id="shadowLayer-${view.id}"
+                        data-color-image="https://promowares-cloud-storage.s3.amazonaws.com/uploads/1754962751517847000-ds.png"
+                        data-img-width="667"
+                        data-img-height="500"
+                        style="position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
+                </div>
                 
-                <canvas id="colorLayer-${view.id}"
-                    data-img-width="667"
-                    data-img-height="500"
-                    data-product-image="https://promowares-cloud-storage.s3.amazonaws.com/uploads/1754962801560791000-gytc.png"
-                    style="position: absolute; top: 0; left: 0; z-index: 2;"></canvas>
+                <div class="canvas-wrapper" id="colorWrapper-${view.id}">
+                    <canvas id="colorLayer-${view.id}"
+                        data-img-width="667"
+                        data-img-height="500"
+                        data-product-image="https://promowares-cloud-storage.s3.amazonaws.com/uploads/1754962801560791000-gytc.png"
+                        style="position: absolute; top: 0; left: 0; z-index: 2;"></canvas>
+                </div>
                 
-                <canvas id="mainCanvas-${view.id}"
-                    data-img-width="<?php echo esc_attr($first_image_width); ?>"
-                    data-img-height="<?php echo esc_attr($first_image_height); ?>"
-                    style="position: absolute; top: 0; left: 0; z-index: 3;"></canvas>
+                <div class="canvas-wrapper" id="mainWrapper-${view.id}">
+                    <canvas id="mainCanvas-${view.id}"
+                        data-img-width="<?php echo esc_attr($first_image_width); ?>"
+                        data-img-height="<?php echo esc_attr($first_image_height); ?>"
+                        style="position: absolute; top: 0; left: 0; z-index: 3;"></canvas>
+                </div>
                 
-                <canvas id="boundaryLayer-${view.id}"
-                    data-img-width="<?php echo esc_attr($first_image_width); ?>"
-                    data-img-height="<?php echo esc_attr($first_image_height); ?>"
-                    style="position: absolute; top: 0; left: 0; z-index: 10; pointer-events: none;"></canvas>
+                <div class="canvas-wrapper" id="boundaryWrapper-${view.id}">
+                    <canvas id="boundaryLayer-${view.id}"
+                        data-img-width="<?php echo esc_attr($first_image_width); ?>"
+                        data-img-height="<?php echo esc_attr($first_image_height); ?>"
+                        style="position: absolute; top: 0; left: 0; z-index: 10; pointer-events: none;"></canvas>
+                </div>
             `;
             
             viewContainer.innerHTML = canvasHtml;
