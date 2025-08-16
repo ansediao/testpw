@@ -172,6 +172,14 @@ class Pw_Admin {
 		$this->loader->add_action( 'wp_ajax_pw_delete_category', $plugin_admin, 'handle_delete_category' );
 		$this->loader->add_action( 'wp_ajax_nopriv_pw_delete_category', $plugin_admin, 'handle_delete_category' );
 		
+		// Register design management AJAX handlers
+		$this->loader->add_action( 'wp_ajax_pw_add_design', $plugin_admin, 'handle_add_design' );
+		$this->loader->add_action( 'wp_ajax_nopriv_pw_add_design', $plugin_admin, 'handle_add_design' );
+		$this->loader->add_action( 'wp_ajax_pw_get_design_tags', $plugin_admin, 'handle_get_design_tags' );
+		$this->loader->add_action( 'wp_ajax_nopriv_pw_get_design_tags', $plugin_admin, 'handle_get_design_tags' );
+		$this->loader->add_action( 'wp_ajax_pw_save_design_tags', $plugin_admin, 'handle_save_design_tags' );
+		$this->loader->add_action( 'wp_ajax_nopriv_pw_save_design_tags', $plugin_admin, 'handle_save_design_tags' );
+		
 		// Register product request form handler
 		$this->loader->add_action( 'wp_ajax_pw_submit_product_request', $plugin_admin, 'handle_product_request_submission' );
 

@@ -1,0 +1,713 @@
+/**
+ * Micromodal Integration for Design Management
+ * Handles all modals using Micromodal.js
+ */
+
+(function($) {
+    'use strict';
+
+    // Micromodal配置
+    const MODAL_CONFIG = {
+        openClass: 'is-open',
+        disableScroll: true,
+        disableFocus: false,
+        awaitOpenAnimation: false,
+        awaitCloseAnimation: false,
+        debugMode: false  // 关闭调试模式减少控制台输出
+    };
+
+    $(document).ready(function() {
+        console.log('PW Admin Micromodal initializing...');
+        console.log('pw_design_vars available:', typeof pw_design_vars !== 'undefined');
+        
+        initMicromodal();
+        bindModalTriggers();
+        setupFormHandlers();
+        setupImageUpload();
+        
+        // 添加调试事件监听器
+        $(document).on('click', function(e) {
+            if ($(e.target).closest('#pw-image-upload-area').length > 0) {
+                console.log('Click detected on upload area or its children');
+            }
+            if ($(e.target).closest('.modal__overlay').length > 0) {
+                console.log('Click detected on modal overlay');
+            }
+        });
+        
+        console.log('PW Admin Micromodal initialized successfully');
+    });
+
+    /**
+     * 初始化Micromodal - 简化配置避免警告
+     */
+    function initMicromodal() {
+        if (typeof MicroModal !== 'undefined') {
+            console.log('Micromodal initializing...');
+            
+            // 使用最简配置，避免MicroModal警告
+            try {
+                MicroModal.init({
+                    onShow: function(modal) {
+                        console.log('Modal opened:', modal.id);
+                        
+                        // 当模态框打开时，重新绑定上传事件
+                        if (modal.id === 'pw-add-design-modal') {
+                            setTimeout(() => {
+                                setupImageUploadEvents();
+                            }, 100);
+                        }
+                    },
+                    onClose: function(modal) {
+                        console.log('Modal closed:', modal.id);
+                    },
+                    disableScroll: true,
+                    awaitCloseAnimation: false,
+                    awaitOpenAnimation: false
+                });
+            } catch (error) {
+                console.warn('MicroModal init warning (can be ignored):', error.message);
+            }
+            
+            // 完全自定义点击处理逻辑
+            document.querySelectorAll('.modal').forEach(modal => {
+                const overlay = modal.querySelector('.modal__overlay');
+                const container = modal.querySelector('.modal__container');
+                
+                if (overlay && container) {
+                    // 移除默认的data-micromodal-close属性，防止自动关闭
+                    overlay.removeAttribute('data-micromodal-close');
+                    
+                    // 阻止容器内所有点击事件冒泡到遮罩层
+                    container.addEventListener('click', function(e) {
+                        console.log('Container clicked, stopping propagation');
+                        e.stopPropagation();
+                    });
+                    
+                    // 只有直接点击遮罩层才关闭模态框
+                    overlay.addEventListener('click', function(e) {
+                        console.log('Overlay clicked, target:', e.target, 'overlay:', overlay);
+                        if (e.target === overlay) {
+                            console.log('Closing modal due to overlay click');
+                            MicroModal.close(modal.id);
+                        }
+                    });
+                }
+                
+                // 处理关闭按钮
+                const closeButtons = modal.querySelectorAll('[data-micromodal-close]');
+                closeButtons.forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Close button clicked');
+                        MicroModal.close(modal.id);
+                    });
+                });
+            });
+        } else {
+            console.error('Micromodal.js not loaded');
+        }
+    }
+
+    /**
+     * 绑定所有模态框触发器
+     */
+    function bindModalTriggers() {
+        // Add Design 模态框
+        $('#pw-add-design-btn').on('click', function(e) {
+            e.preventDefault();
+            MicroModal.show('pw-add-design-modal');
+        });
+
+        // Add Category 模态框
+        $('#pw-add-category-btn').on('click', function(e) {
+            e.preventDefault();
+            MicroModal.show('pw-add-category-modal');
+        });
+
+        // Manage Category 模态框
+        $('#pw-manage-category-btn').on('click', function(e) {
+            e.preventDefault();
+            MicroModal.show('pw-manage-category-modal');
+        });
+
+        // Filter 模态框
+        $('#pw-open-filter-modal').on('click', function(e) {
+            e.preventDefault();
+            MicroModal.show('pw-filter-modal');
+        });
+
+        // 标签管理模态框
+        $(document).on('click', '.pw-add-tag-button', function(e) {
+            e.preventDefault();
+            const designId = $(this).data('design-id');
+            openTagModal(designId);
+        });
+
+        // Category Settings 模态框
+        $(document).on('click', '.pw-category-settings-btn', function(e) {
+            e.preventDefault();
+            const categoryId = $(this).data('category-id');
+            openCategorySettingsModal(categoryId);
+        });
+
+        // 关闭按钮 - 使用更精确的选择器
+        $(document).on('click', '.modal__close', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const modalId = $(this).closest('[id$="-modal"]').attr('id');
+            console.log('Closing modal via close button:', modalId);
+            MicroModal.close(modalId);
+        });
+        
+        // 为设计模态框添加ESC键关闭功能
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && $('#pw-add-design-modal').hasClass('is-open')) {
+                MicroModal.close('pw-add-design-modal');
+            }
+        });
+    }
+
+    /**
+     * 打开标签管理模态框
+     */
+    function openTagModal(designId) {
+        $('#pw-tag-modal-design-id').val(designId);
+        
+        // 加载标签数据
+        $.ajax({
+            url: pw_design_vars.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'pw_get_design_tags',
+                design_id: designId,
+                nonce: pw_design_vars.nonce
+            },
+            beforeSend: function() {
+                $('#pw-tag-modal-body').html('<div class="loading">加载中...</div>');
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#pw-tag-modal-body').html(response.data);
+                    MicroModal.show('pw-tag-modal');
+                } else {
+                    alert('加载标签失败: ' + response.data);
+                }
+            },
+            error: function() {
+                alert('加载标签时发生错误');
+            }
+        });
+    }
+
+    /**
+     * 打开分类设置模态框
+     */
+    function openCategorySettingsModal(categoryId) {
+        const categoryName = $(`.pw-category-item[data-category-id="${categoryId}"]`).find('.pw-category-name-input').val();
+        
+        // 填充表单数据
+        $('#pw-settings-category-id').val(categoryId);
+        $('#pw-settings-category-name').val(categoryName);
+        
+        // 加载其他设置
+        $.ajax({
+            url: pw_admin_vars.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'pw_get_category_settings',
+                category_id: categoryId,
+                nonce: pw_admin_vars.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    const settings = response.data;
+                    $('#pw-settings-category-type').val(settings.category_type || 'general');
+                    $('#pw-exclude-from-export').prop('checked', settings.exclude_from_export || false);
+                    $('#pw-layer-depth').val(settings.layer_depth || -1);
+                    $('#pw-scale-mode').val(settings.scale_mode || 'fit');
+                    MicroModal.show('pw-category-settings-modal');
+                }
+            }
+        });
+    }
+
+    /**
+     * 设置表单处理器
+     */
+    function setupFormHandlers() {
+        // Add Design 表单
+        $('#pw-add-design-form').on('submit', function(e) {
+            e.preventDefault();
+            submitDesignForm();
+        });
+
+        // Add Category 表单
+        $('#pw-add-category-form').on('submit', function(e) {
+            e.preventDefault();
+            submitCategoryForm();
+        });
+
+        // Category Settings 表单
+        $('#pw-category-settings-form').on('submit', function(e) {
+            e.preventDefault();
+            submitCategorySettings();
+        });
+
+        // Tag Save 按钮
+        $('#pw-tag-modal-save').on('click', saveDesignTags);
+    }
+
+    /**
+     * 提交设计表单
+     */
+    function submitDesignForm() {
+        const formData = new FormData($('#pw-add-design-form')[0]);
+        formData.append('action', 'pw_add_design');
+        
+        // 注意：PHP期望的nonce字段名是pw_add_design_nonce_field，不是nonce
+        // 但表单中已经有了这个字段，所以不需要额外添加
+
+        $.ajax({
+            url: pw_design_vars.ajaxurl,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            beforeSend: function() {
+                $('#pw-add-design-submit').prop('disabled', true).text('添加中...');
+            },
+            success: function(response) {
+                if (response.success) {
+                    MicroModal.close('pw-add-design-modal');
+                    
+                    // 显示成功消息
+                    showNotification('设计添加成功！', 'success');
+                    
+                    // 重置表单
+                    $('#pw-add-design-form')[0].reset();
+                    $('#pw-image-preview').hide();
+                    $('#pw-upload-placeholder').show();
+                    
+                    // 刷新页面
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showNotification('添加失败: ' + response.data, 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', xhr.responseText);
+                let errorMessage = '添加时发生错误';
+                
+                try {
+                    const errorResponse = JSON.parse(xhr.responseText);
+                    if (errorResponse.data) {
+                        errorMessage += ': ' + errorResponse.data;
+                    }
+                } catch (e) {
+                    errorMessage += ': ' + error;
+                }
+                
+                showNotification(errorMessage, 'error');
+            },
+            complete: function() {
+                $('#pw-add-design-submit').prop('disabled', false).text('Add Design');
+            }
+        });
+    }
+
+    /**
+     * 提交分类表单
+     */
+    function submitCategoryForm() {
+        const formData = $('#pw-add-category-form').serialize();
+        
+        $.ajax({
+            url: pw_admin_vars.ajaxurl,
+            type: 'POST',
+            data: formData + '&action=pw_add_category&nonce=' + pw_admin_vars.nonce,
+            beforeSend: function() {
+                $('#pw-add-category-submit').prop('disabled', true).text('添加中...');
+            },
+            success: function(response) {
+                if (response.success) {
+                    MicroModal.close('pw-add-category-modal');
+                    alert('分类添加成功！');
+                    location.reload();
+                } else {
+                    alert('添加失败: ' + response.data);
+                }
+            },
+            error: function() {
+                alert('添加时发生错误');
+            },
+            complete: function() {
+                $('#pw-add-category-submit').prop('disabled', false).text('Add Category');
+            }
+        });
+    }
+
+    /**
+     * 保存分类设置
+     */
+    function submitCategorySettings() {
+        const formData = $('#pw-category-settings-form').serialize();
+        const categoryId = $('#pw-settings-category-id').val();
+        
+        $.ajax({
+            url: pw_admin_vars.ajaxurl,
+            type: 'POST',
+            data: formData + '&action=pw_update_category_settings&category_id=' + categoryId + '&nonce=' + pw_admin_vars.nonce,
+            beforeSend: function() {
+                $('#pw-settings-save').prop('disabled', true).text('保存中...');
+            },
+            success: function(response) {
+                if (response.success) {
+                    MicroModal.close('pw-category-settings-modal');
+                    alert('设置保存成功！');
+                    location.reload();
+                } else {
+                    alert('保存失败: ' + response.data);
+                }
+            },
+            error: function() {
+                alert('保存时发生错误');
+            },
+            complete: function() {
+                $('#pw-settings-save').prop('disabled', false).text('Save');
+            }
+        });
+    }
+
+    /**
+     * 保存设计标签
+     */
+    function saveDesignTags() {
+        const designId = $('#pw-tag-modal-design-id').val();
+        const selectedTags = [];
+        
+        $('#pw-tag-modal-body input[type="checkbox"]:checked').each(function() {
+            selectedTags.push($(this).val());
+        });
+
+        $.ajax({
+            url: pw_design_vars.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'pw_save_design_tags',
+                design_id: designId,
+                tags: selectedTags,
+                nonce: pw_design_vars.nonce
+            },
+            beforeSend: function() {
+                $('#pw-tag-modal-save').prop('disabled', true).text('保存中...');
+            },
+            success: function(response) {
+                if (response.success) {
+                    MicroModal.close('pw-tag-modal');
+                    alert('标签保存成功！');
+                } else {
+                    alert('保存失败: ' + response.data);
+                }
+            },
+            error: function() {
+                alert('保存时发生错误');
+            },
+            complete: function() {
+                $('#pw-tag-modal-save').prop('disabled', false).text('Save Changes');
+            }
+        });
+    }
+
+    /**
+     * 设置图片上传 - 初始化
+     */
+    function setupImageUpload() {
+        setupImageUploadEvents();
+    }
+
+    /**
+     * 绑定图片上传事件 - 可重复调用
+     */
+    function setupImageUploadEvents() {
+        const $uploadArea = $('#pw-image-upload-area');
+        const $fileInput = $('#pw-design-image');
+        const $modalContainer = $('#pw-add-design-modal .modal__container');
+
+        // 先解绑之前的事件，避免重复绑定
+        $uploadArea.off('click.imageUpload dragover.imageUpload dragleave.imageUpload drop.imageUpload');
+        $fileInput.off('change.imageUpload');
+        $('#pw-remove-image').off('click.imageUpload');
+        $modalContainer.off('click.modalProtection');
+        
+        // 在模态框容器级别阻止所有点击事件冒泡
+        $modalContainer.on('click.modalProtection', function(e) {
+            console.log('Modal container click intercepted');
+            e.stopPropagation();
+        });
+
+        // 点击上传区域 - 完全阻止事件冒泡防止弹窗关闭
+        $uploadArea.on('click.imageUpload', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation(); // 阻止所有其他事件处理器
+            console.log('Upload area clicked, triggering file input');
+            
+            // 直接触发文件输入点击
+            const fileInput = document.getElementById('pw-design-image');
+            if (fileInput) {
+                fileInput.click();
+            }
+            
+            return false; // 确保事件完全停止
+        });
+
+        // 拖拽上传
+        $uploadArea.on('dragover.imageUpload', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).addClass('dragover');
+        });
+
+        $uploadArea.on('dragleave.imageUpload', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).removeClass('dragover');
+        });
+
+        $uploadArea.on('drop.imageUpload', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).removeClass('dragover');
+            
+            const files = e.originalEvent.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+
+        // 文件选择 - 阻止事件冒泡保持模态框打开
+        $fileInput.on('change.imageUpload', function(e) {
+            e.stopPropagation();
+            console.log('File input changed:', this.files.length);
+            if (this.files.length > 0) {
+                handleFileUpload(this.files[0]);
+            }
+        });
+
+        // 移除图片 - 阻止事件冒泡
+        $('#pw-remove-image').on('click.imageUpload', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            $fileInput.val('');
+            $('#pw-image-preview').hide();
+            $('#pw-upload-placeholder').show();
+            return false;
+        });
+        
+        // 为上传区域内的所有子元素添加事件阻止
+        $uploadArea.find('*').on('click.imageUpload', function(e) {
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        });
+
+        function handleFileUpload(file) {
+            console.log('Handling file upload:', file.name);
+            
+            // 验证文件类型
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(file.type)) {
+                showNotification('请选择图片文件 (JPG, PNG, GIF)', 'error');
+                return;
+            }
+            
+            // 验证文件大小 (5MB)
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showNotification('文件太大，请选择小于5MB的图片', 'error');
+                return;
+            }
+
+            // 显示加载状态
+            $uploadArea.addClass('pw-loading');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#pw-preview-img').attr('src', e.target.result);
+                $('#pw-file-name').text(file.name + ' (' + formatFileSize(file.size) + ')');
+                $('#pw-upload-placeholder').hide();
+                $('#pw-image-preview').show();
+                $uploadArea.removeClass('pw-loading');
+                
+                showNotification('图片上传成功', 'success');
+            };
+            
+            reader.onerror = function() {
+                showNotification('读取文件时发生错误', 'error');
+                $uploadArea.removeClass('pw-loading');
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    }
+
+    // 添加Micromodal样式
+    const micromodalStyles = `
+        <style>
+        /* Micromodal基础样式 */
+        .modal {
+            display: none;
+        }
+        
+        .modal.is-open {
+            display: block;
+        }
+        
+        .modal__overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100000;
+        }
+        
+        .modal__container {
+            background-color: #fff;
+            padding: 30px;
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 8px;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            position: relative;
+            animation: fadeInScale 0.2s ease-out;
+        }
+        
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .modal__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        
+        .modal__title {
+            margin: 0;
+            font-size: 1.5em;
+            color: #333;
+        }
+        
+        .modal__close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal__close:hover {
+            color: #000;
+        }
+        
+        /* 防止body滚动 */
+        .modal-open {
+            overflow: hidden;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .modal__container {
+                margin: 10px;
+                padding: 20px;
+                max-width: calc(100vw - 20px);
+            }
+        }
+        
+        /* 防止模态框意外关闭 */
+        #pw-add-design-modal .modal__overlay {
+            pointer-events: none;
+        }
+        
+        #pw-add-design-modal .modal__container {
+            pointer-events: auto;
+        }
+        
+        #pw-add-design-modal .modal__close {
+            pointer-events: auto;
+        }
+        </style>
+    `;
+    
+    $('head').append(micromodalStyles);
+
+    /**
+     * 显示通知消息
+     */
+    function showNotification(message, type = 'info') {
+        // 移除现有通知
+        $('.pw-notification').remove();
+        
+        const notificationClass = type === 'success' ? 'notice-success' : 
+                                 type === 'error' ? 'notice-error' : 'notice-info';
+        
+        const notification = $(`
+            <div class="notice ${notificationClass} is-dismissible pw-notification" style="position: fixed; top: 32px; right: 20px; z-index: 100001; max-width: 400px;">
+                <p>${message}</p>
+                <button type="button" class="notice-dismiss">
+                    <span class="screen-reader-text">Dismiss this notice.</span>
+                </button>
+            </div>
+        `);
+        
+        $('body').append(notification);
+        
+        // 添加关闭按钮功能
+        notification.find('.notice-dismiss').on('click', function() {
+            notification.fadeOut(300, function() {
+                $(this).remove();
+            });
+        });
+        
+        // 自动消失
+        setTimeout(() => {
+            notification.fadeOut(300, function() {
+                $(this).remove();
+            });
+        }, 5000);
+    }
+
+})(jQuery);

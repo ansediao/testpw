@@ -211,9 +211,14 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
 </div>
 
 <!-- Filter Modal -->
-<div id="pw-filter-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1010;">
-    <div class="pw-modal-content" style="background:white; width:350px; margin:100px auto; padding:20px; border-radius:5px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
-        <h4>Search the Field Name</h4>
+<div class="modal" id="pw-filter-modal" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-filter-modal-title">
+            <header class="modal__header">
+                <h2 class="modal__title" id="pw-filter-modal-title">筛选条件</h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
+            </header>
+            <div class="modal__content">
         <div class="pw-filter-search-field">
             <span class="dashicons dashicons-search"></span>
             <input type="text" id="pw-filter-name-search" placeholder="Name">
@@ -257,9 +262,11 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
             </div>
         </div>
 
-        <div class="pw-modal-footer" style="text-align: right; margin-top: 20px;">
-            <button class="button" id="pw-filter-clear">Clear</button>
-            <button class="button button-primary" id="pw-filter-confirm">Confirm</button>
+            </div>
+            <footer class="modal__footer">
+                <button class="button" id="pw-filter-clear">Clear</button>
+                <button class="button button-primary" id="pw-filter-confirm">Confirm</button>
+            </footer>
         </div>
     </div>
 </div>
@@ -322,127 +329,144 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
 </style>
 
 <!-- Tag Modal -->
-<div id="pw-tag-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
-    <div class="pw-modal-content" style="background:white; width:500px; margin:100px auto; padding:20px; border-radius:5px;">
-        <h2>Manage Tags</h2>
-        <div id="pw-tag-modal-body" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px; border: 1px solid #ddd; padding: 10px;">
-            <!-- Tags will be loaded here -->
-        </div>
-        <div class="pw-modal-footer" style="text-align: right;">
-            <input type="hidden" id="pw-tag-modal-design-id" value="">
-            <button class="button" id="pw-tag-modal-close">Close</button>
-            <button class="button button-primary" id="pw-tag-modal-save">Save Changes</button>
+<div class="modal" id="pw-tag-modal" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-tag-modal-title">
+            <header class="modal__header">
+                <h2 class="modal__title" id="pw-tag-modal-title">Manage Tags</h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
+            </header>
+            <div class="modal__content">
+                <div id="pw-tag-modal-body" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 20px;">
+                    <!-- Tags will be loaded here -->
+                </div>
+                <input type="hidden" id="pw-tag-modal-design-id" value="">
+            </div>
+            <footer class="modal__footer">
+                <button class="button" data-micromodal-close>Close</button>
+                <button class="button button-primary" id="pw-tag-modal-save">Save Changes</button>
+            </footer>
         </div>
     </div>
 </div>
 
 <!-- Add Design Modal -->
-<div id="pw-add-design-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1001;">
-    <div class="pw-modal-content" style="background:white; width:600px; margin:50px auto; padding:30px; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-        <h2 style="margin-top:0; margin-bottom:25px; color:#333;">Add New Design</h2>
-        
-        <form id="pw-add-design-form" enctype="multipart/form-data">
-            <?php wp_nonce_field('pw_add_design_nonce', 'pw_add_design_nonce_field'); ?>
-            
-            <!-- 图片上传区域 -->
-            <div class="pw-form-field" style="margin-bottom:25px;">
-                <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">设计图片</label>
-                <div id="pw-image-upload-area" style="border:2px dashed #ccc; border-radius:8px; padding:40px; text-align:center; background:#fafafa; cursor:pointer; transition:all 0.3s ease;">
-                    <div id="pw-upload-placeholder">
-                        <span class="dashicons dashicons-cloud-upload" style="font-size:48px; color:#999; display:block; margin-bottom:15px;"></span>
-                        <p style="margin:0; color:#666; font-size:16px;">Click or drag image here to upload</p>
-                        <p style="margin:5px 0 0; color:#999; font-size:14px;">Supports JPG, PNG, GIF formats</p>
+<div class="modal" id="pw-add-design-modal" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1">
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-add-design-modal-title">
+            <header class="modal__header">
+                <h2 class="modal__title" id="pw-add-design-modal-title">Add New Design</h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
+            </header>
+            <div class="modal__content">
+                <form id="pw-add-design-form" enctype="multipart/form-data">
+                    <?php wp_nonce_field('pw_add_design_nonce', 'pw_add_design_nonce_field'); ?>
+                    
+                    <!-- 图片上传区域 -->
+                    <div class="pw-form-field" style="margin-bottom:25px;">
+                        <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">设计图片</label>
+                        <label for="pw-design-image" style="border:2px dashed #ccc; border-radius:8px; padding:40px; text-align:center; background:#fafafa; cursor:pointer; transition:all 0.3s ease; display:block;" onmouseover="this.style.borderColor='#0073aa'; this.style.background='#f0f8ff';" onmouseout="this.style.borderColor='#ccc'; this.style.background='#fafafa';">
+                            <div id="pw-upload-placeholder">
+                                <span class="dashicons dashicons-cloud-upload" style="font-size:48px; color:#999; display:block; margin-bottom:15px;"></span>
+                                <p style="margin:0; color:#666; font-size:16px;">Click or drag image here to upload</p>
+                                <p style="margin:5px 0 0; color:#999; font-size:14px;">Supports JPG, PNG, GIF formats</p>
+                            </div>
+                            <div id="pw-image-preview" style="display:none;">
+                                <img id="pw-preview-img" style="max-width:100%; max-height:200px; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                                <p style="margin:10px 0 0; color:#666;"><span id="pw-file-name"></span></p>
+                                <button type="button" id="pw-remove-image" class="button" style="margin-top:10px;">移除图片</button>
+                            </div>
+                        </label>
+                        <input type="file" id="pw-design-image" name="design_image" accept="image/*" style="display:none;" onchange="console.log('File selected:', this.files);">
                     </div>
-                    <div id="pw-image-preview" style="display:none;">
-                        <img id="pw-preview-img" style="max-width:100%; max-height:200px; border-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-                        <p style="margin:10px 0 0; color:#666;"><span id="pw-file-name"></span></p>
-                        <button type="button" id="pw-remove-image" class="button" style="margin-top:10px;">移除图片</button>
+                    
+                    <!-- 名称字段 -->
+                    <div class="pw-form-field" style="margin-bottom:25px;">
+                        <label for="pw-design-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Design Name</label>
+                        <input type="text" id="pw-design-name" name="design_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
                     </div>
-                </div>
-                <input type="file" id="pw-design-image" name="design_image" accept="image/*" style="display:none;">
+                    
+                    <!-- 分类选择 -->
+                    <div class="pw-form-field" style="margin-bottom:30px;">
+                        <label for="pw-design-category" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Design Category</label>
+                        <select id="pw-design-category" name="design_category" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                            <option value="">选择分类</option>
+                            <?php
+                            $categories = get_terms( array(
+                                'taxonomy'   => 'pw_design_category',
+                                'hide_empty' => false,
+                            ) );
+                            if ( ! empty( $categories ) && ! is_wp_error( $categories ) ) {
+                                foreach ( $categories as $category ) {
+                                    printf(
+                                        '<option value="%s">%s</option>',
+                                        esc_attr( $category->term_id ),
+                                        esc_html( $category->name )
+                                    );
+                                }
+                            }
+                            ?>
+                        </select>
+                    </div>
+                </form>
             </div>
-            
-            <!-- 名称字段 -->
-            <div class="pw-form-field" style="margin-bottom:25px;">
-                <label for="pw-design-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Design Name</label>
-                <input type="text" id="pw-design-name" name="design_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
-            </div>
-            
-            <!-- 分类选择 -->
-            <div class="pw-form-field" style="margin-bottom:30px;">
-                <label for="pw-design-category" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Design Category</label>
-                <select id="pw-design-category" name="design_category" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
-                    <option value="">选择分类</option>
-                    <?php
-                    $categories = get_terms( array(
-                        'taxonomy'   => 'pw_design_category',
-                        'hide_empty' => false,
-                    ) );
-                    if ( ! empty( $categories ) && ! is_wp_error( $categories ) ) {
-                        foreach ( $categories as $category ) {
-                            printf(
-                                '<option value="%s">%s</option>',
-                                esc_attr( $category->term_id ),
-                                esc_html( $category->name )
-                            );
-                        }
-                    }
-                    ?>
-                </select>
-            </div>
-            
-            <div class="pw-modal-footer" style="text-align: right; border-top:1px solid #eee; padding-top:20px; margin-top:30px;">
-                <button type="button" class="button" id="pw-add-design-cancel">取消</button>
-                <button type="submit" class="button button-primary" id="pw-add-design-submit">Add Design</button>
-            </div>
-        </form>
+            <footer class="modal__footer">
+                <button class="button" data-micromodal-close>取消</button>
+                <button type="submit" class="button button-primary" id="pw-add-design-submit" form="pw-add-design-form">Add Design</button>
+            </footer>
+        </div>
     </div>
 </div>
 
 <!-- Add Category Modal -->
-<div id="pw-add-category-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1002;">
-    <div class="pw-modal-content" style="background:white; width:500px; margin:100px auto; padding:30px; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-        <h2 style="margin-top:0; margin-bottom:25px; color:#333;">Add New Category</h2>
-        
-        <form id="pw-add-category-form">
-            <?php wp_nonce_field('pw_add_category_nonce', 'pw_add_category_nonce_field'); ?>
-            
-            <!-- 分类名称字段 -->
-            <div class="pw-form-field" style="margin-bottom:25px;">
-                <label for="pw-category-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category Name</label>
-                <input type="text" id="pw-category-name" name="category_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" placeholder="Enter category name">
+<div class="modal" id="pw-add-category-modal" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-add-category-modal-title">
+            <header class="modal__header">
+                <h2 class="modal__title" id="pw-add-category-modal-title">Add New Category</h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
+            </header>
+            <div class="modal__content">
+                <form id="pw-add-category-form">
+                    <?php wp_nonce_field('pw_add_category_nonce', 'pw_add_category_nonce_field'); ?>
+                    
+                    <!-- 分类名称字段 -->
+                    <div class="pw-form-field" style="margin-bottom:25px;">
+                        <label for="pw-category-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category Name</label>
+                        <input type="text" id="pw-category-name" name="category_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" placeholder="Enter category name">
+                    </div>
+                    
+                    <!-- 分类类型选择 -->
+                    <div class="pw-form-field" style="margin-bottom:30px;">
+                        <label for="pw-category-type" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category Type</label>
+                        <select id="pw-category-type" name="category_type" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                            <option value="general">General</option>
+                            <option value="product">Product</option>
+                            <option value="style">Style</option>
+                        </select>
+                    </div>
+                </form>
             </div>
-            
-            <!-- 分类类型选择 -->
-            <div class="pw-form-field" style="margin-bottom:30px;">
-                <label for="pw-category-type" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category Type</label>
-                <select id="pw-category-type" name="category_type" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
-                    <option value="general">General</option>
-                    <option value="product">Product</option>
-                    <option value="style">Style</option>
-                </select>
-            </div>
-            
-            <div class="pw-modal-footer" style="text-align: right; border-top:1px solid #eee; padding-top:20px; margin-top:30px;">
-                <button type="button" class="button" id="pw-add-category-cancel">取消</button>
-                <button type="submit" class="button button-primary" id="pw-add-category-submit">Add Category</button>
-            </div>
-        </form>
+            <footer class="modal__footer">
+                <button class="button" data-micromodal-close>取消</button>
+                <button type="submit" class="button button-primary" id="pw-add-category-submit" form="pw-add-category-form">Add Category</button>
+            </footer>
+        </div>
     </div>
 </div>
 
 <!-- Manage Category Modal -->
-<div id="pw-manage-category-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1003;">
-    <div class="pw-modal-content" style="background:white; width:600px; margin:50px auto; padding:0; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height:80vh; overflow:hidden;">
-        <div class="pw-modal-header" style="padding:20px 30px; border-bottom:1px solid #eee; background:#f8f9fa;">
-            <h2 style="margin:0; color:#333; display:flex; align-items:center;">
-                <span class="dashicons dashicons-category" style="margin-right:10px; color:#0073aa;"></span>
-                Manage Category
-            </h2>
-            <button type="button" class="pw-modal-close" style="position:absolute; top:15px; right:20px; background:none; border:none; font-size:20px; cursor:pointer; color:#666;">&times;</button>
-        </div>
-        
-        <div class="pw-modal-body" style="padding:20px 30px; max-height:60vh; overflow-y:auto;">
+<div class="modal" id="pw-manage-category-modal" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-manage-category-modal-title" style="max-width: 600px; max-height: 80vh;">
+            <header class="modal__header" style="border-bottom:1px solid #eee; background:#f8f9fa; margin-bottom:0; padding:20px 30px;">
+                <h2 class="modal__title" id="pw-manage-category-modal-title" style="margin:0; color:#333; display:flex; align-items:center;">
+                    <span class="dashicons dashicons-category" style="margin-right:10px; color:#0073aa;"></span>
+                    Manage Category
+                </h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
+            </header>
+            <div class="modal__content" style="max-height:60vh; overflow-y:auto; padding:20px 30px;">
             <div class="pw-category-list">
                 <?php
                 $categories = get_terms(array(
@@ -491,27 +515,30 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
                 </div>
                 <?php endif; ?>
             </div>
+            <footer class="modal__footer" style="border-top:1px solid #eee; padding:20px 30px; margin-top:0;">
+                <button class="button" data-micromodal-close>Close</button>
+            </footer>
         </div>
     </div>
 </div>
 
 <!-- Category Settings Modal -->
-<div id="pw-category-settings-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1004;">
-    <div class="pw-modal-content" style="background:white; width:500px; margin:50px auto; padding:0; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height:80vh; overflow:hidden;">
-        <div class="pw-modal-header" style="padding:20px 30px; border-bottom:1px solid #eee; background:#f8f9fa;">
-            <h2 style="margin:0; color:#333;">Category Settings</h2>
-            <button type="button" class="pw-modal-close" style="position:absolute; top:15px; right:20px; background:none; border:none; font-size:20px; cursor:pointer; color:#666;">&times;</button>
-        </div>
-        
-        <div class="pw-modal-body" style="padding:30px;">
-            <form id="pw-category-settings-form">
-                <input type="hidden" id="pw-settings-category-id" name="category_id">
-                
-                <!-- Category Name -->
-                <div class="pw-form-field" style="margin-bottom:25px;">
-                    <label for="pw-settings-category-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category Name</label>
-                    <input type="text" id="pw-settings-category-name" name="category_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
-                </div>
+<div class="modal" id="pw-category-settings-modal" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-category-settings-modal-title" style="max-width: 500px; max-height: 80vh;">
+            <header class="modal__header" style="border-bottom:1px solid #eee; background:#f8f9fa; margin-bottom:0; padding:20px 30px;">
+                <h2 class="modal__title" id="pw-category-settings-modal-title" style="margin:0; color:#333;">Category Settings</h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
+            </header>
+            <div class="modal__content" style="padding:30px;">
+                <form id="pw-category-settings-form">
+                    <input type="hidden" id="pw-settings-category-id" name="category_id">
+                    
+                    <!-- Category Name -->
+                    <div class="pw-form-field" style="margin-bottom:25px;">
+                        <label for="pw-settings-category-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category Name</label>
+                        <input type="text" id="pw-settings-category-name" name="category_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                    </div>
                 
                 <!-- Category Type -->
                 <div class="pw-form-field" style="margin-bottom:25px;">
@@ -568,29 +595,104 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
                         </div>
                     </div>
                 </div>
-                
-                <div class="pw-modal-footer" style="text-align:right; border-top:1px solid #eee; padding-top:20px; margin-top:30px;">
-                    <button type="button" class="button" id="pw-settings-cancel">Cancel</button>
-                    <button type="submit" class="button button-primary" id="pw-settings-save">Save</button>
-                </div>
             </form>
+            </div>
+            <footer class="modal__footer" style="border-top:1px solid #eee; padding:20px 30px; margin-top:0;">
+                <button class="button" data-micromodal-close>取消</button>
+                <button type="submit" class="button button-primary" id="pw-settings-save" form="pw-category-settings-form">Save</button>
+            </footer>
         </div>
     </div>
 </div>
 
 <?php
-// 加载分类管理JavaScript文件
+// 加载Micromodal.js
 wp_enqueue_script(
-    'pw-admin-category-management',
-    plugin_dir_url(__FILE__) . '../js/pw-admin-category-management.js',
-    array('jquery'),
-    '1.0.0',
+    'micromodal',
+    'https://unpkg.com/micromodal/dist/micromodal.min.js',
+    array(),
+    '0.4.10',
     true
 );
+
+// 暂时禁用分类管理脚本，避免与简化脚本冲突
+// wp_enqueue_script(
+//     'pw-admin-category-management',
+//     plugin_dir_url(__FILE__) . '../js/pw-admin-category-management.js',
+//     array('jquery'),
+//     '1.0.0',
+//     true
+// );
+
+// 加载简化的模态框处理脚本
+wp_enqueue_script(
+    'pw-admin-micromodal-simple',
+    plugin_dir_url(__FILE__) . '../js/pw-admin-micromodal-simple.js',
+    array('jquery', 'micromodal'),
+    '1.0.1',
+    true
+);
+
 
 // 传递必要的数据给JavaScript
 wp_localize_script('pw-admin-category-management', 'pw_admin_vars', array(
     'nonce' => wp_create_nonce('pw_add_category_nonce'),
     'ajaxurl' => admin_url('admin-ajax.php')
 ));
+
+// 传递设计管理相关数据
+wp_localize_script('pw-admin-micromodal-simple', 'pw_design_vars', array(
+    'nonce' => wp_create_nonce('pw_add_design_nonce'),
+    'ajaxurl' => admin_url('admin-ajax.php')
+));
+
+// 传递分类管理相关数据给简化脚本
+wp_localize_script('pw-admin-micromodal-simple', 'pw_admin_vars', array(
+    'nonce' => wp_create_nonce('pw_add_category_nonce'),
+    'ajaxurl' => admin_url('admin-ajax.php')
+));
+
+// 添加 micromodal 样式
+wp_enqueue_style(
+    'pw-admin-micromodal',
+    plugin_dir_url(__FILE__) . '../css/pw-admin-micromodal.css',
+    array(),
+    '1.0.0'
+);
 ?>
+
+<script>
+// 图片预览处理
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('pw-design-image');
+    const previewImg = document.getElementById('pw-preview-img');
+    const fileName = document.getElementById('pw-file-name');
+    const uploadPlaceholder = document.getElementById('pw-upload-placeholder');
+    const imagePreview = document.getElementById('pw-image-preview');
+    const removeButton = document.getElementById('pw-remove-image');
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files.length > 0) {
+                const file = this.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (previewImg) previewImg.src = e.target.result;
+                    if (fileName) fileName.textContent = file.name;
+                    if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+                    if (imagePreview) imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    if (removeButton) {
+        removeButton.addEventListener('click', function() {
+            if (fileInput) fileInput.value = '';
+            if (uploadPlaceholder) uploadPlaceholder.style.display = 'block';
+            if (imagePreview) imagePreview.style.display = 'none';
+        });
+    }
+});
+</script>

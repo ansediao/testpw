@@ -107,3 +107,4 @@ php -l pw-admin.php
 - 新功能添加到`public/js/design/components/`目录
 - 产品相关功能添加到`public/js/product/components/`目录
 - 后端API接口在`includes/class-pw-admin-promowares-api.php`
+- 插件后台弹窗使用 micromodal

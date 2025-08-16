@@ -1,0 +1,195 @@
+/* Micromodal Base Styles */
+.modal {
+    display: none;
+}
+
+.modal.is-open {
+    display: block;
+}
+
+.modal__overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100000;
+    pointer-events: auto;
+}
+
+.modal__container {
+    background-color: #fff;
+    padding: 30px;
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 8px;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    position: relative;
+    animation: fadeInScale 0.2s ease-out;
+    pointer-events: auto;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+.modal__title {
+    margin: 0;
+    font-size: 1.5em;
+    color: #333;
+}
+
+.modal__close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal__close:hover {
+    color: #000;
+}
+
+/* Prevent body scrolling */
+.modal-open {
+    overflow: hidden;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .modal__container {
+        margin: 10px;
+        padding: 20px;
+        max-width: calc(100vw - 20px);
+    }
+}
+
+/* WordPress specific styling */
+.wp-admin .modal__container {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.wp-admin .modal__header {
+    border-bottom: 1px solid #ccd0d4;
+    background: #f9f9f9;
+    margin: -30px -30px 20px -30px;
+    padding: 20px 30px;
+    border-radius: 8px 8px 0 0;
+}
+
+/* Image Upload Area Styles */
+#pw-image-upload-area {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+#pw-image-upload-area:hover {
+    border-color: #0073aa;
+    background: #f0f8ff;
+}
+
+#pw-image-upload-area.dragover {
+    border-color: #0073aa;
+    background: #e6f3ff;
+    transform: scale(1.02);
+}
+
+#pw-image-upload-area .dashicons-cloud-upload {
+    transition: all 0.3s ease;
+}
+
+#pw-image-upload-area:hover .dashicons-cloud-upload {
+    color: #0073aa;
+    transform: scale(1.1);
+}
+
+#pw-image-preview img {
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+#pw-image-preview img:hover {
+    border-color: #0073aa;
+    box-shadow: 0 4px 12px rgba(0,115,170,0.2);
+}
+
+/* Form field styling */
+.pw-form-field label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.pw-form-field input[type="text"],
+.pw-form-field select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.pw-form-field input[type="text"]:focus,
+.pw-form-field select:focus {
+    border-color: #0073aa;
+    outline: none;
+    box-shadow: 0 0 0 1px #0073aa;
+}
+
+/* Loading states */
+.pw-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.pw-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #0073aa;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

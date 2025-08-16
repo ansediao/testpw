@@ -117,7 +117,13 @@ class Pw_Admin_Admin
 
         // 最后加载自定义脚本
         $js_file = plugin_dir_url(__FILE__) . 'js/pw-admin-admin.js';
-        wp_enqueue_script($this->plugin_name, $js_file, array('jquery', 'layui-js', 'jspdf'), $this->version, true);
+        wp_enqueue_script($this->plugin_name, $js_file, array('jquery', 'jspdf'), $this->version, true);
+
+        // 传递AJAX变量给管理脚本
+        wp_localize_script($this->plugin_name, 'pw_admin_vars', array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('pw_add_category_nonce')
+        ));
 
     }
     
@@ -379,6 +385,232 @@ class Pw_Admin_Admin
         }
     }
 
+    /**
+     * Handle AJAX request to add new design
+     *
+     * @since    1.0.0
+     */
+    public function handle_add_design()
+    {
+        // 验证请求方法
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            wp_send_json_error('无效的请求方法');
+            return;
+        }
+
+        // 验证 nonce
+        if (!isset($_POST['pw_add_design_nonce_field']) || !wp_verify_nonce($_POST['pw_add_design_nonce_field'], 'pw_add_design_nonce')) {
+            wp_send_json_error('Security check failed.');
+            return;
+        }
+
+        // 验证用户权限
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('权限不足');
+            return;
+        }
+
+        // 获取并验证数据
+        $design_name = isset($_POST['design_name']) ? sanitize_text_field($_POST['design_name']) : '';
+        $design_category = isset($_POST['design_category']) ? intval($_POST['design_category']) : 0;
+
+        if (empty($design_name)) {
+            wp_send_json_error('设计名称不能为空');
+            return;
+        }
+
+        // 调试信息 (仅在WP_DEBUG开启时显示)
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('PW Design Upload - POST data: ' . print_r($_POST, true));
+            error_log('PW Design Upload - FILES data: ' . print_r($_FILES, true));
+        }
+
+        // 处理图片上传
+        $image_url = '';
+        if (!empty($_FILES['design_image']['name'])) {
+            // 检查文件上传错误
+            if ($_FILES['design_image']['error'] !== UPLOAD_ERR_OK) {
+                wp_send_json_error('文件上传失败：错误代码 ' . $_FILES['design_image']['error']);
+                return;
+            }
+            
+            // 验证文件类型
+            $allowed_types = array('image/jpeg', 'image/jpg', 'image/png', 'image/gif');
+            $file_type = $_FILES['design_image']['type'];
+            if (!in_array($file_type, $allowed_types)) {
+                wp_send_json_error('不支持的文件类型，请上传 JPG、PNG 或 GIF 格式的图片');
+                return;
+            }
+            
+            // 验证文件大小 (5MB限制)
+            $max_size = 5 * 1024 * 1024; // 5MB
+            if ($_FILES['design_image']['size'] > $max_size) {
+                wp_send_json_error('文件太大，请上传小于5MB的图片');
+                return;
+            }
+            
+            // 包含必要的WordPress文件
+            if (!function_exists('wp_handle_upload')) {
+                require_once(ABSPATH . 'wp-admin/includes/file.php');
+            }
+            
+            $upload = wp_handle_upload($_FILES['design_image'], array(
+                'test_form' => false,
+                'unique_filename_callback' => function($dir, $name, $ext) {
+                    return 'design_' . time() . '_' . $name;
+                }
+            ));
+            
+            if ($upload && !isset($upload['error'])) {
+                $image_url = $upload['url'];
+            } else {
+                $error_message = isset($upload['error']) ? $upload['error'] : '未知上传错误';
+                wp_send_json_error('文件上传失败：' . $error_message);
+                return;
+            }
+        }
+
+        // 创建设计文章
+        $post_data = array(
+            'post_title' => $design_name,
+            'post_type' => 'pw_design',
+            'post_status' => 'publish',
+        );
+
+        $post_id = wp_insert_post($post_data);
+
+        if (is_wp_error($post_id)) {
+            wp_send_json_error('创建设计失败: ' . $post_id->get_error_message());
+            return;
+        }
+
+        // 设置分类
+        if ($design_category > 0) {
+            wp_set_object_terms($post_id, $design_category, 'pw_design_category');
+        }
+
+        // 设置特色图片
+        if (!empty($image_url)) {
+            $attachment_id = $this->create_attachment_from_url($image_url, $post_id);
+            if ($attachment_id) {
+                set_post_thumbnail($post_id, $attachment_id);
+            }
+        }
+
+        wp_send_json_success(array(
+            'message' => '设计添加成功',
+            'post_id' => $post_id,
+            'redirect_url' => get_edit_post_link($post_id)
+        ));
+    }
+
+    /**
+     * Handle AJAX request to get design tags
+     *
+     * @since    1.0.0
+     */
+    public function handle_get_design_tags()
+    {
+        // 验证 nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'pw_add_design_nonce')) {
+            wp_send_json_error('安全验证失败');
+            return;
+        }
+
+        $design_id = intval($_POST['design_id']);
+        if ($design_id <= 0) {
+            wp_send_json_error('无效的设计ID');
+            return;
+        }
+
+        // 获取所有标签
+        $all_tags = get_terms(array(
+            'taxonomy' => 'pw_design_tag',
+            'hide_empty' => false,
+        ));
+
+        // 获取当前设计的标签
+        $current_tags = wp_get_object_terms($design_id, 'pw_design_tag', array('fields' => 'ids'));
+
+        // 生成HTML
+        $html = '';
+        if (!empty($all_tags) && !is_wp_error($all_tags)) {
+            foreach ($all_tags as $tag) {
+                $checked = in_array($tag->term_id, $current_tags) ? 'checked' : '';
+                $html .= '<label style="display:block;margin:5px 0;">';
+                $html .= '<input type="checkbox" name="design_tags[]" value="' . esc_attr($tag->term_id) . '" ' . $checked . '> ';
+                $html .= esc_html($tag->name) . '</label>';
+            }
+        } else {
+            $html = '<p>暂无标签</p>';
+        }
+
+        wp_send_json_success($html);
+    }
+
+    /**
+     * Handle AJAX request to save design tags
+     *
+     * @since    1.0.0
+     */
+    public function handle_save_design_tags()
+    {
+        // 验证 nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'pw_add_design_nonce')) {
+            wp_send_json_error('安全验证失败');
+            return;
+        }
+
+        // 验证用户权限
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('权限不足');
+            return;
+        }
+
+        $design_id = intval($_POST['design_id']);
+        $tags = isset($_POST['tags']) ? array_map('intval', $_POST['tags']) : array();
+
+        if ($design_id <= 0) {
+            wp_send_json_error('无效的设计ID');
+            return;
+        }
+
+        // 更新标签
+        wp_set_object_terms($design_id, $tags, 'pw_design_tag');
+
+        wp_send_json_success('标签保存成功');
+    }
+
+    /**
+     * 从URL创建附件
+     *
+     * @since    1.0.0
+     */
+    private function create_attachment_from_url($image_url, $post_id)
+    {
+        require_once(ABSPATH . 'wp-admin/includes/image.php');
+        require_once(ABSPATH . 'wp-admin/includes/file.php');
+        require_once(ABSPATH . 'wp-admin/includes/media.php');
+
+        $tmp = download_url($image_url);
+        if (is_wp_error($tmp)) {
+            return false;
+        }
+
+        $file_array = array(
+            'name' => basename($image_url),
+            'tmp_name' => $tmp
+        );
+
+        $id = media_handle_sideload($file_array, $post_id);
+
+        if (is_wp_error($id)) {
+            @unlink($file_array['tmp_name']);
+            return false;
+        }
+
+        return $id;
+    }
 
 }
 

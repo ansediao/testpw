@@ -8,32 +8,8 @@
 
     $(document).ready(function() {
         
-        // 打开分类管理弹窗
-        $('#pw-manage-category-btn').on('click', function(e) {
-            e.preventDefault();
-            $('#pw-manage-category-modal').show();
-        });
-
-        // 关闭分类管理弹窗
-        $('.pw-modal-close').on('click', function(e) {
-            e.preventDefault();
-            $('#pw-manage-category-modal').hide();
-            $('#pw-category-settings-modal').hide();
-        });
-        
-        // 点击模态框外部关闭
-        $('.pw-modal-overlay').on('click', function(e) {
-            if (e.target === this) {
-                $('#pw-manage-category-modal').hide();
-                $('#pw-category-settings-modal').hide();
-            }
-        });
-        
-        // Cancel按钮关闭弹窗
-        $('#pw-settings-cancel').on('click', function(e) {
-            e.preventDefault();
-            $('#pw-category-settings-modal').hide();
-        });
+        // 这些功能现在由 micromodal 处理
+        // 不再使用 jQuery 直接显示/隐藏模态框
 
         // 分类名称输入字符计数
         $(document).on('input keyup paste', '.pw-category-name-input', function() {
@@ -58,15 +34,18 @@
             $(this).parent().find('.pw-category-char-count').text('(' + length + ')');
         });
         
-        // 打开分类设置弹窗
+        // 打开分类设置弹窗 - 现在由 micromodal 处理
         $(document).on('click', '.pw-category-settings-btn', function(e) {
             e.preventDefault();
             var categoryId = $(this).data('category-id');
             var categoryName = $(this).closest('.pw-category-item').find('.pw-category-name-input').val();
             
             // 填充表单数据
-            $('#pw-category-settings-modal input[name="category_name"]').val(categoryName);
-            $('#pw-category-settings-modal').data('category-id', categoryId).show();
+            $('#pw-settings-category-id').val(categoryId);
+            $('#pw-settings-category-name').val(categoryName);
+            
+            // 使用 micromodal 打开设置弹窗
+            MicroModal.show('pw-category-settings-modal');
         });
 
         // 分类设置标签页切换
@@ -85,7 +64,7 @@
         // 保存分类设置
         $('#pw-settings-save').on('click', function() {
             var $button = $(this);
-            var categoryId = $('#pw-category-settings-modal').data('category-id');
+            var categoryId = $('#pw-settings-category-id').val();
             var categoryName = $('#pw-settings-category-name').val();
             var categoryType = $('#pw-settings-category-type').val();
             var excludeFromExport = $('#pw-exclude-from-export').is(':checked');
@@ -112,7 +91,7 @@
                         alert('Category settings saved successfully!');
                         // 更新列表中的分类名称
                         $('.pw-category-item[data-category-id="' + categoryId + '"] .pw-category-name-input').val(categoryName);
-                        $('#pw-category-settings-modal').hide();
+                        MicroModal.close('pw-category-settings-modal');
                     } else {
                         alert('Error: ' + response.data);
                     }
