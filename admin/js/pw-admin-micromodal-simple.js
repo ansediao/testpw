@@ -139,6 +139,70 @@
             $('#pw-upload-placeholder').show();
         });
         
+        // 分类设置按钮点击事件
+        $(document).on('click', '.pw-category-settings-btn', function(e) {
+            e.preventDefault();
+            const categoryId = $(this).data('category-id');
+            
+            // 加载分类数据
+            $.ajax({
+                url: pw_admin_vars.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'pw_get_category_settings',
+                    category_id: categoryId,
+                    nonce: pw_admin_vars.nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#pw-settings-category-id').val(categoryId);
+                        $('#pw-settings-category-name').val(response.data.name);
+                        $('#pw-settings-category-type').val(response.data.type || 'general');
+                        $('#pw-exclude-from-export').prop('checked', response.data.exclude_from_export || false);
+                        $('#pw-layer-depth').val(response.data.layer_depth || -1);
+                        $('#pw-scale-mode').val(response.data.scale_mode || 'fit');
+                        
+                        MicroModal.show('pw-category-settings-modal');
+                    } else {
+                        alert('加载分类设置失败: ' + response.data);
+                    }
+                },
+                error: function() {
+                    alert('加载分类设置时发生错误');
+                }
+            });
+        });
+        
+        // 分类删除按钮点击事件
+        $(document).on('click', '.pw-category-delete-btn', function(e) {
+            e.preventDefault();
+            const categoryId = $(this).data('category-id');
+            const categoryName = $(this).closest('.pw-category-item').find('.pw-category-name-input').val();
+            
+            if (confirm('确定要删除分类 "' + categoryName + '" 吗？此操作不可恢复。')) {
+                $.ajax({
+                    url: pw_admin_vars.ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'pw_delete_category',
+                        category_id: categoryId,
+                        nonce: pw_admin_vars.nonce
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert('分类删除成功！');
+                            location.reload();
+                        } else {
+                            alert('删除失败: ' + response.data);
+                        }
+                    },
+                    error: function() {
+                        alert('删除分类时发生错误');
+                    }
+                });
+            }
+        });
+        
         // 设计表单提交处理
         $(document).on('submit', '#pw-add-design-form', function(e) {
             e.preventDefault();
@@ -229,6 +293,16 @@
         // 阻止模态框内的点击事件冒泡
         $(document).on('click', '.modal__container', function(e) {
             e.stopPropagation();
+        });
+        
+        // 为所有带有 data-micromodal-close 属性的元素添加关闭事件
+        $(document).on('click', '[data-micromodal-close]', function(e) {
+            e.preventDefault();
+            const modal = $(this).closest('.modal');
+            const modalId = modal.attr('id');
+            if (modalId) {
+                MicroModal.close(modalId);
+            }
         });
         
         // 只有点击遮罩层才关闭模态框

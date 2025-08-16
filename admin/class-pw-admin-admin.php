@@ -183,6 +183,56 @@ class Pw_Admin_Admin
     }
     
     /**
+     * Handle AJAX request to get category settings
+     *
+     * @since    1.0.0
+     */
+    public function handle_get_category_settings()
+    {
+        // 验证 nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'pw_add_category_nonce')) {
+            wp_send_json_error('安全验证失败');
+            return;
+        }
+        
+        // 验证用户权限
+        if (!current_user_can('manage_categories')) {
+            wp_send_json_error('权限不足');
+            return;
+        }
+        
+        // 获取并验证输入数据
+        $category_id = intval($_POST['category_id']);
+        
+        if ($category_id <= 0) {
+            wp_send_json_error('无效的分类ID');
+            return;
+        }
+        
+        // 获取分类信息
+        $category = get_term($category_id, 'pw_design_category');
+        
+        if (is_wp_error($category) || !$category) {
+            wp_send_json_error('分类不存在');
+            return;
+        }
+        
+        // 获取分类元数据
+        $category_type = get_term_meta($category_id, 'category_type', true);
+        $exclude_from_export = get_term_meta($category_id, 'exclude_from_export', true);
+        $layer_depth = get_term_meta($category_id, 'layer_depth', true);
+        $scale_mode = get_term_meta($category_id, 'scale_mode', true);
+        
+        wp_send_json_success(array(
+            'name' => $category->name,
+            'type' => $category_type ? $category_type : 'general',
+            'exclude_from_export' => (bool)$exclude_from_export,
+            'layer_depth' => intval($layer_depth),
+            'scale_mode' => $scale_mode ? $scale_mode : 'fit'
+        ));
+    }
+    
+    /**
      * Handle AJAX request to update category settings
      *
      * @since    1.0.0
