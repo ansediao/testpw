@@ -315,6 +315,72 @@
             }
         });
         
+        // Select All Designs functionality
+        $(document).on('change', '#pw-select-all-designs', function() {
+            const isChecked = $(this).is(':checked');
+            $('.pw-design-checkbox').prop('checked', isChecked);
+            toggleDeleteButton();
+        });
+        
+        // Individual checkbox change handler
+        $(document).on('change', '.pw-design-checkbox', function() {
+            const totalCheckboxes = $('.pw-design-checkbox').length;
+            const checkedCheckboxes = $('.pw-design-checkbox:checked').length;
+            
+            $('#pw-select-all-designs').prop('checked', totalCheckboxes === checkedCheckboxes);
+            toggleDeleteButton();
+        });
+        
+        // Toggle delete button visibility based on selection
+        function toggleDeleteButton() {
+            const hasSelection = $('.pw-design-checkbox:checked').length > 0;
+            $('#pw-delete-selected-designs').toggle(hasSelection);
+        }
+        
+        // Bulk delete functionality
+        $(document).on('click', '#pw-delete-selected-designs', function() {
+            const selectedDesigns = $('.pw-design-checkbox:checked').map(function() {
+                return $(this).val();
+            }).get();
+            
+            if (selectedDesigns.length === 0) {
+                alert('请选择要删除的设计');
+                return;
+            }
+            
+            if (confirm('确定要删除选中的 ' + selectedDesigns.length + ' 个设计吗？此操作不可恢复。')) {
+                const $deleteBtn = $(this);
+                $deleteBtn.prop('disabled', true).text('删除中...');
+                
+                $.ajax({
+                    url: pw_admin_vars.ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'pw_bulk_delete_designs',
+                        design_ids: selectedDesigns,
+                        nonce: pw_admin_vars.nonce
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert('成功删除 ' + response.data.deleted + ' 个设计');
+                            location.reload();
+                        } else {
+                            alert('删除失败: ' + response.data);
+                        }
+                    },
+                    error: function() {
+                        alert('删除时发生错误');
+                    },
+                    complete: function() {
+                        $deleteBtn.prop('disabled', false).text('Delete Selected');
+                    }
+                });
+            }
+        });
+        
+        // Initialize checkbox states on page load
+        toggleDeleteButton();
+        
         console.log('Simple Modal Handler initialized');
     });
 

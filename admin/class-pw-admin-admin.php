@@ -661,6 +661,75 @@ class Pw_Admin_Admin
 
         return $id;
     }
+    
+    /**
+     * Handle AJAX request to bulk delete designs
+     *
+     * @since    1.0.0
+     */
+    public function handle_bulk_delete_designs()
+    {
+        // 验证 nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'pw_add_category_nonce')) {
+            wp_send_json_error('安全验证失败');
+            return;
+        }
+        
+        // 验证用户权限
+        if (!current_user_can('delete_posts')) {
+            wp_send_json_error('权限不足');
+            return;
+        }
+        
+        // 获取并验证设计ID数组
+        $design_ids = isset($_POST['design_ids']) ? array_map('intval', $_POST['design_ids']) : array();
+        
+        if (empty($design_ids)) {
+            wp_send_json_error('请选择要删除的设计');
+            return;
+        }
+        
+        $deleted_count = 0;
+        $errors = array();
+        
+        foreach ($design_ids as $design_id) {
+            if ($design_id <= 0) {
+                continue;
+            }
+            
+            // 验证当前用户是否有权限删除此设计
+            if (!current_user_can('delete_post', $design_id)) {
+                $errors[] = 'ID: ' . $design_id . ' - 权限不足';
+                continue;
+            }
+            
+            // 检查是否为有效的设计文章
+            $post = get_post($design_id);
+            if (!$post || $post->post_type !== 'pw_design') {
+                $errors[] = 'ID: ' . $design_id . ' - 无效的设计';
+                continue;
+            }
+            
+            // 删除文章（包括移动到回收站或永久删除）
+            $result = wp_delete_post($design_id, true); // true 表示永久删除
+            
+            if ($result === false) {
+                $errors[] = 'ID: ' . $design_id . ' - 删除失败';
+            } else {
+                $deleted_count++;
+            }
+        }
+        
+        if ($deleted_count > 0) {
+            wp_send_json_success(array(
+                'deleted' => $deleted_count,
+                'errors' => $errors,
+                'message' => '成功删除 ' . $deleted_count . ' 个设计'
+            ));
+        } else {
+            wp_send_json_error('没有设计被删除: ' . implode(', ', $errors));
+        }
+    }
 
 }
 

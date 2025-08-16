@@ -184,6 +184,9 @@ class Pw_Admin {
 		
 		// Register product request form handler
 		$this->loader->add_action( 'wp_ajax_pw_submit_product_request', $plugin_admin, 'handle_product_request_submission' );
+		
+		// Register bulk delete designs handler
+		$this->loader->add_action( 'wp_ajax_pw_bulk_delete_designs', $plugin_admin, 'handle_bulk_delete_designs' );
 
 	}
 
