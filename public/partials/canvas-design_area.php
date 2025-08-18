@@ -151,13 +151,28 @@ if ($first_image_url) {
      * @param {object} layer - 要渲染的单个图层对象。
      * @returns {Promise<fabric.Object|null>} 返回创建的 fabric 对象。
      */
-    async function renderLayer(canvas, layer) {
+    async function renderLayer(canvas, layer,store) {
+
         if (!canvas || !layer) {
             console.error("渲染单个图层需要有效的画布实例和图层数据。");
             return null;
         }
         try {
             const fabricObject = await createFabricObjectFromLayer(layer);
+            // 如果 layer.name == "Base Layer"。存入pinia，本视图中
+            if (layer.name == "Base Layer") {
+                store.baseLayer = fabricObject;
+            }
+
+           
+
+
+            
+
+
+
+
+
             if (fabricObject) {
                 canvas.add(fabricObject);
                 console.log(`图层 "${layer.name}" 已被添加到画布。`);
@@ -176,10 +191,7 @@ if ($first_image_url) {
      * @param {object} viewData - 来自 API 的包含 layer_config 的视图数据对象。
      * @returns {Promise<fabric.Canvas|null>} 一个 Promise，解析为创建好的 Fabric.js 画布实例或 null。
      */
-    async function renderView(canvasId, view,store) {
-        // 打印输出 viewData
-        
-
+    async function renderView(canvasId, view,store) {  
         const viewData = view.data;
         const layerConfig = viewData?.layer_config;
         if (!layerConfig || !layerConfig.layers || layerConfig.layers.length === 0) {
@@ -227,7 +239,7 @@ if ($first_image_url) {
             const sortedLayers = [...layers].sort((a, b) => a.sort_order - b.sort_order);
 
             for (const layer of sortedLayers) {
-                await renderLayer(canvas, layer);
+                await renderLayer(canvas, layer,store);
             }
 
             canvas.renderAll();
@@ -344,88 +356,88 @@ if ($first_image_url) {
         });
     }
 
-    function initializeViewCanvas(view, store) {
+    // function initializeViewCanvas(view, store) {
 
-        const mainCanvasId = `mainCanvas-${view.id}`;
-        const mainCanvasElement = document.getElementById(mainCanvasId);
+    //     const mainCanvasId = `mainCanvas-${view.id}`;
+    //     const mainCanvasElement = document.getElementById(mainCanvasId);
 
-        if (!mainCanvasElement) {
-            console.error('Canvas element not found:', mainCanvasId);
-            return;
-        }
+    //     if (!mainCanvasElement) {
+    //         console.error('Canvas element not found:', mainCanvasId);
+    //         return;
+    //     }
 
-        // 设置 canvas 尺寸为 400x300
-        const canvasWidth = 667;
-        const canvasHeight = 500;
+    //     // 设置 canvas 尺寸为 400x300
+    //     const canvasWidth = 667;
+    //     const canvasHeight = 500;
 
-        // 创建 Fabric.js canvas 实例
-        const fabricCanvas = new fabric.Canvas(mainCanvasId, {
-            width: canvasWidth,
-            height: canvasHeight,
-            // backgroundColor: '#ffffff'
-        });
+    //     // 创建 Fabric.js canvas 实例
+    //     const fabricCanvas = new fabric.Canvas(mainCanvasId, {
+    //         width: canvasWidth,
+    //         height: canvasHeight,
+    //         // backgroundColor: '#ffffff'
+    //     });
 
-        // 在右上角添加视图名称文本
-        const viewNameText = new fabric.Text(view.name, {
-            left: canvasWidth - 10,
-            top: 10,
-            fontSize: 16,
-            fill: '#333333',
-            fontFamily: 'Arial',
-            selectable: false,
-            evented: false,
-            originX: 'right',
-            originY: 'top'
-        });
+    //     // 在右上角添加视图名称文本
+    //     const viewNameText = new fabric.Text(view.name, {
+    //         left: canvasWidth - 10,
+    //         top: 10,
+    //         fontSize: 16,
+    //         fill: '#333333',
+    //         fontFamily: 'Arial',
+    //         selectable: false,
+    //         evented: false,
+    //         originX: 'right',
+    //         originY: 'top'
+    //     });
 
-        fabricCanvas.add(viewNameText);
-        fabricCanvas.renderAll();
+    //     fabricCanvas.add(viewNameText);
+    //     fabricCanvas.renderAll();
 
-        // 为 canvas 添加事件监听器
-        if (window.initializeCanvasEventListeners) {
-            window.initializeCanvasEventListeners(fabricCanvas);
-        }
+    //     // 为 canvas 添加事件监听器
+    //     if (window.initializeCanvasEventListeners) {
+    //         window.initializeCanvasEventListeners(fabricCanvas);
+    //     }
 
-        // 将 Canvas 实例与 DOM 元素关联
-        mainCanvasElement.__fabricCanvas = fabricCanvas;
-        mainCanvasElement.__viewId = view.id;
+    //     // 将 Canvas 实例与 DOM 元素关联
+    //     mainCanvasElement.__fabricCanvas = fabricCanvas;
+    //     mainCanvasElement.__viewId = view.id;
 
-        // 使用 CanvasManager 管理 canvas 实例
-        if (window.CanvasManager) {
-            // 将 canvas 实例注册到 CanvasManager
-            window.CanvasManager._canvasMap[view.id] = fabricCanvas;
-            if (store.activeViewId === view.id) {
-                window.CanvasManager.setActiveCanvas(view.id);
-            }
-        }
+    //     // 使用 CanvasManager 管理 canvas 实例
+    //     if (window.CanvasManager) {
+    //         // 将 canvas 实例注册到 CanvasManager
+    //         window.CanvasManager._canvasMap[view.id] = fabricCanvas;
+    //         if (store.activeViewId === view.id) {
+    //             window.CanvasManager.setActiveCanvas(view.id);
+    //         }
+    //     }
 
-        // 设置其他 canvas 层的尺寸
-        const shadowLayer = document.getElementById(`shadowLayer-${view.id}`);
-        const colorLayer = document.getElementById(`colorLayer-${view.id}`);
-        const boundaryLayer = document.getElementById(`boundaryLayer-${view.id}`);
+    //     // 设置其他 canvas 层的尺寸
+    //     const shadowLayer = document.getElementById(`shadowLayer-${view.id}`);
+    //     const colorLayer = document.getElementById(`colorLayer-${view.id}`);
+    //     const boundaryLayer = document.getElementById(`boundaryLayer-${view.id}`);
 
-        [shadowLayer, colorLayer, boundaryLayer].forEach(canvas => {
-            if (canvas) {
-                canvas.width = canvasWidth;
-                canvas.height = canvasHeight;
-                canvas.style.width = canvasWidth + 'px';
-                canvas.style.height = canvasHeight + 'px';
-            }
-        });
+    //     [shadowLayer, colorLayer, boundaryLayer].forEach(canvas => {
+    //         if (canvas) {
+    //             canvas.width = canvasWidth;
+    //             canvas.height = canvasHeight;
+    //             canvas.style.width = canvasWidth + 'px';
+    //             canvas.style.height = canvasHeight + 'px';
+    //         }
+    //     });
 
-        // 如果是第一个视图，设置为全局 canvas
-        if (store.activeViewId === view.id) {
-            window.canvas = fabricCanvas;
-            window.fabricCanvas = fabricCanvas;
-        }
+    //     // 如果是第一个视图，设置为全局 canvas
+    //     if (store.activeViewId === view.id) {
+    //         window.canvas = fabricCanvas;
+    //         window.fabricCanvas = fabricCanvas;
+    //     }
 
-        console.log('Canvas initialized for view:', view.name);
+    //     console.log('Canvas initialized for view:', view.name);
 
-        // 为所有视图绘制边界
-        setTimeout(() => {
-            if (window.drawBoundaryForAllViews) {
-                window.drawBoundaryForAllViews();
-            }
-        }, 100);
-    }
+    //     // 为所有视图绘制边界
+    //     setTimeout(() => {
+    //         if (window.drawBoundaryForAllViews) {
+    //             window.drawBoundaryForAllViews();
+    //         }
+    //     }, 100);
+    // }
 </script>
