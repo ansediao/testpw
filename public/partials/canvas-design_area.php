@@ -71,6 +71,148 @@ if ($first_image_url) {
 
 
 <script>
+    /**
+     * 将 API 中的 anchorPoint 字符串转换为 Fabric.js 的 originX 和 originY。
+     * @param {string} anchorPoint - 例如 "top-left", "center"。
+     * @returns {{originX: string, originY: string}} Fabric.js 的原点对象。
+     */
+    function getOriginFromAnchorPoint(anchorPoint) {
+        const [y, x] = anchorPoint.split('-');
+        const originMap = {
+            top: 'top',
+            center: 'center',
+            bottom: 'bottom',
+            left: 'left',
+            right: 'right',
+        };
+        return {
+            originX: originMap[x || 'center'],
+            originY: originMap[y]
+        };
+    }
+
+    /**
+     * 辅助函数，用于从图层数据对象创建一个 Fabric.js 对象。
+     * @param {object} layer - 来自 API 的单个图层对象。
+     * @returns {Promise<fabric.Object|null>} 一个 Promise，如果图层无法创建，则解析为 fabric 对象或 null。
+     */
+    function createFabricObjectFromLayer(layer) {
+        return new Promise((resolve, reject) => {
+            const data = layer.layer_data;
+            const controls = data.controls;
+            const position = data.position;
+
+            switch (layer.type) {
+                case 'image':
+                    if (!data.content.imageURL) {
+                        console.warn(`因缺少 imageURL，正在跳过图片图层 "${layer.name}"。`);
+                        resolve(null);
+                        return;
+                    }
+
+                    fabric.Image.fromURL(data.content.imageURL, (img) => {
+                        const origins = getOriginFromAnchorPoint(position.anchorPoint || 'top-left');
+
+                        img.set({
+                            left: position.coordinates.x,
+                            top: position.coordinates.y,
+                            angle: position.rotation,
+                            originX: origins.originX,
+                            originY: origins.originY,
+                            width: data.dimensions.layerSize.width,
+                            height: data.dimensions.layerSize.height,
+                            opacity: data.content.opacity / 100,
+                            selectable: controls.movable,
+                            evented: controls.movable,
+                            lockRotation: !controls.rotatable,
+                            lockScalingX: !controls.scalable,
+                            lockScalingY: !controls.scalable,
+                            hasControls: controls.movable && controls.scalable,
+                            hasBorders: controls.movable,
+                            name: layer.name
+                        });
+                        resolve(img);
+                    }, {
+                        crossOrigin: 'anonymous'
+                    });
+                    break;
+
+                default:
+                    console.warn(`未知的图层类型: "${layer.type}" (图层名: "${layer.name}")。`);
+                    resolve(null);
+                    break;
+            }
+        });
+    }
+
+    /**
+     * 将单个图层对象添加到指定的 Fabric.js 画布实例上。
+     * @param {fabric.Canvas} canvas - Fabric.js 的画布实例。
+     * @param {object} layer - 要渲染的单个图层对象。
+     * @returns {Promise<fabric.Object|null>} 返回创建的 fabric 对象。
+     */
+    async function renderLayer(canvas, layer) {
+        if (!canvas || !layer) {
+            console.error("渲染单个图层需要有效的画布实例和图层数据。");
+            return null;
+        }
+        try {
+            const fabricObject = await createFabricObjectFromLayer(layer);
+            if (fabricObject) {
+                canvas.add(fabricObject);
+                console.log(`图层 "${layer.name}" 已被添加到画布。`);
+                return fabricObject;
+            }
+            return null;
+        } catch (error) {
+            console.error(`渲染图层 "${layer.name}" 时发生错误:`, error);
+            return null;
+        }
+    }
+
+    /**
+     * 主函数，通过调用 renderLayer 来将视图中的所有图层批量渲染到 Fabric.js 画布上。
+     * @param {string} canvasId - HTML canvas 元素的 ID。
+     * @param {object} viewData - 来自 API 的包含 layer_config 的视图数据对象。
+     * @returns {Promise<fabric.Canvas|null>} 一个 Promise，解析为创建好的 Fabric.js 画布实例或 null。
+     */
+    async function renderView(canvasId, viewData) {
+        // 打印输出 viewData
+        // console.log('viewData:', viewData);
+
+
+        const layerConfig = viewData?.layer_config;
+        if (!layerConfig || !layerConfig.layers || layerConfig.layers.length === 0) {
+            console.error("未在视图数据中找到有效的图层配置进行渲染。");
+            return null;
+        }
+
+        const layers = layerConfig.layers;
+        const canvasWidth = layers[0].layer_data.dimensions.contentArea.width;
+        const canvasHeight = layers[0].layer_data.dimensions.contentArea.height;
+
+        const canvas = new fabric.Canvas(canvasId, {
+            width: canvasWidth,
+            height: canvasHeight,
+            backgroundColor: '#f0f0f0',
+        });
+
+        try {
+            const sortedLayers = [...layers].sort((a, b) => a.sort_order - b.sort_order);
+
+            for (const layer of sortedLayers) {
+                await renderLayer(canvas, layer);
+            }
+
+            canvas.renderAll();
+            console.log(`画布 #${canvasId} 上的所有图层已成功渲染。 ✅`);
+            return canvas;
+        } catch (error) {
+            console.error(`在画布 #${canvasId} 上渲染图层时发生错误:`, error);
+            return null;
+        }
+    }
+
     // 多视图 canvas 初始化
     document.addEventListener('DOMContentLoaded', function() {
         // 等待 Pinia store 可用
@@ -86,12 +228,12 @@ if ($first_image_url) {
         }
         waitForStore();
     });
-    
+
     function initializeMultiViewCanvases(store) {
         console.log('Initializing multi-view canvases');
-        
+
         let isInitialized = false;
-        
+
         // 监听视图数据变化
         store.$subscribe((mutation, state) => {
             if (mutation.storeId === 'canvas' && state.views && state.views.length > 0 && !isInitialized) {
@@ -99,26 +241,26 @@ if ($first_image_url) {
                 isInitialized = true;
             }
         });
-        
+
         // 如果视图数据已经存在，直接创建
         if (store.views && store.views.length > 0 && !isInitialized) {
             createViewContainers(store.views, store);
             isInitialized = true;
         }
     }
-    
+
     function createViewContainers(views, store) {
         console.log('Creating view containers for views:', views);
-        
+
         const multiViewContainer = document.getElementById('multi-view-container');
         if (!multiViewContainer) {
             console.error('Multi-view container not found');
             return;
         }
-        
+
         // 清空现有容器
         multiViewContainer.innerHTML = '';
-        
+
         views.forEach((view, index) => {
             // 创建视图容器
             const viewContainer = document.createElement('div');
@@ -130,72 +272,72 @@ if ($first_image_url) {
                 height: 100%;
                 display: ${index === 0 ? 'block' : 'none'};
             `;
-            
+
+//  <div class="canvas-wrapper" id="shadowWrapper-${view.id}">
+//                     <canvas id="shadowLayer-${view.id}"
+//                         data-color-image="https://promowares-cloud-storage.s3.amazonaws.com/uploads/1754962751517847000-ds.png"
+//                         data-img-width="667"
+//                         data-img-height="500"
+//                         style="position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
+//                 </div>
+                
+//                 <div class="canvas-wrapper" id="colorWrapper-${view.id}">
+//                     <canvas id="colorLayer-${view.id}"
+//                         data-img-width="667"
+//                         data-img-height="500"
+//                         data-product-image="https://promowares-cloud-storage.s3.amazonaws.com/uploads/1754962801560791000-gytc.png"
+//                         style="position: absolute; top: 0; left: 0; z-index: 2;"></canvas>
+//                 </div>
+
+//   <div class="canvas-wrapper" id="boundaryWrapper-${view.id}">
+//                     <canvas id="boundaryLayer-${view.id}"
+//                        
+//                         style="position: absolute; top: 0; left: 0; z-index: 10; pointer-events: none;"></canvas>
+//                 </div>
+
             // 创建 canvas 元素
             const canvasHtml = `
-                <div class="canvas-wrapper" id="shadowWrapper-${view.id}">
-                    <canvas id="shadowLayer-${view.id}"
-                        data-color-image="https://promowares-cloud-storage.s3.amazonaws.com/uploads/1754962751517847000-ds.png"
-                        data-img-width="667"
-                        data-img-height="500"
-                        style="position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
-                </div>
-                
-                <div class="canvas-wrapper" id="colorWrapper-${view.id}">
-                    <canvas id="colorLayer-${view.id}"
-                        data-img-width="667"
-                        data-img-height="500"
-                        data-product-image="https://promowares-cloud-storage.s3.amazonaws.com/uploads/1754962801560791000-gytc.png"
-                        style="position: absolute; top: 0; left: 0; z-index: 2;"></canvas>
-                </div>
+               
                 
                 <div class="canvas-wrapper" id="mainWrapper-${view.id}">
-                    <canvas id="mainCanvas-${view.id}"
-                        data-img-width="<?php echo esc_attr($first_image_width); ?>"
-                        data-img-height="<?php echo esc_attr($first_image_height); ?>"
-                        style="position: absolute; top: 0; left: 0; z-index: 3;"></canvas>
+                    <canvas id="mainCanvas-${view.id}"></canvas>
                 </div>
                 
-                <div class="canvas-wrapper" id="boundaryWrapper-${view.id}">
-                    <canvas id="boundaryLayer-${view.id}"
-                        data-img-width="<?php echo esc_attr($first_image_width); ?>"
-                        data-img-height="<?php echo esc_attr($first_image_height); ?>"
-                        style="position: absolute; top: 0; left: 0; z-index: 10; pointer-events: none;"></canvas>
-                </div>
+              
             `;
-            
+
             viewContainer.innerHTML = canvasHtml;
             multiViewContainer.appendChild(viewContainer);
-            
+
             // 初始化该视图的 Fabric.js canvas
-            setTimeout(() => {
-                initializeViewCanvas(view, store);
+            setTimeout(async () => {
+                // initializeViewCanvas(view, store);
+                await renderView(`mainCanvas-${view.id}`, view.data);
             }, 100);
         });
     }
-    
+
     function initializeViewCanvas(view, store) {
-        console.log('Initializing canvas for view:', view.name);
-        
+
         const mainCanvasId = `mainCanvas-${view.id}`;
         const mainCanvasElement = document.getElementById(mainCanvasId);
-        
+
         if (!mainCanvasElement) {
             console.error('Canvas element not found:', mainCanvasId);
             return;
         }
-        
+
         // 设置 canvas 尺寸为 400x300
         const canvasWidth = 667;
         const canvasHeight = 500;
-        
+
         // 创建 Fabric.js canvas 实例
         const fabricCanvas = new fabric.Canvas(mainCanvasId, {
             width: canvasWidth,
             height: canvasHeight,
             // backgroundColor: '#ffffff'
         });
-        
+
         // 在右上角添加视图名称文本
         const viewNameText = new fabric.Text(view.name, {
             left: canvasWidth - 10,
@@ -208,19 +350,19 @@ if ($first_image_url) {
             originX: 'right',
             originY: 'top'
         });
-        
+
         fabricCanvas.add(viewNameText);
         fabricCanvas.renderAll();
-        
+
         // 为 canvas 添加事件监听器
         if (window.initializeCanvasEventListeners) {
             window.initializeCanvasEventListeners(fabricCanvas);
         }
-        
+
         // 将 Canvas 实例与 DOM 元素关联
         mainCanvasElement.__fabricCanvas = fabricCanvas;
         mainCanvasElement.__viewId = view.id;
-        
+
         // 使用 CanvasManager 管理 canvas 实例
         if (window.CanvasManager) {
             // 将 canvas 实例注册到 CanvasManager
@@ -229,12 +371,12 @@ if ($first_image_url) {
                 window.CanvasManager.setActiveCanvas(view.id);
             }
         }
-        
+
         // 设置其他 canvas 层的尺寸
         const shadowLayer = document.getElementById(`shadowLayer-${view.id}`);
         const colorLayer = document.getElementById(`colorLayer-${view.id}`);
         const boundaryLayer = document.getElementById(`boundaryLayer-${view.id}`);
-        
+
         [shadowLayer, colorLayer, boundaryLayer].forEach(canvas => {
             if (canvas) {
                 canvas.width = canvasWidth;
@@ -243,15 +385,15 @@ if ($first_image_url) {
                 canvas.style.height = canvasHeight + 'px';
             }
         });
-        
+
         // 如果是第一个视图，设置为全局 canvas
         if (store.activeViewId === view.id) {
             window.canvas = fabricCanvas;
             window.fabricCanvas = fabricCanvas;
         }
-        
+
         console.log('Canvas initialized for view:', view.name);
-        
+
         // 为所有视图绘制边界
         setTimeout(() => {
             if (window.drawBoundaryForAllViews) {
