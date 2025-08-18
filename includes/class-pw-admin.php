@@ -167,6 +167,8 @@ class Pw_Admin {
 		// Register AJAX handlers
 		$this->loader->add_action( 'wp_ajax_pw_add_category', $plugin_admin, 'handle_add_category' );
 		$this->loader->add_action( 'wp_ajax_nopriv_pw_add_category', $plugin_admin, 'handle_add_category' );
+		$this->loader->add_action( 'wp_ajax_pw_get_category_settings', $plugin_admin, 'handle_get_category_settings' );
+		$this->loader->add_action( 'wp_ajax_nopriv_pw_get_category_settings', $plugin_admin, 'handle_get_category_settings' );
 		$this->loader->add_action( 'wp_ajax_pw_update_category_settings', $plugin_admin, 'handle_update_category_settings' );
 		$this->loader->add_action( 'wp_ajax_nopriv_pw_update_category_settings', $plugin_admin, 'handle_update_category_settings' );
 		$this->loader->add_action( 'wp_ajax_pw_delete_category', $plugin_admin, 'handle_delete_category' );
@@ -182,6 +184,9 @@ class Pw_Admin {
 		
 		// Register product request form handler
 		$this->loader->add_action( 'wp_ajax_pw_submit_product_request', $plugin_admin, 'handle_product_request_submission' );
+		
+		// Register bulk delete designs handler
+		$this->loader->add_action( 'wp_ajax_pw_bulk_delete_designs', $plugin_admin, 'handle_bulk_delete_designs' );
 
 	}
 
