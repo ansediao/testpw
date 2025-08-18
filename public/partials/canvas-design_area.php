@@ -176,11 +176,11 @@ if ($first_image_url) {
      * @param {object} viewData - 来自 API 的包含 layer_config 的视图数据对象。
      * @returns {Promise<fabric.Canvas|null>} 一个 Promise，解析为创建好的 Fabric.js 画布实例或 null。
      */
-    async function renderView(canvasId, viewData) {
+    async function renderView(canvasId, view,store) {
         // 打印输出 viewData
-        // console.log('viewData:', viewData);
+        
 
-
+        const viewData = view.data;
         const layerConfig = viewData?.layer_config;
         if (!layerConfig || !layerConfig.layers || layerConfig.layers.length === 0) {
             console.error("未在视图数据中找到有效的图层配置进行渲染。");
@@ -196,6 +196,32 @@ if ($first_image_url) {
             height: canvasHeight,
             backgroundColor: '#f0f0f0',
         });
+
+        // 为 canvas 添加事件监听器
+        if (window.initializeCanvasEventListeners) {
+            window.initializeCanvasEventListeners(canvas);
+        }
+
+        // 将 Canvas 实例与 DOM 元素关联
+        const mainCanvasElement = document.getElementById(canvasId);
+        if (mainCanvasElement) {
+            mainCanvasElement.__fabricCanvas = canvas;
+            mainCanvasElement.__viewId = view.id;
+        }
+
+        // 使用 CanvasManager 管理 canvas 实例
+        if (window.CanvasManager) {
+            // 将 canvas 实例注册到 CanvasManager
+            window.CanvasManager._canvasMap[view.id] = canvas;
+            if (store.activeViewId === view.id) {
+                window.CanvasManager.setActiveCanvas(view.id);
+            }
+        }
+        // 如果是第一个视图，设置为全局 canvas
+        if (store.activeViewId === view.id) {
+            window.canvas = canvas;
+            window.fabricCanvas = canvas;
+        }
 
         try {
             const sortedLayers = [...layers].sort((a, b) => a.sort_order - b.sort_order);
@@ -311,8 +337,9 @@ if ($first_image_url) {
 
             // 初始化该视图的 Fabric.js canvas
             setTimeout(async () => {
-                // initializeViewCanvas(view, store);
-                await renderView(`mainCanvas-${view.id}`, view.data);
+                //  initializeViewCanvas(view, store);
+                await renderView(`mainCanvas-${view.id}`, view, store);
+
             }, 100);
         });
     }
