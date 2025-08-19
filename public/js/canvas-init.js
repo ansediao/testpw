@@ -166,7 +166,12 @@
         const zoomValue = document.getElementById('zoomValue');
 
         if (zoomSlider && zoomValue) {
-            let currentZoom = 100;
+            let currentZoom = 95;
+            
+            // 设置初始值
+            zoomSlider.value = currentZoom;
+            zoomValue.textContent = currentZoom + '%';
+            updateCanvasZoom(currentZoom / 100);
             
             zoomSlider.addEventListener('input', function() {
                 currentZoom = parseInt(this.value);
@@ -272,9 +277,14 @@ const zoomValue = document.getElementById('zoomValue');
 // 获取画布容器，兼容多视图和单视图模式
 let canvasContainer = document.querySelector('.multi-view-container') || document.querySelector('.canvas-container');
 // 初始化缩放值
-let currentZoom = 100;
+let currentZoom = 95;
 // 监听滑块变化
 if (zoomSlider && zoomValue) {
+    // 设置初始值
+    zoomSlider.value = currentZoom;
+    zoomValue.textContent = currentZoom + '%';
+    updateCanvasZoom();
+    
     zoomSlider.addEventListener('input', function () {
         currentZoom = parseInt(this.value);
         zoomValue.textContent = currentZoom + '%';
