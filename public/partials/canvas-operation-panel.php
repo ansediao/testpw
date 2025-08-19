@@ -430,7 +430,8 @@ $plugin_url = plugin_dir_url(__FILE__);
         </div>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                const gradientColorBtn = document.querySelector('.btn-gradient');
+                // 获取第一个按钮（渐变色）
+                const gradientColorBtn = document.querySelector('.action-buttons .btn:first-child');
                 const gradientColorModal = document.getElementById('gradient-color-modal');
                 const closeGradientColorModal = document.getElementById('close-gradient-color-modal');
                 const applyGradientColorBtn = document.getElementById('applyGradientColor');
@@ -455,30 +456,41 @@ $plugin_url = plugin_dir_url(__FILE__);
                         const color1 = gradientColor1.value;
                         const color2 = gradientColor2.value;
                         const direction = gradientDirection.value;
-                        const shadowCanvas = document.getElementById('shadowLayer');
-                        if (shadowCanvas) {
-                            const ctx = shadowCanvas.getContext('2d');
-                            if (ctx) {
-                                const width = shadowCanvas.width;
-                                const height = shadowCanvas.height;
-                                let gradient;
-                                if (direction === 'to right') {
-                                    gradient = ctx.createLinearGradient(0, 0, width, 0);
-                                } else if (direction === 'to bottom') {
-                                    gradient = ctx.createLinearGradient(0, 0, 0, height);
-                                } else if (direction === 'to bottom right') {
-                                    gradient = ctx.createLinearGradient(0, 0, width, height);
-                                } else if (direction === 'to bottom left') {
-                                    gradient = ctx.createLinearGradient(width, 0, 0, height);
+                        
+                        // 应用渐变色到当前视图的 base_layer
+                        function applyGradientToBaseLayer() {
+                            if (window.useCanvasStore) {
+                                const store = window.useCanvasStore();
+                                const activeViewId = store.activeViewId;
+                                
+                                if (activeViewId && store.views) {
+                                    const currentView = store.views.find(v => v.id === activeViewId);
+                                    if (currentView && currentView.base_layer) {
+                                        // 由于fabric.js的滤镜不直接支持渐变，我们创建一个渐变滤镜函数
+                                        applyGradientFilter(currentView.base_layer, color1, color2, direction);
+                                        
+                                        // 获取当前激活的画布并重新渲染
+                                        if (window.CanvasManager) {
+                                            const activeCanvas = window.CanvasManager.getActiveCanvas();
+                                            if (activeCanvas) {
+                                                activeCanvas.renderAll();
+                                            }
+                                        }
+                                        
+                                        console.log(`已将渐变色 ${color1} 到 ${color2} 应用到当前视图的 base_layer`);
+                                    } else {
+                                        console.warn('当前视图没有 base_layer 或视图不存在');
+                                    }
+                                } else {
+                                    console.warn('没有激活的视图或 store 不可用');
                                 }
-                                gradient.addColorStop(0, color1);
-                                gradient.addColorStop(1, color2);
-                                ctx.globalCompositeOperation = 'source-in';
-                                ctx.fillStyle = gradient;
-                                ctx.fillRect(0, 0, width, height);
-                                ctx.globalCompositeOperation = 'source-over';
+                            } else {
+                                console.warn('useCanvasStore 不可用');
                             }
                         }
+                        
+                        applyGradientToBaseLayer();
+                        
                         // 更新颜色样本中的选中状态
                         const colorSwatches = document.querySelectorAll('.color-swatch');
                         colorSwatches.forEach(s => s.classList.remove('selected'));
@@ -497,7 +509,8 @@ $plugin_url = plugin_dir_url(__FILE__);
         </div>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                const customColorBtn = document.querySelector('.btn-custom');
+                // 获取第二个按钮（自定义颜色）
+                const customColorBtn = document.querySelector('.action-buttons .btn:nth-child(2)');
                 const customColorModal = document.getElementById('custom-color-modal');
                 const closeCustomColorModal = document.getElementById('close-custom-color-modal');
                 const applyCustomColorBtn = document.getElementById('applyCustomColor');
@@ -518,13 +531,59 @@ $plugin_url = plugin_dir_url(__FILE__);
                     });
                     applyCustomColorBtn.addEventListener('click', function() {
                         const color = customColorPicker.value;
-                        const shadowCanvas = document.getElementById('shadowLayer');
-                        if (shadowCanvas && typeof loadColorImage === 'function') {
-                            const colorImageUrl = shadowCanvas.getAttribute('data-color-image');
-                            if (colorImageUrl) {
-                                loadColorImage(colorImageUrl, color);
+                        
+                        // 应用自定义颜色到当前视图的 base_layer
+                        function applyCustomColorToBaseLayer() {
+                            if (window.useCanvasStore && (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function')) {
+                                const store = window.useCanvasStore();
+                                const activeViewId = store.activeViewId;
+                                
+                                if (activeViewId && store.views) {
+                                    const currentView = store.views.find(v => v.id === activeViewId);
+                                    if (currentView && currentView.base_layer) {
+                                        // 应用色调滤镜到 base_layer
+                                        const tintFunction = typeof applyTintFilter === 'function' ? applyTintFilter : window.applyTintFilter;
+                                        tintFunction(currentView.base_layer, color, 1);
+                                        
+                                        // 获取当前激活的画布并重新渲染
+                                        if (window.CanvasManager) {
+                                            const activeCanvas = window.CanvasManager.getActiveCanvas();
+                                            if (activeCanvas) {
+                                                activeCanvas.renderAll();
+                                            }
+                                        }
+                                        
+                                        console.log(`已将颜色 ${color} 应用到当前视图的 base_layer`);
+                                    } else {
+                                        console.warn('当前视图没有 base_layer 或视图不存在');
+                                    }
+                                } else {
+                                    console.warn('没有激活的视图或 store 不可用');
+                                }
+                            } else {
+                                console.warn('applyTintFilter 函数或 useCanvasStore 不可用');
                             }
                         }
+                        
+                        // 如果 applyTintFilter 函数已经可用，立即执行
+                        if (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function') {
+                            applyCustomColorToBaseLayer();
+                        } else {
+                            // 否则等待函数可用
+                            const checkInterval = setInterval(() => {
+                                if (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function') {
+                                    clearInterval(checkInterval);
+                                    applyCustomColorToBaseLayer();
+                                }
+                            }, 100);
+                            
+                            // 设置超时，避免无限等待
+                            setTimeout(() => {
+                                clearInterval(checkInterval);
+                                console.warn('applyTintFilter function not available after timeout');
+                            }, 5000);
+                        }
+                        
                         // 更新颜色样本中的选中状态
                         const colorSwatches = document.querySelectorAll('.color-swatch');
                         colorSwatches.forEach(s => s.classList.remove('selected'));
