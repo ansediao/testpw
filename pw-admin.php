@@ -189,6 +189,45 @@ add_action('wp_footer', 'add_custom_cart_js2');
 
 
 
+// 在后台产品列表中隐藏所有子产品
+add_action('pre_get_posts', function ($query) {
+    // 只在后台产品列表页面执行
+    if (!is_admin() || !$query->is_main_query()) {
+        return;
+    }
+    
+    // 确保是产品列表页面
+    if ($query->get('post_type') !== 'product') {
+        return;
+    }
+    
+    // 获取所有父产品的子产品ID列表
+    global $wpdb;
+    $child_product_ids = $wpdb->get_col(
+        "SELECT DISTINCT meta_value 
+         FROM {$wpdb->postmeta} 
+         WHERE meta_key = '_children' 
+         AND meta_value != ''"
+    );
+    
+    // 将序列化的数组转换为单个ID数组
+    $all_child_ids = array();
+    foreach ($child_product_ids as $serialized_ids) {
+        $ids = maybe_unserialize($serialized_ids);
+        if (is_array($ids)) {
+            $all_child_ids = array_merge($all_child_ids, $ids);
+        }
+    }
+    
+    // 去重并确保都是数字
+    $all_child_ids = array_unique(array_filter(array_map('intval', $all_child_ids)));
+    
+    // 如果有子产品ID，则排除它们
+    if (!empty($all_child_ids)) {
+        $query->set('post__not_in', $all_child_ids);
+    }
+});
+
 add_action('manage_product_posts_custom_column', function ($column, $post_id) {
     if ($column === 'name') {
         $product = wc_get_product($post_id);
