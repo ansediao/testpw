@@ -177,33 +177,19 @@
     }
 
     /**
-     * 更新 Canvas 缩放 - 控制当前视图的 canvas-wrapper
+     * 更新 Canvas 缩放 - 控制 multi-view-container
      * @param {number} scale - 缩放比例
      */
     function updateCanvasZoom(scale) {
-        // 获取当前活跃的视图容器
-        const activeViewContainer = document.querySelector('.view-container[style*="display: block"], .view-container:not([style*="display: none"])');
+        // 获取 multi-view-container 作为缩放控制对象
+        const multiViewContainer = document.getElementById('multi-view-container');
         
-        if (activeViewContainer) {
-            // 获取当前视图中的所有 canvas-wrapper
-            const canvasWrappers = activeViewContainer.querySelectorAll('.canvas-wrapper');
-            
-            canvasWrappers.forEach(wrapper => {
-                wrapper.style.transform = `scale(${scale})`;
-                wrapper.style.transformOrigin = 'center center';
-            });
+        if (multiViewContainer) {
+            // 应用缩放到 multi-view-container
+            multiViewContainer.style.transform = `scale(${scale})`;
+            multiViewContainer.style.transformOrigin = 'top left';
         } else {
-            // 如果没有找到活跃视图，则控制所有可见的 canvas-wrapper
-            const canvasWrappers = document.querySelectorAll('.canvas-wrapper');
-            
-            canvasWrappers.forEach(wrapper => {
-                // 检查 wrapper 是否在可见的容器中
-                const parentView = wrapper.closest('.view-container');
-                if (!parentView || getComputedStyle(parentView).display !== 'none') {
-                    wrapper.style.transform = `scale(${scale})`;
-                    wrapper.style.transformOrigin = 'center center';
-                }
-            });
+            console.warn('multi-view-container not found for zoom control');
         }
     }
 
@@ -298,49 +284,22 @@ if (zoomSlider && zoomValue) {
 } else {
     console.error('Zoom slider or value display element not found');
 }
-// 更新画布缩放 - 控制当前视图的 canvas-wrapper
+// 更新画布缩放 - 控制 multi-view-container
 function updateCanvasZoom() { 
     // 计算缩放比例
     const scale = currentZoom / 100;
     
-    // 获取当前活跃的视图容器
-    const activeViewContainer = document.querySelector('.view-container[style*="display: block"], .view-container:not([style*="display: none"])');
+    // 获取 multi-view-container 作为缩放控制对象
+    const multiViewContainer = document.getElementById('multi-view-container');
     
-    if (activeViewContainer) {
-        // 获取当前视图中的所有 canvas-wrapper
-        const canvasWrappers = activeViewContainer.querySelectorAll('.canvas-wrapper');
+    if (multiViewContainer) {
+        // 应用缩放到 multi-view-container
+        multiViewContainer.style.transform = `scale(${scale})`;
+        multiViewContainer.style.transformOrigin = 'top left';
         
-        if (canvasWrappers.length === 0) {
-            console.warn('No canvas-wrapper elements found in active view');
-            return;
-        }
-        
-        // 应用缩放到所有 canvas-wrapper
-        canvasWrappers.forEach(wrapper => {
-            wrapper.style.transform = `scale(${scale})`;
-            wrapper.style.transformOrigin = 'center center';
-        });
-        
-        console.log('当前视图的 canvas-wrapper 缩放比例更新为：', scale);
+        console.log('multi-view-container 缩放比例更新为：', scale);
     } else {
-        // 如果没有找到活跃视图，则控制所有可见的 canvas-wrapper
-        const canvasWrappers = document.querySelectorAll('.canvas-wrapper');
-        
-        if (canvasWrappers.length === 0) {
-            console.warn('No canvas-wrapper elements found');
-            return;
-        }
-        
-        canvasWrappers.forEach(wrapper => {
-            // 检查 wrapper 是否在可见的容器中
-            const parentView = wrapper.closest('.view-container');
-            if (!parentView || getComputedStyle(parentView).display !== 'none') {
-                wrapper.style.transform = `scale(${scale})`;
-                wrapper.style.transformOrigin = 'center center';
-            }
-        });
-        
-        console.log('所有可见 canvas-wrapper 缩放比例更新为：', scale);
+        console.warn('multi-view-container not found for zoom control');
     }
 }
 
