@@ -344,6 +344,57 @@ $plugin_url = plugin_dir_url(__FILE__);
                         swatch.classList.add('selected');
                         const color = swatch.getAttribute('data-color');
 
+                        // 获取当前视图的 base_layer 并应用 tint 滤镜
+                        function applyColorTint() {
+                            if (window.useCanvasStore && (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function')) {
+                                const store = window.useCanvasStore();
+                                const activeViewId = store.activeViewId;
+                                
+                                if (activeViewId && store.views) {
+                                    const currentView = store.views.find(v => v.id === activeViewId);
+                                    if (currentView && currentView.base_layer) {
+                                        // 应用色调滤镜到 base_layer
+                                        const tintFunction = typeof applyTintFilter === 'function' ? applyTintFilter : window.applyTintFilter;
+                                        tintFunction(currentView.base_layer, color, 1);
+                                        
+                                        // 获取当前激活的画布并重新渲染
+                                        if (window.CanvasManager) {
+                                            const activeCanvas = window.CanvasManager.getActiveCanvas();
+                                            if (activeCanvas) {
+                                                activeCanvas.renderAll();
+                                            }
+                                        }
+                                        
+                                        console.log(`已将颜色 ${color} 应用到当前视图的 base_layer`);
+                                    } else {
+                                        console.warn('当前视图没有 base_layer 或视图不存在');
+                                    }
+                                } else {
+                                    console.warn('没有激活的视图或 store 不可用');
+                                }
+                            } else {
+                                console.warn('applyTintFilter 函数或 useCanvasStore 不可用');
+                            }
+                        }
+                        
+                        // 如果 applyTintFilter 函数已经可用，立即执行
+                        if (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function') {
+                            applyColorTint();
+                        } else {
+                            // 否则等待函数可用
+                            const checkInterval = setInterval(() => {
+                                if (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function') {
+                                    clearInterval(checkInterval);
+                                    applyColorTint();
+                                }
+                            }, 100);
+                            
+                            // 设置超时，避免无限等待
+                            setTimeout(() => {
+                                clearInterval(checkInterval);
+                                console.warn('applyTintFilter function not available after timeout');
+                            }, 5000);
+                        }
                     });
                 });
             });

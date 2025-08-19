@@ -164,6 +164,9 @@ if ($first_image_url) {
         }
     }
 
+    // 将函数暴露到全局作用域，供其他模块使用
+    window.applyTintFilter = applyTintFilter;
+
     /**
      * 将单个图层对象添加到指定的 Fabric.js 画布实例上。
      * @param {fabric.Canvas} canvas - Fabric.js 的画布实例。
