@@ -164,8 +164,6 @@
     function initializeZoom() {
         const zoomSlider = document.getElementById('zoomSlider');
         const zoomValue = document.getElementById('zoomValue');
-        const canvasContainer = document.querySelector('.multi-view-container') || 
-                               document.querySelector('.canvas-container');
 
         if (zoomSlider && zoomValue) {
             let currentZoom = 100;
@@ -179,21 +177,33 @@
     }
 
     /**
-     * 更新 Canvas 缩放
+     * 更新 Canvas 缩放 - 控制当前视图的 canvas-wrapper
      * @param {number} scale - 缩放比例
      */
     function updateCanvasZoom(scale) {
-        const canvasContainer = document.querySelector('.multi-view-container') || 
-                               document.querySelector('.canvas-container');
+        // 获取当前活跃的视图容器
+        const activeViewContainer = document.querySelector('.view-container[style*="display: block"], .view-container:not([style*="display: none"])');
         
-        if (canvasContainer) {
-            const canvasElements = canvasContainer.querySelectorAll('canvas');
-            canvasElements.forEach(element => {
-                element.style.transform = `scale(${scale})`;
-                element.style.transformOrigin = 'center center';
-            });
+        if (activeViewContainer) {
+            // 获取当前视图中的所有 canvas-wrapper
+            const canvasWrappers = activeViewContainer.querySelectorAll('.canvas-wrapper');
             
-            canvasContainer.style.height = (600 * scale) + 'px';
+            canvasWrappers.forEach(wrapper => {
+                wrapper.style.transform = `scale(${scale})`;
+                wrapper.style.transformOrigin = 'center center';
+            });
+        } else {
+            // 如果没有找到活跃视图，则控制所有可见的 canvas-wrapper
+            const canvasWrappers = document.querySelectorAll('.canvas-wrapper');
+            
+            canvasWrappers.forEach(wrapper => {
+                // 检查 wrapper 是否在可见的容器中
+                const parentView = wrapper.closest('.view-container');
+                if (!parentView || getComputedStyle(parentView).display !== 'none') {
+                    wrapper.style.transform = `scale(${scale})`;
+                    wrapper.style.transformOrigin = 'center center';
+                }
+            });
         }
     }
 
@@ -288,38 +298,50 @@ if (zoomSlider && zoomValue) {
 } else {
     console.error('Zoom slider or value display element not found');
 }
-// 更新画布缩放
+// 更新画布缩放 - 控制当前视图的 canvas-wrapper
 function updateCanvasZoom() { 
-    // 每次都重新查找画布容器，因为容器可能是动态创建的
-    const currentCanvasContainer = document.querySelector('.multi-view-container') || document.querySelector('.canvas-container');
-    
-    if (!currentCanvasContainer) {
-        console.error('Canvas container not found');
-        return;
-    }
-    
-    // 获取所有画布元素
-    const canvasElements = currentCanvasContainer.querySelectorAll('canvas');
-    
-    if (canvasElements.length === 0) {
-        console.warn('No canvas elements found in container');
-        return;
-    }
-    
     // 计算缩放比例
     const scale = currentZoom / 100;
     
-    // 应用缩放到所有画布元素
-    canvasElements.forEach(canvasElem => {
-        canvasElem.style.transform = `scale(${scale})`;
-        canvasElem.style.transformOrigin = 'center center';
-    });
+    // 获取当前活跃的视图容器
+    const activeViewContainer = document.querySelector('.view-container[style*="display: block"], .view-container:not([style*="display: none"])');
     
-    // 调整容器高度以适应缩放后的画布
-    // 注意：这里假设原始高度为600px，如在HTML中设置的
-    currentCanvasContainer.style.height = (600 * scale) + 'px';
-    
-    console.log('画布缩放比例更新为：', scale);
+    if (activeViewContainer) {
+        // 获取当前视图中的所有 canvas-wrapper
+        const canvasWrappers = activeViewContainer.querySelectorAll('.canvas-wrapper');
+        
+        if (canvasWrappers.length === 0) {
+            console.warn('No canvas-wrapper elements found in active view');
+            return;
+        }
+        
+        // 应用缩放到所有 canvas-wrapper
+        canvasWrappers.forEach(wrapper => {
+            wrapper.style.transform = `scale(${scale})`;
+            wrapper.style.transformOrigin = 'center center';
+        });
+        
+        console.log('当前视图的 canvas-wrapper 缩放比例更新为：', scale);
+    } else {
+        // 如果没有找到活跃视图，则控制所有可见的 canvas-wrapper
+        const canvasWrappers = document.querySelectorAll('.canvas-wrapper');
+        
+        if (canvasWrappers.length === 0) {
+            console.warn('No canvas-wrapper elements found');
+            return;
+        }
+        
+        canvasWrappers.forEach(wrapper => {
+            // 检查 wrapper 是否在可见的容器中
+            const parentView = wrapper.closest('.view-container');
+            if (!parentView || getComputedStyle(parentView).display !== 'none') {
+                wrapper.style.transform = `scale(${scale})`;
+                wrapper.style.transformOrigin = 'center center';
+            }
+        });
+        
+        console.log('所有可见 canvas-wrapper 缩放比例更新为：', scale);
+    }
 }
 
 
