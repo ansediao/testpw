@@ -1,62 +1,45 @@
 // 修改捕获画布内容的函数
 function captureCanvas(includeBoundary = false) {
-    // 获取当前激活视图的canvas元素
-    const canvasElements = getActiveCanvasElements();
-    const activeColorCanvas = canvasElements.colorCanvas;
-    const activeShadowCanvas = canvasElements.shadowCanvas;
+    // 获取当前激活的主画布
     const activeCanvas = getActiveCanvas();
-    
-    // 如果没有找到激活的canvas元素，使用全局变量作为回退
-    const currentColorCanvas = activeColorCanvas || window.colorCanvas;
-    const currentShadowCanvas = activeShadowCanvas || window.shadowCanvas;
     const currentCanvas = activeCanvas || window.canvas || window.fabricCanvas;
     
-    if (!currentColorCanvas) {
-        console.error('Cannot find colorCanvas element');
-        return Promise.resolve(null);
-    }
-    
-    // 创建一个临时画布来合成所有图层
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = currentColorCanvas.width;
-    tempCanvas.height = currentColorCanvas.height;
-    const tempCtx = tempCanvas.getContext('2d');
-    // 首先绘制白色背景
-    tempCtx.fillStyle = '#FFFFFF';
-    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-    // 1. 首先绘制阴影层（颜色图片）
-    if (currentShadowCanvas) {
-        tempCtx.drawImage(currentShadowCanvas, 0, 0 , tempCanvas.width, tempCanvas.height);
-    }
-    // 2. 然后绘制颜色层（产品图片）
-    if (currentColorCanvas) {
-        tempCtx.drawImage(currentColorCanvas, 0, 0 , tempCanvas.width, tempCanvas.height);
-    }
-    // 3. 最后绘制主画布内容（用户添加的文字和图片）
-    // 强制fabric.js画布渲染，确保获取到最新的内容
-    if (currentCanvas) {
-        currentCanvas.renderAll();
-    }
-    // 获取fabric.js画布的数据URL，这样可以保持对象的精确位置和大小
-    const fabricImage = new Image();
-    if (currentCanvas) {
-        fabricImage.src = currentCanvas.toDataURL({
-            format: 'png',
-            quality: 1,
-            multiplier: 1,
-            left: 0,
-            top: 0,
-            width: currentCanvas.width,
-            height: currentCanvas.height
-        });
-    } else {
+    if (!currentCanvas) {
         console.error('Cannot find current canvas instance');
         return Promise.resolve(null);
     }
+    
+    // 强制fabric.js画布渲染，确保获取到最新的内容
+    currentCanvas.renderAll();
+    
+    // 创建一个临时画布
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = currentCanvas.width;
+    tempCanvas.height = currentCanvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    // 绘制白色背景
+    tempCtx.fillStyle = '#FFFFFF';
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    
+    // 获取fabric.js画布的数据URL
+    const fabricImage = new Image();
+    fabricImage.src = currentCanvas.toDataURL({
+        format: 'png',
+        quality: 1,
+        multiplier: 1,
+        left: 0,
+        top: 0,
+        width: currentCanvas.width,
+        height: currentCanvas.height
+    });
+    
     // 等待图片加载完成后再绘制
     return new Promise((resolve) => {
         fabricImage.onload = function () {
+            // 绘制主画布内容
             tempCtx.drawImage(fabricImage, 0, 0);
+            
             // 在最上层绘制纯白色的边界区域
             tempCtx.fillStyle = '#FFFFFF';
             // 上边框
@@ -67,6 +50,7 @@ function captureCanvas(includeBoundary = false) {
             tempCtx.fillRect(0, BOUNDARY_MARGIN, BOUNDARY_MARGIN, tempCanvas.height - 2 * BOUNDARY_MARGIN);
             // 右边框
             tempCtx.fillRect(tempCanvas.width - BOUNDARY_MARGIN, BOUNDARY_MARGIN, BOUNDARY_MARGIN, tempCanvas.height - 2 * BOUNDARY_MARGIN);
+            
             // 如果是PDF导出且需要包含边界标记
             if (includeBoundary) {
                 // 设置虚线样式
@@ -82,11 +66,8 @@ function captureCanvas(includeBoundary = false) {
                     tempCanvas.width - (BOUNDARY_MARGIN * 2),
                     tempCanvas.height - (BOUNDARY_MARGIN * 2)
                 );
-                // 添加边界说明
-                // tempCtx.font = '12px Arial';
-                // tempCtx.fillStyle = 'rgba(255, 0, 0, 0.7)';
-                // tempCtx.fillText('--- 边界线 (不会出现在最终产品上)', 10, tempCanvas.height - 10);
             }
+            
             // 返回处理后的画布
             resolve(tempCanvas.toDataURL('image/png'));
         };
