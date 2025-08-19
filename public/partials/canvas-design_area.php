@@ -319,6 +319,27 @@ if ($first_image_url) {
                 await renderLayer(canvas, layer, store, view);
             }
 
+            // 创建红色遮罩对象
+            const maskWidth = canvasWidth;
+            const maskHeight = canvasHeight;
+            const cutoutWidth = 200;
+            const cutoutHeight = 240;
+            
+            // 创建遮罩路径，中心镂空
+            const maskPath = `M 0 0 L ${maskWidth} 0 L ${maskWidth} ${maskHeight} L 0 ${maskHeight} Z M ${(maskWidth - cutoutWidth) / 2} ${(maskHeight - cutoutHeight) / 2} L ${(maskWidth + cutoutWidth) / 2} ${(maskHeight - cutoutHeight) / 2} L ${(maskWidth + cutoutWidth) / 2} ${(maskHeight + cutoutHeight) / 2} L ${(maskWidth - cutoutWidth) / 2} ${(maskHeight + cutoutHeight) / 2} Z`;
+            
+            const redMask = new fabric.Path(maskPath, {
+                fill: 'rgba(255, 0, 0, 1)',
+                fillRule: 'evenodd',
+                selectable: false,
+                evented: false,
+                excludeFromExport: true,
+                name: 'redMask'
+            });
+            
+            canvas.add(redMask);
+            canvas.bringToFront(redMask);
+
             canvas.renderAll();
             console.log(`画布 #${canvasId} 上的所有图层已成功渲染。 ✅`);
             return canvas;
