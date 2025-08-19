@@ -481,7 +481,12 @@ if ($product_id > 0) {
             viewContainer.style.display = 'block';
           }
 
-          // 更新全局 canvas 引用
+          // 更新CanvasManager的激活画布
+          if (window.CanvasManager) {
+            window.CanvasManager.setActiveCanvas(view.id);
+          }
+          
+          // 获取当前视图的画布实例
           const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(view.id) : null;
           if (canvas) {
             // 取消所有视图上所有元素的选中状态
@@ -494,6 +499,7 @@ if ($product_id > 0) {
               }
             });
 
+            // 更新全局 canvas 引用
             if (window.setGlobalCanvas) {
               window.setGlobalCanvas(canvas);
             } else {
@@ -501,6 +507,7 @@ if ($product_id > 0) {
               window.fabricCanvas = canvas;
             }
 
+            // 强制重新渲染画布
             canvas.renderAll();
           }
 
@@ -625,6 +632,11 @@ if ($product_id > 0) {
             originalViewContainer.style.display = 'block';
           }
 
+          // 更新CanvasManager的激活画布到原始视图
+          if (window.CanvasManager) {
+            window.CanvasManager.setActiveCanvas(originalActiveViewId);
+          }
+          
           const originalCanvas = window.CanvasManager ? window.CanvasManager.getCanvas(originalActiveViewId) : null;
           if (originalCanvas) {
             if (window.setGlobalCanvas) {
