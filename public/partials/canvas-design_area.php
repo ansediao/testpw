@@ -146,12 +146,35 @@ if ($first_image_url) {
     }
 
     /**
+     * 应用色调滤镜到图层对象
+     * @param {fabric.Object} layerObject - 要应用滤镜的图层对象
+     * @param {string} color - 滤镜颜色，默认为红色
+     * @param {number} alpha - 透明度，0-1之间，默认为1
+     */
+    function applyTintFilter(layerObject, color = '#ff0000', alpha = 1) {
+        if (layerObject && typeof layerObject.applyFilters === 'function') {
+            const colorFilter = new fabric.Image.filters.BlendColor({
+                color: color, // 混合颜色
+                mode: 'tint', // 使用 tint 模式实现色调效果
+                alpha: alpha // 透明度: 0-1，值越大色调效果越明显
+            });
+            // 应用滤镜
+            layerObject.filters = [colorFilter];
+            layerObject.applyFilters();
+        }
+    }
+
+    /**
      * 将单个图层对象添加到指定的 Fabric.js 画布实例上。
      * @param {fabric.Canvas} canvas - Fabric.js 的画布实例。
      * @param {object} layer - 要渲染的单个图层对象。
+     * @param {object} store - Pinia store 实例。
+     * @param {object} view - 当前视图对象。
      * @returns {Promise<fabric.Object|null>} 返回创建的 fabric 对象。
      */
-    async function renderLayer(canvas, layer,store) {
+    async function renderLayer(canvas, layer, store, view) {
+
+
 
         if (!canvas || !layer) {
             console.error("渲染单个图层需要有效的画布实例和图层数据。");
@@ -159,23 +182,33 @@ if ($first_image_url) {
         }
         try {
             const fabricObject = await createFabricObjectFromLayer(layer);
-            // 如果 layer.name == "Base Layer"。存入pinia，本视图中
-            if (layer.name == "Base Layer") {
-                store.baseLayer = fabricObject;
+
+            // 如果满足条件（图层名称为 Base Layer），将对象存入 Pinia store
+            if (fabricObject && layer.name === 'Base Layer' && view && store) {
+                // 确保 views 数组和对应的 view 对象存在
+                if (store.views && store.views.length > 0) {
+                    const viewIndex = store.views.findIndex(v => v.id === view.id);
+                    if (viewIndex !== -1) {
+                        // 将 fabricObject 存入 views[view.id].base_layer
+                        if (!store.views[viewIndex].base_layer) {
+                            store.views[viewIndex].base_layer = {};
+                        }
+                        store.views[viewIndex].base_layer = fabricObject;
+                        console.log(`Base Layer 对象已存入 Pinia store: views[${view.id}].base_layer`);
+                        
+                        // 从pinia 中取出这个 图片对象 修改颜色
+                        applyTintFilter(store.views[viewIndex].base_layer, '#ff0000', 1);
+                        // 重新渲染画布以显示滤镜效果
+                    }
+                }
             }
-
-           
-
-
-            
-
 
 
 
 
             if (fabricObject) {
                 canvas.add(fabricObject);
-                console.log(`图层 "${layer.name}" 已被添加到画布。`);
+                console.log(`该图层 "${layer.name}" 已被添加到画布。`);
                 return fabricObject;
             }
             return null;
@@ -191,7 +224,7 @@ if ($first_image_url) {
      * @param {object} viewData - 来自 API 的包含 layer_config 的视图数据对象。
      * @returns {Promise<fabric.Canvas|null>} 一个 Promise，解析为创建好的 Fabric.js 画布实例或 null。
      */
-    async function renderView(canvasId, view,store) {  
+    async function renderView(canvasId, view, store) {
         const viewData = view.data;
         const layerConfig = viewData?.layer_config;
         if (!layerConfig || !layerConfig.layers || layerConfig.layers.length === 0) {
@@ -239,7 +272,7 @@ if ($first_image_url) {
             const sortedLayers = [...layers].sort((a, b) => a.sort_order - b.sort_order);
 
             for (const layer of sortedLayers) {
-                await renderLayer(canvas, layer,store);
+                await renderLayer(canvas, layer, store, view);
             }
 
             canvas.renderAll();
@@ -311,27 +344,27 @@ if ($first_image_url) {
                 display: ${index === 0 ? 'block' : 'none'};
             `;
 
-//  <div class="canvas-wrapper" id="shadowWrapper-${view.id}">
-//                     <canvas id="shadowLayer-${view.id}"
-//                         data-color-image="https://promowares-cloud-storage.s3.amazonaws.com/uploads/1754962751517847000-ds.png"
-//                         data-img-width="667"
-//                         data-img-height="500"
-//                         style="position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
-//                 </div>
-                
-//                 <div class="canvas-wrapper" id="colorWrapper-${view.id}">
-//                     <canvas id="colorLayer-${view.id}"
-//                         data-img-width="667"
-//                         data-img-height="500"
-//                         data-product-image="https://promowares-cloud-storage.s3.amazonaws.com/uploads/1754962801560791000-gytc.png"
-//                         style="position: absolute; top: 0; left: 0; z-index: 2;"></canvas>
-//                 </div>
+            //  <div class="canvas-wrapper" id="shadowWrapper-${view.id}">
+            //                     <canvas id="shadowLayer-${view.id}"
+            //                         data-color-image="https://promowares-cloud-storage.s3.amazonaws.com/uploads/1754962751517847000-ds.png"
+            //                         data-img-width="667"
+            //                         data-img-height="500"
+            //                         style="position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
+            //                 </div>
 
-//   <div class="canvas-wrapper" id="boundaryWrapper-${view.id}">
-//                     <canvas id="boundaryLayer-${view.id}"
-//                        
-//                         style="position: absolute; top: 0; left: 0; z-index: 10; pointer-events: none;"></canvas>
-//                 </div>
+            //                 <div class="canvas-wrapper" id="colorWrapper-${view.id}">
+            //                     <canvas id="colorLayer-${view.id}"
+            //                         data-img-width="667"
+            //                         data-img-height="500"
+            //                         data-product-image="https://promowares-cloud-storage.s3.amazonaws.com/uploads/1754962801560791000-gytc.png"
+            //                         style="position: absolute; top: 0; left: 0; z-index: 2;"></canvas>
+            //                 </div>
+
+            //   <div class="canvas-wrapper" id="boundaryWrapper-${view.id}">
+            //                     <canvas id="boundaryLayer-${view.id}"
+            //                        
+            //                         style="position: absolute; top: 0; left: 0; z-index: 10; pointer-events: none;"></canvas>
+            //                 </div>
 
             // 创建 canvas 元素
             const canvasHtml = `
