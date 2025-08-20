@@ -999,6 +999,8 @@ class Pw_Admin_Promowares_Api
                 // 第一个 为 main_view  剩下的  为 `sub_view_${index}`
                 'id' => $index === 0 ? 'main_view' : 'sub_view_' . $index,
                 'view_id' => $view['id'],
+                'view_type' => $view['view_type'], // 视图类型：main/sub  
+                'view_flow' => $view['view_flow'],// 视图类型 Flat Flow  或 4-Grid Flow
                 'view_name'=> $view['view_name'],
                 'printing_method_list_id' => isset($view['printing_method_list_id']) ? $view['printing_method_list_id'] : null,
                 'layers' => array(), // Initialize empty layers array
