@@ -285,11 +285,25 @@ if ($first_image_url) {
         try {
             const fabricObject = await createFabricObjectFromLayer(layer);
 
-            // 如果 layer.name 为  Base Layer 就跳过
-            if (layer.name === 'Base Layer' || layer.name === 'Overlay Layer' || layer.name === '4-Grid Flow') {
-                
+            // 根据 productViewFlow 控制显示的图层
+            const productViewFlow = store.getProductViewFlow();
+            
+            if (productViewFlow === '4-Grid Flow') {
+                // 当 productViewFlow 为 "4-Grid Flow" 时，只允许显示 "4-Grid Flow" 层
+                if (layer.name !== '4-Grid Flow') {
+                    console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 为 "4-Grid Flow"`);
+                    return null;
+                }
             } else {
-                return null;
+                // 当 productViewFlow 不是 "4-Grid Flow" 时，显示 Base Layer 和 Overlay Layer，跳过 4-Grid Flow
+                if (layer.name === 'Base Layer' || layer.name === 'Overlay Layer') {
+                    // 允许显示
+                } else if (layer.name === '4-Grid Flow') {
+                    console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 不是 "4-Grid Flow"`);
+                    return null;
+                } else {
+                    return null;
+                }
             }
 
 
