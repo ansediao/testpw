@@ -103,6 +103,43 @@ if ($first_image_url) {
     }
 
     /**
+     * 根据原点类型转换坐标位置
+     * 当originX和originY为center时，需要将基于左上角的坐标转换为基于中心点的坐标
+     * @param {number} x - 原始x坐标（基于左上角）
+     * @param {number} y - 原始y坐标（基于左上角）
+     * @param {number} width - 对象宽度
+     * @param {number} height - 对象高度
+     * @param {string} originX - Fabric.js的originX值
+     * @param {string} originY - Fabric.js的originY值
+     * @returns {{x: number, y: number}} 转换后的坐标
+     */
+    function convertCoordinatesForOrigin(x, y, width, height, originX, originY) {
+        let convertedX = x;
+        let convertedY = y;
+
+        // 根据originX调整x坐标
+        if (originX === 'center') {
+            convertedX = x + width / 2;
+        } else if (originX === 'right') {
+            convertedX = x + width;
+        }
+        // originX === 'left' 时不需要调整，保持原值
+
+        // 根据originY调整y坐标
+        if (originY === 'center') {
+            convertedY = y + height / 2;
+        } else if (originY === 'bottom') {
+            convertedY = y + height;
+        }
+        // originY === 'top' 时不需要调整，保持原值
+
+        return {
+            x: convertedX,
+            y: convertedY
+        };
+    }
+
+    /**
      * 辅助函数，用于从图层数据对象创建一个 Fabric.js 对象。
      * @param {object} layer - 来自 API 的单个图层对象。
      * @returns {Promise<fabric.Object|null>} 一个 Promise，如果图层无法创建，则解析为 fabric 对象或 null。
@@ -124,9 +161,19 @@ if ($first_image_url) {
                     fabric.Image.fromURL(data.content.imageURL, (img) => {
                         const origins = getOriginFromAnchorPoint(position.anchorPoint || 'top-left');
 
+                        // 使用坐标转换函数处理不同原点的坐标
+                        const convertedCoords = convertCoordinatesForOrigin(
+                            position.coordinates.x,
+                            position.coordinates.y,
+                            data.dimensions.layerSize.width,
+                            data.dimensions.layerSize.height,
+                            origins.originX,
+                            origins.originY
+                        );
+
                         img.set({
-                            left: position.coordinates.x,
-                            top: position.coordinates.y,
+                            left: convertedCoords.x,
+                            top: convertedCoords.y,
                             angle: position.rotation,
                             originX: origins.originX,
                             originY: origins.originY,
