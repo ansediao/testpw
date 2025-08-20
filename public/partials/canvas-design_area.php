@@ -359,8 +359,24 @@ if ($first_image_url) {
         }
 
         const layers = layerConfig.layers;
-        const canvasWidth = layers[0].layer_data.dimensions.contentArea.width || layers[0].layer_data.dimensions.layerSize.width;
-        const canvasHeight = layers[0].layer_data.dimensions.contentArea.height || layers[0].layer_data.dimensions.layerSize.height;
+        
+        // 根据 productViewFlow 决定从哪个图层获取画布尺寸
+        const productViewFlow = store.getProductViewFlow();
+        let targetLayer = layers[0]; // 默认使用第一个图层
+        
+        if (productViewFlow === '4-Grid Flow') {
+            // 查找 "4-Grid Flow" 图层
+            const gridFlowLayer = layers.find(layer => layer.name === '4-Grid Flow');
+            if (gridFlowLayer) {
+                targetLayer = gridFlowLayer;
+                console.log('使用 4-Grid Flow 图层的尺寸初始化画布');
+            } else {
+                console.warn('未找到 4-Grid Flow 图层，使用默认图层尺寸');
+            }
+        }
+        
+        const canvasWidth = targetLayer.layer_data.dimensions.contentArea.width || targetLayer.layer_data.dimensions.layerSize.width;
+        const canvasHeight = targetLayer.layer_data.dimensions.contentArea.height || targetLayer.layer_data.dimensions.layerSize.height;
 
         const canvas = new fabric.Canvas(canvasId, {
             width: canvasWidth,
