@@ -77,6 +77,17 @@ if ($first_image_url) {
      * @returns {{originX: string, originY: string}} Fabric.js 的原点对象。
      */
     function getOriginFromAnchorPoint(anchorPoint) {
+        // anchorPoint 输出到控制台
+        console.log(anchorPoint)
+
+        // 处理单个值的情况（如'center'）
+        if (anchorPoint === 'center') {
+            return {
+                originX: 'center',
+                originY: 'center'
+            };
+        }
+
         const [y, x] = anchorPoint.split('-');
         const originMap = {
             top: 'top',
@@ -87,7 +98,7 @@ if ($first_image_url) {
         };
         return {
             originX: originMap[x || 'center'],
-            originY: originMap[y]
+            originY: originMap[y || 'center']
         };
     }
 
@@ -277,8 +288,8 @@ if ($first_image_url) {
         }
 
         const layers = layerConfig.layers;
-        const canvasWidth = layers[0].layer_data.dimensions.contentArea.width;
-        const canvasHeight = layers[0].layer_data.dimensions.contentArea.height;
+        const canvasWidth = layers[0].layer_data.dimensions.contentArea.width || layers[0].layer_data.dimensions.layerSize.width;
+        const canvasHeight = layers[0].layer_data.dimensions.contentArea.height || layers[0].layer_data.dimensions.layerSize.height;
 
         const canvas = new fabric.Canvas(canvasId, {
             width: canvasWidth,

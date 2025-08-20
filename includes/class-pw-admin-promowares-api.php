@@ -1030,11 +1030,7 @@ class Pw_Admin_Promowares_Api
                     $final_data['views'][$index]['data']['layer_config']['layers'] = array();
                     
                     foreach ($layer_data_array as $layer) {
-                        $layer_item = array(
-                            'id' => $layer['id'],
-                            'name' => isset($layer['name']) ? $layer['name'] : '',
-                            'layer_data' => $layer
-                        );
+                        $layer_item = $layer;
                         
                         // Add to both layers array and data structure
                         $final_data['views'][$index]['layers'][] = $layer_item;
