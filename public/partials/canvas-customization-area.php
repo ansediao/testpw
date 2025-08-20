@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function() {
         container.innerHTML = "";
         
         // 从 store 获取视图信息
-        const views = store.views;
+        const views = store.productData.templates.views;
         if (!views || views.length === 0) {
             return;
         }
@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function() {
         views.forEach((view, index) => {
             const button = document.createElement('button');
             button.className = 'viewer-switch-btn';
-            button.textContent = view.name;
+            button.textContent = view.view_name || view.name;
             button.setAttribute('data-view-id', view.id);
             button.setAttribute('data-view-data', JSON.stringify(view.data));
             
