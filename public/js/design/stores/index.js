@@ -40,6 +40,7 @@ export const useCanvasStore = defineStore('canvas', {
         // 视图相关状态
         views: [],              // 存储所有视图信息
         activeViewId: null,     // 当前激活的视图ID
+        productViewFlow: null,  // 产品视图流程类型，来自 productData.templates.views[0].view_flow
     }),
     // 4. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
     actions: {
@@ -103,6 +104,22 @@ export const useCanvasStore = defineStore('canvas', {
         setProductDataError(error) { this.productDataError = error; },
         // 视图相关方法
         setViews(views) { this.views = views; },
+        setProductViewFlow(viewFlow) { this.productViewFlow = viewFlow; },
+        getProductViewFlow() { 
+            // 如果已经设置了值，直接返回
+            if (this.productViewFlow !== null) {
+                return this.productViewFlow;
+            }
+            // 否则尝试从 productData 中获取
+            if (this.productData && 
+                this.productData.templates && 
+                this.productData.templates.views && 
+                this.productData.templates.views.length > 0 && 
+                this.productData.templates.views[0].view_flow) {
+                return this.productData.templates.views[0].view_flow;
+            }
+            return null;
+        },
         setActiveViewId(viewId) { 
             const previousViewId = this.activeViewId;
             
@@ -228,6 +245,12 @@ export const useCanvasStore = defineStore('canvas', {
             try {
                 this.setViews(productData.templates.views);
                 console.log('Successfully set views');
+                
+                // 设置 productViewFlow
+                if (productData.templates.views.length > 0 && productData.templates.views[0].view_flow) {
+                    this.setProductViewFlow(productData.templates.views[0].view_flow);
+                    console.log('Successfully set productViewFlow:', productData.templates.views[0].view_flow);
+                }
                 
                 // 默认激活第一个视图
                 if (productData.templates.views.length > 0) {
