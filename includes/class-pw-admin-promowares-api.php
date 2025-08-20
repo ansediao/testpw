@@ -487,10 +487,10 @@ class Pw_Admin_Promowares_Api
         }
 
         // 检查缓存数据
-        $cached_data = $this->get_cached_product_data($product_id);
-        if ($cached_data !== false) {
-            return new WP_REST_Response($cached_data, 200);
-        }
+        // $cached_data = $this->get_cached_product_data($product_id);
+        // if ($cached_data !== false) {
+        //     return new WP_REST_Response($cached_data, 200);
+        // }
 
         $aggregated_data = array();
 
@@ -504,8 +504,8 @@ class Pw_Admin_Promowares_Api
             $aggregated_data['product_error'] = $product_data->get_error_message();
         }
 
-        // 2. Get custom templates
-        $templates_data = $this->call_promowares_api("custom-templates/product/{$product_id}", $token);
+        // 2. Get custom templates with enhanced view and layer data
+        $templates_data = $this->get_enhanced_template_data($product_id, $token);
         if (!is_wp_error($templates_data)) {
             $aggregated_data['templates'] = $templates_data;
             $aggregated_data['has_templates'] = true;
@@ -928,5 +928,129 @@ class Pw_Admin_Promowares_Api
         );
 
         return max($cache_deleted, $time_deleted);
+    }
+
+    /**
+     * Get enhanced template data with views and layers.
+     * 
+     * This method implements the multi-step data fetching logic:
+     * 1. Get product template ID from custom-templates/product/{product_id}
+     * 2. Get views data from custom-views/template/{template_id}
+     * 3. Get layers data for each view from layers?custom_view_id={view_id}
+     *
+     * @since    1.0.0
+     * @param    int       $product_id    The product ID to fetch templates for.
+     * @param    string    $token         The authentication token.
+     * @return   array|WP_Error          The enhanced templates data or error.
+     */
+    private function get_enhanced_template_data($product_id, $token)
+    {
+        error_log("[PW Canvas] Starting get_enhanced_template_data for product_id: {$product_id}");
+        
+        // Step 1: Get product template
+        error_log("[PW Canvas] Step 1: Fetching product template for product_id: {$product_id}");
+        $product_template_response = $this->call_promowares_api("custom-templates/product/{$product_id}", $token);
+        
+        if (is_wp_error($product_template_response)) {
+            error_log("[PW Canvas] Error fetching product template: " . $product_template_response->get_error_message());
+            return $product_template_response;
+        }
+        
+        error_log("[PW Canvas] Product template fetched successfully");
+
+        // Extract template ID from response
+        if (!isset($product_template_response['data']['id'])) {
+            error_log("[PW Canvas] Product template ID not found in response");
+            return new WP_Error('template_id_missing', 'Product template ID not found in response');
+        }
+
+        $product_template_id = $product_template_response['data']['id'];
+        error_log("[PW Canvas] Extracted product_template_id: {$product_template_id}");
+        
+        // Initialize final data structure with original template data
+        $final_data = $product_template_response;
+        $final_data['productTemplateId'] = $product_template_id;
+
+        // Step 2: Get custom views for the template
+        error_log("[PW Canvas] Step 2: Fetching custom views for template_id: {$product_template_id}");
+        $views_response = $this->call_promowares_api("custom-views/template/{$product_template_id}", $token);
+        
+        if (is_wp_error($views_response)) {
+            // If views request fails, return original template data with empty views
+            error_log("[PW Canvas] Error fetching custom views: " . $views_response->get_error_message());
+            $final_data['views'] = array();
+            $final_data['views_error'] = $views_response->get_error_message();
+            return $final_data;
+        }
+
+        $view_data_array = isset($views_response['data']) ? $views_response['data'] : array();
+        error_log("[PW Canvas] Found " . count($view_data_array) . " custom views");
+        
+        if (empty($view_data_array)) {
+            error_log("[PW Canvas] No custom views found, returning template data with empty views");
+            $final_data['views'] = array();
+            return $final_data;
+        }
+
+        // Initialize views array with basic view data
+        $final_data['views'] = array();
+        foreach ($view_data_array as $index => $view) {
+            $final_data['views'][] = array(
+                // 第一个 为 main_view  剩下的  为 `sub_view_${index}`
+                'id' => $index === 0 ? 'main_view' : 'sub_view_' . $index,
+                'view_id' => $view['id'],
+                'view_name'=> $view['view_name'],
+                'printing_method_list_id' => isset($view['printing_method_list_id']) ? $view['printing_method_list_id'] : null,
+                'layers' => array(), // Initialize empty layers array
+                'data' => array(
+                    'layer_config' => array(
+                        'layers' => array()
+                    )
+                )
+            );
+
+        }
+
+        // Step 3: Get layers for each view concurrently (simulate Promise.all behavior)
+        error_log("[PW Canvas] Step 3: Fetching layers for each view");
+        $layer_requests = array();
+        foreach ($view_data_array as $index => $view) {
+            $view_id = $view['id'];
+            error_log("[PW Canvas] Fetching layers for view_id: {$view_id}");
+            $layer_endpoint = "layers?custom_view_id={$view_id}";
+            $layer_response = $this->call_promowares_api($layer_endpoint, $token);
+            
+            if (!is_wp_error($layer_response) && isset($layer_response['data'])) {
+                $layer_data_array = $layer_response['data'];
+                error_log("[PW Canvas] Found " . count($layer_data_array) . " layers for view_id: {$view_id}");
+                
+                // Populate layers data for this view
+                if (!empty($layer_data_array)) {
+                    $final_data['views'][$index]['layers'] = array();
+                    $final_data['views'][$index]['data']['layer_config']['layers'] = array();
+                    
+                    foreach ($layer_data_array as $layer) {
+                        $layer_item = array(
+                            'id' => $layer['id'],
+                            'name' => isset($layer['name']) ? $layer['name'] : '',
+                            'layer_data' => $layer
+                        );
+                        
+                        // Add to both layers array and data structure
+                        $final_data['views'][$index]['layers'][] = $layer_item;
+                        $final_data['views'][$index]['data']['layer_config']['layers'][] = $layer_item;
+                    }
+                }
+            } else {
+                if (is_wp_error($layer_response)) {
+                    error_log("[PW Canvas] Error fetching layers for view_id {$view_id}: " . $layer_response->get_error_message());
+                } else {
+                    error_log("[PW Canvas] No layer data found for view_id: {$view_id}");
+                }
+            }
+        }
+
+        error_log("[PW Canvas] get_enhanced_template_data completed successfully for product_id: {$product_id}");
+        return $final_data;
     }
 }
