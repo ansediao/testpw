@@ -239,6 +239,31 @@ if ($product_id > 0) {
           const store = window.useCanvasStore();
           await store.fetchProductData(pwId);
           console.log('产品数据已加载到 Pinia store');
+          
+          // 监听 productViewFlow 变化，控制 customization-area 显示
+          function updateCustomizationAreaVisibility() {
+            const customizationArea = document.querySelector('.customization-area');
+            if (customizationArea) {
+              const productViewFlow = store.getProductViewFlow();
+              if (productViewFlow === '4-Grid Flow') {
+                customizationArea.style.display = 'none';
+                console.log('隐藏 customization-area，因为 productViewFlow 为 4-Grid Flow');
+              } else {
+                customizationArea.style.display = 'flex';
+                console.log('显示 customization-area，productViewFlow 为:', productViewFlow);
+              }
+            }
+          }
+          
+          // 初始检查
+          updateCustomizationAreaVisibility();
+          
+          // 监听 store 状态变化
+          store.$subscribe((mutation, state) => {
+            if (mutation.storeId === 'canvas') {
+              updateCustomizationAreaVisibility();
+            }
+          });
 
           // 尝试从API数据初始化画布
           // if (typeof window.initCanvasFromAPI === 'function') {
