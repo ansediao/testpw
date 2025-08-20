@@ -243,17 +243,17 @@ if ($first_image_url) {
                     mode: 'multiply',
                     alpha: 0.5
                 });
-                
+
                 const blendFilter2 = new fabric.Image.filters.BlendColor({
                     color: color2,
                     mode: 'screen',
                     alpha: 0.3
                 });
-                
+
                 // 应用多个滤镜来模拟渐变效果
                 layerObject.filters = [blendFilter1, blendFilter2];
                 layerObject.applyFilters();
-                
+
                 console.log(`已应用渐变色滤镜: ${color1} 到 ${color2}`);
             } catch (error) {
                 console.warn('渐变滤镜不支持，使用色调滤镜作为降级方案:', error);
@@ -285,6 +285,16 @@ if ($first_image_url) {
         try {
             const fabricObject = await createFabricObjectFromLayer(layer);
 
+            // 如果 layer.name 为  Base Layer 就跳过
+            if (layer.name === 'Base Layer' || layer.name === 'Overlay Layer' || layer.name === '4-Grid Flow') {
+                
+            } else {
+                return null;
+            }
+
+
+
+
             // 如果满足条件（图层名称为 Base Layer），将对象存入 Pinia store
             if (fabricObject && layer.name === 'Base Layer' && view && store) {
                 // 确保 views 数组和对应的 view 对象存在
@@ -297,7 +307,7 @@ if ($first_image_url) {
                         }
                         store.views[viewIndex].base_layer = fabricObject;
                         console.log(`Base Layer 对象已存入 Pinia store: views[${view.id}].base_layer`);
-                        
+
                         // 从pinia 中取出这个 图片对象 修改颜色
                         applyTintFilter(store.views[viewIndex].base_layer, '#ff0000', 1);
                         // 重新渲染画布以显示滤镜效果
@@ -382,10 +392,10 @@ if ($first_image_url) {
             const maskHeight = canvasHeight;
             const cutoutWidth = 200;
             const cutoutHeight = 240;
-            
+
             // 创建遮罩路径，中心镂空
             const maskPath = `M 0 0 L ${maskWidth} 0 L ${maskWidth} ${maskHeight} L 0 ${maskHeight} Z M ${(maskWidth - cutoutWidth) / 2} ${(maskHeight - cutoutHeight) / 2} L ${(maskWidth + cutoutWidth) / 2} ${(maskHeight - cutoutHeight) / 2} L ${(maskWidth + cutoutWidth) / 2} ${(maskHeight + cutoutHeight) / 2} L ${(maskWidth - cutoutWidth) / 2} ${(maskHeight + cutoutHeight) / 2} Z`;
-            
+
             const redMask = new fabric.Path(maskPath, {
                 fill: 'rgba(255, 0, 0, 1)',
                 fillRule: 'evenodd',
@@ -394,7 +404,7 @@ if ($first_image_url) {
                 excludeFromExport: true,
                 name: 'redMask'
             });
-            
+
             // canvas.add(redMask);
             // canvas.bringToFront(redMask);
 
