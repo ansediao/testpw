@@ -337,8 +337,8 @@ if ($first_image_url) {
                 name: 'redMask'
             });
             
-            canvas.add(redMask);
-            canvas.bringToFront(redMask);
+            // canvas.add(redMask);
+            // canvas.bringToFront(redMask);
 
             canvas.renderAll();
             console.log(`画布 #${canvasId} 上的所有图层已成功渲染。 ✅`);
