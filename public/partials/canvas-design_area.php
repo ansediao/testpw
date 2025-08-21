@@ -605,10 +605,10 @@ if ($first_image_url) {
                 <div class="canvas-wrapper" id="mainWrapper-${view.id}" style="z-index:20;">
                     <canvas id="mainCanvas-${view.id}"></canvas>
                 </div>
-                <div class="canvas-wrapper" id="overlayWrapper-${view.id}" style="z-index:30;">
+                <div class="canvas-wrapper" id="overlayWrapper-${view.id}" style="z-index:30;pointer-events: none;">
                     <canvas id="overlayCanvas-${view.id}"></canvas>
                 </div>
-                <div class="canvas-wrapper" id="maskWrapper-${view.id}" style="z-index:40;">
+                <div class="canvas-wrapper" id="maskWrapper-${view.id}" style="z-index:40; pointer-events: none;">
                     <canvas id="maskCanvas-${view.id}"></canvas>
                 </div>
               
