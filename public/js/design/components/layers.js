@@ -279,7 +279,7 @@ const layersApp = Vue.createApp({
         });
 
         // 打印方式相关的计算属性
-        const printMethods = Vue.computed(() => printMethodStore.printMethods);
+        const printMethods = Vue.computed(() => printMethodStore.currentViewPrintMethods);
         const selectedPrintMethod = Vue.computed(() => printMethodStore.selectedPrintMethod);
 
         // 图层组相关响应式数据
