@@ -1194,7 +1194,7 @@ async function showMultiViewPreview(views) {
 }
 
 /**
- * 捕获所有视图的Canvas截图
+ * 捕获所有视图的Canvas截图（应用遮罩效果）
  * @param {Array} views - 视图数组
  * @returns {Promise<Array>} 图片数据数组
  */
@@ -1213,8 +1213,8 @@ async function captureAllViewsImages(views) {
                     // 强制渲染
                     fabricCanvas.renderAll();
                     
-                    // 捕获Canvas内容
-                    const imageData = await captureCanvasById(fabricCanvas);
+                    // 捕获Canvas内容（应用遮罩效果）
+                    const imageData = await captureCanvasWithMask(fabricCanvas, view);
                     images.push(imageData);
                 } else {
                     console.warn(`Canvas not found for view: ${view.id}`);
@@ -1237,7 +1237,100 @@ async function captureAllViewsImages(views) {
 }
 
 /**
- * 根据Fabric Canvas实例捕获截图
+ * 根据Fabric Canvas实例捕获截图（应用遮罩效果）
+ * @param {fabric.Canvas} fabricCanvas - Fabric Canvas实例
+ * @param {Object} view - 视图对象
+ * @returns {Promise<string>} 图片数据URL
+ */
+function captureCanvasWithMask(fabricCanvas, view) {
+    return new Promise((resolve) => {
+        try {
+            // 强制渲染
+            fabricCanvas.renderAll();
+            
+            // 获取打印区域尺寸
+            let printAreaWidth = 100; // 默认值
+            let printAreaHeight = 120; // 默认值
+            
+            // 从 Pinia printMethod store 获取打印区域尺寸
+            if (window.usePrintMethodStore) {
+                const printMethodStore = window.usePrintMethodStore();
+                const currentMethods = printMethodStore.currentViewPrintMethods;
+                
+                if (currentMethods && currentMethods.length > 0) {
+                    const firstMethod = currentMethods[0];
+                    if (firstMethod.print_method_area_width && firstMethod.print_method_area_height) {
+                        // 将尺寸乘以50转换为像素
+                        printAreaWidth = firstMethod.print_method_area_width * 50;
+                        printAreaHeight = firstMethod.print_method_area_height * 50;
+                    }
+                }
+            }
+            
+            // 创建临时画布
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = fabricCanvas.width;
+            tempCanvas.height = fabricCanvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // 绘制白色背景
+            tempCtx.fillStyle = '#FFFFFF';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            // 获取fabric.js画布的数据URL
+            const fabricImage = new Image();
+            fabricImage.src = fabricCanvas.toDataURL({
+                format: 'png',
+                quality: 1,
+                multiplier: 1
+            });
+            
+            fabricImage.onload = function () {
+                // 绘制主画布内容
+                tempCtx.drawImage(fabricImage, 0, 0);
+                
+                // 应用遮罩效果：只保留镂空区域
+                const maskCanvas = document.createElement('canvas');
+                maskCanvas.width = fabricCanvas.width;
+                maskCanvas.height = fabricCanvas.height;
+                const maskCtx = maskCanvas.getContext('2d');
+                
+                // 计算镂空区域位置
+                const cutoutX = (fabricCanvas.width - printAreaWidth) / 2;
+                const cutoutY = (fabricCanvas.height - printAreaHeight) / 2;
+                
+                // 绘制镂空区域的内容
+                maskCtx.drawImage(tempCanvas, cutoutX, cutoutY, printAreaWidth, printAreaHeight, 0, 0, printAreaWidth, printAreaHeight);
+                
+                // 创建最终的裁剪画布
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = printAreaWidth;
+                finalCanvas.height = printAreaHeight;
+                const finalCtx = finalCanvas.getContext('2d');
+                
+                // 绘制白色背景
+                finalCtx.fillStyle = '#FFFFFF';
+                finalCtx.fillRect(0, 0, printAreaWidth, printAreaHeight);
+                
+                // 绘制裁剪后的内容
+                finalCtx.drawImage(tempCanvas, cutoutX, cutoutY, printAreaWidth, printAreaHeight, 0, 0, printAreaWidth, printAreaHeight);
+                
+                resolve(finalCanvas.toDataURL('image/png'));
+            };
+            
+            fabricImage.onerror = function () {
+                console.error('Failed to load fabric canvas image');
+                resolve('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">图片加载失败</text></svg>'));
+            };
+        } catch (error) {
+            console.error('Error capturing canvas with mask:', error);
+            resolve('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">截图异常</text></svg>'));
+        }
+    });
+}
+
+/**
+ * 根据Fabric Canvas实例捕获截图（原始版本，不应用遮罩）
  * @param {fabric.Canvas} fabricCanvas - Fabric Canvas实例
  * @returns {Promise<string>} 图片数据URL
  */
