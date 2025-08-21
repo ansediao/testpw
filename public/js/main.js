@@ -1252,6 +1252,39 @@ async function captureAllViewsImages(views) {
  */
 
 /**
+ * 为PDF生成捕获单个视图的多层Canvas内容
+ * @param {string} viewId - 视图ID
+ * @returns {Promise<string>} - 返回图片的base64数据
+ */
+async function captureViewForPDF(viewId) {
+    try {
+        // 获取指定视图的所有Canvas图层
+        const baseCanvas = document.getElementById(`baseCanvas-${viewId}`);
+        const mainCanvas = document.getElementById(`mainCanvas-${viewId}`);
+        const overlayCanvas = document.getElementById(`overlayCanvas-${viewId}`);
+        const maskCanvas = document.getElementById(`maskCanvas-${viewId}`);
+        const fabricCanvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+
+        const canvasLayers = {
+            baseCanvas: baseCanvas,
+            mainCanvas: mainCanvas,
+            overlayCanvas: overlayCanvas,
+            maskCanvas: maskCanvas,
+            fabricCanvas: fabricCanvas
+        };
+
+        // 创建一个临时视图对象
+        const view = { id: viewId, name: `View ${viewId}` };
+
+        // 使用多层Canvas合成逻辑
+        return await captureMultiLayerCanvasWithMask(canvasLayers, view);
+    } catch (error) {
+        console.error('PDF视图捕获失败:', error);
+        return null;
+    }
+}
+
+/**
  * 捕获多层Canvas并应用遮罩效果
  * @param {Object} canvasLayers - 包含所有Canvas图层的对象
  * @param {Object} view - 视图对象
@@ -1341,8 +1374,13 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                 results.forEach(result => {
                     if (result) {
                         layers[result.layerName] = result.img;
+                        console.log(`成功加载图层: ${result.layerName}`);
+                    } else {
+                        console.log(`图层加载失败或为空`);
                     }
                 });
+                
+                console.log('所有图层加载完成:', Object.keys(layers));
                 
                 // 按z-index顺序合成图层
                 // 1. 绘制baseCanvas (z-index: 10)
@@ -1352,6 +1390,7 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                 
                 // 2. 处理mainCanvas和maskCanvas的遮罩效果 (z-index: 20)
                  if (layers.mainCanvas && layers.maskCanvas) {
+                     console.log('应用遮罩效果: mainCanvas和maskCanvas都存在');
                      // 创建临时画布用于遮罩处理
                      const tempCanvas = document.createElement('canvas');
                      tempCanvas.width = finalCanvas.width;
@@ -1361,15 +1400,98 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                      // 先绘制mainCanvas内容
                      tempCtx.drawImage(layers.mainCanvas, 0, 0);
                      
-                     // 应用遮罩：使用maskCanvas创建镂空效果，只保留镂空区域的内容
-                     tempCtx.globalCompositeOperation = 'destination-out';
-                     tempCtx.drawImage(layers.maskCanvas, 0, 0);
+                     // 检查maskCanvas的内容
+                     const maskImageData = tempCtx.createImageData(tempCanvas.width, tempCanvas.height);
+                     const maskTempCanvas = document.createElement('canvas');
+                     maskTempCanvas.width = tempCanvas.width;
+                     maskTempCanvas.height = tempCanvas.height;
+                     const maskTempCtx = maskTempCanvas.getContext('2d');
+                     maskTempCtx.drawImage(layers.maskCanvas, 0, 0);
+                     const maskData = maskTempCtx.getImageData(0, 0, maskTempCanvas.width, maskTempCanvas.height);
+                     
+                     // 检查maskCanvas是否有非透明像素
+                     let hasContent = false;
+                     for (let i = 3; i < maskData.data.length; i += 4) {
+                         if (maskData.data[i] > 0) {
+                             hasContent = true;
+                             break;
+                         }
+                     }
+                     console.log('maskCanvas有内容:', hasContent);
+                     
+                     if (hasContent) {
+                              // 详细检查maskCanvas的内容
+                              console.log('maskCanvas尺寸:', layers.maskCanvas.width, 'x', layers.maskCanvas.height);
+                              
+                              // 检查maskCanvas的像素数据
+                              const debugMaskCanvas = document.createElement('canvas');
+                              debugMaskCanvas.width = layers.maskCanvas.width;
+                              debugMaskCanvas.height = layers.maskCanvas.height;
+                              const debugMaskCtx = debugMaskCanvas.getContext('2d');
+                              debugMaskCtx.drawImage(layers.maskCanvas, 0, 0);
+                              const debugMaskData = debugMaskCtx.getImageData(0, 0, debugMaskCanvas.width, debugMaskCanvas.height);
+                              
+                              // 统计不同类型的像素
+                              let transparentPixels = 0;
+                              let opaquePixels = 0;
+                              let semiTransparentPixels = 0;
+                              
+                              for (let i = 3; i < debugMaskData.data.length; i += 4) {
+                                  const alpha = debugMaskData.data[i];
+                                  if (alpha === 0) {
+                                      transparentPixels++;
+                                  } else if (alpha === 255) {
+                                      opaquePixels++;
+                                  } else {
+                                      semiTransparentPixels++;
+                                  }
+                              }
+                              
+                              console.log('maskCanvas像素统计:');
+                              console.log('- 透明像素:', transparentPixels);
+                              console.log('- 不透明像素:', opaquePixels);
+                              console.log('- 半透明像素:', semiTransparentPixels);
+                              
+                              // 由于maskCanvas主要是半透明像素，需要特殊处理
+                               if (opaquePixels > 0 || semiTransparentPixels > 0) {
+                                   // 创建二值化遮罩：将半透明像素转换为完全不透明
+                                   const binaryMaskCanvas = document.createElement('canvas');
+                                   binaryMaskCanvas.width = layers.maskCanvas.width;
+                                   binaryMaskCanvas.height = layers.maskCanvas.height;
+                                   const binaryMaskCtx = binaryMaskCanvas.getContext('2d');
+                                   
+                                   // 绘制原遮罩
+                                   binaryMaskCtx.drawImage(layers.maskCanvas, 0, 0);
+                                   
+                                   // 获取像素数据并二值化
+                                   const binaryImageData = binaryMaskCtx.getImageData(0, 0, binaryMaskCanvas.width, binaryMaskCanvas.height);
+                                   for (let i = 3; i < binaryImageData.data.length; i += 4) {
+                                       // 将任何非透明像素设为完全不透明
+                                       if (binaryImageData.data[i] > 0) {
+                                           binaryImageData.data[i] = 255;
+                                       }
+                                   }
+                                   binaryMaskCtx.putImageData(binaryImageData, 0, 0);
+                                   
+                                   // 应用二值化后的遮罩
+                                   tempCtx.globalCompositeOperation = 'destination-out';
+                                   tempCtx.drawImage(binaryMaskCanvas, 0, 0);
+                                   console.log('已应用二值化遮罩的destination-out效果');
+                               } else {
+                                   console.log('maskCanvas只有透明像素，跳过遮罩应用');
+                               }
+                          } else {
+                              console.log('maskCanvas没有内容，跳过遮罩应用');
+                          }
                      
                      // 将处理后的mainCanvas绘制到最终画布
                      finalCtx.drawImage(tempCanvas, 0, 0);
                  } else if (layers.mainCanvas) {
+                     console.log('没有遮罩，直接绘制mainCanvas');
                      // 如果没有遮罩，直接绘制mainCanvas
                      finalCtx.drawImage(layers.mainCanvas, 0, 0);
+                 } else {
+                     console.log('mainCanvas不存在');
                  }
                 
                 // 3. 绘制overlayCanvas (z-index: 30)
@@ -1566,3 +1688,4 @@ function closeMultiViewPreview() {
 
 // 将关闭函数暴露到全局
 window.closeMultiViewPreview = closeMultiViewPreview;
+window.captureViewForPDF = captureViewForPDF;

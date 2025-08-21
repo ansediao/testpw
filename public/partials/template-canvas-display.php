@@ -543,8 +543,8 @@ if ($product_id > 0) {
           // 等待视图切换和渲染完成
           await new Promise(resolve => setTimeout(resolve, 300));
 
-          // 捕获当前视图的画板内容
-          const imageDataUrl = await captureCanvas();
+          // 捕获当前视图的画板内容（使用多层Canvas合成逻辑）
+          const imageDataUrl = await captureViewForPDF(view.id);
           if (imageDataUrl) {
             exportedImages.push({
               viewName: view.name,
