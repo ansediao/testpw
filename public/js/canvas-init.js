@@ -166,7 +166,9 @@
         const zoomValue = document.getElementById('zoomValue');
 
         if (zoomSlider && zoomValue) {
-            let currentZoom = 95;
+            // 计算自动缩放比例
+            const autoZoom = calculateAutoZoom();
+            let currentZoom = autoZoom;
             
             // 设置初始值
             zoomSlider.value = currentZoom;
@@ -182,6 +184,104 @@
     }
 
     /**
+     * 计算自动缩放比例，确保 multi-view-container 不超出 canvas-box 高度
+     * @returns {number} 缩放百分比值 (10-200)
+     */
+    function calculateAutoZoom() {
+        try {
+            const multiViewContainer = document.getElementById('multi-view-container');
+            const canvasBox = document.querySelector('.canvas-box');
+            
+            if (!multiViewContainer || !canvasBox) {
+                console.warn('Multi-view container or canvas-box not found, using default zoom 95%');
+                return 95;
+            }
+
+            // 等待内容加载完成后再计算
+            setTimeout(() => {
+                const actualZoom = calculateOptimalZoom();
+                if (actualZoom !== 95) {
+                    // 更新缩放值
+                    const zoomSlider = document.getElementById('zoomSlider');
+                    const zoomValue = document.getElementById('zoomValue');
+                    if (zoomSlider && zoomValue) {
+                        zoomSlider.value = actualZoom;
+                        zoomValue.textContent = actualZoom + '%';
+                        updateCanvasZoom(actualZoom / 100);
+                    }
+                }
+            }, 500); // 延迟500ms确保图层加载完成
+
+            return 95; // 初始返回默认值
+        } catch (error) {
+            console.error('Error calculating auto zoom:', error);
+            return 95;
+        }
+    }
+
+    /**
+     * 计算最优缩放比例
+     * @returns {number} 最优缩放百分比值
+     */
+    function calculateOptimalZoom() {
+        const multiViewContainer = document.getElementById('multi-view-container');
+        const canvasBox = document.querySelector('.canvas-box');
+        
+        if (!multiViewContainer || !canvasBox) {
+            return 95;
+        }
+
+        // 临时重置缩放以获取原始尺寸
+        const originalTransform = multiViewContainer.style.transform;
+        multiViewContainer.style.transform = 'scale(1)';
+        
+        // 获取容器的可用高度
+        const canvasBoxStyle = window.getComputedStyle(canvasBox);
+        const availableHeight = canvasBox.clientHeight - 
+            parseFloat(canvasBoxStyle.paddingTop || 0) - 
+            parseFloat(canvasBoxStyle.paddingBottom || 0);
+        
+        // 获取 multi-view-container 的实际高度
+        const containerHeight = multiViewContainer.scrollHeight;
+        
+        console.log('Available height:', availableHeight, 'Container height:', containerHeight);
+        
+        // 恢复原始变换
+        multiViewContainer.style.transform = originalTransform;
+        
+        // 如果容器高度超出可用高度，计算需要的缩放比例
+        if (containerHeight > availableHeight) {
+            // 计算缩放比例，留出5%的边距
+            const requiredScale = (availableHeight * 0.95) / containerHeight;
+            const zoomPercentage = Math.max(10, Math.min(200, Math.round(requiredScale * 100)));
+            
+            console.log('Auto-calculated zoom:', zoomPercentage + '%');
+            return zoomPercentage;
+        }
+        
+        // 如果不需要缩放，返回95%作为默认值
+        return 95;
+    }
+
+    /**
+     * 触发自动缩放调整（供外部调用）
+     */
+    function triggerAutoZoomAdjustment() {
+        const actualZoom = calculateOptimalZoom();
+        if (actualZoom !== 95) {
+            // 更新缩放值
+            const zoomSlider = document.getElementById('zoomSlider');
+            const zoomValue = document.getElementById('zoomValue');
+            if (zoomSlider && zoomValue) {
+                zoomSlider.value = actualZoom;
+                zoomValue.textContent = actualZoom + '%';
+                updateCanvasZoom(actualZoom / 100);
+                console.log('Auto-adjusted zoom to:', actualZoom + '%');
+            }
+        }
+    }
+
+    /**
      * 更新 Canvas 缩放 - 控制 multi-view-container
      * @param {number} scale - 缩放比例
      */
@@ -192,7 +292,7 @@
         if (multiViewContainer) {
             // 应用缩放到 multi-view-container
             multiViewContainer.style.transform = `scale(${scale})`;
-            multiViewContainer.style.transformOrigin = 'top left';
+            multiViewContainer.style.transformOrigin = 'top center';
         } else {
             console.warn('multi-view-container not found for zoom control');
         }
@@ -222,6 +322,9 @@
     
     // 暴露 init 函数到全局作用域
     window.initCanvasSystem = init;
+
+    // 将函数暴露到全局作用域
+    window.triggerAutoZoomAdjustment = triggerAutoZoomAdjustment;
 
 })();
 

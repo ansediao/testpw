@@ -440,6 +440,14 @@ if ($first_image_url) {
 
             canvas.renderAll();
             console.log(`画布 #${canvasId} 上的所有图层已成功渲染。 ✅`);
+            
+            // 图层渲染完成后，触发自动缩放调整
+            setTimeout(() => {
+                if (typeof window.triggerAutoZoomAdjustment === 'function') {
+                    window.triggerAutoZoomAdjustment();
+                }
+            }, 200); // 延迟200ms确保DOM更新完成
+            
             return canvas;
         } catch (error) {
             console.error(`在画布 #${canvasId} 上渲染图层时发生错误:`, error);
