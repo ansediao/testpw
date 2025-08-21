@@ -312,6 +312,24 @@ if (backwardBtn) {
 
 // 添加渲染预览按钮的点击事件
 document.getElementById('renderBtn').addEventListener('click', async function () {
+  // 检查Pinia条件：productViewFlow = "Flat Flow" 且 views数组长度大于1
+  if (typeof window.useCanvasStore === 'function') {
+    try {
+      const store = window.useCanvasStore();
+      const productViewFlow = store.getProductViewFlow();
+      const views = store.views || [];
+      
+      if (productViewFlow === "Flat Flow" && views.length > 1) {
+        // 满足条件，在本窗口显示左右分栏的多Canvas预览
+        await showMultiViewPreview(views);
+        return;
+      }
+    } catch (error) {
+      console.error('Failed to check Pinia conditions:', error);
+    }
+  }
+  
+  // 不满足条件，使用原有的新窗口预览方式
   // 检查是否存在预览容器
   const previewContainer = document.querySelector('.preview-canvas-container');
   // 根据是否存在预览容器选择不同的捕获函数
@@ -856,3 +874,415 @@ function applyArcDistortionToTextObject(textObject, arcValue) {
     canvas.setActiveObject(arcGroup);
     canvas.renderAll();
 }
+
+/**
+ * 显示多视图预览界面（左右分栏）
+ * @param {Array} views - 视图数组
+ */
+async function showMultiViewPreview(views) {
+    // 检查是否已存在预览界面
+    if (document.getElementById('multi-view-preview-modal')) {
+        return;
+    }
+
+    // 创建MicroModal结构的预览界面
+    const modalHTML = `
+        <div class="modal micromodal-slide" id="multi-view-preview-modal" aria-hidden="true">
+            <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+                <div class="modal__container modal__container--fullscreen" role="dialog" aria-modal="true" aria-labelledby="multi-view-title">
+                    <header class="modal__header">
+                        <h2 class="modal__title" id="multi-view-title">多视图预览</h2>
+                        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+                    </header>
+                    <main class="modal__content modal__content--scrollable">
+                        <div class="preview-body">
+                             <div class="thumbnail-list">
+                                 <div class="loading">正在加载视图...</div>
+                             </div>
+                             <div class="main-preview">
+                                 <div class="preview-placeholder">请选择左侧视图查看预览</div>
+                             </div>
+                         </div>
+                    </main>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // 添加样式
+    const style = document.createElement('style');
+    style.textContent = `
+        /* MicroModal全屏样式 */
+        #multi-view-preview-modal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 99999 !important;
+            display: none;
+        }
+        
+        #multi-view-preview-modal.is-open {
+            display: flex !important;
+        }
+        
+        #multi-view-preview-modal .modal__overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background: rgba(0, 0, 0, 0.8) !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            z-index: 99999 !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        #multi-view-preview-modal .modal__container {
+            background-color: white !important;
+            padding: 0 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+            width: 95vw !important;
+            height: 90vh !important;
+            max-width: none !important;
+            max-height: none !important;
+            overflow: hidden !important;
+            position: relative !important;
+            z-index: 100000 !important;
+        }
+        
+        .modal__container--fullscreen {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: none !important;
+            max-height: none !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal__content--scrollable {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+        
+        .modal__header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            flex-shrink: 0;
+        }
+        
+        .modal__title {
+            margin: 0;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .modal__close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+        
+        .modal__close:hover {
+            background: #e9ecef;
+            color: #333;
+        }
+        
+        .modal__close::before {
+            content: '×';
+        }
+        
+        .preview-body {
+            display: flex;
+            height: 100%;
+            min-height: calc(100vh - 80px);
+        }
+        
+        .thumbnail-list {
+            width: 300px;
+            background: #f8f9fa;
+            border-right: 1px solid #eee;
+            overflow-y: auto;
+            padding: 20px;
+            flex-shrink: 0;
+        }
+        
+        .thumbnail-item {
+            margin-bottom: 15px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .thumbnail-item:hover {
+            border-color: #007bff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+        }
+        
+        .thumbnail-item.active {
+            border-color: #007bff;
+            box-shadow: 0 0 0 1px #007bff;
+        }
+        
+        .thumbnail-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .thumbnail-label {
+            padding: 10px;
+            background: white;
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+            border-top: 1px solid #eee;
+        }
+        
+        .main-preview {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: #fff;
+            overflow: auto;
+        }
+        
+        .main-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .preview-placeholder {
+            color: #666;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .preview-body {
+                flex-direction: column;
+            }
+            
+            .thumbnail-list {
+                width: 100%;
+                max-height: 200px;
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .main-preview {
+                flex: 1;
+            }
+        }
+    `;
+    
+    document.head.appendChild(style);
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // 确保MicroModal已加载并初始化
+    if (typeof MicroModal !== 'undefined') {
+        // 初始化MicroModal（如果还未初始化）
+        try {
+            MicroModal.init({
+                disableScroll: true,
+                disableFocus: false,
+                awaitCloseAnimation: false,
+                debugMode: false
+            });
+        } catch (e) {
+            // 可能已经初始化过了，忽略错误
+        }
+        
+        // 显示弹窗
+        MicroModal.show('multi-view-preview-modal');
+    } else {
+        console.error('MicroModal not loaded, using fallback');
+        // 降级处理：直接显示
+        const modal = document.getElementById('multi-view-preview-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.classList.add('is-open');
+        }
+        return;
+    }
+    
+    // 捕获所有视图的截图
+    const viewImages = await captureAllViewsImages(views);
+    
+    // 生成缩略图列表
+    const thumbnailList = document.querySelector('#multi-view-preview-modal .thumbnail-list');
+    const mainPreview = document.querySelector('#multi-view-preview-modal .main-preview');
+    
+    thumbnailList.innerHTML = '';
+    
+    viewImages.forEach((imageData, index) => {
+        const view = views[index];
+        const thumbnailItem = document.createElement('div');
+        thumbnailItem.className = `thumbnail-item ${index === 0 ? 'active' : ''}`;
+        thumbnailItem.innerHTML = `
+            <img src="${imageData}" alt="${view.name || `视图 ${index + 1}`}" />
+            <div class="thumbnail-label">${view.name || `视图 ${index + 1}`}</div>
+        `;
+        
+        // 点击缩略图更新大图
+        thumbnailItem.addEventListener('click', () => {
+            // 移除其他缩略图的active状态
+            thumbnailList.querySelectorAll('.thumbnail-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            // 添加当前缩略图的active状态
+            thumbnailItem.classList.add('active');
+            // 更新大图
+            mainPreview.innerHTML = `<img src="${imageData}" alt="${view.name || `视图 ${index + 1}`}">`;
+        });
+        
+        thumbnailList.appendChild(thumbnailItem);
+    });
+    
+    // 设置默认大图（第一个视图）
+    if (viewImages.length > 0) {
+        mainPreview.innerHTML = `<img src="${viewImages[0]}" alt="${views[0].name || '视图 1'}">`;
+    }
+}
+
+/**
+ * 捕获所有视图的Canvas截图
+ * @param {Array} views - 视图数组
+ * @returns {Promise<Array>} 图片数据数组
+ */
+async function captureAllViewsImages(views) {
+    const images = [];
+    
+    for (const view of views) {
+        try {
+            // 获取对应视图的Canvas实例
+            const canvasId = `mainCanvas-${view.id}`;
+            const canvasElement = document.getElementById(canvasId);
+            
+            if (canvasElement && window.CanvasManager) {
+                const fabricCanvas = window.CanvasManager.getCanvas(view.id);
+                if (fabricCanvas) {
+                    // 强制渲染
+                    fabricCanvas.renderAll();
+                    
+                    // 捕获Canvas内容
+                    const imageData = await captureCanvasById(fabricCanvas);
+                    images.push(imageData);
+                } else {
+                    console.warn(`Canvas not found for view: ${view.id}`);
+                    // 添加占位图
+                    images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">无法加载视图</text></svg>'));
+                }
+            } else {
+                console.warn(`Canvas element not found: ${canvasId}`);
+                // 添加占位图
+                images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">视图不存在</text></svg>'));
+            }
+        } catch (error) {
+            console.error(`Failed to capture view ${view.id}:`, error);
+            // 添加错误占位图
+            images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">截图失败</text></svg>'));
+        }
+    }
+    
+    return images;
+}
+
+/**
+ * 根据Fabric Canvas实例捕获截图
+ * @param {fabric.Canvas} fabricCanvas - Fabric Canvas实例
+ * @returns {Promise<string>} 图片数据URL
+ */
+function captureCanvasById(fabricCanvas) {
+    return new Promise((resolve) => {
+        try {
+            // 强制渲染
+            fabricCanvas.renderAll();
+            
+            // 创建临时画布
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = fabricCanvas.width;
+            tempCanvas.height = fabricCanvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // 绘制白色背景
+            tempCtx.fillStyle = '#FFFFFF';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            // 获取fabric.js画布的数据URL
+            const fabricImage = new Image();
+            fabricImage.src = fabricCanvas.toDataURL({
+                format: 'png',
+                quality: 1,
+                multiplier: 1
+            });
+            
+            fabricImage.onload = function () {
+                // 绘制主画布内容
+                tempCtx.drawImage(fabricImage, 0, 0);
+                resolve(tempCanvas.toDataURL('image/png'));
+            };
+            
+            fabricImage.onerror = function () {
+                console.error('Failed to load fabric canvas image');
+                resolve('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">图片加载失败</text></svg>'));
+            };
+        } catch (error) {
+            console.error('Error capturing canvas:', error);
+            resolve('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">截图异常</text></svg>'));
+        }
+    });
+}
+
+/**
+ * 关闭多视图预览
+ */
+function closeMultiViewPreview() {
+    if (typeof MicroModal !== 'undefined') {
+        MicroModal.close('multi-view-preview-modal');
+    }
+    
+    // 清理DOM元素
+    const previewModal = document.getElementById('multi-view-preview-modal');
+    if (previewModal) {
+        previewModal.remove();
+    }
+}
+
+// 将关闭函数暴露到全局
+window.closeMultiViewPreview = closeMultiViewPreview;
