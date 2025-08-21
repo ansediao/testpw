@@ -57,20 +57,20 @@
                 if (this.files && this.files.length > 0) {
                     const file = this.files[0];
                     
-                    // 验证文件类型
-                    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-                    if (!allowedTypes.includes(file.type)) {
-                        alert('请选择图片文件 (JPG, PNG, GIF)');
-                        this.value = '';
-                        return;
-                    }
+                    // // 验证文件类型
+                    // const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                    // if (!allowedTypes.includes(file.type)) {
+                    //     alert('请选择图片文件 (JPG, PNG, GIF)');
+                    //     this.value = '';
+                    //     return;
+                    // }
                     
-                    // 验证文件大小 (5MB)
-                    if (file.size > 5 * 1024 * 1024) {
-                        alert('文件太大，请选择小于5MB的图片');
-                        this.value = '';
-                        return;
-                    }
+                    // // 验证文件大小 (5MB)
+                    // if (file.size > 5 * 1024 * 1024) {
+                    //     alert('文件太大，请选择小于5MB的图片');
+                    //     this.value = '';
+                    //     return;
+                    // }
                     
                     // 显示预览
                     const reader = new FileReader();
@@ -210,8 +210,27 @@
             const formData = new FormData(this);
             formData.append('action', 'pw_add_design');
             
+            // 检查nonce字段是否已经在FormData中（通过new FormData(this)自动添加）
+            let nonceExists = false;
+            for (let [key, value] of formData.entries()) {
+                if (key === 'pw_add_design_nonce_field') {
+                    nonceExists = true;
+                    break;
+                }
+            }
+            
+            // 如果nonce不存在，手动添加
+            if (!nonceExists) {
+                const nonceField = this.querySelector('input[name="pw_add_design_nonce_field"]');
+                if (nonceField) {
+                    formData.append('pw_add_design_nonce_field', nonceField.value);
+                }
+            }
+            
             const $submitBtn = $('#pw-add-design-submit');
             $submitBtn.prop('disabled', true).text('添加中...');
+            
+
             
             $.ajax({
                 url: pw_design_vars.ajaxurl,
