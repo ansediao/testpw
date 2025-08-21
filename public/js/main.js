@@ -1194,7 +1194,7 @@ async function showMultiViewPreview(views) {
 }
 
 /**
- * 捕获所有视图的Canvas截图（应用遮罩效果）
+ * 捕获所有视图的Canvas截图（应用多层合成和遮罩效果）
  * @param {Array} views - 视图数组
  * @returns {Promise<Array>} 图片数据数组
  */
@@ -1203,18 +1203,26 @@ async function captureAllViewsImages(views) {
     
     for (const view of views) {
         try {
-            // 获取对应视图的Canvas实例
-            const canvasId = `mainCanvas-${view.id}`;
-            const canvasElement = document.getElementById(canvasId);
+            // 获取所有Canvas图层元素
+            const baseCanvasElement = document.getElementById(`baseCanvas-${view.id}`);
+            const mainCanvasElement = document.getElementById(`mainCanvas-${view.id}`);
+            const overlayCanvasElement = document.getElementById(`overlayCanvas-${view.id}`);
+            const maskCanvasElement = document.getElementById(`maskCanvas-${view.id}`);
             
-            if (canvasElement && window.CanvasManager) {
+            if (mainCanvasElement && window.CanvasManager) {
                 const fabricCanvas = window.CanvasManager.getCanvas(view.id);
                 if (fabricCanvas) {
-                    // 强制渲染
+                    // 强制渲染主Canvas
                     fabricCanvas.renderAll();
                     
-                    // 捕获Canvas内容（应用遮罩效果）
-                    const imageData = await captureCanvasWithMask(fabricCanvas, view);
+                    // 捕获多层Canvas内容（应用遮罩效果）
+                    const imageData = await captureMultiLayerCanvasWithMask({
+                        baseCanvas: baseCanvasElement,
+                        mainCanvas: mainCanvasElement,
+                        overlayCanvas: overlayCanvasElement,
+                        maskCanvas: maskCanvasElement,
+                        fabricCanvas: fabricCanvas
+                    }, view);
                     images.push(imageData);
                 } else {
                     console.warn(`Canvas not found for view: ${view.id}`);
@@ -1222,7 +1230,7 @@ async function captureAllViewsImages(views) {
                     images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">无法加载视图</text></svg>'));
                 }
             } else {
-                console.warn(`Canvas element not found: ${canvasId}`);
+                console.warn(`Canvas element not found: mainCanvas-${view.id}`);
                 // 添加占位图
                 images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">视图不存在</text></svg>'));
             }
@@ -1242,6 +1250,159 @@ async function captureAllViewsImages(views) {
  * @param {Object} view - 视图对象
  * @returns {Promise<string>} 图片数据URL
  */
+
+/**
+ * 捕获多层Canvas并应用遮罩效果
+ * @param {Object} canvasLayers - 包含所有Canvas图层的对象
+ * @param {Object} view - 视图对象
+ * @returns {Promise<string>} 图片数据URL
+ */
+function captureMultiLayerCanvasWithMask(canvasLayers, view) {
+    return new Promise((resolve) => {
+        try {
+            const { baseCanvas, mainCanvas, overlayCanvas, maskCanvas, fabricCanvas } = canvasLayers;
+            
+            // 获取打印区域尺寸
+            let printAreaWidth = 100; // 默认值
+            let printAreaHeight = 120; // 默认值
+            
+            // 从 Pinia printMethod store 获取打印区域尺寸
+            if (window.usePrintMethodStore) {
+                const printMethodStore = window.usePrintMethodStore();
+                const currentMethods = printMethodStore.currentViewPrintMethods;
+                
+                if (currentMethods && currentMethods.length > 0) {
+                    const firstMethod = currentMethods[0];
+                    if (firstMethod.print_method_area_width && firstMethod.print_method_area_height) {
+                        // 将尺寸乘以50转换为像素
+                        printAreaWidth = firstMethod.print_method_area_width * 50;
+                        printAreaHeight = firstMethod.print_method_area_height * 50;
+                    }
+                }
+            }
+            
+            // 创建最终合成画布
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = fabricCanvas.width;
+            finalCanvas.height = fabricCanvas.height;
+            const finalCtx = finalCanvas.getContext('2d');
+            
+            // 绘制白色背景
+            finalCtx.fillStyle = '#FFFFFF';
+            finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+            
+            let loadedImages = 0;
+            const totalImages = 4; // baseCanvas, mainCanvas, overlayCanvas, maskCanvas
+            const imagePromises = [];
+            
+            // 处理每个图层
+            const processLayer = (canvasElement, layerName) => {
+                return new Promise((layerResolve) => {
+                    if (!canvasElement) {
+                        layerResolve(null);
+                        return;
+                    }
+                    
+                    if (layerName === 'mainCanvas') {
+                        // 主Canvas使用fabric.js的toDataURL
+                        const dataURL = fabricCanvas.toDataURL({
+                            format: 'png',
+                            quality: 1,
+                            multiplier: 1
+                        });
+                        const img = new Image();
+                        img.onload = () => layerResolve({ img, layerName });
+                        img.onerror = () => layerResolve(null);
+                        img.src = dataURL;
+                    } else {
+                        // 其他Canvas直接使用toDataURL
+                        try {
+                            const dataURL = canvasElement.toDataURL('image/png');
+                            const img = new Image();
+                            img.onload = () => layerResolve({ img, layerName });
+                            img.onerror = () => layerResolve(null);
+                            img.src = dataURL;
+                        } catch (error) {
+                            console.warn(`Failed to capture ${layerName}:`, error);
+                            layerResolve(null);
+                        }
+                    }
+                });
+            };
+            
+            // 创建所有图层的Promise
+            imagePromises.push(processLayer(baseCanvas, 'baseCanvas'));
+            imagePromises.push(processLayer(mainCanvas, 'mainCanvas'));
+            imagePromises.push(processLayer(overlayCanvas, 'overlayCanvas'));
+            imagePromises.push(processLayer(maskCanvas, 'maskCanvas'));
+            
+            Promise.all(imagePromises).then((results) => {
+                const layers = {};
+                results.forEach(result => {
+                    if (result) {
+                        layers[result.layerName] = result.img;
+                    }
+                });
+                
+                // 按z-index顺序合成图层
+                // 1. 绘制baseCanvas (z-index: 10)
+                if (layers.baseCanvas) {
+                    finalCtx.drawImage(layers.baseCanvas, 0, 0);
+                }
+                
+                // 2. 处理mainCanvas和maskCanvas的遮罩效果 (z-index: 20)
+                 if (layers.mainCanvas && layers.maskCanvas) {
+                     // 创建临时画布用于遮罩处理
+                     const tempCanvas = document.createElement('canvas');
+                     tempCanvas.width = finalCanvas.width;
+                     tempCanvas.height = finalCanvas.height;
+                     const tempCtx = tempCanvas.getContext('2d');
+                     
+                     // 先绘制mainCanvas内容
+                     tempCtx.drawImage(layers.mainCanvas, 0, 0);
+                     
+                     // 应用遮罩：使用maskCanvas创建镂空效果，只保留镂空区域的内容
+                     tempCtx.globalCompositeOperation = 'destination-out';
+                     tempCtx.drawImage(layers.maskCanvas, 0, 0);
+                     
+                     // 将处理后的mainCanvas绘制到最终画布
+                     finalCtx.drawImage(tempCanvas, 0, 0);
+                 } else if (layers.mainCanvas) {
+                     // 如果没有遮罩，直接绘制mainCanvas
+                     finalCtx.drawImage(layers.mainCanvas, 0, 0);
+                 }
+                
+                // 3. 绘制overlayCanvas (z-index: 30)
+                if (layers.overlayCanvas) {
+                    finalCtx.drawImage(layers.overlayCanvas, 0, 0);
+                }
+                
+                // 返回完整画布大小（不裁剪到打印区域）
+                 resolve(finalCanvas.toDataURL('image/png'));
+                 
+                 // 注释：如果需要裁剪到打印区域，可以使用以下代码
+                 // const cutoutX = (finalCanvas.width - printAreaWidth) / 2;
+                 // const cutoutY = (finalCanvas.height - printAreaHeight) / 2;
+                 // const croppedCanvas = document.createElement('canvas');
+                 // croppedCanvas.width = printAreaWidth;
+                 // croppedCanvas.height = printAreaHeight;
+                 // const croppedCtx = croppedCanvas.getContext('2d');
+                 // croppedCtx.fillStyle = '#FFFFFF';
+                 // croppedCtx.fillRect(0, 0, printAreaWidth, printAreaHeight);
+                 // croppedCtx.drawImage(finalCanvas, cutoutX, cutoutY, printAreaWidth, printAreaHeight, 0, 0, printAreaWidth, printAreaHeight);
+                 // resolve(croppedCanvas.toDataURL('image/png'));
+            }).catch((error) => {
+                console.error('Error processing canvas layers:', error);
+                resolve('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">图层合成失败</text></svg>'));
+            });
+            
+        } catch (error) {
+            console.error('Error capturing multi-layer canvas:', error);
+            resolve('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">截图异常</text></svg>'));
+        }
+    });
+}
+
 function captureCanvasWithMask(fabricCanvas, view) {
     return new Promise((resolve) => {
         try {
