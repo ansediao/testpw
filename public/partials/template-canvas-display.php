@@ -35,6 +35,10 @@ if ($product_id > 0) {
   <link href="//unpkg.com/layui@2.11.5/dist/css/layui.css" rel="stylesheet">
   <!-- 引入 Layui JS -->
   <script src="//unpkg.com/layui@2.11.5/dist/layui.js"></script>
+  <script src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
+
+
+  
   <link rel="stylesheet" href="//at.alicdn.com/t/c/font_4970780_pfyts3fzl6.css?time=<?php echo  microtime(true); ?>" />
   <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/203.css?time=<?php echo  microtime(true); ?>" />
   <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/240.css?time=<?php echo  microtime(true); ?>" />

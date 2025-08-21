@@ -59,7 +59,8 @@ class Pw_CDN_Loader {
             <link href="//unpkg.com/layui@2.11.5/dist/css/layui.css" rel="stylesheet">
             <!-- 引入 Layui JS -->
             <script src="//unpkg.com/layui@2.11.5/dist/layui.js"></script>
-            
+            <script src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
+
             <!-- 引入 Vue 3 -->
             <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
             
