@@ -143,6 +143,12 @@ export const useCanvasStore = defineStore('canvas', {
             this.layers = this.viewLayers[viewId] || [];
             this.layerGroups = this.viewLayerGroups[viewId] || [];
             
+            // 切换视图时，同步对应的打印方式数据
+            const printMethodStore = window.usePrintMethodStore();
+            if (printMethodStore) {
+                printMethodStore.switchToViewPrintMethods(viewId);
+            }
+            
             console.log(`View switched: ${previousViewId} -> ${viewId}, layers count: ${this.layers.length}`);
         },
         // 异步获取产品数据
@@ -252,6 +258,9 @@ export const useCanvasStore = defineStore('canvas', {
                     console.log('Successfully set productViewFlow:', productData.templates.views[0].view_flow);
                 }
                 
+                // 为每个视图加载印刷方式数据
+                this.loadPrintMethodsForAllViews();
+                
                 // 默认激活第一个视图
                 if (productData.templates.views.length > 0) {
                     const firstView = productData.templates.views[0];
@@ -273,6 +282,24 @@ export const useCanvasStore = defineStore('canvas', {
             }
             
             console.log('=== End setViewsFromProductData Debug Info ===');
+        },
+        
+        // 为所有视图加载印刷方式数据
+        async loadPrintMethodsForAllViews() {
+            const printMethodStore = window.usePrintMethodStore();
+            if (!printMethodStore) {
+                console.error('PrintMethodStore not available');
+                return;
+            }
+            
+            for (const view of this.views) {
+                if (view.printing_method_list_id && Array.isArray(view.printing_method_list_id) && view.printing_method_list_id.length > 0) {
+                    console.log(`Loading print methods for view ${view.id}:`, view.printing_method_list_id);
+                    await printMethodStore.setViewPrintMethods(view.id, view.printing_method_list_id);
+                } else {
+                    console.log(`No print methods defined for view ${view.id}`);
+                }
+            }
         }
 
         

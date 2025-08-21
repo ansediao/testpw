@@ -8,146 +8,95 @@ if (!window.Pinia) {
 // 打印方式管理 Store
 export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
     state: () => ({
-        // 打印方式配置数组
-        printMethods: [
-            {
-                id: 'method-a',
-                name: 'Print Method A',
-                label: 'Print Method A',
-                features: {
-                    allowCopy: true,
-                    allowDelete: true,
-                    allowMove: true,
-                    allowResize: true,
-                    allowRotate: true,
-                    maxLayers: null,
-                    supportedTypes: ['text', 'image', 'shape'],
-                    colorLimitations: null,
-                    minQuantity: 1,
-                    printArea: {
-                        width: 200,
-                        height: 200,
-                        unit: 'mm'
-                    }
-                },
-                settings: {
-                    color: {
-                        maxColors: null,
-                        colorType: 'full',
-                        pantoneSupport: true
-                    },
-                    moq: {
-                        minimum: 1,
-                        increments: 1
-                    },
-                    printArea: {
-                        maxWidth: 200,
-                        maxHeight: 200,
-                        shape: 'rectangle'
-                    }
-                }
-            },
-            {
-                id: 'method-b',
-                name: 'Print Method B',
-                label: 'Print Method B',
-                features: {
-                    allowCopy: false,
-                    allowDelete: true,
-                    allowMove: true,
-                    allowResize: false,
-                    allowRotate: false,
-                    maxLayers: 3,
-                    supportedTypes: ['text', 'image'],
-                    colorLimitations: 2,
-                    minQuantity: 50,
-                    printArea: {
-                        width: 150,
-                        height: 150,
-                        unit: 'mm'
-                    }
-                },
-                settings: {
-                    color: {
-                        maxColors: 2,
-                        colorType: 'spot',
-                        pantoneSupport: true
-                    },
-                    moq: {
-                        minimum: 50,
-                        increments: 25
-                    },
-                    printArea: {
-                        maxWidth: 150,
-                        maxHeight: 150,
-                        shape: 'rectangle'
-                    }
-                }
-            },
-            {
-                id: 'method-c',
-                name: 'Print Method C',
-                label: 'Print Method C',
-                features: {
-                    allowCopy: true,
-                    allowDelete: false,
-                    allowMove: true,
-                    allowResize: true,
-                    allowRotate: true,
-                    maxLayers: null,
-                    supportedTypes: ['text'],
-                    colorLimitations: 1,
-                    minQuantity: 100,
-                    printArea: {
-                        width: 100,
-                        height: 50,
-                        unit: 'mm'
-                    }
-                },
-                settings: {
-                    color: {
-                        maxColors: 1,
-                        colorType: 'mono',
-                        pantoneSupport: false
-                    },
-                    moq: {
-                        minimum: 100,
-                        increments: 50
-                    },
-                    printArea: {
-                        maxWidth: 100,
-                        maxHeight: 50,
-                        shape: 'rectangle'
-                    }
-                }
-            }
-        ],
+        // 按视图存储的打印方式数据 { viewId: [printMethods] }
+        viewPrintMethods: {},
+        
+        // 当前视图的打印方式数组（从 viewPrintMethods 中获取）
+        currentViewPrintMethods: [],
 
         // 当前选中的打印方式ID
-        selectedPrintMethodId: 'method-a',
+        selectedPrintMethodId: null,
 
         // 图层与打印方式的映射关系
         layerPrintMethodMap: {},
 
         // 图层组与打印方式的映射关系
-        groupPrintMethodMap: {}
+        groupPrintMethodMap: {},
+        
+        // API 相关状态
+        loadingPrintMethods: false,
+        printMethodsError: null
     }),
 
     getters: {
-        // 获取当前选中的打印方式对象
-        selectedPrintMethod: (state) => {
-            return state.printMethods.find(method => method.id === state.selectedPrintMethodId);
+        // 获取所有印刷方式（当前视图）
+        getAllPrintMethods: (state) => {
+            return state.currentViewPrintMethods;
         },
 
-        // 根据ID获取打印方式
+        // 根据ID获取印刷方式（当前视图）
         getPrintMethodById: (state) => (id) => {
-            return state.printMethods.find(method => method.id === id);
+            return state.currentViewPrintMethods.find(method => method.id === id);
+        },
+
+        // 获取指定视图的所有印刷方式
+        getViewPrintMethods: (state) => (viewId) => {
+            return state.viewPrintMethods[viewId] || [];
+        },
+
+        // 根据视图ID和印刷方式ID获取印刷方式
+        getViewPrintMethodById: (state) => (viewId, methodId) => {
+            const viewMethods = state.viewPrintMethods[viewId] || [];
+            return viewMethods.find(method => method.id === methodId);
+        },
+
+        // 获取当前选中的打印方式对象
+        selectedPrintMethod: (state) => {
+            return state.currentViewPrintMethods.find(method => method.id === state.selectedPrintMethodId);
+        },
+
+        // 获取当前选中的印刷方式
+        getSelectedPrintMethod: (state) => {
+            if (!state.selectedPrintMethodId) return null;
+            return state.currentViewPrintMethods.find(method => method.id === state.selectedPrintMethodId);
         },
 
         // 获取图层的打印方式
         getLayerPrintMethod: (state) => (layerId) => {
             const methodId = state.layerPrintMethodMap[layerId];
-            return methodId ? state.printMethods.find(method => method.id === methodId) : null;
+            return methodId ? state.currentViewPrintMethods.find(method => method.id === methodId) : null;
+        },
+
+        // 获取可用的印刷方式（排除已删除的，当前视图）
+        getAvailablePrintMethods: (state) => {
+            return state.currentViewPrintMethods.filter(method => method.status === 1);
+        },
+
+        // 获取指定视图的可用印刷方式
+        getViewAvailablePrintMethods: (state) => (viewId) => {
+            const viewMethods = state.viewPrintMethods[viewId] || [];
+            return viewMethods.filter(method => method.status === 1);
+        },
+
+        // 获取默认印刷方式（当前视图）
+        getDefaultPrintMethod: (state) => {
+            return state.currentViewPrintMethods.find(method => method.set_as_default === true);
+        },
+
+        // 获取指定视图的默认印刷方式
+        getViewDefaultPrintMethod: (state) => (viewId) => {
+            const viewMethods = state.viewPrintMethods[viewId] || [];
+            return viewMethods.find(method => method.set_as_default === true);
+        },
+
+        // 获取加载状态
+        isLoadingPrintMethods: (state) => {
+            return state.loadingPrintMethods;
+        },
+
+        // 获取印刷方式加载错误信息
+        getPrintMethodsError: (state) => {
+            return state.printMethodsError;
         },
 
         // 检查图层是否允许复制
@@ -155,7 +104,7 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
             const methodId = state.layerPrintMethodMap[layerId];
             if (!methodId) return true;
 
-            const method = state.printMethods.find(m => m.id === methodId);
+            const method = state.currentViewPrintMethods.find(m => m.id === methodId);
             return method ? method.features.allowCopy : true;
         },
 
@@ -164,7 +113,7 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
             const methodId = state.layerPrintMethodMap[layerId];
             if (!methodId) return true;
 
-            const method = state.printMethods.find(m => m.id === methodId);
+            const method = state.currentViewPrintMethods.find(m => m.id === methodId);
             return method ? method.features.allowDelete : true;
         },
 
@@ -183,7 +132,7 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
 
             if (!methodId) return true; // 如果没有指定打印方式，默认允许
 
-            const method = state.printMethods.find(m => m.id === methodId);
+            const method = state.currentViewPrintMethods.find(m => m.id === methodId);
             return method ? method.features.allowCopy : true;
         },
 
@@ -202,7 +151,7 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
 
             if (!methodId) return true;
 
-            const method = state.printMethods.find(m => m.id === methodId);
+            const method = state.currentViewPrintMethods.find(m => m.id === methodId);
             return method ? method.features.allowDelete : true;
         },
 
@@ -219,21 +168,193 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                 }
             }
 
-            return methodId ? state.printMethods.find(method => method.id === methodId) : null;
+            return methodId ? state.currentViewPrintMethods.find(method => method.id === methodId) : null;
         }
     },
 
     actions: {
+        /**
+         * 根据 printingMethodIds 数组通过后端聚合层获取印刷方式数据
+         * @param {Array} printingMethodIds - 印刷方式ID数组
+         * @returns {Promise<Array>} 印刷方式数据数组
+         */
+        async fetchPrintMethods(printingMethodIds) {
+            if (!printingMethodIds || !Array.isArray(printingMethodIds) || printingMethodIds.length === 0) {
+                console.warn('fetchPrintMethods: 无效的 printingMethodIds 参数');
+                return [];
+            }
+
+            this.loadingPrintMethods = true;
+            this.printMethodsError = null;
+
+            try {
+                // 通过后端聚合层的REST API端点获取数据
+                const response = await fetch('/wp-json/pw-canvas/v1/print-methods', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        printing_method_ids: printingMethodIds
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || '获取印刷方式数据失败');
+                }
+
+                // 验证并转换API数据格式
+                let convertedData = [];
+                // 检查API返回的数据结构，可能是嵌套的data字段
+                const apiData = result.data?.data || result.data;
+                
+                if (apiData && Array.isArray(apiData)) {
+                    convertedData = apiData.map(item => this.convertApiDataToInternalFormat(item));
+                } else if (apiData) {
+                    // 如果data不是数组，尝试将其包装为数组
+                    console.warn('API返回的data不是数组格式:', apiData);
+                    convertedData = [this.convertApiDataToInternalFormat(apiData)];
+                } else {
+                    console.warn('API返回的数据中没有有效的data字段:', result);
+                }
+                
+                // 如果有部分错误，记录警告
+                if (result.has_errors && result.errors) {
+                    console.warn('fetchPrintMethods: 部分印刷方式获取失败', result.errors);
+                }
+                
+                console.log('fetchPrintMethods: 成功获取印刷方式数据', convertedData);
+                return convertedData;
+            } catch (error) {
+                console.error('fetchPrintMethods: 获取印刷方式数据失败', error);
+                this.printMethodsError = error.message;
+                return [];
+            } finally {
+                this.loadingPrintMethods = false;
+            }
+        },
+        
+        // 转换 API 数据格式为内部格式
+        convertApiDataToInternalFormat(apiMethod) {
+            return {
+                id: apiMethod.id,
+                name: apiMethod.name,
+                label: apiMethod.name,
+                print_method_area_height:apiMethod.print_method_area_height,
+                print_method_area_width:apiMethod.print_method_area_width,
+                size_unit:apiMethod.size_unit,
+                code: apiMethod.code,
+                description: apiMethod.description,
+                features: {
+                    allowCopy: apiMethod.copyable,
+                    allowDelete: true, // API 中没有对应字段，默认为 true
+                    allowMove: true,
+                    allowResize: true,
+                    allowRotate: true,
+                    maxLayers: null, // API 中没有对应字段
+                    supportedTypes: ['text', 'image', 'shape'], // API 中没有对应字段，默认支持所有类型
+                    colorLimitations: apiMethod.printable_color === 'All Color' ? null : apiMethod.color_list_id,
+                    minQuantity: apiMethod.moq_quantity,
+                    printArea: {
+                        width: apiMethod.print_method_area_width,
+                        height: apiMethod.print_method_area_height,
+                        unit: apiMethod.size_unit
+                    }
+                },
+                settings: {
+                    color: {
+                        maxColors: apiMethod.printable_color === 'All Color' ? null : apiMethod.color_list_id,
+                        colorType: apiMethod.printable_color === 'All Color' ? 'full' : 'limited',
+                        pantoneSupport: true // API 中没有对应字段，默认为 true
+                    },
+                    moq: {
+                        minimum: apiMethod.moq_quantity,
+                        increments: 1 // API 中没有对应字段，默认为 1
+                    },
+                    printArea: {
+                        maxWidth: apiMethod.print_method_area_width,
+                        maxHeight: apiMethod.print_method_area_height,
+                        shape: 'rectangle' // API 中没有对应字段，默认为矩形
+                    },
+                    pricing: {
+                        printCost: apiMethod.print_cost,
+                        anchorPrice: apiMethod.anchor_price,
+                        sampleCost: apiMethod.sample_cost,
+                        sampleEnabled: apiMethod.sample_enabled
+                    },
+                    processing: {
+                        processTime: apiMethod.process_time,
+                        discountEnabled: apiMethod.discount_enabled,
+                        ranges: apiMethod.ranges || []
+                    },
+                    marks: {
+                        cropMark: apiMethod.crop_mark,
+                        bleedMark: apiMethod.bleed_mark,
+                        bleedValue: apiMethod.bleed_value,
+                        showPrintArea: apiMethod.show_print_area,
+                        showContentOut: apiMethod.show_content_out,
+                        sizeMark: apiMethod.size_mark
+                    },
+                    helper: {
+                        text: apiMethod.helper_text,
+                        image: apiMethod.helper_image
+                    }
+                },
+                // 保留原始 API 数据
+                apiData: apiMethod
+            };
+        },
+        
+        // 为视图设置打印方式数据
+        async setViewPrintMethods(viewId, printingMethodIds) {
+            const printMethods = await this.fetchPrintMethods(printingMethodIds);
+            this.viewPrintMethods[viewId] = printMethods;
+            
+            // 如果当前没有激活的视图，或者设置的是当前激活视图，更新当前打印方式
+            const canvasStore = window.useCanvasStore();
+            if (!canvasStore.activeViewId || canvasStore.activeViewId === viewId) {
+                this.currentViewPrintMethods = printMethods;
+                // 设置默认选中的打印方式
+                if (printMethods.length > 0 && !this.selectedPrintMethodId) {
+                    this.selectedPrintMethodId = printMethods[0].id;
+                }
+            }
+        },
+        
+        // 切换到指定视图的打印方式
+        switchToViewPrintMethods(viewId) {
+            const printMethods = this.viewPrintMethods[viewId] || [];
+            this.currentViewPrintMethods = printMethods;
+            
+            // 重置选中的打印方式
+            if (printMethods.length > 0) {
+                this.selectedPrintMethodId = printMethods[0].id;
+            } else {
+                this.selectedPrintMethodId = null;
+            }
+        },
+        
+        // 获取视图的打印方式数据
+        retrieveViewPrintMethods(viewId) {
+            return this.printMethodsByView[viewId] || [];
+        },
+
         // 设置选中的打印方式
         setSelectedPrintMethod(methodId) {
-            if (this.printMethods.find(method => method.id === methodId)) {
+            if (this.currentViewPrintMethods.find(method => method.id === methodId)) {
                 this.selectedPrintMethodId = methodId;
             }
         },
 
         // 为图层分配打印方式
         assignLayerPrintMethod(layerId, methodId) {
-            if (this.printMethods.find(method => method.id === methodId)) {
+            if (this.currentViewPrintMethods.find(method => method.id === methodId)) {
                 this.layerPrintMethodMap[layerId] = methodId;
             }
         },

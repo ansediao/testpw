@@ -466,6 +466,24 @@ class Pw_Admin_Promowares_Api
                 ),
             ),
         ));
+
+        // Register print methods endpoint
+        register_rest_route('pw-canvas/v1', '/print-methods', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'get_print_methods_data'),
+            'permission_callback' => '__return_true',
+            'args' => array(
+                'printing_method_ids' => array(
+                    'required' => true,
+                    'validate_callback' => function ($param, $request, $key) {
+                        return is_array($param) && !empty($param);
+                    },
+                    'sanitize_callback' => function ($param, $request, $key) {
+                        return array_map('intval', $param);
+                    }
+                ),
+            ),
+        ));
     }
 
     /**
@@ -1050,5 +1068,48 @@ class Pw_Admin_Promowares_Api
 
         error_log("[PW Canvas] get_enhanced_template_data completed successfully for product_id: {$product_id}");
         return $final_data;
+    }
+
+    /**
+     * Get print methods data from Promowares API.
+     *
+     * @since    1.0.0
+     * @param    WP_REST_Request    $request    The REST request object.
+     * @return   WP_REST_Response              The print methods response.
+     */
+    public function get_print_methods_data($request)
+    {
+        $printing_method_ids = $request['printing_method_ids'];
+        $token = $this->hardcoded_token;
+
+        if (empty($token)) {
+            return new WP_REST_Response(array(
+                'error' => 'API token not configured'
+            ), 401);
+        }
+
+        // Convert IDs array to comma-separated string for API call
+        $ids_string = implode(',', $printing_method_ids);
+        
+        // Call the API with all IDs at once using query parameter
+        $api_response = $this->call_promowares_api("print-methods?ids={$ids_string}", $token);
+        
+        if (is_wp_error($api_response)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'error' => $api_response->get_error_message(),
+                'requested_ids' => $printing_method_ids
+            ), 500);
+        }
+
+        $response_data = array(
+            'success' => true,
+            'data' => $api_response,
+            'total_methods' => is_array($api_response) ? count($api_response) : 0,
+            'requested_ids' => $printing_method_ids,
+            'has_errors' => false
+        );
+
+        return new WP_REST_Response($response_data, 200);
     }
 }
