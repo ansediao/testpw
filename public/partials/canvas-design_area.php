@@ -616,9 +616,93 @@ if ($first_image_url) {
             setTimeout(async () => {
                 //  initializeViewCanvas(view, store);
                 await renderView(`mainCanvas-${view.id}`, view, store);
+                
+                // 初始化 maskCanvas
+                await initializeMaskCanvas(`maskCanvas-${view.id}`, view, store);
 
             }, 100);
         });
+    }
+
+    /**
+     * 初始化遮罩画布
+     * @param {string} canvasId - 画布ID
+     * @param {Object} view - 视图对象
+     * @param {Object} store - Pinia store
+     */
+    async function initializeMaskCanvas(canvasId, view, store) {
+        const canvasElement = document.getElementById(canvasId);
+        if (!canvasElement) {
+            console.error('Mask canvas element not found:', canvasId);
+            return;
+        }
+
+        // 获取canvas尺寸（与mainCanvas保持一致）
+        let canvasWidth = 456;
+        let canvasHeight = 456;
+        
+        // 从视图的图层数据中获取尺寸
+        if (view.layers && view.layers.length > 0) {
+            const targetLayer = view.layers[0];
+            if (targetLayer && targetLayer.layer_data?.dimensions) {
+                canvasWidth = targetLayer.layer_data.dimensions.contentArea?.width || targetLayer.layer_data.dimensions.layerSize?.width || canvasWidth;
+                canvasHeight = targetLayer.layer_data.dimensions.contentArea?.height || targetLayer.layer_data.dimensions.layerSize?.height || canvasHeight;
+            }
+        }
+
+        // 创建 Fabric.js canvas 实例
+        const maskCanvas = new fabric.Canvas(canvasId, {
+            width: canvasWidth,
+            height: canvasHeight,
+            backgroundColor: 'transparent',
+            selection: false,
+            hoverCursor: 'default',
+            moveCursor: 'default'
+        });
+
+        // 获取打印区域尺寸
+        let printAreaWidth = 100; // 默认值
+        let printAreaHeight = 120; // 默认值
+        
+        // 从 Pinia printMethod store 获取打印区域尺寸
+        if (window.usePrintMethodStore) {
+            const printMethodStore = window.usePrintMethodStore();
+            const currentMethods = printMethodStore.currentViewPrintMethods;
+            
+            if (currentMethods && currentMethods.length > 0) {
+                const firstMethod = currentMethods[0];
+                if (firstMethod.print_method_area_width && firstMethod.print_method_area_height) {
+                    // 将尺寸乘以50转换为像素
+                    printAreaWidth = firstMethod.print_method_area_width * 50;
+                    printAreaHeight = firstMethod.print_method_area_height * 50;
+                    console.log(`获取到打印区域尺寸: ${printAreaWidth}x${printAreaHeight}px`);
+                }
+            }
+        }
+
+        // 创建遮罩路径（四周半透明，中心镂空）
+        const maskPath = `M 0 0 L ${canvasWidth} 0 L ${canvasWidth} ${canvasHeight} L 0 ${canvasHeight} Z M ${(canvasWidth - printAreaWidth) / 2} ${(canvasHeight - printAreaHeight) / 2} L ${(canvasWidth + printAreaWidth) / 2} ${(canvasHeight - printAreaHeight) / 2} L ${(canvasWidth + printAreaWidth) / 2} ${(canvasHeight + printAreaHeight) / 2} L ${(canvasWidth - printAreaWidth) / 2} ${(canvasHeight + printAreaHeight) / 2} Z`;
+
+        const printAreaMask = new fabric.Path(maskPath, {
+            fill: 'rgba(0, 0, 0, 0.5)', // 半透明黑色遮罩
+            fillRule: 'evenodd',
+            selectable: false,
+            evented: false,
+            excludeFromExport: true,
+            name: 'printAreaMask'
+        });
+
+        // 添加遮罩到画布
+        maskCanvas.add(printAreaMask);
+        maskCanvas.renderAll();
+
+        // 将 maskCanvas 实例与 DOM 元素关联
+        canvasElement.__fabricCanvas = maskCanvas;
+        canvasElement.__viewId = view.id;
+
+        console.log(`遮罩画布 #${canvasId} 初始化完成，打印区域: ${printAreaWidth}x${printAreaHeight}px`);
+        
+        return maskCanvas;
     }
 
     // function initializeViewCanvas(view, store) {
