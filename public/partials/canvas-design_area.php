@@ -599,9 +599,14 @@ if ($first_image_url) {
             // 创建 canvas 元素
             const canvasHtml = `
                
-                
-                <div class="canvas-wrapper" id="mainWrapper-${view.id}" style="z-index:30;">
+                <div class="canvas-wrapper" id="baseWrapper-${view.id}" style="z-index:10;">
+                    <canvas id="baseCanvas-${view.id}"></canvas>
+                </div>
+                <div class="canvas-wrapper" id="mainWrapper-${view.id}" style="z-index:20;">
                     <canvas id="mainCanvas-${view.id}"></canvas>
+                </div>
+                <div class="canvas-wrapper" id="overlayWrapper-${view.id}" style="z-index:30;">
+                    <canvas id="overlayCanvas-${view.id}"></canvas>
                 </div>
                 <div class="canvas-wrapper" id="maskWrapper-${view.id}" style="z-index:40;">
                     <canvas id="maskCanvas-${view.id}"></canvas>
