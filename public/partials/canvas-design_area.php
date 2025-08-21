@@ -195,6 +195,52 @@ if ($first_image_url) {
                     });
                     break;
 
+                case 'text':
+                    if (!data.content.text) {
+                        console.warn(`因缺少文本内容，正在跳过文本图层 "${layer.name}"。`);
+                        resolve(null);
+                        return;
+                    }
+
+                    const origins = getOriginFromAnchorPoint(position.anchorPoint || 'top-left');
+
+                    // 使用坐标转换函数处理不同原点的坐标
+                    const convertedCoords = convertCoordinatesForOrigin(
+                        position.coordinates.x,
+                        position.coordinates.y,
+                        data.dimensions.layerSize.width,
+                        data.dimensions.layerSize.height,
+                        origins.originX,
+                        origins.originY
+                    );
+
+                    const textObj = new fabric.Text(data.content.text, {
+                        left: convertedCoords.x,
+                        top: convertedCoords.y,
+                        angle: position.rotation,
+                        originX: origins.originX,
+                        originY: origins.originY,
+                        fontFamily: data.content.fontFamily || 'Arial',
+                        fill: data.content.fontColor || '#000000',
+                        opacity: data.content.opacity / 100,
+                        selectable: controls.movable,
+                        evented: controls.movable,
+                        lockRotation: !controls.rotatable,
+                        lockScalingX: !controls.scalable,
+                        lockScalingY: !controls.scalable,
+                        hasControls: controls.movable && controls.scalable,
+                        hasBorders: controls.movable,
+                        name: layer.name
+                    });
+
+                    // // 如果有背景色，设置背景
+                    // if (data.content.backgroundColor && data.content.backgroundColor !== 'transparent') {
+                    //     textObj.set('backgroundColor', data.content.backgroundColor);
+                    // }
+
+                    resolve(textObj);
+                    break;
+
                 default:
                     console.warn(`未知的图层类型: "${layer.type}" (图层名: "${layer.name}")。`);
                     resolve(null);
@@ -296,7 +342,7 @@ if ($first_image_url) {
                 }
             } else {
                 // 当 productViewFlow 不是 "4-Grid Flow" 时，显示 Base Layer 和 Overlay Layer，跳过 4-Grid Flow
-                if (layer.name === 'Base Layer' || layer.name === 'Overlay Layer') {
+                if (layer.name === 'Base Layer' || layer.name === 'Overlay Layer' || layer.name === 'Custom Layer') {
                     // 允许显示
                 } else if (layer.name === '4-Grid Flow') {
                     console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 不是 "4-Grid Flow"`);
