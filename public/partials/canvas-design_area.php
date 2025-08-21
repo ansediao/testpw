@@ -620,13 +620,211 @@ if ($first_image_url) {
             // 初始化该视图的 Fabric.js canvas
             setTimeout(async () => {
                 //  initializeViewCanvas(view, store);
-                await renderView(`mainCanvas-${view.id}`, view, store);
+                await initializeMultiLayerCanvases(view, store);
                 
                 // 初始化 maskCanvas
                 await initializeMaskCanvas(`maskCanvas-${view.id}`, view, store);
 
             }, 100);
         });
+    }
+
+    /**
+     * 初始化多图层画布系统
+     * @param {Object} view - 视图对象
+     * @param {Object} store - Pinia store
+     */
+    async function initializeMultiLayerCanvases(view, store) {
+        const viewData = view.data;
+        const layerConfig = viewData?.layer_config;
+        if (!layerConfig || !layerConfig.layers || layerConfig.layers.length === 0) {
+            console.error("未在视图数据中找到有效的图层配置进行渲染。");
+            return;
+        }
+
+        const layers = layerConfig.layers;
+        const productViewFlow = store.getProductViewFlow();
+        
+        // 根据 productViewFlow 决定从哪个图层获取画布尺寸
+        let targetLayer = layers[0];
+        if (productViewFlow === '4-Grid Flow') {
+            const gridFlowLayer = layers.find(layer => layer.name === '4-Grid Flow');
+            if (gridFlowLayer) {
+                targetLayer = gridFlowLayer;
+            }
+        }
+        
+        const canvasWidth = targetLayer.layer_data.dimensions.contentArea.width || targetLayer.layer_data.dimensions.layerSize.width;
+        const canvasHeight = targetLayer.layer_data.dimensions.contentArea.height || targetLayer.layer_data.dimensions.layerSize.height;
+
+        // 定义所有需要初始化的canvas
+         const allCanvasIds = [
+             `baseCanvas-${view.id}`,
+             `mainCanvas-${view.id}`,
+             `overlayCanvas-${view.id}`
+         ];
+
+         // 首先初始化所有canvas为空的fabric画布
+         for (const canvasId of allCanvasIds) {
+             await initializeEmptyCanvas(canvasId, canvasWidth, canvasHeight, view, store);
+         }
+
+         // 然后为每个图层类型渲染到对应的canvas
+         const canvasConfigs = [
+             { layerName: 'Base Layer', canvasId: `baseCanvas-${view.id}` },
+             { layerName: 'Overlay Layer', canvasId: `overlayCanvas-${view.id}` },
+             { layerName: '4-Grid Flow', canvasId: `mainCanvas-${view.id}` },
+             { layerName: 'Custom Layer', canvasId: `mainCanvas-${view.id}` }
+         ];
+
+         // 渲染对应图层到canvas
+         for (const config of canvasConfigs) {
+             const targetLayers = layers.filter(layer => layer.name === config.layerName);
+             if (targetLayers.length > 0) {
+                 const canvas = document.getElementById(config.canvasId).__fabricCanvas;
+                 if (canvas) {
+                     const sortedLayers = [...targetLayers].sort((a, b) => a.sort_order - b.sort_order);
+                     for (const layer of sortedLayers) {
+                         await renderLayerToSpecificCanvas(canvas, layer, store, view);
+                     }
+                     canvas.renderAll();
+                      console.log(`画布 #${config.canvasId} 上的图层已成功渲染。 ✅`);
+                  }
+              }
+          }
+          
+          // 所有图层渲染完成后，触发自动缩放调整
+          setTimeout(() => {
+              if (typeof window.triggerAutoZoomAdjustment === 'function') {
+                  window.triggerAutoZoomAdjustment();
+              }
+          }, 200); // 延迟200ms确保DOM更新完成
+    }
+
+     /**
+      * 初始化空的fabric画布
+      * @param {string} canvasId - 画布ID
+      * @param {number} canvasWidth - 画布宽度
+      * @param {number} canvasHeight - 画布高度
+      * @param {Object} view - 视图对象
+      * @param {Object} store - Pinia store
+      */
+     async function initializeEmptyCanvas(canvasId, canvasWidth, canvasHeight, view, store) {
+         const canvas = new fabric.Canvas(canvasId, {
+             width: canvasWidth,
+             height: canvasHeight,
+             backgroundColor: 'transparent', // 使用透明背景以支持图层叠加
+         });
+
+         // 为 canvas 添加事件监听器
+         if (window.initializeCanvasEventListeners) {
+             window.initializeCanvasEventListeners(canvas);
+         }
+
+         // 将 Canvas 实例与 DOM 元素关联
+         const canvasElement = document.getElementById(canvasId);
+         if (canvasElement) {
+             canvasElement.__fabricCanvas = canvas;
+             canvasElement.__viewId = view.id;
+         }
+
+         // 使用 CanvasManager 管理 canvas 实例
+         if (window.CanvasManager) {
+             // 将 canvas 实例注册到 CanvasManager
+             if (!window.CanvasManager._canvasMap) {
+                 window.CanvasManager._canvasMap = {};
+             }
+             
+             // 如果是主画布，将其注册为该视图的主画布
+             if (canvasId.includes('mainCanvas')) {
+                 window.CanvasManager._canvasMap[view.id] = canvas;
+                 
+                 // 如果是当前活动视图，设置为活动画布
+                 if (store.activeViewId === view.id) {
+                     window.CanvasManager.setActiveCanvas(view.id);
+                     window.canvas = canvas;
+                     window.fabricCanvas = canvas;
+                 }
+             }
+             
+             // 其他画布也注册，但使用不同的键名
+             window.CanvasManager._canvasMap[canvasId] = canvas;
+         }
+
+         console.log(`空的fabric画布 #${canvasId} 已初始化。`);
+         return canvas;
+     }
+
+
+
+    /**
+     * 将单个图层渲染到指定canvas（专用于多图层系统）
+     * @param {fabric.Canvas} canvas - Fabric.js 的画布实例
+     * @param {object} layer - 要渲染的单个图层对象
+     * @param {object} store - Pinia store 实例
+     * @param {object} view - 当前视图对象
+     * @returns {Promise<fabric.Object|null>} 返回创建的 fabric 对象
+     */
+    async function renderLayerToSpecificCanvas(canvas, layer, store, view) {
+        if (!canvas || !layer) {
+            console.error("渲染单个图层需要有效的画布实例和图层数据。");
+            return null;
+        }
+        
+        try {
+            const fabricObject = await createFabricObjectFromLayer(layer);
+
+            // 根据 productViewFlow 控制显示的图层
+            const productViewFlow = store.getProductViewFlow();
+            
+            if (productViewFlow === '4-Grid Flow') {
+                // 当 productViewFlow 为 "4-Grid Flow" 时，只允许显示 "4-Grid Flow" 层
+                if (layer.name !== '4-Grid Flow') {
+                    console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 为 "4-Grid Flow"`);
+                    return null;
+                }
+            } else {
+                // 当 productViewFlow 不是 "4-Grid Flow" 时，显示 Base Layer 和 Overlay Layer，跳过 4-Grid Flow
+                if (layer.name === 'Base Layer' || layer.name === 'Overlay Layer' || layer.name === 'Custom Layer') {
+                    // 允许显示
+                } else if (layer.name === '4-Grid Flow') {
+                    console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 不是 "4-Grid Flow"`);
+                    return null;
+                } else {
+                    return null;
+                }
+            }
+
+            // 如果满足条件（图层名称为 Base Layer），将对象存入 Pinia store
+            if (fabricObject && layer.name === 'Base Layer' && view && store) {
+                // 确保 views 数组和对应的 view 对象存在
+                if (store.views && store.views.length > 0) {
+                    const viewIndex = store.views.findIndex(v => v.id === view.id);
+                    if (viewIndex !== -1) {
+                        // 将 fabricObject 存入 views[view.id].base_layer
+                        if (!store.views[viewIndex].base_layer) {
+                            store.views[viewIndex].base_layer = {};
+                        }
+                        store.views[viewIndex].base_layer = fabricObject;
+                        console.log(`Base Layer 对象已存入 Pinia store: views[${view.id}].base_layer`);
+
+                        // 从pinia 中取出这个 图片对象 修改颜色
+                        applyTintFilter(store.views[viewIndex].base_layer, '#ff0000', 1);
+                        // 重新渲染画布以显示滤镜效果
+                    }
+                }
+            }
+
+            if (fabricObject) {
+                canvas.add(fabricObject);
+                console.log(`该图层 "${layer.name}" 已被添加到画布 ${canvas.getElement().id}。`);
+                return fabricObject;
+            }
+            return null;
+        } catch (error) {
+            console.error(`渲染图层 "${layer.name}" 时发生错误:`, error);
+            return null;
+        }
     }
 
     /**
