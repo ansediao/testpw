@@ -1374,13 +1374,8 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                 results.forEach(result => {
                     if (result) {
                         layers[result.layerName] = result.img;
-                        console.log(`成功加载图层: ${result.layerName}`);
-                    } else {
-                        console.log(`图层加载失败或为空`);
                     }
                 });
-                
-                console.log('所有图层加载完成:', Object.keys(layers));
                 
                 // 按z-index顺序合成图层
                 // 1. 绘制baseCanvas (z-index: 10)
@@ -1390,7 +1385,6 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                 
                 // 2. 处理mainCanvas和maskCanvas的遮罩效果 (z-index: 20)
                  if (layers.mainCanvas && layers.maskCanvas) {
-                     console.log('应用遮罩效果: mainCanvas和maskCanvas都存在');
                      // 创建临时画布用于遮罩处理
                      const tempCanvas = document.createElement('canvas');
                      tempCanvas.width = finalCanvas.width;
@@ -1417,72 +1411,55 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                              break;
                          }
                      }
-                     console.log('maskCanvas有内容:', hasContent);
                      
                      if (hasContent) {
-                              // 详细检查maskCanvas的内容
-                              console.log('maskCanvas尺寸:', layers.maskCanvas.width, 'x', layers.maskCanvas.height);
-                              
-                              // 检查maskCanvas的像素数据
-                              const debugMaskCanvas = document.createElement('canvas');
-                              debugMaskCanvas.width = layers.maskCanvas.width;
-                              debugMaskCanvas.height = layers.maskCanvas.height;
-                              const debugMaskCtx = debugMaskCanvas.getContext('2d');
-                              debugMaskCtx.drawImage(layers.maskCanvas, 0, 0);
-                              const debugMaskData = debugMaskCtx.getImageData(0, 0, debugMaskCanvas.width, debugMaskCanvas.height);
-                              
-                              // 统计不同类型的像素
-                              let transparentPixels = 0;
-                              let opaquePixels = 0;
-                              let semiTransparentPixels = 0;
-                              
-                              for (let i = 3; i < debugMaskData.data.length; i += 4) {
-                                  const alpha = debugMaskData.data[i];
-                                  if (alpha === 0) {
-                                      transparentPixels++;
-                                  } else if (alpha === 255) {
-                                      opaquePixels++;
-                                  } else {
-                                      semiTransparentPixels++;
-                                  }
-                              }
-                              
-                              console.log('maskCanvas像素统计:');
-                              console.log('- 透明像素:', transparentPixels);
-                              console.log('- 不透明像素:', opaquePixels);
-                              console.log('- 半透明像素:', semiTransparentPixels);
-                              
-                              // 由于maskCanvas主要是半透明像素，需要特殊处理
-                               if (opaquePixels > 0 || semiTransparentPixels > 0) {
-                                   // 创建二值化遮罩：将半透明像素转换为完全不透明
-                                   const binaryMaskCanvas = document.createElement('canvas');
-                                   binaryMaskCanvas.width = layers.maskCanvas.width;
-                                   binaryMaskCanvas.height = layers.maskCanvas.height;
-                                   const binaryMaskCtx = binaryMaskCanvas.getContext('2d');
-                                   
-                                   // 绘制原遮罩
-                                   binaryMaskCtx.drawImage(layers.maskCanvas, 0, 0);
-                                   
-                                   // 获取像素数据并二值化
-                                   const binaryImageData = binaryMaskCtx.getImageData(0, 0, binaryMaskCanvas.width, binaryMaskCanvas.height);
-                                   for (let i = 3; i < binaryImageData.data.length; i += 4) {
-                                       // 将任何非透明像素设为完全不透明
-                                       if (binaryImageData.data[i] > 0) {
-                                           binaryImageData.data[i] = 255;
-                                       }
+                               // 检查maskCanvas的像素数据以确定处理方式
+                               const debugMaskCanvas = document.createElement('canvas');
+                               debugMaskCanvas.width = layers.maskCanvas.width;
+                               debugMaskCanvas.height = layers.maskCanvas.height;
+                               const debugMaskCtx = debugMaskCanvas.getContext('2d');
+                               debugMaskCtx.drawImage(layers.maskCanvas, 0, 0);
+                               const debugMaskData = debugMaskCtx.getImageData(0, 0, debugMaskCanvas.width, debugMaskCanvas.height);
+                               
+                               // 统计不同类型的像素
+                               let opaquePixels = 0;
+                               let semiTransparentPixels = 0;
+                               
+                               for (let i = 3; i < debugMaskData.data.length; i += 4) {
+                                   const alpha = debugMaskData.data[i];
+                                   if (alpha === 255) {
+                                       opaquePixels++;
+                                   } else if (alpha > 0) {
+                                       semiTransparentPixels++;
                                    }
-                                   binaryMaskCtx.putImageData(binaryImageData, 0, 0);
-                                   
-                                   // 应用二值化后的遮罩
-                                   tempCtx.globalCompositeOperation = 'destination-out';
-                                   tempCtx.drawImage(binaryMaskCanvas, 0, 0);
-                                   console.log('已应用二值化遮罩的destination-out效果');
-                               } else {
-                                   console.log('maskCanvas只有透明像素，跳过遮罩应用');
                                }
-                          } else {
-                              console.log('maskCanvas没有内容，跳过遮罩应用');
-                          }
+                               
+                               // 处理半透明像素的遮罩
+                                if (opaquePixels > 0 || semiTransparentPixels > 0) {
+                                    // 创建二值化遮罩：将半透明像素转换为完全不透明
+                                    const binaryMaskCanvas = document.createElement('canvas');
+                                    binaryMaskCanvas.width = layers.maskCanvas.width;
+                                    binaryMaskCanvas.height = layers.maskCanvas.height;
+                                    const binaryMaskCtx = binaryMaskCanvas.getContext('2d');
+                                    
+                                    // 绘制原遮罩
+                                    binaryMaskCtx.drawImage(layers.maskCanvas, 0, 0);
+                                    
+                                    // 获取像素数据并二值化
+                                    const binaryImageData = binaryMaskCtx.getImageData(0, 0, binaryMaskCanvas.width, binaryMaskCanvas.height);
+                                    for (let i = 3; i < binaryImageData.data.length; i += 4) {
+                                        // 将任何非透明像素设为完全不透明
+                                        if (binaryImageData.data[i] > 0) {
+                                            binaryImageData.data[i] = 255;
+                                        }
+                                    }
+                                    binaryMaskCtx.putImageData(binaryImageData, 0, 0);
+                                    
+                                    // 应用二值化后的遮罩
+                                    tempCtx.globalCompositeOperation = 'destination-out';
+                                    tempCtx.drawImage(binaryMaskCanvas, 0, 0);
+                                }
+                           }
                      
                      // 将处理后的mainCanvas绘制到最终画布
                      finalCtx.drawImage(tempCanvas, 0, 0);
