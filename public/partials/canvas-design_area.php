@@ -550,14 +550,27 @@ if ($first_image_url) {
         multiViewContainer.innerHTML = '';
 
         views.forEach((view, index) => {
+            // 获取目标图层尺寸
+            let canvasWidth = 567; // 默认宽度
+            let canvasHeight = 567; // 默认高度
+            
+            // 尝试从视图的图层数据中获取尺寸
+            if (view.layers && view.layers.length > 0) {
+                const targetLayer = view.layers[0];
+                if (targetLayer && targetLayer.layer_data?.dimensions) {
+                    canvasWidth = targetLayer.layer_data.dimensions.contentArea?.width || targetLayer.layer_data.dimensions.layerSize?.width || canvasWidth;
+                    canvasHeight = targetLayer.layer_data.dimensions.contentArea?.height || targetLayer.layer_data.dimensions.layerSize?.height || canvasHeight;
+                }
+            }
+            
             // 创建视图容器
             const viewContainer = document.createElement('div');
             viewContainer.id = `view-container-${view.id}`;
             viewContainer.className = 'view-container';
             viewContainer.style.cssText = `
                 position: relative;
-                width: 100%;
-                height: 100%;
+                width: ${canvasWidth}px;
+                height: ${canvasHeight}px;
                 display: ${index === 0 ? 'block' : 'none'};
             `;
 
@@ -587,10 +600,12 @@ if ($first_image_url) {
             const canvasHtml = `
                
                 
-                <div class="canvas-wrapper" id="mainWrapper-${view.id}">
+                <div class="canvas-wrapper" id="mainWrapper-${view.id}" style="z-index:30;">
                     <canvas id="mainCanvas-${view.id}"></canvas>
                 </div>
-                
+                <div class="canvas-wrapper" id="maskWrapper-${view.id}" style="z-index:40;">
+                    <canvas id="maskCanvas-${view.id}"></canvas>
+                </div>
               
             `;
 
