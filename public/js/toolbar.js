@@ -696,6 +696,10 @@ function addImage(event) {
         
         fabric.Image.fromURL(e.target.result, function (img) {
             img.scaleToWidth(200);
+            // 初始化 layerCounter（如果不存在）
+            if (typeof window.layerCounter === 'undefined') {
+                window.layerCounter = 0;
+            }
             const newId = 'layer_' + (++window.layerCounter);
             img.set({
                 left: canvas.width / 2,
@@ -732,6 +736,10 @@ function addDesignToCanvas(designId) {
         const imageUrl = designImg.src;
         fabric.Image.fromURL(imageUrl, function (img) {
             img.scaleToWidth(200);
+            // 初始化 layerCounter（如果不存在）
+            if (typeof window.layerCounter === 'undefined') {
+                window.layerCounter = 0;
+            }
             const newId = 'layer_' + (++window.layerCounter);
             img.set({
                 left: canvas.width / 2,
