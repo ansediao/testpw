@@ -1,5 +1,12 @@
 // 更新动态工具栏
 function updateDynamicToolbar(obj) {
+    // 获取当前活动的 canvas 实例
+    const canvas = getActiveCanvas();
+    if (!canvas) {
+        console.error('Canvas instance not found in updateDynamicToolbar');
+        return;
+    }
+    
     const textToolbarArea = document.querySelector('#content-wenzi-control');
     const imgOriginControls = document.querySelector('#img_origin_controls');
     const imgAddControls = document.querySelector('#img_add_controls');
@@ -680,9 +687,16 @@ function addImage(event) {
     console.log('addImage function called, file name:', file.name);
     const reader = new FileReader();
     reader.onload = function (e) {
+        // 获取当前活动的 canvas 实例
+        const canvas = getActiveCanvas();
+        if (!canvas) {
+            console.error('Canvas instance not found');
+            return;
+        }
+        
         fabric.Image.fromURL(e.target.result, function (img) {
             img.scaleToWidth(200);
-            const newId = 'layer_' + layerCounter++;
+            const newId = 'layer_' + (++window.layerCounter);
             img.set({
                 left: canvas.width / 2,
                 top: canvas.height / 2,
@@ -705,13 +719,20 @@ function addImage(event) {
 }
 // 添加设计到画布的函数
 function addDesignToCanvas(designId) {
+    // 获取当前活动的 canvas 实例
+    const canvas = getActiveCanvas();
+    if (!canvas) {
+        console.error('Canvas instance not found');
+        return;
+    }
+    
     // 获取设计图片的 URL
     const designImg = document.querySelector(`.design-item img[onclick="addDesignToCanvas(${designId})"]`);
     if (designImg) {
         const imageUrl = designImg.src;
         fabric.Image.fromURL(imageUrl, function (img) {
             img.scaleToWidth(200);
-            const newId = 'layer_' + layerCounter++;
+            const newId = 'layer_' + (++window.layerCounter);
             img.set({
                 left: canvas.width / 2,
                 top: canvas.height / 2,
