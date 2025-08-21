@@ -880,9 +880,10 @@ function applyArcDistortionToTextObject(textObject, arcValue) {
  * @param {Array} views - 视图数组
  */
 async function showMultiViewPreview(views) {
-    // 检查是否已存在预览界面
-    if (document.getElementById('multi-view-preview-modal')) {
-        return;
+    // 检查是否已存在预览界面，如果存在则先移除
+    const existingModal = document.getElementById('multi-view-preview-modal');
+    if (existingModal) {
+        existingModal.remove();
     }
 
     // 创建MicroModal结构的预览界面
@@ -1114,32 +1115,44 @@ async function showMultiViewPreview(views) {
     document.head.appendChild(style);
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-    // 确保MicroModal已加载并初始化
-    if (typeof MicroModal !== 'undefined') {
-        // 初始化MicroModal（如果还未初始化）
-        try {
-            MicroModal.init({
-                disableScroll: true,
-                disableFocus: false,
-                awaitCloseAnimation: false,
-                debugMode: false
-            });
-        } catch (e) {
-            // 可能已经初始化过了，忽略错误
+    // 等待DOM插入完成
+    setTimeout(() => {
+        const modal = document.getElementById('multi-view-preview-modal');
+        if (!modal) {
+            console.error('Modal element not found');
+            return;
         }
         
-        // 显示弹窗
-        MicroModal.show('multi-view-preview-modal');
-    } else {
-        console.error('MicroModal not loaded, using fallback');
-        // 降级处理：直接显示
-        const modal = document.getElementById('multi-view-preview-modal');
-        if (modal) {
+        // 确保MicroModal已加载并初始化
+        if (typeof MicroModal !== 'undefined') {
+            // 初始化MicroModal（如果还未初始化）
+            try {
+                MicroModal.init({
+                    disableScroll: true,
+                    disableFocus: false,
+                    awaitCloseAnimation: false,
+                    debugMode: false
+                });
+            } catch (e) {
+                // 可能已经初始化过了，忽略错误
+            }
+            
+            // 显示弹窗
+            try {
+                MicroModal.show('multi-view-preview-modal');
+            } catch (e) {
+                console.warn('MicroModal show failed, using fallback:', e);
+                // 降级处理
+                modal.style.display = 'flex';
+                modal.classList.add('is-open');
+            }
+        } else {
+            console.error('MicroModal not loaded, using fallback');
+            // 降级处理：直接显示
             modal.style.display = 'flex';
             modal.classList.add('is-open');
         }
-        return;
-    }
+    }, 10);
     
     // 捕获所有视图的截图
     const viewImages = await captureAllViewsImages(views);
@@ -1273,14 +1286,27 @@ function captureCanvasById(fabricCanvas) {
  * 关闭多视图预览
  */
 function closeMultiViewPreview() {
-    if (typeof MicroModal !== 'undefined') {
-        MicroModal.close('multi-view-preview-modal');
-    }
-    
-    // 清理DOM元素
-    const previewModal = document.getElementById('multi-view-preview-modal');
-    if (previewModal) {
-        previewModal.remove();
+    const modal = document.getElementById('multi-view-preview-modal');
+    if (modal) {
+        // 先尝试用MicroModal关闭
+        if (typeof MicroModal !== 'undefined') {
+            try {
+                MicroModal.close('multi-view-preview-modal');
+            } catch (e) {
+                console.warn('MicroModal close failed:', e);
+            }
+        }
+        
+        // 手动隐藏并移除
+        modal.style.display = 'none';
+        modal.classList.remove('is-open');
+        
+        // 延迟移除DOM元素，确保动画完成
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.remove();
+            }
+        }, 100);
     }
 }
 
