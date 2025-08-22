@@ -324,6 +324,15 @@ document.getElementById('renderBtn').addEventListener('click', async function ()
         await showMultiViewPreview(views);
         return;
       }
+      // 4-Grid Flow 特殊处理
+      if (productViewFlow === "4-Grid Flow") {
+        // 满足条件，显示4格图预览
+        await show4GridPreview(views);
+        return;
+      }
+
+
+
     } catch (error) {
       console.error('Failed to check Pinia conditions:', error);
     }
@@ -1666,3 +1675,559 @@ function closeMultiViewPreview() {
 // 将关闭函数暴露到全局
 window.closeMultiViewPreview = closeMultiViewPreview;
 window.captureViewForPDF = captureViewForPDF;
+
+/**
+ * 显示4格图预览弹窗
+ * @param {Array} views - 视图数组
+ */
+async function show4GridPreview(views) {
+    // 创建MicroModal结构的4格图预览界面
+    const modalHTML = `
+        <div class="modal micromodal-slide" id="four-grid-preview-modal" aria-hidden="true">
+            <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+                <div class="modal__container modal__container--fullscreen" role="dialog" aria-modal="true" aria-labelledby="four-grid-title">
+                    <header class="modal__header">
+                        <h2 class="modal__title" id="four-grid-title">4格图预览</h2>
+                        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+                    </header>
+                    <main class="modal__content modal__content--scrollable">
+                        <div class="four-grid-body">
+                             <div class="grid-thumbnail-list">
+                                 <div class="grid-item" data-view="front">
+                                     <div class="grid-image-container">
+                                         <div class="loading">正在生成前视图...</div>
+                                     </div>
+                                     <div class="grid-label">前视图</div>
+                                 </div>
+                                 <div class="grid-item" data-view="left">
+                                     <div class="grid-image-container">
+                                         <div class="loading">正在生成左视图...</div>
+                                     </div>
+                                     <div class="grid-label">左视图</div>
+                                 </div>
+                                 <div class="grid-item" data-view="right">
+                                     <div class="grid-image-container">
+                                         <div class="loading">正在生成右视图...</div>
+                                     </div>
+                                     <div class="grid-label">右视图</div>
+                                 </div>
+                                 <div class="grid-item" data-view="back">
+                                     <div class="grid-image-container">
+                                         <div class="loading">正在生成后视图...</div>
+                                     </div>
+                                     <div class="grid-label">后视图</div>
+                                 </div>
+                             </div>
+                             <div class="grid-main-preview">
+                                 <div class="preview-placeholder">请选择左侧视图查看预览</div>
+                             </div>
+                         </div>
+                    </main>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // 添加4格图专用样式
+    const style = document.createElement('style');
+    style.textContent = `
+        /* 4格图预览弹窗样式 */
+        #four-grid-preview-modal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 99999 !important;
+            display: none;
+        }
+        
+        #four-grid-preview-modal.is-open {
+            display: flex !important;
+        }
+        
+        #four-grid-preview-modal .modal__overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background: rgba(0, 0, 0, 0.8) !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            z-index: 99999 !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        #four-grid-preview-modal .modal__container--fullscreen {
+            width: 95% !important;
+            height: 90% !important;
+            max-width: none !important;
+            max-height: none !important;
+            margin: 0 !important;
+            background: white !important;
+            border-radius: 8px !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        
+        #four-grid-preview-modal .modal__header {
+            padding: 20px !important;
+            border-bottom: 1px solid #eee !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            flex-shrink: 0 !important;
+        }
+        
+        #four-grid-preview-modal .modal__title {
+            margin: 0 !important;
+            font-size: 24px !important;
+            font-weight: 600 !important;
+            color: #333 !important;
+        }
+        
+        #four-grid-preview-modal .modal__content {
+            flex: 1 !important;
+            overflow: hidden !important;
+            padding: 0 !important;
+        }
+        
+        .four-grid-body {
+            display: flex;
+            height: 100%;
+            min-height: calc(100vh - 120px);
+        }
+        
+        .grid-thumbnail-list {
+            width: 320px;
+            background: #f8f9fa;
+            border-right: 1px solid #eee;
+            overflow-y: auto;
+            padding: 20px;
+            flex-shrink: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 15px;
+            align-content: start;
+        }
+        
+        .grid-item {
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .grid-item:hover {
+            border-color: #007bff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+        }
+        
+        .grid-item.active {
+            border-color: #007bff;
+            box-shadow: 0 0 0 1px #007bff;
+        }
+        
+        .grid-image-container {
+            width: 100%;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f0;
+            position: relative;
+        }
+        
+        .grid-image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .grid-label {
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+            border-top: 1px solid #eee;
+            font-weight: 500;
+        }
+        
+        .grid-main-preview {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: #fff;
+            overflow: auto;
+        }
+        
+        .grid-main-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            font-size: 12px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .four-grid-body {
+                flex-direction: column;
+            }
+            
+            .grid-thumbnail-list {
+                width: 100%;
+                max-height: 300px;
+                border-right: none;
+                border-bottom: 1px solid #eee;
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .grid-main-preview {
+                flex: 1;
+            }
+        }
+    `;
+    
+    document.head.appendChild(style);
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // 等待DOM插入完成
+    setTimeout(() => {
+        const modal = document.getElementById('four-grid-preview-modal');
+        if (!modal) {
+            console.error('4Grid modal element not found');
+            return;
+        }
+        
+        // 确保MicroModal已加载并初始化
+        if (typeof MicroModal !== 'undefined') {
+            try {
+                MicroModal.init({
+                    disableScroll: true,
+                    disableFocus: false,
+                    awaitCloseAnimation: false,
+                    debugMode: false
+                });
+            } catch (e) {
+                // 可能已经初始化过了，忽略错误
+            }
+            
+            // 显示弹窗
+            try {
+                MicroModal.show('four-grid-preview-modal');
+            } catch (e) {
+                console.warn('MicroModal show failed, using fallback:', e);
+                modal.style.display = 'flex';
+                modal.classList.add('is-open');
+            }
+        } else {
+            console.error('MicroModal not loaded, using fallback');
+            modal.style.display = 'flex';
+            modal.classList.add('is-open');
+        }
+    }, 10);
+    
+    // 生成4格图预览
+    await generate4GridImages(views);
+}
+
+/**
+ * 生成4格图预览图片
+ * @param {Array} views - 视图数组
+ */
+async function generate4GridImages(views) {
+    if (!views || views.length === 0) {
+        console.error('No views provided for 4-grid generation');
+        return;
+    }
+    
+    // 获取第一个视图作为基础视图
+    const baseView = views[0];
+    if (!baseView || !baseView.layers) {
+        console.error('Base view or layers not found');
+        return;
+    }
+    
+    // 查找特定图层
+    const backgroundLayer = baseView.layers.find(layer => layer.name === 'Background Layer');
+    const baseLayer = baseView.layers.find(layer => layer.name === 'Base Layer');
+    const overlayLayer = baseView.layers.find(layer => layer.name === 'Overlay Layer');
+    
+    // 获取画布尺寸（从Background Layer或默认值）
+    let canvasWidth = 400;
+    let canvasHeight = 400;
+    
+    if (backgroundLayer && backgroundLayer.layer_data && backgroundLayer.layer_data.dimensions) {
+        const dimensions = backgroundLayer.layer_data.dimensions.layerSize;
+        if (dimensions && dimensions.width && dimensions.height) {
+            canvasWidth = dimensions.width;
+            canvasHeight = dimensions.height;
+        }
+    }
+    
+    // 获取当前激活的画布
+    const activeCanvas = getActiveCanvas();
+    if (!activeCanvas) {
+        console.error('No active canvas found');
+        return;
+    }
+    
+    // 定义4个视图的配置
+    const viewConfigs = [
+        {
+            name: 'front',
+            label: '前视图',
+            cropConfig: { x: 0.25, y: 0, width: 0.5, height: 1 } // 中心1/2
+        },
+        {
+            name: 'left', 
+            label: '左视图',
+            cropConfig: { x: 0, y: 0, width: 0.5, height: 1 } // 左边1/2
+        },
+        {
+            name: 'right',
+            label: '右视图', 
+            cropConfig: { x: 0.5, y: 0, width: 0.5, height: 1 } // 右边1/2
+        },
+        {
+            name: 'back',
+            label: '后视图',
+            cropConfig: { x: 0.75, y: 0, width: 0.25, height: 1, extraCrop: { x: 0, y: 0, width: 0.25, height: 1 } } // 右边1/4 + 左边1/4
+        }
+    ];
+    
+    const gridItems = document.querySelectorAll('#four-grid-preview-modal .grid-item');
+    const mainPreview = document.querySelector('#four-grid-preview-modal .grid-main-preview');
+    
+    // 为每个视图生成图片
+    for (let i = 0; i < viewConfigs.length; i++) {
+        const config = viewConfigs[i];
+        const gridItem = gridItems[i];
+        
+        if (!gridItem) continue;
+        
+        try {
+            // 生成合成图片
+            const imageData = await generateCompositeImage({
+                canvasWidth,
+                canvasHeight,
+                backgroundLayer,
+                baseLayer,
+                overlayLayer,
+                activeCanvas,
+                cropConfig: config.cropConfig
+            });
+            
+            // 更新网格项
+            const imageContainer = gridItem.querySelector('.grid-image-container');
+            if (imageContainer && imageData) {
+                imageContainer.innerHTML = `<img src="${imageData}" alt="${config.label}" />`;
+                
+                // 添加点击事件
+                gridItem.addEventListener('click', () => {
+                    // 移除其他项的active状态
+                    gridItems.forEach(item => item.classList.remove('active'));
+                    // 添加当前项的active状态
+                    gridItem.classList.add('active');
+                    // 更新大图预览
+                    if (mainPreview) {
+                        mainPreview.innerHTML = `<img src="${imageData}" alt="${config.label}">`;
+                    }
+                });
+                
+                // 默认选中第一个
+                if (i === 0) {
+                    gridItem.classList.add('active');
+                    if (mainPreview) {
+                        mainPreview.innerHTML = `<img src="${imageData}" alt="${config.label}">`;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error(`Failed to generate image for ${config.name}:`, error);
+            const imageContainer = gridItem.querySelector('.grid-image-container');
+            if (imageContainer) {
+                imageContainer.innerHTML = `<div class="loading">生成${config.label}失败</div>`;
+            }
+        }
+    }
+}
+
+/**
+ * 生成合成图片（按图层叠加顺序）
+ * @param {Object} options - 生成选项
+ * @returns {Promise<string>} 图片数据URL
+ */
+async function generateCompositeImage(options) {
+    const { canvasWidth, canvasHeight, backgroundLayer, baseLayer, overlayLayer, activeCanvas, cropConfig } = options;
+    
+    // 创建临时画布
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvasWidth;
+    tempCanvas.height = canvasHeight;
+    const ctx = tempCanvas.getContext('2d');
+    
+    // 清空画布
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    
+    try {
+        // 1. 绘制Background Layer（如果存在）
+        if (backgroundLayer && backgroundLayer.layer_data && backgroundLayer.layer_data.content && backgroundLayer.layer_data.content.imageURL) {
+            await drawLayerImage(ctx, backgroundLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
+        }
+        
+        // 2. 绘制Base Layer（如果存在）
+        if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) {
+            await drawLayerImage(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
+        }
+        
+        // 3. 绘制当前激活画布的裁剪区域
+        if (activeCanvas) {
+            await drawCroppedCanvasRegion(ctx, activeCanvas, cropConfig, canvasWidth, canvasHeight);
+        }
+        
+        // 4. 绘制Overlay Layer（如果存在）
+        if (overlayLayer && overlayLayer.layer_data && overlayLayer.layer_data.content && overlayLayer.layer_data.content.imageURL) {
+            await drawLayerImage(ctx, overlayLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
+        }
+        
+        return tempCanvas.toDataURL('image/png');
+    } catch (error) {
+        console.error('Error generating composite image:', error);
+        throw error;
+    }
+}
+
+/**
+ * 绘制图层图片
+ * @param {CanvasRenderingContext2D} ctx - 画布上下文
+ * @param {string} imageUrl - 图片URL
+ * @param {number} width - 画布宽度
+ * @param {number} height - 画布高度
+ */
+async function drawLayerImage(ctx, imageUrl, width, height) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            // 计算保持长宽比的尺寸，高度为输出图片高度的80%
+            const targetHeight = height * 0.8;
+            const aspectRatio = img.width / img.height;
+            const targetWidth = targetHeight * aspectRatio;
+            
+            // 计算居中位置
+            const x = (width - targetWidth) / 2;
+            const y = (height - targetHeight) / 2;
+            
+            ctx.drawImage(img, x, y, targetWidth, targetHeight);
+            resolve();
+        };
+        img.onerror = reject;
+        img.src = imageUrl;
+    });
+}
+
+/**
+ * 绘制裁剪的画布区域
+ * @param {CanvasRenderingContext2D} ctx - 目标画布上下文
+ * @param {fabric.Canvas} sourceCanvas - 源画布
+ * @param {Object} cropConfig - 裁剪配置
+ * @param {number} targetWidth - 目标宽度
+ * @param {number} targetHeight - 目标高度
+ */
+async function drawCroppedCanvasRegion(ctx, sourceCanvas, cropConfig, targetWidth, targetHeight) {
+    return new Promise((resolve) => {
+        // 获取源画布的数据URL
+        const sourceDataURL = sourceCanvas.toDataURL('image/png');
+        const img = new Image();
+        
+        img.onload = () => {
+            const sourceWidth = img.width;
+            const sourceHeight = img.height;
+            
+            if (cropConfig.extraCrop) {
+                // 后视图特殊处理：右边1/4 + 左边1/4
+                // 创建临时画布来合成拼接图片
+                const tempCanvas = document.createElement('canvas');
+                const rightCropWidth = sourceWidth * cropConfig.width;
+                const leftCropWidth = sourceWidth * cropConfig.extraCrop.width;
+                const totalCropWidth = rightCropWidth + leftCropWidth;
+                
+                tempCanvas.width = totalCropWidth;
+                tempCanvas.height = sourceHeight;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                // 绘制右边1/4
+                const rightCropX = sourceWidth * cropConfig.x;
+                tempCtx.drawImage(
+                    img,
+                    rightCropX, 0, rightCropWidth, sourceHeight,
+                    0, 0, rightCropWidth, sourceHeight
+                );
+                
+                // 绘制左边1/4
+                const leftCropX = sourceWidth * cropConfig.extraCrop.x;
+                tempCtx.drawImage(
+                    img,
+                    leftCropX, 0, leftCropWidth, sourceHeight,
+                    rightCropWidth, 0, leftCropWidth, sourceHeight
+                );
+                
+                // 计算保持长宽比的尺寸
+                const cropHeight = targetHeight * 0.8;
+                const aspectRatio = totalCropWidth / sourceHeight;
+                const cropWidth = cropHeight * aspectRatio;
+                
+                // 计算居中位置
+                const x = (targetWidth - cropWidth) / 2;
+                const y = (targetHeight - cropHeight) / 2;
+                
+                // 绘制到目标画布
+                ctx.drawImage(tempCanvas, x, y, cropWidth, cropHeight);
+            } else {
+                // 普通裁剪
+                const cropX = sourceWidth * cropConfig.x;
+                const cropY = sourceHeight * cropConfig.y;
+                const cropWidth = sourceWidth * cropConfig.width;
+                const cropHeight = sourceHeight * cropConfig.height;
+                
+                // 计算保持长宽比的尺寸，高度为输出图片高度的80%
+                const drawHeight = targetHeight * 0.8;
+                const aspectRatio = cropWidth / cropHeight;
+                const drawWidth = drawHeight * aspectRatio;
+                
+                // 计算居中位置
+                const x = (targetWidth - drawWidth) / 2;
+                const y = (targetHeight - drawHeight) / 2;
+                
+                ctx.drawImage(
+                    img,
+                    cropX, cropY, cropWidth, cropHeight,
+                    x, y, drawWidth, drawHeight
+                );
+            }
+            
+            resolve();
+        };
+        
+        img.src = sourceDataURL;
+    });
+}
+
+// 暴露4格图预览函数到全局
+window.show4GridPreview = show4GridPreview;
