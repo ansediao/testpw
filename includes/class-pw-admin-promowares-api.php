@@ -1020,6 +1020,7 @@ class Pw_Admin_Promowares_Api
                 'view_type' => $view['view_type'], // 视图类型：main/sub  
                 'view_flow' => $view['view_flow'],// 视图类型 Flat Flow  或 4-Grid Flow
                 'view_name'=> $view['view_name'],
+                'single_printing_method_only'=> $view['single_printing_method_only'],
                 'printing_method_list_id' => isset($view['printing_method_list_id']) ? $view['printing_method_list_id'] : null,
                 'layers' => array(), // Initialize empty layers array
                 'data' => array(

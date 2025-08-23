@@ -39,6 +39,7 @@ export const useCanvasStore = defineStore('canvas', {
         productDataError: null, // 产品数据加载错误信息
         // 视图相关状态
         views: [],              // 存储所有视图信息
+        activeView: null,       // 当前激活的视图对象
         activeViewId: null,     // 当前激活的视图ID
         productViewFlow: null,  // 产品视图流程类型，来自 productData.templates.views[0].view_flow
     }),
@@ -58,14 +59,14 @@ export const useCanvasStore = defineStore('canvas', {
         setLayerGroups(groups) { this.layerGroups = groups; },
         setActiveGroupId(id) { this.activeGroupId = id; },
         // 按视图管理图层的方法
-        setViewLayers(viewId, layers) { 
+        setViewLayers(viewId, layers) {
             this.viewLayers[viewId] = layers;
             // 如果是当前激活视图，同时更新全局layers
             if (viewId === this.activeViewId) {
                 this.layers = layers;
             }
         },
-        getViewLayers(viewId) { 
+        getViewLayers(viewId) {
             return this.viewLayers[viewId] || [];
         },
         addLayerToView(viewId, layer) {
@@ -104,17 +105,24 @@ export const useCanvasStore = defineStore('canvas', {
         setProductDataError(error) { this.productDataError = error; },
         // 视图相关方法
         setViews(views) { this.views = views; },
+        setActiveView(view) { 
+            this.activeView = view;
+            // 直接设置activeViewId，不调用setActiveViewId方法
+            if (view && view.id) {
+                this.activeViewId = view.id;
+            }
+        },
         setProductViewFlow(viewFlow) { this.productViewFlow = viewFlow; },
-        getProductViewFlow() { 
+        getProductViewFlow() {
             // 如果已经设置了值，直接返回
             if (this.productViewFlow !== null) {
                 return this.productViewFlow;
             }
             // 否则尝试从 productData 中获取
-            if (this.productData && 
-                this.productData.templates && 
-                this.productData.templates.views && 
-                this.productData.templates.views.length > 0 && 
+            if (this.productData &&
+                this.productData.templates &&
+                this.productData.templates.views &&
+                this.productData.templates.views.length > 0 &&
                 this.productData.templates.views[0].view_flow) {
                 return this.productData.templates.views[0].view_flow;
             }
@@ -138,6 +146,12 @@ export const useCanvasStore = defineStore('canvas', {
             
             // 切换到新视图
             this.activeViewId = viewId;
+            
+            // 根据viewId查找对应的视图对象并设置为activeView
+            const viewObject = this.views.find(view => view.id === viewId);
+            if (viewObject) {
+                this.activeView = viewObject;
+            }
             
             // 加载新视图的图层数据
             this.layers = this.viewLayers[viewId] || [];
@@ -177,13 +191,13 @@ export const useCanvasStore = defineStore('canvas', {
             if (deliveryDate) this.estimatedDeliveryDate = deliveryDate;
             if (arrivalDate) this.estimatedArrivalDate = arrivalDate;
         },
-        
+
         // 从产品数据中提取视图信息
         extractViewsFromProductData(productData) {
             const views = [];
             if (productData && productData.templates && productData.templates.data && productData.templates.data.custom_view) {
                 const customView = productData.templates.data.custom_view;
-                
+
                 // 添加主视图
                 if (customView.main_custom_view) {
                     views.push({
@@ -192,7 +206,7 @@ export const useCanvasStore = defineStore('canvas', {
                         data: customView.main_custom_view
                     });
                 }
-                
+
                 // 添加子视图
                 if (Array.isArray(customView.sub_custom_view)) {
                     customView.sub_custom_view.forEach((subView, index) => {
@@ -204,13 +218,13 @@ export const useCanvasStore = defineStore('canvas', {
                     });
                 }
             }
-            
+
             this.setViews(views);
             // 默认激活第一个视图
             if (views.length > 0) {
                 this.setActiveViewId(views[0].id);
             }
-            
+
             console.log('Extracted view information:', views);
         },
         // 直接从 productData.templates.view 数组  中赋值
@@ -219,54 +233,54 @@ export const useCanvasStore = defineStore('canvas', {
             console.log('Complete productData:', productData);
             console.log('productData.templates:', productData?.templates);
             console.log('productData.templates.view:', productData?.templates?.view);
-            
+
             // 检查数据结构是否正确
             if (!productData) {
                 console.error('Error: productData is null or undefined');
                 return;
             }
-            
+
             if (!productData.templates) {
                 console.error('Error: productData.templates is null or undefined');
                 console.log('Available productData keys:', Object.keys(productData));
                 return;
             }
-            
+
             if (!productData.templates.views) {
                 console.error('Error: productData.templates.views is null or undefined');
                 console.log('Available templates keys:', Object.keys(productData.templates));
                 return;
             }
-            
+
             if (!Array.isArray(productData.templates.views)) {
                 console.error('Error: productData.templates.view is not an array');
                 console.log('Type of productData.templates.view:', typeof productData.templates.views);
                 console.log('Value of productData.templates.view:', productData.templates.views);
                 return;
             }
-            
+
             console.log('View array length:', productData.templates.views.length);
             console.log('View array contents:', productData.templates.views);
-            
+
             try {
                 this.setViews(productData.templates.views);
                 console.log('Successfully set views');
-                
+
                 // 设置 productViewFlow
                 if (productData.templates.views.length > 0 && productData.templates.views[0].view_flow) {
                     this.setProductViewFlow(productData.templates.views[0].view_flow);
                     console.log('Successfully set productViewFlow:', productData.templates.views[0].view_flow);
                 }
-                
+
                 // 为每个视图加载印刷方式数据
                 this.loadPrintMethodsForAllViews();
-                
+
                 // 默认激活第一个视图
                 if (productData.templates.views.length > 0) {
                     const firstView = productData.templates.views[0];
                     console.log('First view:', firstView);
                     console.log('First view ID:', firstView?.id);
-                    
+
                     if (firstView && firstView.id) {
                         this.setActiveViewId(firstView.id);
                         console.log('Successfully set active view ID:', firstView.id);
@@ -280,10 +294,10 @@ export const useCanvasStore = defineStore('canvas', {
                 console.error('Error in setViewsFromProductData:', error);
                 console.error('Error stack:', error.stack);
             }
-            
+
             console.log('=== End setViewsFromProductData Debug Info ===');
         },
-        
+
         // 为所有视图加载印刷方式数据
         async loadPrintMethodsForAllViews() {
             const printMethodStore = window.usePrintMethodStore();
@@ -291,7 +305,7 @@ export const useCanvasStore = defineStore('canvas', {
                 console.error('PrintMethodStore not available');
                 return;
             }
-            
+
             for (const view of this.views) {
                 if (view.printing_method_list_id && Array.isArray(view.printing_method_list_id) && view.printing_method_list_id.length > 0) {
                     console.log(`Loading print methods for view ${view.id}:`, view.printing_method_list_id);
@@ -302,7 +316,7 @@ export const useCanvasStore = defineStore('canvas', {
             }
         }
 
-        
+
 
 
     },
@@ -328,7 +342,7 @@ const triggerReadyEvent = () => {
     if (eventTriggered) {
         return;
     }
-    
+
     // 触发自定义事件，通知其他脚本 Pinia 已准备就绪
     document.dispatchEvent(new CustomEvent('canvasPiniaReady', {
         detail: {
@@ -337,7 +351,7 @@ const triggerReadyEvent = () => {
             usePrintMethodStore: window.usePrintMethodStore
         }
     }));
-    
+
     eventTriggered = true;
 };
 

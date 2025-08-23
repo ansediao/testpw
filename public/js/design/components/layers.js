@@ -58,8 +58,8 @@ const layersApp = Vue.createApp({
                                     <button 
                                         @click.stop="showGroupAssignDialog(layer)" 
                                         class="assign-btn"
-                                        :class=""
-                                        :disabled=""
+                                        :class="{ 'disabled': isPrintMethodSwitchDisabled }"
+                                        :disabled="isPrintMethodSwitchDisabled"
                                         :title="getSwitchMethodTooltip"
                                     >
                                         <i class="iconfont icon-dayin"></i>Switch Printing Method
@@ -92,8 +92,8 @@ const layersApp = Vue.createApp({
                                 <button 
                                     @click.stop="showGroupPrintMethodDialog(group)" 
                                     class="layer-btn pwca-group-print-modal__trigger"
-                                    :class="{ 'disabled': isSinglePrintMethod }"
-                                    :disabled="isSinglePrintMethod"
+                                    :class="{ 'disabled': isGroupPrintMethodSwitchDisabled }"
+                                    :disabled="isGroupPrintMethodSwitchDisabled"
                                     :title="getGroupPrintMethodTooltip"
                                 >
                                     <i class="iconfont icon-dayin"></i>
@@ -175,8 +175,8 @@ const layersApp = Vue.createApp({
                                     <button 
                                         @click.stop="showGroupAssignDialog(layer)" 
                                         class="assign-btn"
-                                        :class="{ 'disabled': isSinglePrintMethod }"
-                                        :disabled="isSinglePrintMethod"
+                                        :class="{ 'disabled': isPrintMethodSwitchDisabled }"
+                                        :disabled="isPrintMethodSwitchDisabled"
                                         :title="getSwitchMethodTooltip"
                                     >
                                         <i class="iconfont icon-dayin"></i>Switch Printing Method
@@ -347,13 +347,14 @@ const layersApp = Vue.createApp({
         const activeGroupId = Vue.computed(() => store.activeGroupId);
         const views = Vue.computed(() => store.views);
         const activeViewId = Vue.computed(() => store.activeViewId);
-        
+        const activeView = Vue.computed(() => store.activeView);
+
         // 当前视图的图层和图层组
         const currentViewLayers = Vue.computed(() => {
             if (!activeViewId.value) return [];
             return store.getViewLayers(activeViewId.value);
         });
-        
+
         const currentViewLayerGroups = Vue.computed(() => {
             if (!activeViewId.value) return [];
             return store.getViewLayerGroups(activeViewId.value);
@@ -362,22 +363,36 @@ const layersApp = Vue.createApp({
         // 打印方式相关的计算属性
         const printMethods = Vue.computed(() => printMethodStore.currentViewPrintMethods);
         const selectedPrintMethod = Vue.computed(() => printMethodStore.selectedPrintMethod);
-        
+
         // 新增：检查是否允许切换印刷方式的计算属性
         const canSwitchPrintMethod = Vue.computed(() => printMethodStore.canSwitchPrintMethod);
-        const isSinglePrintMethod = Vue.computed(() => printMethodStore.isSinglePrintMethod);
-        
+        const isPrintMethodSwitchDisabled = Vue.computed(() => {
+            // 首先检查当前视图是否设置了 single_printing_method_only 为 "true"
+            if (activeView.value && activeView.value.single_printing_method_only === true) {
+                return true;
+            }
+
+             return printMethodStore.isSinglePrintMethod;
+           
+        });
+
+        // 图层组的打印方法切换控制（独立于单个图层）
+        const isGroupPrintMethodSwitchDisabled = Vue.computed(() => {
+            // 图层组只检查 printMethodStore 的数量限制，不受 activeView.single_printing_method_only 影响
+            return printMethodStore.isSinglePrintMethod;
+        });
+
         // 生成按钮禁用的提示文本
         const getSwitchMethodTooltip = Vue.computed(() => {
-            if (isSinglePrintMethod.value) {
+            if (isPrintMethodSwitchDisabled.value) {
                 return '当前视图只有一种印刷方式，无法切换';
             }
             return '切换印刷方式';
         });
-        
+
         // 图层组印刷方式修改按钮的提示文本
         const getGroupPrintMethodTooltip = Vue.computed(() => {
-            if (isSinglePrintMethod.value) {
+            if (isGroupPrintMethodSwitchDisabled.value) {
                 return '当前视图只有一种印刷方式，无法切换';
             }
             return '修改图层组印刷方式';
@@ -390,7 +405,7 @@ const layersApp = Vue.createApp({
         const selectedLayerForAssign = Vue.ref(null);
         const selectedPrintMethodId = Vue.ref(printMethodStore.selectedPrintMethodId);
         const activeTab = Vue.ref('color');
-        
+
         // 图层组印刷方式修改相关数据
         const selectedGroupForPrintMethod = Vue.ref(null);
         const selectedGroupPrintMethodId = Vue.ref(null);
@@ -399,7 +414,7 @@ const layersApp = Vue.createApp({
         const currentViewUngroupedLayers = Vue.computed(() => {
             return currentViewLayers.value.filter(layer => !layer.groupId);
         });
-        
+
         // 兼容性：保持原有的ungroupedLayers计算属性
         const ungroupedLayers = Vue.computed(() => {
             return layers.value.filter(layer => !layer.groupId);
@@ -408,26 +423,26 @@ const layersApp = Vue.createApp({
         // 视图切换方法
         const switchToView = (viewId) => {
             store.setActiveViewId(viewId);
-            
+
             // 更新 CanvasManager 的激活画布
             if (window.CanvasManager) {
                 window.CanvasManager.setActiveCanvas(viewId);
             }
-            
+
             // 触发视图切换事件，让其他组件也能响应
             const event = new CustomEvent('layerPanelViewSwitch', {
                 detail: { viewId: viewId }
             });
             document.dispatchEvent(event);
         };
-        
+
         // 获取当前视图名称
         const getCurrentViewName = () => {
             if (!activeViewId.value) return 'No View';
             const currentView = views.value.find(view => view.id === activeViewId.value);
             return currentView ? currentView.name : 'Unknown View';
         };
-        
+
         // 监听视图切换，确保图层数据正确更新
         Vue.watch(() => store.activeViewId, (newViewId) => {
             if (newViewId) {
@@ -468,7 +483,7 @@ const layersApp = Vue.createApp({
             if (window.CanvasManager) {
                 return window.CanvasManager.getActiveCanvas();
             }
-            
+
             // 尝试多种方式获取画布实例（向后兼容）
             let canvasInstance = window.canvas || window.fabricCanvas;
 
@@ -480,7 +495,7 @@ const layersApp = Vue.createApp({
                         canvasInstance = canvasElement.__fabricCanvas;
                     }
                 }
-                
+
                 // 单视图模式：尝试获取主画布
                 if (!canvasInstance) {
                     const canvasElement = document.querySelector('#mainCanvas');
@@ -557,7 +572,7 @@ const layersApp = Vue.createApp({
                         // 计算缩放比例，确保对象适合缩略图
                         const objWidth = cloned.width * cloned.scaleX || cloned.width || 100;
                         const objHeight = cloned.height * cloned.scaleY || cloned.height || 100;
-                        
+
                         const scale = Math.min(
                             CONTENT_SIZE / objWidth,
                             CONTENT_SIZE / objHeight
@@ -625,8 +640,8 @@ const layersApp = Vue.createApp({
                 // 如果没有找到图片源，从上传列表中查找
                 if (!imageSrc && window.uploadedImages) {
                     const matchedImg = window.uploadedImages.find(img => {
-                        return img.fileName === obj.layerName || 
-                               (obj.id && img.layerId === obj.id);
+                        return img.fileName === obj.layerName ||
+                            (obj.id && img.layerId === obj.id);
                     });
                     if (matchedImg && matchedImg.src) {
                         imageSrc = matchedImg.src;
@@ -642,26 +657,26 @@ const layersApp = Vue.createApp({
                 if (imageElement && imageElement.complete) {
                     drawImageThumbnail(ctx, imageElement, contentSize, padding);
                     const dataUrl = canvas.toDataURL('image/png');
-                    
+
                     // 缓存缩略图
                     thumbnailCache.value.set(layerId, {
                         src: dataUrl,
                         timestamp: Date.now()
                     });
-                    
+
                     return dataUrl;
                 }
 
                 // 如果没有图片元素或图片未加载完成，创建新的图片元素
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
-                
+
                 // 使用 Promise 处理异步加载，但返回占位符
                 img.onload = () => {
                     try {
                         drawImageThumbnail(ctx, img, contentSize, padding);
                         const dataUrl = canvas.toDataURL('image/png');
-                        
+
                         // 更新缓存
                         thumbnailCache.value.set(layerId, {
                             src: dataUrl,
@@ -673,7 +688,7 @@ const layersApp = Vue.createApp({
                             detail: { layerId: layerId }
                         });
                         document.dispatchEvent(refreshEvent);
-                        
+
                     } catch (error) {
                         console.warn('绘制图片缩略图失败:', error);
                     }
@@ -1149,7 +1164,7 @@ const layersApp = Vue.createApp({
                         const newId = `layer_${Date.now()}`;
                         const newLayerName = layerInfo.name || (obj.layerName || obj.text || 'Layer') + '_副本';
                         const newLayerType = layerInfo.type || obj.layerType || obj.type;
-                        
+
                         cloned.set({
                             left: cloned.left + 10,
                             top: cloned.top + 10,
@@ -1162,12 +1177,12 @@ const layersApp = Vue.createApp({
                             groupId: layerInfo.groupId || null,
                             groupOrder: layerInfo.groupOrder || 0
                         });
-                        
+
                         // 添加到画布
                         canvasInstance.add(cloned);
                         canvasInstance.setActiveObject(cloned);
                         canvasInstance.renderAll();
-                        
+
                         // 手动同步到图层列表（确保图层显示在列表中）
                         const currentViewId = store.activeViewId;
                         if (currentViewId) {
@@ -1180,7 +1195,7 @@ const layersApp = Vue.createApp({
                                 groupId: layerInfo.groupId || null,
                                 groupOrder: layerInfo.groupOrder || 0
                             };
-                            
+
                             // 检查图层是否已存在，避免重复添加
                             const currentViewLayers = store.getViewLayers(currentViewId);
                             const existingLayer = currentViewLayers.find(layer => layer.id === newId);
@@ -1188,10 +1203,10 @@ const layersApp = Vue.createApp({
                                 store.addLayerToView(currentViewId, newLayer);
                                 console.log('图层已手动同步到列表:', newLayer);
                             }
-                            
+
                             // 设置为当前选中的图层
                             store.setActiveObjectId(newId);
-                            
+
                             // 触发缩略图刷新事件
                             setTimeout(() => {
                                 const refreshEvent = new CustomEvent('layerThumbnailRefresh', {
@@ -1258,7 +1273,7 @@ const layersApp = Vue.createApp({
                 console.warn('当前视图只有一种印刷方式，无法切换');
                 return;
             }
-            
+
             selectedLayerForAssign.value = layer;
             // 获取图层当前的打印方式
             const currentMethod = printMethodStore.getLayerPrintMethod(layer.id);
@@ -1304,7 +1319,7 @@ const layersApp = Vue.createApp({
                     printMethodId: selectedPrintMethodId.value
                 };
                 const updatedGroups = [...layerGroups.value, newGroup];
-                
+
                 // 更新当前视图的图层组
                 const currentViewId = store.activeViewId;
                 if (currentViewId) {
@@ -1312,7 +1327,7 @@ const layersApp = Vue.createApp({
                 } else {
                     store.setLayerGroups(updatedGroups);
                 }
-                
+
                 existingGroup = newGroup;
             }
 
@@ -1515,7 +1530,7 @@ const layersApp = Vue.createApp({
                 }
             }
         };
-        
+
         // 显示图层组印刷方式修改弹窗
         const showGroupPrintMethodDialog = (group) => {
             // 检查是否只有单个印刷方式
@@ -1523,9 +1538,9 @@ const layersApp = Vue.createApp({
                 console.warn('当前视图只有一种印刷方式，无法切换');
                 return;
             }
-            
+
             selectedGroupForPrintMethod.value = group;
-            
+
             // 获取图层组当前的印刷方式
             const groupLayers = getGroupLayers(group.id);
             if (groupLayers.length > 0) {
@@ -1534,7 +1549,7 @@ const layersApp = Vue.createApp({
             } else {
                 selectedGroupPrintMethodId.value = null;
             }
-            
+
             // 使用 MicroModal 显示弹窗
             if (typeof MicroModal !== 'undefined') {
                 MicroModal.show('pwca-group-print-method-modal');
@@ -1544,22 +1559,22 @@ const layersApp = Vue.createApp({
                 alert('请选择新的印刷方式。');
             }
         };
-        
+
         // 确认修改图层组印刷方式
         const confirmGroupPrintMethodChange = () => {
             if (!selectedGroupForPrintMethod.value || !selectedGroupPrintMethodId.value) {
                 alert('请选择一个印刷方式');
                 return;
             }
-            
+
             const selectedMethod = printMethodStore.getPrintMethodById(selectedGroupPrintMethodId.value);
             if (!selectedMethod) {
                 alert('选择的印刷方式无效');
                 return;
             }
-            
+
             const groupLayers = getGroupLayers(selectedGroupForPrintMethod.value.id);
-            
+
             // 验证所有图层是否符合新的印刷方式要求
             const invalidLayers = [];
             for (const layer of groupLayers) {
@@ -1571,7 +1586,7 @@ const layersApp = Vue.createApp({
                     });
                 }
             }
-            
+
             if (invalidLayers.length > 0) {
                 let errorMessage = '以下图层不符合新印刷方式要求：\n';
                 invalidLayers.forEach(item => {
@@ -1580,15 +1595,15 @@ const layersApp = Vue.createApp({
                 alert(errorMessage);
                 return;
             }
-            
+
             // 更新所有图层的印刷方式
             const currentViewId = store.activeViewId;
             if (!currentViewId) return;
-            
+
             // 创建或获取新的印刷方法分组
             const newGroupId = `print-method-${selectedGroupPrintMethodId.value}`;
             let newGroup = layerGroups.value.find(g => g.id === newGroupId);
-            
+
             if (!newGroup) {
                 newGroup = {
                     id: newGroupId,
@@ -1599,22 +1614,22 @@ const layersApp = Vue.createApp({
                     expanded: true,
                     printMethodId: selectedGroupPrintMethodId.value
                 };
-                
+
                 const currentViewGroups = store.getViewLayerGroups(currentViewId);
                 const updatedGroups = [...currentViewGroups, newGroup];
                 store.setViewLayerGroups(currentViewId, updatedGroups);
             }
-            
+
             // 更新所有图层的分组和印刷方式
             const currentViewLayers = store.getViewLayers(currentViewId);
             let updatedLayers = [...currentViewLayers];
-            
+
             groupLayers.forEach((layer, index) => {
                 const layerIndex = updatedLayers.findIndex(l => l.id === layer.id);
                 if (layerIndex !== -1) {
                     // 为图层分配印刷方式
                     printMethodStore.assignLayerPrintMethod(layer.id, selectedGroupPrintMethodId.value);
-                    
+
                     // 更新图层信息
                     updatedLayers[layerIndex] = {
                         ...updatedLayers[layerIndex],
@@ -1624,9 +1639,9 @@ const layersApp = Vue.createApp({
                     };
                 }
             });
-            
+
             store.setViewLayers(currentViewId, updatedLayers);
-            
+
             // 删除原图层组（如果为空）
             const oldGroupLayers = getGroupLayers(selectedGroupForPrintMethod.value.id);
             if (oldGroupLayers.length === 0) {
@@ -1634,12 +1649,12 @@ const layersApp = Vue.createApp({
                 const filteredGroups = currentViewGroups.filter(g => g.id !== selectedGroupForPrintMethod.value.id);
                 store.setViewLayerGroups(currentViewId, filteredGroups);
             }
-            
+
             // 关闭弹窗
             if (typeof MicroModal !== 'undefined') {
                 MicroModal.close('pwca-group-print-method-modal');
             }
-            
+
             // 触发自定义事件通知其他组件
             const event = new CustomEvent('pwcaGroupPrintMethodChanged', {
                 detail: {
@@ -1649,10 +1664,10 @@ const layersApp = Vue.createApp({
                 }
             });
             document.dispatchEvent(event);
-            
+
             // 显示成功消息
             console.log(`图层组 "${selectedGroupForPrintMethod.value.name}" 的印刷方式已更改为 "${selectedMethod.name}"`);
-            
+
             // 清理状态
             selectedGroupForPrintMethod.value = null;
             selectedGroupPrintMethodId.value = null;
@@ -1669,10 +1684,11 @@ const layersApp = Vue.createApp({
             activeObjectId: Vue.computed(() => store.activeObjectId),
             layerGroups: Vue.computed(() => store.layerGroups),
             activeGroupId: Vue.computed(() => store.activeGroupId),
-            
+
             // 多视图相关数据
             views,
             activeViewId,
+            activeView,
             currentViewLayers,
             currentViewLayerGroups,
             currentViewUngroupedLayers,
@@ -1687,7 +1703,7 @@ const layersApp = Vue.createApp({
             selectedLayerForAssign,
             selectedPrintMethodId,
             activeTab,
-            
+
             // 图层组印刷方式修改相关数据
             selectedGroupForPrintMethod,
             selectedGroupPrintMethodId,
@@ -1695,10 +1711,11 @@ const layersApp = Vue.createApp({
             // 打印方式相关数据
             printMethods,
             selectedPrintMethod,
-            
+
             // 新增：切换印刷方式按钮状态相关
             canSwitchPrintMethod,
-            isSinglePrintMethod,
+            isPrintMethodSwitchDisabled,
+            isGroupPrintMethodSwitchDisabled,
             getSwitchMethodTooltip,
             getGroupPrintMethodTooltip,
 
@@ -1737,7 +1754,7 @@ const layersApp = Vue.createApp({
             toggleGroupLock,
             duplicateGroup,
             deleteGroup,
-            
+
             // 图层组印刷方式修改方法
             showGroupPrintMethodDialog,
             confirmGroupPrintMethodChange
@@ -1762,7 +1779,7 @@ const mountApp = () => {
         try {
             layersApp.mount('#layers-box');
             isAppMounted = true;
-            
+
             // 初始化 MicroModal
             if (typeof MicroModal !== 'undefined') {
                 MicroModal.init();
