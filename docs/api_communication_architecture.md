@@ -3,6 +3,26 @@
 ## 核心原则
 **严禁前台直接与第三方API通讯**
 
+## REST API 防冲突命名规范
+
+为避免与其他插件的REST API端点冲突，项目使用以下命名空间：
+
+### API 命名空间约定
+- **主要命名空间**: `pwca/v1` （推荐）
+- **兼容命名空间**: `pw-canvas/v1` （现有）
+- **产品相关**: `pw/v1` （现有，保持）
+
+```php
+// ✅ 正确 - 使用防冲突命名空间
+register_rest_route('pwca/v1', '/designs', $args);
+register_rest_route('pwca/v1', '/templates', $args);
+register_rest_route('pw-canvas/v1', '/print-methods', $args); // 现有兼容
+
+// ❌ 错误 - 通用命名空间容易冲突
+register_rest_route('canvas/v1', '/designs', $args);
+register_rest_route('api/v1', '/templates', $args);
+```
+
 ## 正确的API通讯方式
 
 ### 1. 架构层次

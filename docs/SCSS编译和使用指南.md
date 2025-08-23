@@ -1,5 +1,27 @@
 # SCSS 编译和使用指南
 
+## 防冲突命名最佳实践
+
+### SCSS变量防冲突规范
+项目中的所有SCSS变量都使用 `$canvas-` 前缀，这是为了：
+1. **避免与其他插件冲突** - 防止变量名被意外覆盖
+2. **提高代码可读性** - 明确表示这是 Canvas 项目的变量
+3. **便于维护管理** - 在IDE中容易搜索和替换
+
+```scss
+// ✅ 正确的命名方式
+$canvas-primary-color: #3b82f6;
+$canvas-error-color: #ef4444;
+$canvas-spacing-md: 16px;
+$canvas-border-radius: 4px;
+
+// ❌ 错误的命名方式（容易与其他插件冲突）
+$primary-color: #3b82f6;
+$error: #ef4444;
+$spacing: 16px;
+$radius: 4px;
+```
+
 ## 文件结构
 
 ```
