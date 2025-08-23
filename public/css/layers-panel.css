@@ -1,146 +1,373 @@
-/* 图层面板样式 - 编译自 layers-panel.scss */
-/* 使用统一变量系统，变量定义在 _variables.scss 中 */
-
-/* 图层面板样式 */
-.layers-panel {
-    /* 基础面板样式 */
+@charset "UTF-8";
+/**
+ * SCSS 变量集中定义文件
+ * 定义新变量前请先检查是否已存在相同或相似变量
+ * 每个变量必须包含使用说明注释
+ */
+/**
+ * SCSS 混合器集中定义文件
+ * 用于复用常见样式模式
+ */
+/*
+  SCSS 样式严格按照 HTML 结构嵌套
+  根选择器: .layers-box
+  整合现有变量和新增样式结构
+*/
+.layers-box {
+  height: inherit;
+}
+.layers-box .layers-panel {
+  height: inherit;
+}
+.layers-box .layers-panel .layers-list {
+  height: inherit;
+  overflow-y: auto;
+}
+.layers-box .layers-panel .layers-list .layer-item {
+  display: flex;
+  padding: 5px;
+  border: 1px solid #d7d7d7;
+  background-color: #fff;
+  transition: background-color 0.2s;
+  position: relative;
+  margin-bottom: 10px;
+}
+.layers-box .layers-panel .layers-list .layer-item.active {
+  background-color: #dbeafe;
+}
+.layers-box .layers-panel .layers-list .layer-item .layer-icon {
+  width: 40px;
+  height: 40px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  overflow: hidden;
+}
+.layers-box .layers-panel .layers-list .layer-item .layer-icon .layer-text-icon {
+  font-weight: 600;
+  font-size: 16px;
+  color: #374151;
+}
+.layers-box .layers-panel .layers-list .layer-item .layer-icon .layer-thumbnail {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.layers-box .layers-panel .layers-list .layer-item .layer-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-name {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-name .layer-type {
+  border-radius: 4px;
+  background-color: #f2f2f2;
+  font-size: 14px;
+  color: #303236;
+  padding: 5px;
+}
+.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-name .layer-controls {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-actions .assign-btn {
+  padding: 2px 6px;
+  font-size: 11px;
+  background: #11bbf5;
+  border-radius: 3px;
+  cursor: pointer;
+  color: #fff;
+  transition: all 0.2s;
+  border: unset;
+}
+.layers-box .layers-panel .layers-list .layer-item.grouped .layer-xiaji-icon {
+  font-size: 24px;
+}
+.layers-box .layers-panel .layers-list .layer-group {
+  margin-bottom: 8px;
+  background: #fff;
+}
+.layers-box .layers-panel .layers-list .layer-group .group-header {
+  background: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.layers-box .layers-panel .layers-list .layer-group .group-header .expand-icon {
+  margin-right: 8px;
+  font-size: 12px;
+  color: #6b7280;
+  transition: transform 0.2s;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+.layers-box .layers-panel .layers-list .layer-group .group-header .group-name {
+  font-weight: 500;
+  color: #374151;
+  padding: 8px;
+  border: 1px solid #d7d7d7;
+  margin-bottom: 8px;
+}
+.layers-box .layers-panel .layers-list .layer-group .group-header .group-actions {
+  display: flex;
+  padding: 8px;
+}
+.layers-box .layers-panel .layers-list .layer-group .group-header .group-actions .group-actions-buttonBox {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+.layers-box .layers-panel .layers-list .layer-group .group-header .group-actions .group-actions-buttonBox .group-copy {
+  color: #11bbf5;
+}
+.layers-box .layers-panel .layers-list .layer-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+  padding: 4px 6px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0 2px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+}
+.layers-box .layers-panel .layers-list .layer-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+.layers-box .layers-panel .layers-list .layer-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.layers-box .layers-panel .layers-list .layer-btn:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+.layers-box .layers-panel .layers-list .layer-btn i {
+  font-size: 12px;
+  color: #374151;
+}
+.layers-box .layers-panel .layers-list .layer-btn.delete {
+  color: #dc2626;
+  border-color: #ef4444;
+}
+.layers-box .layers-panel .layers-list .layer-btn.delete:hover {
+  background: #fecaca;
+  border-color: #dc2626;
+}
+.layers-box .layers-panel .layers-list .layer-btn.delete i {
+  color: #ef4444;
+}
+.layers-box .layers-panel .layers-list .layer-btn.layer-copy {
+  color: #11bbf5;
+  border-color: #3b82f6;
+}
+.layers-box .layers-panel .layers-list .layer-btn.layer-copy:hover {
+  background-color: #dbeafe;
+  border-color: #2563eb;
+}
+.layers-box .layers-panel .layers-list .layer-btn.layer-copy i {
+  color: #3b82f6;
+}
+.layers-box .layers-panel .layers-list .layer-btn.layer-copy.disabled {
+  color: #11bbf5;
+  opacity: 0.4;
+  cursor: not-allowed;
+  background-color: #f9fafb;
+  border-color: #e5e7eb;
+  pointer-events: none;
+}
+.layers-box .layers-panel .layers-list .layer-btn.layer-copy.disabled:hover {
+  background-color: #f9fafb;
+  border-color: #e5e7eb;
+  transform: none;
+}
+.layers-box .layers-panel .layers-list .layer-btn.layer-copy.disabled i {
+  color: #9ca3af;
+}
+.layers-box .layers-panel .layers-list .layer-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background-color: #f9fafb;
+  border-color: #e5e7eb;
+  pointer-events: none;
+}
+.layers-box .layers-panel .layers-list .layer-btn.disabled:hover {
+  background-color: #f9fafb;
+  border-color: #e5e7eb;
+  transform: none;
+}
+.layers-box .layers-panel .layers-list .layer-btn.disabled i {
+  color: #9ca3af;
 }
 
-/* 图层按钮基础样式 */
-.layer-btn {
-    /* 使用统一按钮样式 */
-    padding: 8px 16px;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 14px;
-    transition: all 0.2s ease-in-out;
-    
-    /* 图层按钮特有样式 */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #d1d5db;
-    background-color: #ffffff;
-    width: 24px;
-    height: 24px;
-    margin: 0 2px;
+/*
+  打印方法对话框 (Print Method Dialog) 的 SCSS 样式
+  根选择器: .print-method-dialog-overlay
+  整合到图层面板样式文件中
+*/
+.print-method-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+.print-method-dialog-overlay .print-method-dialog {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  min-width: 500px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+.print-method-dialog-overlay .print-method-dialog .dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+.print-method-dialog-overlay .print-method-dialog .dialog-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+.print-method-dialog-overlay .print-method-dialog .dialog-header .close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.print-method-dialog-overlay .print-method-dialog .dialog-header .close-btn:hover {
+  color: #333;
+}
+.print-method-dialog-overlay .print-method-dialog .print-methods {
+  margin: 30px 30px 0px 30px;
+  border-bottom: 1px solid #d7d7d7;
+}
+.print-method-dialog-overlay .print-method-dialog .print-methods .method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 创建三列等宽布局 */
+  padding-bottom: 30px;
+}
+.print-method-dialog-overlay .print-method-dialog .print-methods .method-grid .method-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.print-method-dialog-overlay .print-method-dialog .print-methods .method-grid .method-option input[type=radio] {
+  margin-right: 8px;
+  accent-color: #2196f3;
+}
+.print-method-dialog-overlay .print-method-dialog .print-methods .method-grid .method-option input[type=radio]:checked + .method-label {
+  color: #2196f3;
+  font-weight: 500;
+}
+.print-method-dialog-overlay .print-method-dialog .print-methods .method-grid .method-option .method-label {
+  font-size: 14px;
+  color: #333;
+}
+.print-method-dialog-overlay .print-method-dialog .method-tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.print-method-dialog-overlay .print-method-dialog .method-tabs .tab {
+  padding: 12px 20px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  font-size: 14px;
+  color: #666;
+}
+.print-method-dialog-overlay .print-method-dialog .method-tabs .tab:hover {
+  color: #333;
+  background: #f8f9fa;
+}
+.print-method-dialog-overlay .print-method-dialog .method-tabs .tab.active {
+  color: #2196f3;
+  border-bottom-color: #2196f3;
+  background: #f8f9fa;
+}
+.print-method-dialog-overlay .print-method-dialog .tab-content {
+  min-height: 100px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+.print-method-dialog-overlay .print-method-dialog .dialog-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+.print-method-dialog-overlay .print-method-dialog .dialog-actions .save-btn {
+  background: #e74f4c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
 }
 
-.layer-btn:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-
-.layer-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.layer-btn:hover {
-    background-color: #f3f4f6;
-    border-color: #9ca3af;
-    transform: translateY(-1px);
-}
-
-.layer-btn i {
-    font-size: 12px;
-    color: #374151;
-}
-
-/* 复制按钮样式 */
-.layer-btn.layer-copy,
-.layer-btn.group-copy {
-    border-color: #3b82f6;  /* 使用 $canvas-primary-color */
-}
-
-.layer-btn.layer-copy:hover,
-.layer-btn.group-copy:hover {
-    background-color: #dbeafe;
-    border-color: #2563eb;
-}
-
-.layer-btn.layer-copy i,
-.layer-btn.group-copy i {
-    color: #3b82f6;  /* 使用 $canvas-primary-color */
-}
-
-/* 复制按钮禁用状态 */
-.layer-btn.layer-copy.disabled,
-.layer-btn.group-copy.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    background-color: #f9fafb;
-    border-color: #e5e7eb;
-    pointer-events: none;
-}
-
-.layer-btn.layer-copy.disabled:hover,
-.layer-btn.group-copy.disabled:hover {
-    background-color: #f9fafb;
-    border-color: #e5e7eb;
-    transform: none;
-}
-
-.layer-btn.layer-copy.disabled i,
-.layer-btn.group-copy.disabled i {
-    color: #9ca3af;
-}
-
-/* 删除按钮样式 */
-.layer-btn.delete {
-    border-color: #ef4444;  /* 使用 $canvas-error-color */
-}
-
-.layer-btn.delete:hover {
-    background-color: #fef2f2;
-    border-color: #dc2626;
-}
-
-.layer-btn.delete i {
-    color: #ef4444;  /* 使用 $canvas-error-color */
-}
-
-/* 禁用状态样式 */
-.layer-btn.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    background-color: #f9fafb;
-    border-color: #e5e7eb;
-    pointer-events: none;
-}
-
-.layer-btn.disabled:hover {
-    background-color: #f9fafb;
-    border-color: #e5e7eb;
-    transform: none;
-}
-
-.layer-btn.disabled i {
-    color: #9ca3af;
-}
-
-/* 图层项样式增强 */
-.layer-item {
-    position: relative;
-}
-
-/* 图层控制区域 */
-.layer-controls {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-/* 响应式设计 */
 @media (max-width: 768px) {
-    .layer-btn {
-        width: 28px;
-        height: 28px;
-    }
-    
-    .layer-btn i {
-        font-size: 14px;
-    }
-}
+  .layer-btn {
+    width: 28px;
+    height: 28px;
+  }
+  .layer-btn i {
+    font-size: 14px;
+  }
+}/*# sourceMappingURL=layers-panel.css.map */
