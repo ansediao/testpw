@@ -22,15 +22,6 @@ require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cart-admin-actions.ph
 require_once plugin_dir_path(__FILE__) . 'partials/pw-product-cart-handler.php';
 
 
-// 之前php 实现的 产品页模块
-// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-customization.php';
-// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-accessory-selector.php';
-// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-quantity-discount.php';
-// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-price-calculator.php';
-// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-api-data-display.php';
-// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-options.php';
-// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-action-buttons.php';
-// require_once plugin_dir_path(__FILE__) . 'modules/class-pw-custom-templates.php';
 
 /**
  * The public-facing functionality of the plugin.
