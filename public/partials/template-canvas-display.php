@@ -198,10 +198,8 @@ if ($product_id > 0) {
 
 
   <!-- 加载 Pinia 同步工具 -->
-  <script src="<?php echo 'https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/246.js?time=' . microtime(true); ?>"></script>
-  <!-- 加载图层渲染工具  -->
-  <script src="<?php //echo 'https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/253.js?time=' . microtime(true); ?>"></script>
-
+  <script src="<?php echo plugin_dir_url(__FILE__) . '../js/utils/piniaSync.js?time=' . microtime(true); ?>"></script>
+  
 
   <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>
     <!-- 开发环境：画布同步示例 -->
