@@ -81,7 +81,7 @@ const layersApp = Vue.createApp({
                             </div>
                             <div class="group-actions-buttonBox">
                                 <!-- 修改图层组印刷方式按钮 -->
-                                <button @click.stop="showGroupPrintMethodDialog(group)" class="layer-btn pwca-group-print-method"
+                                <button @click.stop="showGroupPrintMethodDialog(group)" class="layer-btn pwca-group-print-modal__trigger"
                                         title="修改图层组印刷方式">
                                     <i class="iconfont icon-dayin"></i>
                                 </button>  
@@ -233,32 +233,32 @@ const layersApp = Vue.createApp({
             </div>
             
             <!-- 图层组印刷方式修改弹窗 -->
-            <div class="modal micromodal-slide" id="pwca-group-print-method-modal" aria-hidden="true">
-                <div class="modal__overlay" tabindex="-1" data-micromodal-close>
-                    <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pwca-group-print-method-title">
-                        <header class="modal__header">
-                            <h2 class="modal__title" id="pwca-group-print-method-title">修改图层组印刷方式</h2>
-                            <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+            <div class="pwca-group-print-modal modal micromodal-slide" id="pwca-group-print-method-modal" aria-hidden="true">
+                <div class="pwca-group-print-modal__overlay modal__overlay" tabindex="-1" data-micromodal-close>
+                    <div class="pwca-group-print-modal__container modal__container" role="dialog" aria-modal="true" aria-labelledby="pwca-group-print-method-title">
+                        <header class="pwca-group-print-modal__header modal__header">
+                            <h2 class="pwca-group-print-modal__title modal__title" id="pwca-group-print-method-title">修改图层组印刷方式</h2>
+                            <button class="pwca-group-print-modal__close modal__close" aria-label="Close modal" data-micromodal-close></button>
                         </header>
-                        <main class="modal__content">
+                        <main class="pwca-group-print-modal__content modal__content">
                             <div class="pwca-group-info" v-if="selectedGroupForPrintMethod">
-                                <h4>图层组信息</h4>
-                                <p><strong>名称:</strong> {{ selectedGroupForPrintMethod.name }}</p>
-                                <p><strong>图层数量:</strong> {{ getGroupLayers(selectedGroupForPrintMethod.id).length }}</p>
+                                <h4 class="pwca-group-info__title">图层组信息</h4>
+                                <p class="pwca-group-info__description"><strong>名称:</strong> {{ selectedGroupForPrintMethod.name }}</p>
+                                <p class="pwca-group-info__description"><strong>图层数量:</strong> {{ getGroupLayers(selectedGroupForPrintMethod.id).length }}</p>
                             </div>
                             
                             <div class="pwca-print-method-selection">
-                                <h4>选择新的印刷方式</h4>
-                                <div class="method-grid">
-                                    <label v-for="method in printMethods" :key="method.id" class="method-option">
+                                <h4 class="pwca-print-method-selection__title">选择新的印刷方式</h4>
+                                <div class="pwca-print-method-selection__grid method-grid">
+                                    <label v-for="method in printMethods" :key="method.id" class="pwca-print-method-selection__option method-option">
                                         <input 
                                             type="radio" 
                                             v-model="selectedGroupPrintMethodId" 
                                             :value="method.id" 
                                             name="groupPrintMethod" 
                                         />
-                                        <span class="method-label">{{ method.label }}</span>
-                                        <div class="method-description" v-if="method.description">
+                                        <span class="pwca-print-method-selection__label method-label">{{ method.label }}</span>
+                                        <div class="pwca-print-method-selection__description method-description" v-if="method.description">
                                             {{ method.description }}
                                         </div>
                                     </label>
@@ -266,22 +266,22 @@ const layersApp = Vue.createApp({
                             </div>
                             
                             <div class="pwca-affected-layers" v-if="selectedGroupForPrintMethod">
-                                <h4>将要修改的图层</h4>
-                                <div class="layer-list">
-                                    <div v-for="layer in getGroupLayers(selectedGroupForPrintMethod.id)" :key="layer.id" class="layer-preview">
-                                        <div class="layer-thumbnail">
+                                <h4 class="pwca-affected-layers__title">将要修改的图层</h4>
+                                <div class="pwca-affected-layers__list layer-list">
+                                    <div v-for="layer in getGroupLayers(selectedGroupForPrintMethod.id)" :key="layer.id" class="pwca-layer-preview layer-preview">
+                                        <div class="pwca-layer-preview__thumbnail layer-thumbnail">
                                             <img v-if="layer.type === 'image'" :src="getLayerThumbnail(layer)" alt="缩略图" />
-                                            <div v-else-if="layer.type === 'text'" class="text-icon">T</div>
-                                            <div v-else class="default-icon">📄</div>
+                                            <div v-else-if="layer.type === 'text'" class="pwca-layer-preview__icon pwca-layer-preview__icon--text text-icon">T</div>
+                                            <div v-else class="pwca-layer-preview__icon pwca-layer-preview__icon--default default-icon">📄</div>
                                         </div>
-                                        <span class="layer-name">{{ layer.name || layer.type }}</span>
+                                        <span class="pwca-layer-preview__name layer-name">{{ layer.name || layer.type }}</span>
                                     </div>
                                 </div>
                             </div>
                         </main>
-                        <footer class="modal__footer">
-                            <button class="modal__btn" data-micromodal-close>取消</button>
-                            <button class="modal__btn modal__btn-primary" @click="confirmGroupPrintMethodChange">确认修改</button>
+                        <footer class="pwca-group-print-modal__footer modal__footer">
+                            <button class="pwca-group-print-modal__btn modal__btn" data-micromodal-close>取消</button>
+                            <button class="pwca-group-print-modal__btn pwca-group-print-modal__btn--primary modal__btn modal__btn-primary" @click="confirmGroupPrintMethodChange">确认修改</button>
                         </footer>
                     </div>
                 </div>
