@@ -46,6 +46,7 @@ if ($product_id > 0) {
   <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/251.css?time=<?php echo  microtime(true); ?>" />
 
   <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../css/operation-panel.css?time=' . microtime(true); ?>" />
+  <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../css/layers-panel.css?time=' . microtime(true); ?>" />
 
   <!-- 加载 Three.js -->
   <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>

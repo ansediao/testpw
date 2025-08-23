@@ -101,11 +101,35 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
 
         // 检查图层是否允许复制
         isLayerCopyAllowed: (state) => (layerId) => {
-            const methodId = state.layerPrintMethodMap[layerId];
+            // 1. 检查直接映射
+            let methodId = state.layerPrintMethodMap[layerId];
+            
+            // 2. 如果没有直接映射，通过图层信息获取groupId
+            if (!methodId) {
+                const canvasStore = window.useCanvasStore();
+                if (canvasStore && canvasStore.activeViewId) {
+                    const currentLayers = canvasStore.getViewLayers(canvasStore.activeViewId);
+                    const layer = currentLayers.find(l => l.id === layerId);
+                    
+                    if (layer && layer.groupId) {
+                        // 从图层组ID推断打印方式ID
+                        const match = layer.groupId.match(/^print-method-(.+)$/);
+                        if (match) {
+                            methodId = match[1];
+                        }
+                    }
+                }
+            }
+            
+            // 3. 如果仍然没有找到打印方式，默认允许
             if (!methodId) return true;
-
+            
+            // 4. 在当前视图的打印方式中查找
             const method = state.currentViewPrintMethods.find(m => m.id === methodId);
-            return method ? method.features.allowCopy : true;
+            if (!method) return true;
+            
+            // 5. 检查features.allowCopy（基于apiData.copyable）
+            return method.features.allowCopy;
         },
 
         // 检查图层是否允许删除

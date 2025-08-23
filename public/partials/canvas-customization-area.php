@@ -210,29 +210,29 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
         
-        // 使用现有的renderCanvasFromAPI函数
-        if (typeof window.renderCanvasFromAPI === 'function') {
-            // 清空现有内容
-            canvas.clear();
+        // canvas-api-renderer.js 已停用
+        // if (typeof window.renderCanvasFromAPI === 'function') {
+        //     // 清空现有内容
+        //     canvas.clear();
             
-            // 重新渲染
-            window.renderCanvasFromAPI(canvas.lowerCanvasEl.id, layerConfig)
-                .then(newCanvas => {
+        //     // 重新渲染
+        //     window.renderCanvasFromAPI(canvas.lowerCanvasEl.id, layerConfig)
+        //         .then(newCanvas => {
                     
-                    // CanvasManager 会自动管理 Canvas 实例，无需更新 store
+        //             // CanvasManager 会自动管理 Canvas 实例，无需更新 store
                     
-                    // 更新全局引用
-                    if (window.setGlobalCanvas) {
-                        window.setGlobalCanvas(newCanvas);
-                    } else {
-                        window.canvas = newCanvas;
-                        window.fabricCanvas = newCanvas;
-                    }
-                })
-                .catch(error => {
-                    console.error('Failed to render view from API data:', error);
-                });
-        }
+        //             // 更新全局引用
+        //             if (window.setGlobalCanvas) {
+        //                 window.setGlobalCanvas(newCanvas);
+        //             } else {
+        //                 window.canvas = newCanvas;
+        //                 window.fabricCanvas = newCanvas;
+        //             }
+        //         })
+        //         .catch(error => {
+        //             console.error('Failed to render view from API data:', error);
+        //         });
+        // }
     }
     
     // 为视图创建新的canvas
@@ -245,27 +245,27 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!canvasElement) {
             return;
         }
-        
-        if (typeof window.initCanvasForView === 'function') {
-            window.initCanvasForView(canvasId, view)
-                .then(newCanvas => {
-                    if (newCanvas) {
+        // canvas-api-renderer.js 已停用
+        // if (typeof window.initCanvasForView === 'function') {
+        //     window.initCanvasForView(canvasId, view)
+        //         .then(newCanvas => {
+        //             if (newCanvas) {
                         
-                        // CanvasManager 会自动管理 Canvas 实例，无需手动添加到 store
+        //                 // CanvasManager 会自动管理 Canvas 实例，无需手动添加到 store
                         
-                        // 更新全局引用
-                        if (window.setGlobalCanvas) {
-                            window.setGlobalCanvas(newCanvas);
-                        } else {
-                            window.canvas = newCanvas;
-                            window.fabricCanvas = newCanvas;
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Failed to create canvas for view:', error);
-                });
-        }
+        //                 // 更新全局引用
+        //                 if (window.setGlobalCanvas) {
+        //                     window.setGlobalCanvas(newCanvas);
+        //                 } else {
+        //                     window.canvas = newCanvas;
+        //                     window.fabricCanvas = newCanvas;
+        //                 }
+        //             }
+        //         })
+        //         .catch(error => {
+        //             console.error('Failed to create canvas for view:', error);
+        //         });
+        // }
     }
     
     // 从视图数据获取图层配置
