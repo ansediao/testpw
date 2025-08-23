@@ -32,11 +32,21 @@
     function initializeMultiViewCanvases(canvasStore) {
         if (!canvasStore || !canvasStore.views) return;
 
+        // ===== 核心修复：启动初始化状态管理 =====
+        // 对每个视图都开始初始化过程
+        canvasStore.views.forEach(view => {
+            if (window.CanvasInitializationState) {
+                window.CanvasInitializationState.startInitialization(view.id);
+            }
+        });
+
         canvasStore.views.forEach(view => {
             const canvasId = `mainCanvas-${view.id}`;
             const canvasElement = document.getElementById(canvasId);
             
             if (canvasElement) {
+                console.log(`[CanvasInit] 初始化视图 ${view.name} 的Canvas`);
+                
                 // 使用 CanvasManager 创建 Canvas 实例
                 const canvas = window.CanvasManager.createCanvas(canvasId, view.id, {
                     width: canvasElement.clientWidth || 800,
@@ -48,6 +58,15 @@
                 if (view.id === canvasStore.activeViewId) {
                     window.CanvasManager.setActiveCanvas(view.id);
                 }
+                
+                // 模拟API数据加载完成，结束初始化状态
+                // 在实际项目中，这里应该在API数据真正加载完成后调用
+                setTimeout(() => {
+                    if (window.CanvasInitializationState) {
+                        window.CanvasInitializationState.completeInitialization(view.id);
+                        console.log(`[CanvasInit] 视图 ${view.name} 初始化完成`);
+                    }
+                }, 500); // 等待500ms模拟API加载时间
             }
         });
     }
@@ -62,6 +81,11 @@
         if (!colorCanvas || !shadowCanvas) {
             console.log('Traditional canvas elements not found');
             return;
+        }
+
+        // ===== 核心修复：启动初始化状态管理 =====
+        if (window.CanvasInitializationState) {
+            window.CanvasInitializationState.startInitialization('traditional');
         }
 
         // 使用 CanvasManager 创建传统 Canvas 实例
@@ -88,6 +112,14 @@
 
         // 加载图片
         loadTraditionalImages(colorCanvasInstance, shadowCanvasInstance);
+        
+        // 在传统模式下，图片加载完成后结束初始化状态
+        setTimeout(() => {
+            if (window.CanvasInitializationState) {
+                window.CanvasInitializationState.completeInitialization('traditional');
+                console.log('[CanvasInit] 传统模式初始化完成');
+            }
+        }, 1000); // 等待1秒模拟图片加载时间
     }
 
     /**
@@ -122,7 +154,11 @@
                     originX: 'center',
                     originY: 'center',
                     selectable: false,
-                    evented: false
+                    evented: false,
+                    // ===== 核心修复：确保传统图片不被同步到图层面板 =====
+                    userInitiated: false,  // 明确标记非用户操作
+                    isSystemImage: true,   // 标记为系统图片
+                    skipLayerSync: true     // 跳过图层同步
                 });
                 
                 const scale = Math.min(
@@ -145,7 +181,11 @@
                     originX: 'center',
                     originY: 'center',
                     selectable: false,
-                    evented: false
+                    evented: false,
+                    // ===== 核心修复：确保传统图片不被同步到图层面板 =====
+                    userInitiated: false,  // 明确标记非用户操作
+                    isSystemImage: true,   // 标记为系统图片
+                    skipLayerSync: true     // 跳过图层同步
                 });
                 
                 const scale = Math.min(

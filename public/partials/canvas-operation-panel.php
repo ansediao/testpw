@@ -693,7 +693,11 @@ $plugin_url = plugin_dir_url(__FILE__);
                         scaleY: targetHeight / imgElement.height,
                         originX: 'center',
                         originY: 'center',
-                        id: layerId
+                        id: layerId,
+                        // ===== 核心修复：添加用户操作标记 =====
+                        userInitiated: true,  // 标记为用户操作
+                        fromButton: true,     // 标记来源为按钮操作
+                        fromToolbar: true     // 标记来源为工具栏
                     });
 
                     // 检查画布上是否已存在相同来源的图片
@@ -1043,12 +1047,14 @@ $plugin_url = plugin_dir_url(__FILE__);
                 transparentCorners: false,
                 lockUniScaling: false,
                 lockMovementX: false,
-                lockMovementX: false,
-                lockMovementX: false,
-                lockMovementX: false,
-                angle: 0,          // Provide a number value
-                hasControls: true, // Provide a boolean value
-                selectable: true   // Add a colon and provide a boolean value
+                lockMovementY: false,
+                angle: 0,
+                hasControls: true,
+                selectable: true,
+                // ===== 核心修复：添加用户操作标记 =====
+                userInitiated: true,  // 标记为用户操作
+                fromButton: true,     // 标记来源为按钮操作
+                fromToolbar: true     // 标记来源为工具栏
             });
 
             // 添加到画布并设为活动对象

@@ -701,19 +701,25 @@ function addImage(event) {
                 window.layerCounter = 0;
             }
             const newId = 'layer_' + (++window.layerCounter);
+            
+            // ===== 核心修复：添加用户操作标记 =====
             img.set({
                 left: canvas.width / 2,
                 top: canvas.height / 2,
                 originX: 'center',
                 originY: 'center',
-                id: newId
+                id: newId,
+                userInitiated: true,  // 标记为用户操作
+                fromButton: true,     // 标记来源为按钮操作
+                fromToolbar: true     // 标记来源为工具栏
             });
+            
             // 检查画布上是否已经存在相同 ID 的对象
             const existingObject = canvas.getObjects().find(obj => obj.id === newId);
             if (!existingObject) {
                 canvas.add(img);
                 canvas.setActiveObject(img);
-                console.log('Image added to canvas, ID:', newId);
+                console.log('[AddImage] 用户添加图片到画布, ID:', newId);
             } else {
                 console.log('Image already exists, avoiding duplicate addition, ID:', newId);
             }
@@ -741,19 +747,25 @@ function addDesignToCanvas(designId) {
                 window.layerCounter = 0;
             }
             const newId = 'layer_' + (++window.layerCounter);
+            
+            // ===== 核心修复：添加用户操作标记 =====
             img.set({
                 left: canvas.width / 2,
                 top: canvas.height / 2,
                 originX: 'center',
                 originY: 'center',
-                id: newId
+                id: newId,
+                userInitiated: true,  // 标记为用户操作
+                fromButton: true,     // 标记来源为按钮操作
+                fromToolbar: true     // 标记来源为工具栏
             });
+            
             // 检查画布上是否已经存在相同 ID 的对象
             const existingObject = canvas.getObjects().find(obj => obj.id === newId);
             if (!existingObject) {
                 canvas.add(img);
                 canvas.setActiveObject(img);
-                console.log('Design image added to canvas, ID:', newId);
+                console.log('[AddDesign] 用户添加设计图片到画布, ID:', newId);
             } else {
                 console.log('Design image already exists, avoiding duplicate addition, ID:', newId);
             }

@@ -1,3 +1,74 @@
+// ===== 全局初始化状态管理系统 =====
+// 管理Canvas初始化状态，防止API数据被误同步到图层面板
+const CanvasInitializationState = {
+    isInitializing: false,
+    viewInitializationStatus: new Map(), // 跟踪每个视图的初始化状态
+    
+    // 开始初始化过程
+    startInitialization(viewId = 'global') {
+        this.isInitializing = true;
+        this.viewInitializationStatus.set(viewId, true);
+        console.log(`[CanvasInit] 开始初始化视图: ${viewId}`);
+    },
+    
+    // 完成初始化过程
+    completeInitialization(viewId = 'global') {
+        this.viewInitializationStatus.set(viewId, false);
+        
+        // 检查是否所有视图都完成初始化
+        const allCompleted = Array.from(this.viewInitializationStatus.values())
+            .every(status => !status);
+        
+        if (allCompleted) {
+            this.isInitializing = false;
+            console.log('[CanvasInit] 所有视图初始化完成，触发完成事件');
+            
+            // 触发全局初始化完成事件
+            document.dispatchEvent(new CustomEvent('canvasInitializationComplete', {
+                detail: { timestamp: Date.now() }
+            }));
+        }
+        
+        console.log(`[CanvasInit] 视图 ${viewId} 初始化完成`);
+    },
+    
+    // 检查指定视图是否正在初始化
+    isViewInitializing(viewId) {
+        return this.viewInitializationStatus.get(viewId) || false;
+    },
+    
+    // 重置所有状态
+    reset() {
+        this.isInitializing = false;
+        this.viewInitializationStatus.clear();
+        console.log('[CanvasInit] 状态已重置');
+    }
+};
+
+// 检查对象是否为用户操作触发
+function isUserInitiatedAction(obj) {
+    // 检查是否明确标记跳过同步
+    if (obj.skipLayerSync === true) {
+        return false;
+    }
+    
+    // 检查是否为系统图片
+    if (obj.isSystemImage === true) {
+        return false;
+    }
+    
+    // 检查对象是否有用户操作标记
+    return obj.userInitiated === true || 
+           obj.fromToolbar === true ||
+           obj.fromButton === true;
+}
+
+// 暴露到全局作用域
+window.CanvasInitializationState = CanvasInitializationState;
+window.isUserInitiatedAction = isUserInitiatedAction;
+
+// ===== Canvas 元素获取函数 =====
+
 // 获取画布和上下文 - 动态获取当前激活视图的 canvas
 function getActiveCanvasElements() {
     const store = window.useCanvasStore && window.useCanvasStore();
@@ -126,13 +197,38 @@ function setGlobalCanvas(fabricCanvas) {
 }
 
 // 为 canvas 添加所有必要的事件监听器
-function initializeCanvasEventListeners(fabricCanvas) {
+function initializeCanvasEventListeners(fabricCanvas, options = {}) {
   if (!fabricCanvas) return;
   
+  // 立即添加基础事件监听器
   addCanvasEventListeners(fabricCanvas);
   addCanvasSelectionListeners(fabricCanvas);
   addCanvas3DModelListeners(fabricCanvas);
-  addCanvasLayerListeners(fabricCanvas);
+  
+  // ===== 核心修复：延迟添加图层监听器 =====
+  // 检查是否需要延迟激活图层监听器
+  if (options.delayLayerListeners !== false) {
+    // 如果正在初始化，延迟添加图层监听器
+    if (CanvasInitializationState.isInitializing) {
+      console.log('[CanvasInit] 初始化中，延迟激活图层监听器');
+      
+      // 监听初始化完成事件
+      const completeHandler = () => {
+        console.log('[CanvasInit] 初始化完成，激活图层监听器');
+        addCanvasLayerListeners(fabricCanvas);
+        document.removeEventListener('canvasInitializationComplete', completeHandler);
+      };
+      document.addEventListener('canvasInitializationComplete', completeHandler);
+    } else {
+      // 立即添加图层监听器
+      console.log('[CanvasInit] 非初始化状态，立即激活图层监听器');
+      addCanvasLayerListeners(fabricCanvas);
+    }
+  } else {
+    // 强制立即添加图层监听器（用于特殊情况）
+    console.log('[CanvasInit] 强制激活图层监听器');
+    addCanvasLayerListeners(fabricCanvas);
+  }
   
   console.log('Canvas event listeners initialized');
 }
@@ -509,6 +605,19 @@ function addCanvasLayerListeners(fabricCanvas) {
 
 // 同步画布对象到 Pinia store 的函数
 function syncCanvasObjectToStore(obj, action) {
+  // ===== 核心修复：添加初始化状态检查 =====
+  // 检查是否处于初始化状态，如果是则跳过同步
+  if (CanvasInitializationState.isInitializing) {
+    console.log('[LayerSync] 跳过初始化阶段的图层同步:', obj.id || 'unknown');
+    return;
+  }
+  
+  // 检查对象是否来自用户操作
+  if (!isUserInitiatedAction(obj)) {
+    console.log('[LayerSync] 跳过非用户操作的对象:', obj.id || 'unknown');
+    return;
+  }
+  
   if (typeof window.useCanvasStore === 'function') {
     try {
       const store = window.useCanvasStore();
@@ -518,6 +627,8 @@ function syncCanvasObjectToStore(obj, action) {
         console.warn('No active view, cannot sync layer');
         return;
       }
+      
+      console.log(`[LayerSync] 同步用户操作的图层: ${obj.id}, 动作: ${action}, 视图: ${currentViewId}`);
       
       if (action === 'added' && obj.id) {
         // 检查当前视图的图层是否已存在（避免重复添加）
@@ -539,6 +650,9 @@ function syncCanvasObjectToStore(obj, action) {
           
           // 添加图层到当前视图
           store.addLayerToView(currentViewId, newLayer);
+          console.log('[LayerSync] 图层已成功添加到视图:', newLayer);
+        } else {
+          console.log('[LayerSync] 图层已存在，跳过添加:', obj.id);
         }
       } else if (action === 'removed' && obj.id) {
         // 从当前视图中移除图层
@@ -548,6 +662,7 @@ function syncCanvasObjectToStore(obj, action) {
         if (store.activeObjectId === obj.id) {
           store.setActiveObjectId(null);
         }
+        console.log('[LayerSync] 图层已从视图中移除:', obj.id);
       }
     } catch (error) {
       console.error('Failed to sync canvas object to layer management system:', error);
@@ -561,11 +676,73 @@ function syncSelectionToStore(objectId) {
     try {
       const store = window.useCanvasStore();
       store.setActiveObjectId(objectId);
+      
+      // ===== 核心修复：同步选中状态到.dongtai-area按钮组显示 =====
+      updateDongtaiAreaButtons(objectId);
+      
     } catch (error) {
       console.error('Failed to sync selection state:', error);
     }
   }
 }
+
+// 新增：更新.dongtai-area按钮组显示
+function updateDongtaiAreaButtons(objectId) {
+  const dongtaiArea = document.querySelector('.dongtai-area');
+  if (!dongtaiArea) return;
+  
+  const canvas = getActiveCanvas();
+  if (!canvas || !objectId) {
+    dongtaiArea.style.display = 'none';
+    return;
+  }
+  
+  const selectedObject = canvas.getObjects().find(obj => obj.id === objectId);
+  if (selectedObject) {
+    dongtaiArea.style.display = 'block';
+    
+    // 根据对象类型显示对应的按钮组
+    showRelevantButtonGroup(selectedObject);
+    
+    console.log('[SelectionSync] 已更新.dongtai-area按钮组显示:', objectId);
+  } else {
+    dongtaiArea.style.display = 'none';
+  }
+}
+
+// 新增：根据对象类型显示相关按钮组
+function showRelevantButtonGroup(selectedObject) {
+  if (!selectedObject) return;
+  
+  // 隐藏所有工具栏
+  const textToolbar = document.querySelector('.text_toolbar');
+  const imgToolbar = document.querySelector('.img_toolbar');
+  
+  if (textToolbar) textToolbar.style.display = 'none';
+  if (imgToolbar) imgToolbar.style.display = 'none';
+  
+  // 根据对象类型显示对应工具栏
+  if (selectedObject.type === 'text' || selectedObject.type === 'i-text') {
+    if (textToolbar) {
+      textToolbar.style.display = 'block';
+      console.log('[SelectionSync] 显示文字工具栏');
+    }
+  } else if (selectedObject.type === 'image') {
+    if (imgToolbar) {
+      imgToolbar.style.display = 'block';
+      console.log('[SelectionSync] 显示图片工具栏');
+    }
+  }
+  
+  // 触发动态工具栏更新（如果存在）
+  if (typeof window.updateDynamicToolbar === 'function') {
+    window.updateDynamicToolbar(selectedObject);
+  }
+}
+
+// 暴露新增的函数到全局作用域
+window.updateDongtaiAreaButtons = updateDongtaiAreaButtons;
+window.showRelevantButtonGroup = showRelevantButtonGroup;
 
 // 获取图层名称的辅助函数
 function getLayerName(obj) {
