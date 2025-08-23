@@ -1,0 +1,279 @@
+// MicroModal 图层组印刷方式修改弹窗样式 SCSS 源文件
+// 导入变量和混合器
+@import 'variables';
+@import 'mixins';
+
+/*
+  MicroModal 图层组印刷方式修改弹窗样式
+  根选择器: .modal
+  严格按照 MicroModal DOM 结构嵌套
+  使用防冲突命名规范：pwca- 前缀
+*/
+
+.modal {
+    &#pwca-group-print-method-modal {
+        &.micromodal-slide {
+            display: none;
+            
+            &.is-open {
+                display: block;
+            }
+        }
+        
+        .modal__overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            
+            .modal__container {
+                background-color: $canvas-bg-color;
+                padding: $canvas-spacing-xl;
+                max-width: 600px;
+                max-height: 80vh;
+                border-radius: $canvas-border-radius-lg;
+                overflow-y: auto;
+                box-shadow: $canvas-shadow-lg;
+                position: relative;
+                margin: 0 $canvas-spacing-md;
+                
+                .modal__header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: $canvas-spacing-md;
+                    padding-bottom: $canvas-spacing-sm;
+                    border-bottom: 1px solid $canvas-border-color;
+                    
+                    .modal__title {
+                        margin: 0;
+                        font-size: $canvas-font-size-xl;
+                        font-weight: 600;
+                        color: $canvas-secondary-color;
+                    }
+                    
+                    .modal__close {
+                        background: none;
+                        border: none;
+                        font-size: 24px;
+                        cursor: pointer;
+                        color: #6b7280;
+                        padding: 0;
+                        width: 30px;
+                        height: 30px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: $canvas-border-radius;
+                        transition: all $canvas-transition-base;
+                        
+                        &:hover {
+                            color: $canvas-secondary-color;
+                            background: $canvas-bg-secondary;
+                        }
+                    }
+                }
+                
+                .modal__content {
+                    margin-bottom: $canvas-spacing-md;
+                    
+                    .pwca-group-info {
+                        margin-bottom: $canvas-spacing-lg + $canvas-spacing-xs;
+                        padding: $canvas-spacing-sm;
+                        background: $canvas-bg-secondary;
+                        border-radius: $canvas-border-radius;
+                        border-left: 4px solid $canvas-primary-color;
+                        
+                        h4 {
+                            margin: 0 0 $canvas-spacing-xs 0;
+                            font-size: $canvas-font-size-lg;
+                            font-weight: 600;
+                            color: $canvas-primary-color;
+                        }
+                        
+                        p {
+                            margin: $canvas-spacing-xs 0;
+                            font-size: $canvas-font-size-base;
+                            color: $canvas-secondary-color;
+                        }
+                    }
+                    
+                    .pwca-print-method-selection {
+                        margin-bottom: $canvas-spacing-lg + $canvas-spacing-xs;
+                        
+                        h4 {
+                            margin: 0 0 $canvas-spacing-sm 0;
+                            font-size: $canvas-font-size-lg;
+                            font-weight: 600;
+                            color: $canvas-secondary-color;
+                        }
+                        
+                        .method-grid {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                            gap: $canvas-spacing-sm;
+                            
+                            .method-option {
+                                display: flex;
+                                flex-direction: column;
+                                padding: $canvas-spacing-sm;
+                                border: 2px solid $canvas-border-color;
+                                border-radius: $canvas-border-radius-lg;
+                                cursor: pointer;
+                                transition: all $canvas-transition-base;
+                                background: $canvas-bg-color;
+                                
+                                &:hover {
+                                    border-color: $canvas-primary-color;
+                                    background: $canvas-bg-secondary;
+                                }
+                                
+                                input[type="radio"] {
+                                    margin-right: $canvas-spacing-xs;
+                                    
+                                    &:checked {
+                                        accent-color: $canvas-primary-color;
+                                        
+                                        + .method-label {
+                                            font-weight: 600;
+                                            color: $canvas-primary-color;
+                                        }
+                                    }
+                                }
+                                
+                                // CSS :has 选择器支持现代浏览器
+                                &:has(input[type="radio"]:checked) {
+                                    border-color: $canvas-primary-color;
+                                    background: rgba($canvas-primary-color, 0.1);
+                                }
+                                
+                                .method-label {
+                                    font-size: $canvas-font-size-base;
+                                    font-weight: 500;
+                                    color: $canvas-secondary-color;
+                                    margin-bottom: $canvas-spacing-xs;
+                                }
+                                
+                                .method-description {
+                                    font-size: $canvas-font-size-sm;
+                                    color: #6b7280;
+                                    margin-top: $canvas-spacing-xs;
+                                }
+                            }
+                        }
+                    }
+                    
+                    .pwca-affected-layers {
+                        margin-bottom: $canvas-spacing-md;
+                        
+                        h4 {
+                            margin: 0 0 $canvas-spacing-sm 0;
+                            font-size: $canvas-font-size-lg;
+                            font-weight: 600;
+                            color: $canvas-secondary-color;
+                        }
+                        
+                        .layer-list {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: $canvas-spacing-xs;
+                            max-height: 150px;
+                            overflow-y: auto;
+                            padding: $canvas-spacing-xs;
+                            background: $canvas-bg-secondary;
+                            border-radius: $canvas-border-radius;
+                            border: 1px solid $canvas-border-color;
+                            
+                            .layer-preview {
+                                display: flex;
+                                align-items: center;
+                                gap: $canvas-spacing-xs;
+                                padding: $canvas-spacing-xs $canvas-spacing-sm;
+                                background: $canvas-bg-color;
+                                border: 1px solid $canvas-border-color;
+                                border-radius: $canvas-border-radius;
+                                min-width: 120px;
+                                
+                                .layer-thumbnail {
+                                    width: 24px;
+                                    height: 24px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    border-radius: 3px;
+                                    background: $canvas-bg-secondary;
+                                    overflow: hidden;
+                                    
+                                    img {
+                                        width: 100%;
+                                        height: 100%;
+                                        object-fit: cover;
+                                    }
+                                }
+                                
+                                .text-icon,
+                                .default-icon {
+                                    font-size: $canvas-font-size-sm;
+                                    font-weight: 600;
+                                    color: #6b7280;
+                                }
+                                
+                                .layer-name {
+                                    font-size: $canvas-font-size-sm;
+                                    color: $canvas-secondary-color;
+                                    white-space: nowrap;
+                                    overflow: hidden;
+                                    text-overflow: ellipsis;
+                                    max-width: 80px;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                .modal__footer {
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: $canvas-spacing-xs;
+                    padding-top: $canvas-spacing-sm;
+                    border-top: 1px solid $canvas-border-color;
+                    
+                    .modal__btn {
+                        @include canvas-button-base;
+                        padding: $canvas-spacing-xs $canvas-spacing-md;
+                        border: 1px solid $canvas-border-color;
+                        border-radius: $canvas-border-radius;
+                        cursor: pointer;
+                        font-size: $canvas-font-size-base;
+                        font-weight: 500;
+                        transition: all $canvas-transition-base;
+                        background: $canvas-bg-color;
+                        color: $canvas-secondary-color;
+                        
+                        &:hover {
+                            background: $canvas-bg-secondary;
+                            border-color: #9ca3af;
+                        }
+                        
+                        &.modal__btn-primary {
+                            background: $canvas-primary-color;
+                            color: $canvas-bg-color;
+                            border-color: $canvas-primary-color;
+                            
+                            &:hover {
+                                background: darken($canvas-primary-color, 10%);
+                                border-color: darken($canvas-primary-color, 10%);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

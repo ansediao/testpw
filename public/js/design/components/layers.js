@@ -74,12 +74,17 @@ const layersApp = Vue.createApp({
                         <div class="group-name">{{group.name}}</div>
                         
                         <!-- 图层组操作按钮 -->
-                        <div class="group-actions">       
+                        <div class="group-actions">
                             <div class="selectOnlyLayer">
                                 <input type="checkbox" v-model="group.selectOnly" />
                                 <label>Select Only Layer</label>
                             </div>
                             <div class="group-actions-buttonBox">
+                                <!-- 修改图层组印刷方式按钮 -->
+                                <button @click.stop="showGroupPrintMethodDialog(group)" class="layer-btn pwca-group-print-method"
+                                        title="修改图层组印刷方式">
+                                    <i class="iconfont icon-dayin"></i>
+                                </button>  
                                 <button @click.stop="toggleGroupLock(group)"
                                         :class="{locked: group.locked}" class="layer-btn">
                                     <i :class="group.locked ? 'iconfont icon-suoding' : 'iconfont icon-jiesuo'"></i>
@@ -226,6 +231,61 @@ const layersApp = Vue.createApp({
                     </div>
                 </div>
             </div>
+            
+            <!-- 图层组印刷方式修改弹窗 -->
+            <div class="modal micromodal-slide" id="pwca-group-print-method-modal" aria-hidden="true">
+                <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+                    <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pwca-group-print-method-title">
+                        <header class="modal__header">
+                            <h2 class="modal__title" id="pwca-group-print-method-title">修改图层组印刷方式</h2>
+                            <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
+                        </header>
+                        <main class="modal__content">
+                            <div class="pwca-group-info" v-if="selectedGroupForPrintMethod">
+                                <h4>图层组信息</h4>
+                                <p><strong>名称:</strong> {{ selectedGroupForPrintMethod.name }}</p>
+                                <p><strong>图层数量:</strong> {{ getGroupLayers(selectedGroupForPrintMethod.id).length }}</p>
+                            </div>
+                            
+                            <div class="pwca-print-method-selection">
+                                <h4>选择新的印刷方式</h4>
+                                <div class="method-grid">
+                                    <label v-for="method in printMethods" :key="method.id" class="method-option">
+                                        <input 
+                                            type="radio" 
+                                            v-model="selectedGroupPrintMethodId" 
+                                            :value="method.id" 
+                                            name="groupPrintMethod" 
+                                        />
+                                        <span class="method-label">{{ method.label }}</span>
+                                        <div class="method-description" v-if="method.description">
+                                            {{ method.description }}
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="pwca-affected-layers" v-if="selectedGroupForPrintMethod">
+                                <h4>将要修改的图层</h4>
+                                <div class="layer-list">
+                                    <div v-for="layer in getGroupLayers(selectedGroupForPrintMethod.id)" :key="layer.id" class="layer-preview">
+                                        <div class="layer-thumbnail">
+                                            <img v-if="layer.type === 'image'" :src="getLayerThumbnail(layer)" alt="缩略图" />
+                                            <div v-else-if="layer.type === 'text'" class="text-icon">T</div>
+                                            <div v-else class="default-icon">📄</div>
+                                        </div>
+                                        <span class="layer-name">{{ layer.name || layer.type }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </main>
+                        <footer class="modal__footer">
+                            <button class="modal__btn" data-micromodal-close>取消</button>
+                            <button class="modal__btn modal__btn-primary" @click="confirmGroupPrintMethodChange">确认修改</button>
+                        </footer>
+                    </div>
+                </div>
+            </div>
         </div>
     `,
 
@@ -289,6 +349,10 @@ const layersApp = Vue.createApp({
         const selectedLayerForAssign = Vue.ref(null);
         const selectedPrintMethodId = Vue.ref(printMethodStore.selectedPrintMethodId);
         const activeTab = Vue.ref('color');
+        
+        // 图层组印刷方式修改相关数据
+        const selectedGroupForPrintMethod = Vue.ref(null);
+        const selectedGroupPrintMethodId = Vue.ref(null);
 
         // 计算属性：当前视图未分组的图层
         const currentViewUngroupedLayers = Vue.computed(() => {
@@ -1404,6 +1468,142 @@ const layersApp = Vue.createApp({
                 }
             }
         };
+        
+        // 显示图层组印刷方式修改弹窗
+        const showGroupPrintMethodDialog = (group) => {
+            selectedGroupForPrintMethod.value = group;
+            
+            // 获取图层组当前的印刷方式
+            const groupLayers = getGroupLayers(group.id);
+            if (groupLayers.length > 0) {
+                const firstLayerPrintMethod = printMethodStore.getLayerPrintMethod(groupLayers[0].id);
+                selectedGroupPrintMethodId.value = firstLayerPrintMethod ? firstLayerPrintMethod.id : null;
+            } else {
+                selectedGroupPrintMethodId.value = null;
+            }
+            
+            // 使用 MicroModal 显示弹窗
+            if (typeof MicroModal !== 'undefined') {
+                MicroModal.show('pwca-group-print-method-modal');
+            } else {
+                console.error('MicroModal 库未加载');
+                // 备用方案：使用原有的弹窗方式
+                alert('请选择新的印刷方式。');
+            }
+        };
+        
+        // 确认修改图层组印刷方式
+        const confirmGroupPrintMethodChange = () => {
+            if (!selectedGroupForPrintMethod.value || !selectedGroupPrintMethodId.value) {
+                alert('请选择一个印刷方式');
+                return;
+            }
+            
+            const selectedMethod = printMethodStore.getPrintMethodById(selectedGroupPrintMethodId.value);
+            if (!selectedMethod) {
+                alert('选择的印刷方式无效');
+                return;
+            }
+            
+            const groupLayers = getGroupLayers(selectedGroupForPrintMethod.value.id);
+            
+            // 验证所有图层是否符合新的印刷方式要求
+            const invalidLayers = [];
+            for (const layer of groupLayers) {
+                const validation = printMethodStore.validateLayerForPrintMethod(layer, selectedGroupPrintMethodId.value);
+                if (!validation.valid) {
+                    invalidLayers.push({
+                        layer: layer,
+                        errors: validation.errors
+                    });
+                }
+            }
+            
+            if (invalidLayers.length > 0) {
+                let errorMessage = '以下图层不符合新印刷方式要求：\n';
+                invalidLayers.forEach(item => {
+                    errorMessage += `\n- ${item.layer.name || item.layer.type}: ${item.errors.join(', ')}`;
+                });
+                alert(errorMessage);
+                return;
+            }
+            
+            // 更新所有图层的印刷方式
+            const currentViewId = store.activeViewId;
+            if (!currentViewId) return;
+            
+            // 创建或获取新的印刷方法分组
+            const newGroupId = `print-method-${selectedGroupPrintMethodId.value}`;
+            let newGroup = layerGroups.value.find(g => g.id === newGroupId);
+            
+            if (!newGroup) {
+                newGroup = {
+                    id: newGroupId,
+                    name: selectedMethod.name,
+                    color: getPrintMethodColor(selectedGroupPrintMethodId.value),
+                    visible: true,
+                    locked: false,
+                    expanded: true,
+                    printMethodId: selectedGroupPrintMethodId.value
+                };
+                
+                const currentViewGroups = store.getViewLayerGroups(currentViewId);
+                const updatedGroups = [...currentViewGroups, newGroup];
+                store.setViewLayerGroups(currentViewId, updatedGroups);
+            }
+            
+            // 更新所有图层的分组和印刷方式
+            const currentViewLayers = store.getViewLayers(currentViewId);
+            let updatedLayers = [...currentViewLayers];
+            
+            groupLayers.forEach((layer, index) => {
+                const layerIndex = updatedLayers.findIndex(l => l.id === layer.id);
+                if (layerIndex !== -1) {
+                    // 为图层分配印刷方式
+                    printMethodStore.assignLayerPrintMethod(layer.id, selectedGroupPrintMethodId.value);
+                    
+                    // 更新图层信息
+                    updatedLayers[layerIndex] = {
+                        ...updatedLayers[layerIndex],
+                        groupId: newGroupId,
+                        printMethodId: selectedGroupPrintMethodId.value,
+                        groupOrder: index
+                    };
+                }
+            });
+            
+            store.setViewLayers(currentViewId, updatedLayers);
+            
+            // 删除原图层组（如果为空）
+            const oldGroupLayers = getGroupLayers(selectedGroupForPrintMethod.value.id);
+            if (oldGroupLayers.length === 0) {
+                const currentViewGroups = store.getViewLayerGroups(currentViewId);
+                const filteredGroups = currentViewGroups.filter(g => g.id !== selectedGroupForPrintMethod.value.id);
+                store.setViewLayerGroups(currentViewId, filteredGroups);
+            }
+            
+            // 关闭弹窗
+            if (typeof MicroModal !== 'undefined') {
+                MicroModal.close('pwca-group-print-method-modal');
+            }
+            
+            // 触发自定义事件通知其他组件
+            const event = new CustomEvent('pwcaGroupPrintMethodChanged', {
+                detail: {
+                    groupId: selectedGroupForPrintMethod.value.id,
+                    newPrintMethodId: selectedGroupPrintMethodId.value,
+                    affectedLayers: groupLayers
+                }
+            });
+            document.dispatchEvent(event);
+            
+            // 显示成功消息
+            console.log(`图层组 "${selectedGroupForPrintMethod.value.name}" 的印刷方式已更改为 "${selectedMethod.name}"`);
+            
+            // 清理状态
+            selectedGroupForPrintMethod.value = null;
+            selectedGroupPrintMethodId.value = null;
+        };
 
         return {
             // Store 引用
@@ -1434,6 +1634,10 @@ const layersApp = Vue.createApp({
             selectedLayerForAssign,
             selectedPrintMethodId,
             activeTab,
+            
+            // 图层组印刷方式修改相关数据
+            selectedGroupForPrintMethod,
+            selectedGroupPrintMethodId,
 
             // 打印方式相关数据
             printMethods,
@@ -1473,7 +1677,11 @@ const layersApp = Vue.createApp({
             toggleGroupVisibility,
             toggleGroupLock,
             duplicateGroup,
-            deleteGroup
+            deleteGroup,
+            
+            // 图层组印刷方式修改方法
+            showGroupPrintMethodDialog,
+            confirmGroupPrintMethodChange
         };
     }
 });
@@ -1495,6 +1703,14 @@ const mountApp = () => {
         try {
             layersApp.mount('#layers-box');
             isAppMounted = true;
+            
+            // 初始化 MicroModal
+            if (typeof MicroModal !== 'undefined') {
+                MicroModal.init();
+                console.log('MicroModal 已初始化');
+            } else {
+                console.warn('MicroModal 库未加载');
+            }
         } catch (error) {
             // 挂载失败
         }

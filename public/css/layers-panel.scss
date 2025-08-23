@@ -3,6 +3,9 @@
 @import 'variables';
 @import 'mixins';
 
+// 导入 MicroModal 图层组印刷方式修改弹窗样式
+@import 'pwca-group-print-method-modal';
+
 // 图层面板特有变量
 // 按钮尺寸 - 用于图层面板中的操作按钮
 $layer-btn-size: 24px;
@@ -279,6 +282,23 @@ $color-red-50: #fef2f2;    // 用于删除按钮悬停背景
                     
                     i {
                         color: $color-gray-400;
+                    }
+                }
+                
+                // 图层组印刷方式修改按钮样式
+                &.pwca-group-print-method {
+                    color: #f59e0b;
+                    border-color: #f59e0b;
+                    background-color: #fef3c7;
+                    
+                    &:hover {
+                        background-color: #fde68a;
+                        border-color: #d97706;
+                        transform: translateY(-1px);
+                    }
+                    
+                    i {
+                        color: #f59e0b;
                     }
                 }
             }
