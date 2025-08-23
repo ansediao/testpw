@@ -55,7 +55,15 @@ const layersApp = Vue.createApp({
                                     </div>
                                 </div>
                                 <div class="layer-actions">
-                                    <button @click.stop="showGroupAssignDialog(layer)" class="assign-btn"><i class="iconfont icon-dayin"></i>Switch Printing Method</button>                               
+                                    <button 
+                                        @click.stop="showGroupAssignDialog(layer)" 
+                                        class="assign-btn"
+                                        :class=""
+                                        :disabled=""
+                                        :title="getSwitchMethodTooltip"
+                                    >
+                                        <i class="iconfont icon-dayin"></i>Switch Printing Method
+                                    </button>                               
                                 </div>
                             </div>
                             
@@ -81,8 +89,13 @@ const layersApp = Vue.createApp({
                             </div>
                             <div class="group-actions-buttonBox">
                                 <!-- 修改图层组印刷方式按钮 -->
-                                <button @click.stop="showGroupPrintMethodDialog(group)" class="layer-btn pwca-group-print-modal__trigger"
-                                        title="修改图层组印刷方式">
+                                <button 
+                                    @click.stop="showGroupPrintMethodDialog(group)" 
+                                    class="layer-btn pwca-group-print-modal__trigger"
+                                    :class="{ 'disabled': isSinglePrintMethod }"
+                                    :disabled="isSinglePrintMethod"
+                                    :title="getGroupPrintMethodTooltip"
+                                >
                                     <i class="iconfont icon-dayin"></i>
                                 </button>  
                                 <button @click.stop="toggleGroupLock(group)"
@@ -159,7 +172,15 @@ const layersApp = Vue.createApp({
                                     </div>
                                 </div>
                                 <div class="layer-actions">
-                                    <button @click.stop="showGroupAssignDialog(layer)" class="assign-btn"><i class="iconfont icon-dayin"></i>Switch Printing Method</button>                               
+                                    <button 
+                                        @click.stop="showGroupAssignDialog(layer)" 
+                                        class="assign-btn"
+                                        :class="{ 'disabled': isSinglePrintMethod }"
+                                        :disabled="isSinglePrintMethod"
+                                        :title="getSwitchMethodTooltip"
+                                    >
+                                        <i class="iconfont icon-dayin"></i>Switch Printing Method
+                                    </button>                               
                                 </div>
                             </div>
                         </div>
@@ -341,6 +362,26 @@ const layersApp = Vue.createApp({
         // 打印方式相关的计算属性
         const printMethods = Vue.computed(() => printMethodStore.currentViewPrintMethods);
         const selectedPrintMethod = Vue.computed(() => printMethodStore.selectedPrintMethod);
+        
+        // 新增：检查是否允许切换印刷方式的计算属性
+        const canSwitchPrintMethod = Vue.computed(() => printMethodStore.canSwitchPrintMethod);
+        const isSinglePrintMethod = Vue.computed(() => printMethodStore.isSinglePrintMethod);
+        
+        // 生成按钮禁用的提示文本
+        const getSwitchMethodTooltip = Vue.computed(() => {
+            if (isSinglePrintMethod.value) {
+                return '当前视图只有一种印刷方式，无法切换';
+            }
+            return '切换印刷方式';
+        });
+        
+        // 图层组印刷方式修改按钮的提示文本
+        const getGroupPrintMethodTooltip = Vue.computed(() => {
+            if (isSinglePrintMethod.value) {
+                return '当前视图只有一种印刷方式，无法切换';
+            }
+            return '修改图层组印刷方式';
+        });
 
         // 图层组相关响应式数据
         const showGroupDialog = Vue.ref(false);
@@ -1212,6 +1253,12 @@ const layersApp = Vue.createApp({
         };
 
         const showGroupAssignDialog = (layer) => {
+            // 检查是否只有单个印刷方式
+            if (printMethodStore.isSinglePrintMethod) {
+                console.warn('当前视图只有一种印刷方式，无法切换');
+                return;
+            }
+            
             selectedLayerForAssign.value = layer;
             // 获取图层当前的打印方式
             const currentMethod = printMethodStore.getLayerPrintMethod(layer.id);
@@ -1471,6 +1518,12 @@ const layersApp = Vue.createApp({
         
         // 显示图层组印刷方式修改弹窗
         const showGroupPrintMethodDialog = (group) => {
+            // 检查是否只有单个印刷方式
+            if (printMethodStore.isSinglePrintMethod) {
+                console.warn('当前视图只有一种印刷方式，无法切换');
+                return;
+            }
+            
             selectedGroupForPrintMethod.value = group;
             
             // 获取图层组当前的印刷方式
@@ -1642,6 +1695,12 @@ const layersApp = Vue.createApp({
             // 打印方式相关数据
             printMethods,
             selectedPrintMethod,
+            
+            // 新增：切换印刷方式按钮状态相关
+            canSwitchPrintMethod,
+            isSinglePrintMethod,
+            getSwitchMethodTooltip,
+            getGroupPrintMethodTooltip,
 
             // 方法
             switchCanvas: (id) => store.setActiveCanvasId(id),

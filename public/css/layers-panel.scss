@@ -133,6 +133,31 @@ $color-red-50: #fef2f2;    // 用于删除按钮悬停背景
                             color: #fff;
                             transition: all 0.2s;
                             border: unset;
+                            
+                            &:hover {
+                                background: #0ea5db;
+                                transform: translateY(-1px);
+                            }
+                            
+                            // 禁用状态样式
+                            &.disabled {
+                                opacity: 0.5;
+                                cursor: not-allowed;
+                                background-color: #f5f5f5;
+                                color: #999;
+                                border: 1px solid #ddd;
+                                pointer-events: none;
+                                
+                                &:hover {
+                                    background-color: #f5f5f5;
+                                    color: #999;
+                                    transform: none;
+                                }
+                                
+                                i {
+                                    color: #999;
+                                }
+                            }
                         }
                     }
                 }

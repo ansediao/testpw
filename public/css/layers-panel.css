@@ -364,6 +364,26 @@
   transition: all 0.2s;
   border: unset;
 }
+.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-actions .assign-btn:hover {
+  background: #0ea5db;
+  transform: translateY(-1px);
+}
+.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-actions .assign-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+  color: #999;
+  border: 1px solid #ddd;
+  pointer-events: none;
+}
+.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-actions .assign-btn.disabled:hover {
+  background-color: #f5f5f5;
+  color: #999;
+  transform: none;
+}
+.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-actions .assign-btn.disabled i {
+  color: #999;
+}
 .layers-box .layers-panel .layers-list .layer-item.grouped .layer-xiaji-icon {
   font-size: 24px;
 }

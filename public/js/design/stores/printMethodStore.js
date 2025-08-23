@@ -193,6 +193,16 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
             }
 
             return methodId ? state.currentViewPrintMethods.find(method => method.id === methodId) : null;
+        },
+
+        // 检查是否只有单个印刷方式
+        isSinglePrintMethod: (state) => {
+            return state.currentViewPrintMethods.length === 1;
+        },
+
+        // 检查是否允许切换印刷方式
+        canSwitchPrintMethod: (state) => {
+            return state.currentViewPrintMethods.length > 1;
         }
     },
 
