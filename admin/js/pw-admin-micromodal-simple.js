@@ -45,6 +45,13 @@
             MicroModal.show('pw-manage-category-modal');
         });
         
+        // Add Tag 按钮处理
+        $(document).on('click', '.pw-add-tag-button', function(e) {
+            e.preventDefault();
+            const designId = $(this).data('design-id');
+            openTagModal(designId);
+        });
+        
         // 设置上传处理器
         function setupUploadHandler() {
             const $fileInput = $('#pw-design-image');
@@ -401,6 +408,120 @@
         toggleDeleteButton();
         
         console.log('Simple Modal Handler initialized');
+    });
+    
+    /**
+     * 打开标签管理模态框
+     */
+    function openTagModal(designId) {
+        $('#pw-tag-modal-design-id').val(designId);
+        
+        // 加载标签数据
+        $.ajax({
+            url: pw_design_vars.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'pw_get_design_tags',
+                design_id: designId,
+                nonce: pw_design_vars.nonce
+            },
+            beforeSend: function() {
+                $('#pw-tag-modal-body').html('<div class="loading">加载中...</div>');
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#pw-tag-modal-body').html(response.data);
+                    MicroModal.show('pw-tag-modal');
+                } else {
+                    alert('加载标签失败: ' + response.data);
+                }
+            },
+            error: function() {
+                alert('加载标签时发生错误');
+            }
+        });
+    }
+    
+    /**
+     * 更新设计标签显示
+     */
+    function updateDesignTagsDisplay(designId) {
+        $.ajax({
+            url: pw_design_vars.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'pw_get_design_tags',
+                design_id: designId,
+                nonce: pw_design_vars.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    // 解析返回的HTML，提取标签名称
+                    const $html = $(response.data);
+                    const tagNames = [];
+                    $html.find('input[type="checkbox"]:checked').each(function() {
+                        const label = $(this).parent().text().trim();
+                        tagNames.push(label);
+                    });
+                    
+                    // 更新界面显示
+                    const $tagContainer = $('.pw-design-tags[data-design-id="' + designId + '"]');
+                    if (tagNames.length > 0) {
+                        $tagContainer.html('<span class="pw-tags-label">Tags: </span>' + tagNames.join(' '));
+                    } else {
+                        $tagContainer.html('');
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * 保存设计标签
+     */
+    function saveDesignTags() {
+        const designId = $('#pw-tag-modal-design-id').val();
+        const selectedTags = [];
+        
+        $('#pw-tag-modal-body input[type="checkbox"]:checked').each(function() {
+            selectedTags.push($(this).val());
+        });
+
+        $.ajax({
+            url: pw_design_vars.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'pw_save_design_tags',
+                design_id: designId,
+                tags: selectedTags,
+                nonce: pw_design_vars.nonce
+            },
+            beforeSend: function() {
+                $('#pw-tag-modal-save').prop('disabled', true).text('保存中...');
+            },
+            success: function(response) {
+                if (response.success) {
+                    MicroModal.close('pw-tag-modal');
+                    alert('标签保存成功！');
+                    // 更新界面上的标签显示
+                    updateDesignTagsDisplay(designId);
+                } else {
+                    alert('保存失败: ' + response.data);
+                }
+            },
+            error: function() {
+                alert('保存时发生错误');
+            },
+            complete: function() {
+                $('#pw-tag-modal-save').prop('disabled', false).text('Save Changes');
+            }
+        });
+    }
+    
+    // 绑定标签保存按钮事件
+    $(document).on('click', '#pw-tag-modal-save', function(e) {
+        e.preventDefault();
+        saveDesignTags();
     });
 
 })(jQuery);

@@ -103,6 +103,14 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
                     </div>
                     <div class="pw-design-name"><?php echo esc_html( $design_title ); ?></div>
                     <button class="button pw-add-tag-button" data-design-id="<?php echo esc_attr( $design_id ); ?>">Add Tag</button>
+                    <div class="pw-design-tags" data-design-id="<?php echo esc_attr( $design_id ); ?>">
+                        <?php
+                        $design_tags = wp_get_post_terms( $design_id, 'pw_design_tag', array( 'fields' => 'names' ) );
+                        if ( !empty( $design_tags ) && !is_wp_error( $design_tags ) ) {
+                            echo '<span class="pw-tags-label">Tags: </span>' . esc_html( implode( ' ', $design_tags ) );
+                        }
+                        ?>
+                    </div>
                     <div class="pw-design-actions-bottom">
                         <a href="<?php echo esc_url( $edit_link ); ?>" title="Edit Design"><span class="dashicons dashicons-edit"></span></a>
                         <a href="<?php echo esc_url( $delete_link ); ?>" title="Delete Design" class="pw-delete-design-link"><span class="dashicons dashicons-trash"></span></a>
@@ -206,6 +214,18 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
         }
         .pw-design-actions-bottom .dashicons:hover {
             color: #0073aa;
+        }
+        
+        .pw-design-tags {
+            margin: 5px 0;
+            font-size: 12px;
+            color: #666;
+            min-height: 16px;
+        }
+        
+        .pw-tags-label {
+            font-weight: bold;
+            color: #333;
         }
     </style>
 </div>

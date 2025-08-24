@@ -2777,60 +2777,8 @@ function pw_save_token() {
     }
 }
 
-// AJAX handler for getting design tags
-add_action('wp_ajax_pw_get_design_tags', 'pw_get_design_tags');
-function pw_get_design_tags() {
-    check_ajax_referer('pw_get_design_tags_nonce', 'nonce');
-
-    if ( ! isset( $_POST['design_id'] ) || ! current_user_can( 'edit_post', (int) $_POST['design_id'] ) ) {
-        wp_send_json_error( 'Invalid request or permissions.' );
-    }
-
-    $design_id = (int) $_POST['design_id'];
-
-    // Get all available tags
-    $all_tags_terms = get_terms( array(
-        'taxonomy'   => 'pw_design_tag',
-        'hide_empty' => false,
-    ) );
-
-    if ( is_wp_error( $all_tags_terms ) ) {
-        wp_send_json_error( 'Could not retrieve tags.' );
-    }
-
-    // Get tags for the current design
-    $selected_tags_terms = wp_get_post_terms( $design_id, 'pw_design_tag', array( 'fields' => 'ids' ) );
-
-    if ( is_wp_error( $selected_tags_terms ) ) {
-        wp_send_json_error( 'Could not retrieve selected tags for the design.' );
-    }
-
-    wp_send_json_success( array(
-        'all_tags'      => $all_tags_terms,
-        'selected_tags' => $selected_tags_terms,
-    ) );
-}
-
-// AJAX handler for saving design tags
-add_action('wp_ajax_pw_save_design_tags', 'pw_save_design_tags');
-function pw_save_design_tags() {
-    check_ajax_referer('pw_save_design_tags_nonce', 'nonce');
-
-    if ( ! isset( $_POST['design_id'] ) || ! isset( $_POST['tags'] ) || ! current_user_can( 'edit_post', (int) $_POST['design_id'] ) ) {
-        wp_send_json_error( 'Invalid request or permissions.' );
-    }
-
-    $design_id = (int) $_POST['design_id'];
-    $tags = is_array( $_POST['tags'] ) ? array_map( 'intval', $_POST['tags'] ) : array();
-
-    $result = wp_set_post_terms( $design_id, $tags, 'pw_design_tag', false );
-
-    if ( is_wp_error( $result ) ) {
-        wp_send_json_error( $result->get_error_message() );
-    } else {
-        wp_send_json_success( 'Tags updated successfully.' );
-    }
-}
+// Note: AJAX handlers for pw_get_design_tags and pw_save_design_tags are registered in includes/class-pw-admin.php
+// to use the class methods handle_get_design_tags() and handle_save_design_tags() with proper nonce validation
 
 // AJAX handler for adding new design - DISABLED to avoid conflict with class method
 // add_action('wp_ajax_pw_add_design', 'pw_add_design');
