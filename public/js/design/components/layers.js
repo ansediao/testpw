@@ -58,9 +58,9 @@ const layersApp = Vue.createApp({
                                     <button 
                                         @click.stop="showGroupAssignDialog(layer)" 
                                         class="assign-btn"
-                                        :class="{ 'disabled': isPrintMethodSwitchDisabled }"
-                                        :disabled="isPrintMethodSwitchDisabled"
-                                        :title="getSwitchMethodTooltip"
+                                        :class="{ 'disabled': isLayerPrintMethodSwitchDisabled(layer) }"
+                                        :disabled="isLayerPrintMethodSwitchDisabled(layer)"
+                                        :title="getLayerSwitchMethodTooltip(layer)"
                                     >
                                         <i class="iconfont icon-dayin"></i>Switch Printing Method
                                     </button>                               
@@ -175,9 +175,9 @@ const layersApp = Vue.createApp({
                                     <button 
                                         @click.stop="showGroupAssignDialog(layer)" 
                                         class="assign-btn"
-                                        :class="{ 'disabled': isPrintMethodSwitchDisabled }"
-                                        :disabled="isPrintMethodSwitchDisabled"
-                                        :title="getSwitchMethodTooltip"
+                                        :class="{ 'disabled': isLayerPrintMethodSwitchDisabled(layer) }"
+                                        :disabled="isLayerPrintMethodSwitchDisabled(layer)"
+                                        :title="getLayerSwitchMethodTooltip(layer)"
                                     >
                                         <i class="iconfont icon-dayin"></i>Switch Printing Method
                                     </button>                               
@@ -375,6 +375,41 @@ const layersApp = Vue.createApp({
              return printMethodStore.isSinglePrintMethod;
            
         });
+
+        // 检查特定图层是否可以切换印刷方式（针对图层组中只有一个图层的情况）
+        const isLayerPrintMethodSwitchDisabled = (layer) => {
+            // 首先执行通用的禁用检查
+            if (isPrintMethodSwitchDisabled.value) {
+                return true;
+            }
+
+            // 如果图层属于某个图层组，检查该图层组是否只有一个图层
+            if (layer.groupId) {
+                const groupLayers = getGroupLayers(layer.groupId);
+                if (groupLayers.length === 1) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+        // 获取特定图层的切换印刷方式按钮提示文本
+        const getLayerSwitchMethodTooltip = (layer) => {
+            if (activeView.value && activeView.value.single_printing_method_only === true) {
+                return '当前视图只有一种印刷方式，无法切换';
+            }
+            if (printMethodStore.isSinglePrintMethod) {
+                return '当前视图只有一种印刷方式，无法切换';
+            }
+            if (layer.groupId) {
+                const groupLayers = getGroupLayers(layer.groupId);
+                if (groupLayers.length === 1) {
+                    return '图层组中只有一个图层，无法切换印刷方式';
+                }
+            }
+            return '切换印刷方式';
+        };
 
         // 图层组的打印方法切换控制（独立于单个图层）
         const isGroupPrintMethodSwitchDisabled = Vue.computed(() => {
@@ -1715,6 +1750,8 @@ const layersApp = Vue.createApp({
             // 新增：切换印刷方式按钮状态相关
             canSwitchPrintMethod,
             isPrintMethodSwitchDisabled,
+            isLayerPrintMethodSwitchDisabled,
+            getLayerSwitchMethodTooltip,
             isGroupPrintMethodSwitchDisabled,
             getSwitchMethodTooltip,
             getGroupPrintMethodTooltip,
