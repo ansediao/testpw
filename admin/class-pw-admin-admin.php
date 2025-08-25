@@ -219,16 +219,41 @@ class Pw_Admin_Admin
         
         // 获取分类元数据
         $category_type = get_term_meta($category_id, 'category_type', true);
+        
+        // Initial State Tab
         $exclude_from_export = get_term_meta($category_id, 'exclude_from_export', true);
         $layer_depth = get_term_meta($category_id, 'layer_depth', true);
         $scale_mode = get_term_meta($category_id, 'scale_mode', true);
         
+        // Operation Config Tab
+        $allow_resize = get_term_meta($category_id, 'allow_resize', true);
+        $allow_rotate = get_term_meta($category_id, 'allow_rotate', true);
+        $allow_delete = get_term_meta($category_id, 'allow_delete', true);
+        
+        // Price Tab
+        $base_price = get_term_meta($category_id, 'base_price', true);
+        $price_per_unit = get_term_meta($category_id, 'price_per_unit', true);
+        $price_enabled = get_term_meta($category_id, 'price_enabled', true);
+        
         wp_send_json_success(array(
             'name' => $category->name,
+            'description' => $category->description,
             'type' => $category_type ? $category_type : 'general',
+            
+            // Initial State Tab
             'exclude_from_export' => (bool)$exclude_from_export,
             'layer_depth' => intval($layer_depth),
-            'scale_mode' => $scale_mode ? $scale_mode : 'fit'
+            'scale_mode' => $scale_mode ? $scale_mode : 'fit',
+            
+            // Operation Config Tab
+            'allow_resize' => (bool)$allow_resize,
+            'allow_rotate' => (bool)$allow_rotate,
+            'allow_delete' => (bool)$allow_delete,
+            
+            // Price Tab
+            'base_price' => floatval($base_price),
+            'price_per_unit' => floatval($price_per_unit),
+            'price_enabled' => (bool)$price_enabled
         ));
     }
     
@@ -254,10 +279,23 @@ class Pw_Admin_Admin
         // 获取并验证输入数据
         $category_id = intval($_POST['category_id']);
         $category_name = sanitize_text_field($_POST['category_name']);
+        $category_description = sanitize_textarea_field($_POST['category_description']);
         $category_type = sanitize_text_field($_POST['category_type']);
+        
+        // Initial State Tab
         $exclude_from_export = isset($_POST['exclude_from_export']) ? (bool)$_POST['exclude_from_export'] : false;
         $layer_depth = intval($_POST['layer_depth']);
         $scale_mode = sanitize_text_field($_POST['scale_mode']);
+        
+        // Operation Config Tab
+        $allow_resize = isset($_POST['allow_resize']) ? (bool)$_POST['allow_resize'] : false;
+        $allow_rotate = isset($_POST['allow_rotate']) ? (bool)$_POST['allow_rotate'] : false;
+        $allow_delete = isset($_POST['allow_delete']) ? (bool)$_POST['allow_delete'] : false;
+        
+        // Price Tab
+        $base_price = floatval($_POST['base_price']);
+        $price_per_unit = floatval($_POST['price_per_unit']);
+        $price_enabled = isset($_POST['price_enabled']) ? (bool)$_POST['price_enabled'] : false;
         
         if (empty($category_name)) {
             wp_send_json_error('分类名称不能为空');
@@ -269,13 +307,13 @@ class Pw_Admin_Admin
             return;
         }
         
-        // 更新分类名称
+        // 更新分类名称和描述
         $term_data = wp_update_term(
             $category_id,
             'pw_design_category',
             array(
                 'name' => $category_name,
-                'description' => '分类类型: ' . $category_type,
+                'description' => $category_description,
             )
         );
         
@@ -286,9 +324,21 @@ class Pw_Admin_Admin
         
         // 更新分类元数据
         update_term_meta($category_id, 'category_type', $category_type);
+        
+        // Initial State Tab meta
         update_term_meta($category_id, 'exclude_from_export', $exclude_from_export);
         update_term_meta($category_id, 'layer_depth', $layer_depth);
         update_term_meta($category_id, 'scale_mode', $scale_mode);
+        
+        // Operation Config Tab meta
+        update_term_meta($category_id, 'allow_resize', $allow_resize);
+        update_term_meta($category_id, 'allow_rotate', $allow_rotate);
+        update_term_meta($category_id, 'allow_delete', $allow_delete);
+        
+        // Price Tab meta
+        update_term_meta($category_id, 'base_price', $base_price);
+        update_term_meta($category_id, 'price_per_unit', $price_per_unit);
+        update_term_meta($category_id, 'price_enabled', $price_enabled);
         
         wp_send_json_success(array(
             'message' => '分类设置更新成功',

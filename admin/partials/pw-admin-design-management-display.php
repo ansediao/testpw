@@ -751,83 +751,132 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
 
 <!-- Category Settings Modal -->
 <div class="modal" id="pw-category-settings-modal" aria-hidden="true">
-    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
-        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-category-settings-modal-title" style="max-width: 500px; max-height: 80vh;">
-            <header class="modal__header" style="border-bottom:1px solid #eee; background:#f8f9fa; margin-bottom:0; padding:20px 30px;">
-                <h2 class="modal__title" id="pw-category-settings-modal-title" style="margin:0; color:#333;">Category Settings</h2>
+    <div class="modal__overlay" tabindex="-1">
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-category-settings-modal-title" style="max-width: 1200px; width: 90vw;">
+            <header class="modal__header">
+                <h2 class="modal__title" id="pw-category-settings-modal-title">Category Settings</h2>
                 <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
             </header>
-            <div class="modal__content" style="padding:30px;">
+            <div class="modal__content">
                 <form id="pw-category-settings-form">
+                    <?php wp_nonce_field('pw_category_settings_nonce', 'pw_category_settings_nonce_field'); ?>
                     <input type="hidden" id="pw-settings-category-id" name="category_id">
                     
-                    <!-- Category Name -->
-                    <div class="pw-form-field" style="margin-bottom:25px;">
+                    <!-- 分类名称 -->
+                    <div class="pw-form-field" style="margin-bottom:20px;">
                         <label for="pw-settings-category-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category Name</label>
                         <input type="text" id="pw-settings-category-name" name="category_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
                     </div>
-                
-                <!-- Category Type -->
-                <div class="pw-form-field" style="margin-bottom:25px;">
-                    <label for="pw-settings-category-type" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category Type</label>
-                    <select id="pw-settings-category-type" name="category_type" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
-                        <option value="general">General</option>
-                        <option value="product">Product</option>
-                        <option value="style">Style</option>
-                    </select>
-                </div>
-                
-                <!-- Tabs -->
-                <div class="pw-settings-tabs" style="margin-bottom:25px;">
-                    <div class="pw-tab-nav" style="display:flex; border-bottom:1px solid #ddd;">
-                        <button type="button" class="pw-tab-btn active" data-tab="initial-state" style="padding:10px 20px; border:none; background:#fff; cursor:pointer; border-bottom:2px solid #0073aa;">Initial State</button>
-                        <button type="button" class="pw-tab-btn" data-tab="operation-config" style="padding:10px 20px; border:none; background:#f8f9fa; cursor:pointer; color:#666;">Operation Config</button>
-                        <button type="button" class="pw-tab-btn" data-tab="price" style="padding:10px 20px; border:none; background:#f8f9fa; cursor:pointer; color:#666;">Price</button>
+                    
+                    <!-- 分类描述 -->
+                    <div class="pw-form-field" style="margin-bottom:20px;">
+                        <label for="pw-settings-category-description" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Description</label>
+                        <textarea id="pw-settings-category-description" name="category_description" rows="3" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px; resize:vertical;" placeholder="Enter category description..."></textarea>
                     </div>
                     
-                    <div class="pw-tab-content">
-                        <!-- Initial State Tab -->
-                        <div class="pw-tab-pane active" data-tab="initial-state" style="padding:20px 0;">
-                            <div class="pw-form-field" style="margin-bottom:20px;">
-                                <label style="display:flex; align-items:center; cursor:pointer;">
-                                    <input type="checkbox" id="pw-exclude-from-export" name="exclude_from_export" style="margin-right:10px;">
-                                    <span>Exclude From Export</span>
-                                </label>
-                            </div>
-                            
-                            <div class="pw-form-field" style="margin-bottom:20px;">
-                                <label for="pw-layer-depth" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Layer Depth</label>
-                                <input type="number" id="pw-layer-depth" name="layer_depth" value="-1" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
-                            </div>
-                            
-                            <div class="pw-form-field" style="margin-bottom:20px;">
-                                <label for="pw-scale-mode" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Scale Mode</label>
-                                <select id="pw-scale-mode" name="scale_mode" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
-                                    <option value="fit">Fit</option>
-                                    <option value="fill">Fill</option>
-                                    <option value="stretch">Stretch</option>
-                                    <option value="stretch">Stretch</option>
-                                    <option value="center">Center</option>
-                                </select>
-                            </div>
+                    <!-- 分类类型 -->
+                    <div class="pw-form-field" style="margin-bottom:20px;">
+                        <label for="pw-settings-category-type" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category Type</label>
+                        <select id="pw-settings-category-type" name="category_type" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                            <option value="general">General</option>
+                            <option value="product">Product</option>
+                            <option value="style">Style</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Tabs -->
+                    <div class="pw-settings-tabs" style="margin-bottom:20px;">
+                        <div class="pw-tab-nav" style="display:flex; border-bottom:1px solid #ddd; margin-bottom:20px;">
+                            <button type="button" class="pw-tab-btn active" data-tab="initial-state" style="flex:1; padding:12px 20px; border:none; background:#fff; cursor:pointer; border-bottom:3px solid #007cba; color:#007cba; font-weight:600; border-radius:4px 0 0 0;">Initial State</button>
+                            <button type="button" class="pw-tab-btn" data-tab="operation-config" style="flex:1; padding:12px 20px; border:none; background:#f9f9f9; cursor:pointer; border-bottom:3px solid transparent; color:#666; font-weight:500;">Operation Config</button>
+                            <button type="button" class="pw-tab-btn" data-tab="price" style="flex:1; padding:12px 20px; border:none; background:#f9f9f9; cursor:pointer; border-bottom:3px solid transparent; color:#666; font-weight:500; border-radius:0 4px 0 0;">Price</button>
                         </div>
                         
-                        <!-- Operation Config Tab -->
-                        <div class="pw-tab-pane" data-tab="operation-config" style="padding:20px 0; display:none;">
-                            <p style="color:#666; text-align:center; padding:40px 0;">Operation configuration options will be available here.</p>
-                        </div>
-                        
-                        <!-- Price Tab -->
-                        <div class="pw-tab-pane" data-tab="price" style="padding:20px 0; display:none;">
-                            <p style="color:#666; text-align:center; padding:40px 0;">Price configuration options will be available here.</p>
+                        <div class="pw-tab-content">
+                            <!-- Initial State Tab -->
+                            <div class="pw-tab-panel active" id="tab-initial-state" style="padding:0;">
+                                <div class="pw-form-field" style="margin-bottom:20px;">
+                                    <label style="display:flex; align-items:center; cursor:pointer;">
+                                        <input type="checkbox" id="pw-exclude-from-export" name="exclude_from_export" style="margin-right:8px;">
+                                        <span style="font-weight:600; color:#333;">Exclude From Export</span>
+                                    </label>
+                                    <small style="color:#666; font-size:12px; margin-top:5px; display:block;">Check to exclude this category from export operations</small>
+                                </div>
+                                
+                                <div class="pw-form-field" style="margin-bottom:20px;">
+                                    <label for="pw-layer-depth" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Layer Depth</label>
+                                    <input type="number" id="pw-layer-depth" name="layer_depth" value="-1" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                                    <small style="color:#666; font-size:12px; margin-top:5px; display:block;">Set the layer depth for this category (-1 for auto)</small>
+                                </div>
+                                
+                                <div class="pw-form-field" style="margin-bottom:20px;">
+                                    <label for="pw-scale-mode" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Scale Mode</label>
+                                    <select id="pw-scale-mode" name="scale_mode" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                                        <option value="fit">Fit</option>
+                                        <option value="fill">Fill</option>
+                                        <option value="stretch">Stretch</option>
+                                        <option value="center">Center</option>
+                                    </select>
+                                    <small style="color:#666; font-size:12px; margin-top:5px; display:block;">Choose how content should be scaled within this category</small>
+                                </div>
+                            </div>
+                            
+                            <!-- Operation Config Tab -->
+                            <div class="pw-tab-panel" id="tab-operation-config" style="padding:0; display:none;">
+                                <div class="pw-form-field" style="margin-bottom:20px;">
+                                    <label style="display:flex; align-items:center; cursor:pointer;">
+                                        <input type="checkbox" id="pw-allow-resize" name="allow_resize" value="1" style="margin-right:8px;">
+                                        <span style="font-weight:600; color:#333;">Allow Resize</span>
+                                    </label>
+                                    <small style="color:#666; font-size:12px; margin-top:5px; display:block;">Allow users to resize elements in this category</small>
+                                </div>
+                                
+                                <div class="pw-form-field" style="margin-bottom:20px;">
+                                    <label style="display:flex; align-items:center; cursor:pointer;">
+                                        <input type="checkbox" id="pw-allow-rotate" name="allow_rotate" value="1" style="margin-right:8px;">
+                                        <span style="font-weight:600; color:#333;">Allow Rotate</span>
+                                    </label>
+                                    <small style="color:#666; font-size:12px; margin-top:5px; display:block;">Allow users to rotate elements in this category</small>
+                                </div>
+                                
+                                <div class="pw-form-field" style="margin-bottom:20px;">
+                                    <label style="display:flex; align-items:center; cursor:pointer;">
+                                        <input type="checkbox" id="pw-allow-delete" name="allow_delete" value="1" style="margin-right:8px;">
+                                        <span style="font-weight:600; color:#333;">Allow Delete</span>
+                                    </label>
+                                    <small style="color:#666; font-size:12px; margin-top:5px; display:block;">Allow users to delete elements in this category</small>
+                                </div>
+                            </div>
+                            
+                            <!-- Price Tab -->
+                            <div class="pw-tab-panel" id="tab-price" style="padding:0; display:none;">
+                                <div class="pw-form-field" style="margin-bottom:20px;">
+                                    <label for="pw-base-price" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Base Price</label>
+                                    <input type="number" id="pw-base-price" name="base_price" step="0.01" min="0" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" placeholder="0.00">
+                                    <small style="color:#666; font-size:12px; margin-top:5px; display:block;">Base price for this category</small>
+                                </div>
+                                
+                                <div class="pw-form-field" style="margin-bottom:20px;">
+                                    <label for="pw-price-per-unit" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Price Per Unit</label>
+                                    <input type="number" id="pw-price-per-unit" name="price_per_unit" step="0.01" min="0" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" placeholder="0.00">
+                                    <small style="color:#666; font-size:12px; margin-top:5px; display:block;">Additional price per unit/item in this category</small>
+                                </div>
+                                
+                                <div class="pw-form-field" style="margin-bottom:20px;">
+                                    <label style="display:flex; align-items:center; cursor:pointer;">
+                                        <input type="checkbox" id="pw-price-enabled" name="price_enabled" value="1" style="margin-right:8px;">
+                                        <span style="font-weight:600; color:#333;">Enable Pricing</span>
+                                    </label>
+                                    <small style="color:#666; font-size:12px; margin-top:5px; display:block;">Check to enable pricing for this category</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </form>
+                </form>
             </div>
-            <footer class="modal__footer" style="border-top:1px solid #eee; padding:20px 30px; margin-top:0;">
-                <button class="button" data-micromodal-close>取消</button>
-                <button type="submit" class="button button-primary" id="pw-settings-save" form="pw-category-settings-form">Save</button>
+            <footer class="modal__footer">
+                <button class="button" data-micromodal-close>Cancel</button>
+                <button type="submit" class="button button-primary" id="pw-settings-save" form="pw-category-settings-form">Update Category</button>
             </footer>
         </div>
     </div>

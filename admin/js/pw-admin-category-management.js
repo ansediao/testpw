@@ -38,27 +38,75 @@
         $(document).on('click', '.pw-category-settings-btn', function(e) {
             e.preventDefault();
             var categoryId = $(this).data('category-id');
-            var categoryName = $(this).closest('.pw-category-item').find('.pw-category-name-input').val();
             
-            // 填充表单数据
-            $('#pw-settings-category-id').val(categoryId);
-            $('#pw-settings-category-name').val(categoryName);
-            
-            // 使用 micromodal 打开设置弹窗
-            MicroModal.show('pw-category-settings-modal');
+            // 获取分类设置数据
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'pw_get_category_settings',
+                    category_id: categoryId,
+                    nonce: pw_admin_vars.nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        var data = response.data;
+                        
+                        // 填充基本信息
+                        $('#pw-settings-category-id').val(categoryId);
+                        $('#pw-settings-category-name').val(data.name);
+                        $('#pw-settings-category-description').val(data.description);
+                        $('#pw-settings-category-type').val(data.type);
+                        
+                        // Initial State Tab
+                        $('#pw-settings-exclude-from-export').prop('checked', data.exclude_from_export);
+                        $('#pw-settings-layer-depth').val(data.layer_depth);
+                        $('#pw-settings-scale-mode').val(data.scale_mode);
+                        
+                        // Operation Config Tab
+                        $('#pw-settings-allow-resize').prop('checked', data.allow_resize);
+                        $('#pw-settings-allow-rotate').prop('checked', data.allow_rotate);
+                        $('#pw-settings-allow-delete').prop('checked', data.allow_delete);
+                        
+                        // Price Tab
+                        $('#pw-settings-base-price').val(data.base_price);
+                        $('#pw-settings-price-per-unit').val(data.price_per_unit);
+                        $('#pw-settings-price-enabled').prop('checked', data.price_enabled);
+                        
+                        // 使用 micromodal 打开设置弹窗
+                        MicroModal.show('pw-category-settings-modal');
+                    } else {
+                        alert('获取分类设置失败: ' + response.data);
+                    }
+                },
+                error: function() {
+                    alert('获取分类设置时发生错误');
+                }
+            });
         });
 
         // 分类设置标签页切换
-        $('.pw-settings-tab').on('click', function() {
-            var target = $(this).data('tab');
+        $(document).on('click', '.pw-tab-btn', function() {
+            const targetTab = $(this).data('tab');
             
             // 更新标签页状态
-            $('.pw-settings-tab').removeClass('active');
-            $(this).addClass('active');
+            $('.pw-tab-btn').removeClass('active').css({
+                'background': '#f9f9f9',
+                'border-bottom': '3px solid transparent',
+                'color': '#666',
+                'font-weight': '500'
+            });
             
-            // 显示对应内容
-            $('.pw-tab-content').hide();
-            $('#' + target).show();
+            $(this).addClass('active').css({
+                'background': '#fff',
+                'border-bottom': '3px solid #007cba',
+                'color': '#007cba',
+                'font-weight': '600'
+            });
+            
+            // 更新标签页内容
+            $('.pw-tab-panel').removeClass('active').hide();
+            $('#tab-' + targetTab).addClass('active').show();
         });
 
         // 保存分类设置
@@ -66,10 +114,23 @@
             var $button = $(this);
             var categoryId = $('#pw-settings-category-id').val();
             var categoryName = $('#pw-settings-category-name').val();
+            var categoryDescription = $('#pw-settings-category-description').val();
             var categoryType = $('#pw-settings-category-type').val();
+            
+            // Initial State Tab
             var excludeFromExport = $('#pw-exclude-from-export').is(':checked');
             var layerDepth = $('#pw-layer-depth').val();
             var scaleMode = $('#pw-scale-mode').val();
+            
+            // Operation Config Tab
+            var allowResize = $('#pw-allow-resize').is(':checked');
+            var allowRotate = $('#pw-allow-rotate').is(':checked');
+            var allowDelete = $('#pw-allow-delete').is(':checked');
+            
+            // Price Tab
+            var basePrice = $('#pw-base-price').val();
+            var pricePerUnit = $('#pw-price-per-unit').val();
+            var priceEnabled = $('#pw-price-enabled').is(':checked');
 
             $button.prop('disabled', true).text('Saving...');
 
@@ -80,10 +141,17 @@
                     action: 'pw_update_category_settings',
                     category_id: categoryId,
                     category_name: categoryName,
+                    category_description: categoryDescription,
                     category_type: categoryType,
                     exclude_from_export: excludeFromExport ? 1 : 0,
                     layer_depth: layerDepth,
                     scale_mode: scaleMode,
+                    allow_resize: allowResize ? 1 : 0,
+                    allow_rotate: allowRotate ? 1 : 0,
+                    allow_delete: allowDelete ? 1 : 0,
+                    base_price: basePrice,
+                    price_per_unit: pricePerUnit,
+                    price_enabled: priceEnabled ? 1 : 0,
                     nonce: pw_admin_vars.nonce
                 },
                 success: function(response) {
