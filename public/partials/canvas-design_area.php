@@ -320,75 +320,75 @@ if ($first_image_url) {
      * @param {object} view - 当前视图对象。
      * @returns {Promise<fabric.Object|null>} 返回创建的 fabric 对象。
      */
-    async function renderLayer(canvas, layer, store, view) {
+    // async function renderLayer(canvas, layer, store, view) {
 
 
 
-        if (!canvas || !layer) {
-            console.error("渲染单个图层需要有效的画布实例和图层数据。");
-            return null;
-        }
-        try {
-            const fabricObject = await createFabricObjectFromLayer(layer);
+    //     if (!canvas || !layer) {
+    //         console.error("渲染单个图层需要有效的画布实例和图层数据。");
+    //         return null;
+    //     }
+    //     try {
+    //         const fabricObject = await createFabricObjectFromLayer(layer);
 
-            // 根据 productViewFlow 控制显示的图层
-            const productViewFlow = store.getProductViewFlow();
+    //         // 根据 productViewFlow 控制显示的图层
+    //         const productViewFlow = store.getProductViewFlow();
 
-            // if (productViewFlow === '4-Grid Flow') {
-            //     // 当 productViewFlow 为 "4-Grid Flow" 时，只允许显示 "4-Grid Flow" 层
-            //     if (layer.name !== '4-Grid Flow') {
-            //         console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 为 "4-Grid Flow"`);
-            //         return null;
-            //     }
-            // } else {
-            //     // 当 productViewFlow 不是 "4-Grid Flow" 时，显示 Base Layer 和 Overlay Layer，跳过 4-Grid Flow
-            //     if (layer.name === 'Base Layer' || layer.name === 'Overlay Layer' || layer.name === 'Custom Layer') {
-            //         // 允许显示
-            //     } else if (layer.name === '4-Grid Flow') {
-            //         console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 不是 "4-Grid Flow"`);
-            //         return null;
-            //     } else {
-            //         return null;
-            //     }
-            // }
-
-
-
-
-            // 如果满足条件（图层名称为 Base Layer），将对象存入 Pinia store
-            if (fabricObject && layer.name === 'Base Layer' && view && store) {
-                // 确保 views 数组和对应的 view 对象存在
-                if (store.views && store.views.length > 0) {
-                    const viewIndex = store.views.findIndex(v => v.id === view.id);
-                    if (viewIndex !== -1) {
-                        // 将 fabricObject 存入 views[view.id].base_layer
-                        if (!store.views[viewIndex].base_layer) {
-                            store.views[viewIndex].base_layer = {};
-                        }
-                        store.views[viewIndex].base_layer = fabricObject;
-                        console.log(`Base Layer 对象已存入 Pinia store: views[${view.id}].base_layer`);
-
-                        // 从pinia 中取出这个 图片对象 修改颜色
-                        applyTintFilter(store.views[viewIndex].base_layer, '#ff0000', 1);
-                        // 重新渲染画布以显示滤镜效果
-                    }
-                }
-            }
+    //         // if (productViewFlow === '4-Grid Flow') {
+    //         //     // 当 productViewFlow 为 "4-Grid Flow" 时，只允许显示 "4-Grid Flow" 层
+    //         //     if (layer.name !== '4-Grid Flow') {
+    //         //         console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 为 "4-Grid Flow"`);
+    //         //         return null;
+    //         //     }
+    //         // } else {
+    //         //     // 当 productViewFlow 不是 "4-Grid Flow" 时，显示 Base Layer 和 Overlay Layer，跳过 4-Grid Flow
+    //         //     if (layer.name === 'Base Layer' || layer.name === 'Overlay Layer' || layer.name === 'Custom Layer') {
+    //         //         // 允许显示
+    //         //     } else if (layer.name === '4-Grid Flow') {
+    //         //         console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 不是 "4-Grid Flow"`);
+    //         //         return null;
+    //         //     } else {
+    //         //         return null;
+    //         //     }
+    //         // }
 
 
 
 
-            if (fabricObject) {
-                canvas.add(fabricObject);
-                console.log(`该图层 "${layer.name}" 已被添加到画布。`);
-                return fabricObject;
-            }
-            return null;
-        } catch (error) {
-            console.error(`渲染图层 "${layer.name}" 时发生错误:`, error);
-            return null;
-        }
-    }
+    //         // 如果满足条件（图层名称为 Base Layer），将对象存入 Pinia store
+    //         if (fabricObject && layer.name === 'Base Layer' && view && store) {
+    //             // 确保 views 数组和对应的 view 对象存在
+    //             if (store.views && store.views.length > 0) {
+    //                 const viewIndex = store.views.findIndex(v => v.id === view.id);
+    //                 if (viewIndex !== -1) {
+    //                     // 将 fabricObject 存入 views[view.id].base_layer
+    //                     if (!store.views[viewIndex].base_layer) {
+    //                         store.views[viewIndex].base_layer = {};
+    //                     }
+    //                     store.views[viewIndex].base_layer = fabricObject;
+    //                     console.log(`Base Layer 对象已存入 Pinia store: views[${view.id}].base_layer`);
+
+    //                     // 从pinia 中取出这个 图片对象 修改颜色
+    //                     applyTintFilter(store.views[viewIndex].base_layer, '#ff0000', 1);
+    //                     // 重新渲染画布以显示滤镜效果
+    //                 }
+    //             }
+    //         }
+
+
+
+
+    //         if (fabricObject) {
+    //             canvas.add(fabricObject);
+    //             console.log(`该图层 "${layer.name}" 已被添加到画布。`);
+    //             return fabricObject;
+    //         }
+    //         return null;
+    //     } catch (error) {
+    //         console.error(`渲染图层 "${layer.name}" 时发生错误:`, error);
+    //         return null;
+    //     }
+    // }
 
     /**
      * 主函数，通过调用 renderLayer 来将视图中的所有图层批量渲染到 Fabric.js 画布上。
