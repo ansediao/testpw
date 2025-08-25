@@ -334,23 +334,23 @@ if ($first_image_url) {
             // 根据 productViewFlow 控制显示的图层
             const productViewFlow = store.getProductViewFlow();
 
-            if (productViewFlow === '4-Grid Flow') {
-                // 当 productViewFlow 为 "4-Grid Flow" 时，只允许显示 "4-Grid Flow" 层
-                if (layer.name !== '4-Grid Flow') {
-                    console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 为 "4-Grid Flow"`);
-                    return null;
-                }
-            } else {
-                // 当 productViewFlow 不是 "4-Grid Flow" 时，显示 Base Layer 和 Overlay Layer，跳过 4-Grid Flow
-                if (layer.name === 'Base Layer' || layer.name === 'Overlay Layer' || layer.name === 'Custom Layer') {
-                    // 允许显示
-                } else if (layer.name === '4-Grid Flow') {
-                    console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 不是 "4-Grid Flow"`);
-                    return null;
-                } else {
-                    return null;
-                }
-            }
+            // if (productViewFlow === '4-Grid Flow') {
+            //     // 当 productViewFlow 为 "4-Grid Flow" 时，只允许显示 "4-Grid Flow" 层
+            //     if (layer.name !== '4-Grid Flow') {
+            //         console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 为 "4-Grid Flow"`);
+            //         return null;
+            //     }
+            // } else {
+            //     // 当 productViewFlow 不是 "4-Grid Flow" 时，显示 Base Layer 和 Overlay Layer，跳过 4-Grid Flow
+            //     if (layer.name === 'Base Layer' || layer.name === 'Overlay Layer' || layer.name === 'Custom Layer') {
+            //         // 允许显示
+            //     } else if (layer.name === '4-Grid Flow') {
+            //         console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 不是 "4-Grid Flow"`);
+            //         return null;
+            //     } else {
+            //         return null;
+            //     }
+            // }
 
 
 
@@ -396,110 +396,110 @@ if ($first_image_url) {
      * @param {object} viewData - 来自 API 的包含 layer_config 的视图数据对象。
      * @returns {Promise<fabric.Canvas|null>} 一个 Promise，解析为创建好的 Fabric.js 画布实例或 null。
      */
-    async function renderView(canvasId, view, store) {
-        const viewData = view.data;
-        const layerConfig = viewData?.layer_config;
-        if (!layerConfig || !layerConfig.layers || layerConfig.layers.length === 0) {
-            console.error("未在视图数据中找到有效的图层配置进行渲染。");
-            return null;
-        }
+    // async function renderView(canvasId, view, store) {
+    //     const viewData = view.data;
+    //     const layerConfig = viewData?.layer_config;
+    //     if (!layerConfig || !layerConfig.layers || layerConfig.layers.length === 0) {
+    //         console.error("未在视图数据中找到有效的图层配置进行渲染。");
+    //         return null;
+    //     }
 
-        const layers = layerConfig.layers;
+    //     const layers = layerConfig.layers;
 
-        // 根据 productViewFlow 决定从哪个图层获取画布尺寸
-        const productViewFlow = store.getProductViewFlow();
-        let targetLayer = layers[0]; // 默认使用第一个图层
+    //     // 根据 productViewFlow 决定从哪个图层获取画布尺寸
+    //     const productViewFlow = store.getProductViewFlow();
+    //     let targetLayer = layers[0]; // 默认使用第一个图层
 
-        if (productViewFlow === '4-Grid Flow') {
-            // 查找 "4-Grid Flow" 图层
-            const gridFlowLayer = layers.find(layer => layer.name === '4-Grid Flow');
-            if (gridFlowLayer) {
-                targetLayer = gridFlowLayer;
-                console.log('使用 4-Grid Flow 图层的尺寸初始化画布');
-            } else {
-                console.warn('未找到 4-Grid Flow 图层，使用默认图层尺寸');
-            }
-        }
+    //     if (productViewFlow === '4-Grid Flow') {
+    //         // 查找 "4-Grid Flow" 图层
+    //         const gridFlowLayer = layers.find(layer => layer.name === '4-Grid Flow');
+    //         if (gridFlowLayer) {
+    //             targetLayer = gridFlowLayer;
+    //             console.log('使用 4-Grid Flow 图层的尺寸初始化画布');
+    //         } else {
+    //             console.warn('未找到 4-Grid Flow 图层，使用默认图层尺寸');
+    //         }
+    //     }
 
-        const canvasWidth = targetLayer.layer_data.dimensions.contentArea.width || targetLayer.layer_data.dimensions.layerSize.width;
-        const canvasHeight = targetLayer.layer_data.dimensions.contentArea.height || targetLayer.layer_data.dimensions.layerSize.height;
+    //     const canvasWidth = targetLayer.layer_data.dimensions.contentArea.width || targetLayer.layer_data.dimensions.layerSize.width;
+    //     const canvasHeight = targetLayer.layer_data.dimensions.contentArea.height || targetLayer.layer_data.dimensions.layerSize.height;
 
-        const canvas = new fabric.Canvas(canvasId, {
-            width: canvasWidth,
-            height: canvasHeight,
-            backgroundColor: '#f0f0f0',
-        });
+    //     const canvas = new fabric.Canvas(canvasId, {
+    //         width: canvasWidth,
+    //         height: canvasHeight,
+    //         backgroundColor: '#f0f0f0',
+    //     });
 
-        // 为 canvas 添加事件监听器
-        if (window.initializeCanvasEventListeners) {
-            window.initializeCanvasEventListeners(canvas);
-        }
+    //     // 为 canvas 添加事件监听器
+    //     if (window.initializeCanvasEventListeners) {
+    //         window.initializeCanvasEventListeners(canvas);
+    //     }
 
-        // 将 Canvas 实例与 DOM 元素关联
-        const mainCanvasElement = document.getElementById(canvasId);
-        if (mainCanvasElement) {
-            mainCanvasElement.__fabricCanvas = canvas;
-            mainCanvasElement.__viewId = view.id;
-        }
+    //     // 将 Canvas 实例与 DOM 元素关联
+    //     const mainCanvasElement = document.getElementById(canvasId);
+    //     if (mainCanvasElement) {
+    //         mainCanvasElement.__fabricCanvas = canvas;
+    //         mainCanvasElement.__viewId = view.id;
+    //     }
 
-        // 使用 CanvasManager 管理 canvas 实例
-        if (window.CanvasManager) {
-            // 将 canvas 实例注册到 CanvasManager
-            window.CanvasManager._canvasMap[view.id] = canvas;
-            if (store.activeViewId === view.id) {
-                window.CanvasManager.setActiveCanvas(view.id);
-            }
-        }
-        // 如果是第一个视图，设置为全局 canvas
-        if (store.activeViewId === view.id) {
-            window.canvas = canvas;
-            window.fabricCanvas = canvas;
-        }
+    //     // 使用 CanvasManager 管理 canvas 实例
+    //     if (window.CanvasManager) {
+    //         // 将 canvas 实例注册到 CanvasManager
+    //         window.CanvasManager._canvasMap[view.id] = canvas;
+    //         if (store.activeViewId === view.id) {
+    //             window.CanvasManager.setActiveCanvas(view.id);
+    //         }
+    //     }
+    //     // 如果是第一个视图，设置为全局 canvas
+    //     if (store.activeViewId === view.id) {
+    //         window.canvas = canvas;
+    //         window.fabricCanvas = canvas;
+    //     }
 
-        try {
-            const sortedLayers = [...layers].sort((a, b) => a.sort_order - b.sort_order);
+    //     try {
+    //         const sortedLayers = [...layers].sort((a, b) => a.sort_order - b.sort_order);
 
-            for (const layer of sortedLayers) {
-                await renderLayer(canvas, layer, store, view);
-            }
+    //         for (const layer of sortedLayers) {
+    //             // await renderLayer(canvas, layer, store, view);
+    //         }
 
-            // 创建红色遮罩对象
-            const maskWidth = canvasWidth;
-            const maskHeight = canvasHeight;
-            const cutoutWidth = 200;
-            const cutoutHeight = 240;
+    //         // 创建红色遮罩对象
+    //         const maskWidth = canvasWidth;
+    //         const maskHeight = canvasHeight;
+    //         const cutoutWidth = 200;
+    //         const cutoutHeight = 240;
 
-            // 创建遮罩路径，中心镂空
-            const maskPath = `M 0 0 L ${maskWidth} 0 L ${maskWidth} ${maskHeight} L 0 ${maskHeight} Z M ${(maskWidth - cutoutWidth) / 2} ${(maskHeight - cutoutHeight) / 2} L ${(maskWidth + cutoutWidth) / 2} ${(maskHeight - cutoutHeight) / 2} L ${(maskWidth + cutoutWidth) / 2} ${(maskHeight + cutoutHeight) / 2} L ${(maskWidth - cutoutWidth) / 2} ${(maskHeight + cutoutHeight) / 2} Z`;
+    //         // 创建遮罩路径，中心镂空
+    //         const maskPath = `M 0 0 L ${maskWidth} 0 L ${maskWidth} ${maskHeight} L 0 ${maskHeight} Z M ${(maskWidth - cutoutWidth) / 2} ${(maskHeight - cutoutHeight) / 2} L ${(maskWidth + cutoutWidth) / 2} ${(maskHeight - cutoutHeight) / 2} L ${(maskWidth + cutoutWidth) / 2} ${(maskHeight + cutoutHeight) / 2} L ${(maskWidth - cutoutWidth) / 2} ${(maskHeight + cutoutHeight) / 2} Z`;
 
-            const redMask = new fabric.Path(maskPath, {
-                fill: 'rgba(255, 0, 0, 1)',
-                fillRule: 'evenodd',
-                selectable: false,
-                evented: false,
-                excludeFromExport: true,
-                name: 'redMask'
-            });
+    //         const redMask = new fabric.Path(maskPath, {
+    //             fill: 'rgba(255, 0, 0, 1)',
+    //             fillRule: 'evenodd',
+    //             selectable: false,
+    //             evented: false,
+    //             excludeFromExport: true,
+    //             name: 'redMask'
+    //         });
 
-            // canvas.add(redMask);
-            // canvas.bringToFront(redMask);
+    //         // canvas.add(redMask);
+    //         // canvas.bringToFront(redMask);
 
-            canvas.renderAll();
-            console.log(`画布 #${canvasId} 上的所有图层已成功渲染。 ✅`);
+    //         canvas.renderAll();
+    //         console.log(`画布 #${canvasId} 上的所有图层已成功渲染。 ✅`);
 
-            // 图层渲染完成后，触发自动缩放调整
-            setTimeout(() => {
-                if (typeof window.triggerAutoZoomAdjustment === 'function') {
-                    window.triggerAutoZoomAdjustment();
-                }
-            }, 200); // 延迟200ms确保DOM更新完成
+    //         // 图层渲染完成后，触发自动缩放调整
+    //         setTimeout(() => {
+    //             if (typeof window.triggerAutoZoomAdjustment === 'function') {
+    //                 window.triggerAutoZoomAdjustment();
+    //             }
+    //         }, 200); // 延迟200ms确保DOM更新完成
 
-            return canvas;
-        } catch (error) {
-            console.error(`在画布 #${canvasId} 上渲染图层时发生错误:`, error);
-            return null;
-        }
-    }
+    //         return canvas;
+    //     } catch (error) {
+    //         console.error(`在画布 #${canvasId} 上渲染图层时发生错误:`, error);
+    //         return null;
+    //     }
+    // }
 
     // 多视图 canvas 初始化
     document.addEventListener('DOMContentLoaded', function() {
@@ -657,7 +657,7 @@ if ($first_image_url) {
         }
 
         const layers = layerConfig.layers;
-        const productViewFlow = store.getProductViewFlow();
+        const productViewFlow = view.view_flow;
 
         // 根据 productViewFlow 决定从哪个图层获取画布尺寸
         let targetLayer = layers[0];
@@ -813,28 +813,7 @@ if ($first_image_url) {
         }
 
         try {
-            const fabricObject = await createFabricObjectFromLayer(layer);
-
-            // 根据 productViewFlow 控制显示的图层
-            const productViewFlow = store.getProductViewFlow();
-
-            if (productViewFlow === '4-Grid Flow') {
-                // 当 productViewFlow 为 "4-Grid Flow" 时，只允许显示 "4-Grid Flow" 层
-                if (layer.name !== '4-Grid Flow') {
-                    console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 为 "4-Grid Flow"`);
-                    return null;
-                }
-            } else {
-                // 当 productViewFlow 不是 "4-Grid Flow" 时，显示 Base Layer 和 Overlay Layer，跳过 4-Grid Flow
-                if (layer.name === 'Base Layer' || layer.name === 'Overlay Layer' || layer.name === 'Custom Layer') {
-                    // 允许显示
-                } else if (layer.name === '4-Grid Flow') {
-                    console.log(`跳过图层 "${layer.name}"，因为当前 productViewFlow 不是 "4-Grid Flow"`);
-                    return null;
-                } else {
-                    return null;
-                }
-            }
+            const fabricObject = await createFabricObjectFromLayer(layer);            
 
             // 如果满足条件（图层名称为 Base Layer），将对象存入 Pinia store
             if (fabricObject && layer.name === 'Base Layer' && view && store) {
