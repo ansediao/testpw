@@ -2080,14 +2080,14 @@ async function generateCompositeImageForGrid(options) {
             await drawLayerImageForGrid(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
         }
 
-        // 3. 绘制当前激活画布的裁剪区域
-        if (activeCanvas) {
-            await drawCroppedCanvasRegionForGrid(ctx, activeCanvas, cropConfig, canvasWidth, canvasHeight);
-        }
-
-        // 4. 绘制Overlay Layer（如果存在）
+        // 3. 绘制Overlay Layer作为底层（如果存在）
         if (overlayLayer && overlayLayer.layer_data && overlayLayer.layer_data.content && overlayLayer.layer_data.content.imageURL) {
             await drawLayerImageForGrid(ctx, overlayLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
+        }
+
+        // 4. 绘制当前激活画布的裁剪区域，实现窗户效果
+        if (activeCanvas) {
+            await drawCroppedCanvasRegionWithWindowEffect(ctx, activeCanvas, cropConfig, canvasWidth, canvasHeight);
         }
 
         return tempCanvas.toDataURL('image/png');
@@ -2118,6 +2118,43 @@ async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
             const x = (width - targetWidth) / 2;
             const y = (height - targetHeight) / 2;
 
+            // 创建临时画布来检测非透明像素区域
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = targetWidth;
+            tempCanvas.height = targetHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(img, 0, 0, targetWidth, targetHeight);
+            
+            // 获取图像数据来检测边界
+            const imageData = tempCtx.getImageData(0, 0, targetWidth, targetHeight);
+            const data = imageData.data;
+            
+            // 找到非透明像素的边界
+            let minX = targetWidth, maxX = 0, minY = targetHeight, maxY = 0;
+            for (let y = 0; y < targetHeight; y++) {
+                for (let x = 0; x < targetWidth; x++) {
+                    const alpha = data[(y * targetWidth + x) * 4 + 3];
+                    if (alpha > 10) { // 非透明像素阈值
+                        minX = Math.min(minX, x);
+                        maxX = Math.max(maxX, x);
+                        minY = Math.min(minY, y);
+                        maxY = Math.max(maxY, y);
+                    }
+                }
+            }
+            
+            // 存储杯子边界信息到全局变量，供canvas绘制函数使用
+            window.cupBoundary = {
+                x: x + minX,
+                y: y + minY,
+                width: maxX - minX,
+                height: maxY - minY,
+                originalX: x,
+                originalY: y,
+                originalWidth: targetWidth,
+                originalHeight: targetHeight
+            };
+            
             ctx.drawImage(img, x, y, targetWidth, targetHeight);
             resolve();
         };
@@ -2181,8 +2218,8 @@ async function drawCroppedCanvasRegionForGrid(ctx, sourceCanvas, cropConfig, tar
                 const x = (targetWidth - cropWidth) / 2;
                 const y = (targetHeight - cropHeight) / 2;
 
-                // 绘制到目标画布
-                ctx.drawImage(tempCanvas, x, y, cropWidth, cropHeight);
+                // 限制在杯子边界内绘制
+                drawCanvasWithinBoundary(ctx, tempCanvas, targetWidth, targetHeight);
             } else {
                 // 普通裁剪
                 const cropX = sourceWidth * cropConfig.x;
@@ -2190,20 +2227,20 @@ async function drawCroppedCanvasRegionForGrid(ctx, sourceCanvas, cropConfig, tar
                 const cropWidth = sourceWidth * cropConfig.width;
                 const cropHeight = sourceHeight * cropConfig.height;
 
-                // 计算保持长宽比的尺寸，高度为输出图片高度的80%
-                const drawHeight = targetHeight * 0.8;
-                const aspectRatio = cropWidth / cropHeight;
-                const drawWidth = drawHeight * aspectRatio;
-
-                // 计算居中位置
-                const x = (targetWidth - drawWidth) / 2;
-                const y = (targetHeight - drawHeight) / 2;
-
-                ctx.drawImage(
+                // 创建裁剪后的临时画布
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = cropWidth;
+                tempCanvas.height = cropHeight;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                tempCtx.drawImage(
                     img,
                     cropX, cropY, cropWidth, cropHeight,
-                    x, y, drawWidth, drawHeight
+                    0, 0, cropWidth, cropHeight
                 );
+
+                // 限制在杯子边界内绘制
+                drawCanvasWithinBoundary(ctx, tempCanvas, targetWidth, targetHeight);
             }
 
             resolve();
@@ -2211,6 +2248,163 @@ async function drawCroppedCanvasRegionForGrid(ctx, sourceCanvas, cropConfig, tar
 
         img.src = sourceDataURL;
     });
+}
+
+/**
+ * 为4格图绘制裁剪的画布区域，实现窗户效果
+ * @param {CanvasRenderingContext2D} ctx - 目标画布上下文
+ * @param {fabric.Canvas} sourceCanvas - 源画布
+ * @param {Object} cropConfig - 裁剪配置
+ * @param {number} targetWidth - 目标宽度
+ * @param {number} targetHeight - 目标高度
+ */
+async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropConfig, targetWidth, targetHeight) {
+    return new Promise((resolve) => {
+        // 获取源画布的数据URL
+        const sourceDataURL = sourceCanvas.toDataURL('image/png');
+        const img = new Image();
+
+        img.onload = () => {
+            const sourceWidth = img.width;
+            const sourceHeight = img.height;
+            
+            // 获取杯子边界信息
+            const cupBoundary = window.cupBoundary;
+            
+            if (!cupBoundary) {
+                console.warn('Cup boundary not found, using original drawing method');
+                // 如果没有边界信息，使用原来的绘制方式
+                drawCroppedCanvasRegionForGrid(ctx, sourceCanvas, cropConfig, targetWidth, targetHeight).then(resolve);
+                return;
+            }
+
+            // 保存当前画布状态
+            ctx.save();
+            
+            // 创建杯子边界的裁剪路径
+            ctx.beginPath();
+            ctx.rect(cupBoundary.x, cupBoundary.y, cupBoundary.width, cupBoundary.height);
+            ctx.clip();
+
+            if (cropConfig.extraCrop) {
+                // 后视图特殊处理：右边1/4 + 左边1/4
+                const tempCanvas = document.createElement('canvas');
+                const rightCropWidth = sourceWidth * cropConfig.width;
+                const leftCropWidth = sourceWidth * cropConfig.extraCrop.width;
+                const totalCropWidth = rightCropWidth + leftCropWidth;
+
+                tempCanvas.width = totalCropWidth;
+                tempCanvas.height = sourceHeight;
+                const tempCtx = tempCanvas.getContext('2d');
+
+                // 绘制右边1/4
+                const rightCropX = sourceWidth * cropConfig.x;
+                tempCtx.drawImage(
+                    img,
+                    rightCropX, 0, rightCropWidth, sourceHeight,
+                    0, 0, rightCropWidth, sourceHeight
+                );
+
+                // 绘制左边1/4
+                const leftCropX = sourceWidth * cropConfig.extraCrop.x;
+                tempCtx.drawImage(
+                    img,
+                    leftCropX, 0, leftCropWidth, sourceHeight,
+                    rightCropWidth, 0, leftCropWidth, sourceHeight
+                );
+
+                // 在杯子边界内绘制
+                drawCanvasWithinBoundaryForWindow(ctx, tempCanvas, cupBoundary);
+            } else {
+                // 普通裁剪
+                const cropX = sourceWidth * cropConfig.x;
+                const cropY = sourceHeight * cropConfig.y;
+                const cropWidth = sourceWidth * cropConfig.width;
+                const cropHeight = sourceHeight * cropConfig.height;
+
+                // 创建裁剪后的临时画布
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = cropWidth;
+                tempCanvas.height = cropHeight;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                tempCtx.drawImage(
+                    img,
+                    cropX, cropY, cropWidth, cropHeight,
+                    0, 0, cropWidth, cropHeight
+                );
+
+                // 在杯子边界内绘制
+                drawCanvasWithinBoundaryForWindow(ctx, tempCanvas, cupBoundary);
+            }
+            
+            // 恢复画布状态
+            ctx.restore();
+            resolve();
+        };
+
+        img.src = sourceDataURL;
+    });
+}
+
+/**
+ * 在杯子边界内绘制画布内容（窗户效果专用）
+ * @param {CanvasRenderingContext2D} ctx - 目标画布上下文
+ * @param {HTMLCanvasElement} sourceCanvas - 源画布
+ * @param {Object} cupBoundary - 杯子边界信息
+ */
+function drawCanvasWithinBoundaryForWindow(ctx, sourceCanvas, cupBoundary) {
+    // 计算源画布的缩放比例以适应杯子边界
+    const scaleX = cupBoundary.width / sourceCanvas.width;
+    const scaleY = cupBoundary.height / sourceCanvas.height;
+    const scale = Math.min(scaleX, scaleY) * 0.95; // 稍微缩小一点确保不超出边界
+    
+    const scaledWidth = sourceCanvas.width * scale;
+    const scaledHeight = sourceCanvas.height * scale;
+    
+    // 在杯子边界内居中绘制
+    const x = cupBoundary.x + (cupBoundary.width - scaledWidth) / 2;
+    const y = cupBoundary.y + (cupBoundary.height - scaledHeight) / 2;
+    
+    ctx.drawImage(sourceCanvas, x, y, scaledWidth, scaledHeight);
+}
+
+/**
+ * 在杯子边界内绘制画布内容
+ * @param {CanvasRenderingContext2D} ctx - 目标画布上下文
+ * @param {HTMLCanvasElement} sourceCanvas - 源画布
+ * @param {number} targetWidth - 目标宽度
+ * @param {number} targetHeight - 目标高度
+ */
+function drawCanvasWithinBoundary(ctx, sourceCanvas, targetWidth, targetHeight) {
+    // 获取杯子边界信息
+    const cupBoundary = window.cupBoundary;
+    
+    if (!cupBoundary) {
+        console.warn('Cup boundary not found, using default drawing');
+        // 如果没有边界信息，使用原来的绘制方式
+        const drawHeight = targetHeight * 0.8;
+        const aspectRatio = sourceCanvas.width / sourceCanvas.height;
+        const drawWidth = drawHeight * aspectRatio;
+        const x = (targetWidth - drawWidth) / 2;
+        const y = (targetHeight - drawHeight) / 2;
+        ctx.drawImage(sourceCanvas, x, y, drawWidth, drawHeight);
+        return;
+    }
+    
+    // 计算源画布的缩放比例以适应杯子边界
+    const scaleX = cupBoundary.width / sourceCanvas.width;
+    const scaleY = cupBoundary.height / sourceCanvas.height;
+    const scale = Math.min(scaleX, scaleY) * 0.9; // 稍微缩小一点确保不超出边界
+    
+    const scaledWidth = sourceCanvas.width * scale;
+    const scaledHeight = sourceCanvas.height * scale;
+    
+    // 在杯子边界内居中绘制
+    const x = cupBoundary.x + (cupBoundary.width - scaledWidth) / 2;
+    const y = cupBoundary.y + (cupBoundary.height - scaledHeight) / 2;
+    
+    ctx.drawImage(sourceCanvas, x, y, scaledWidth, scaledHeight);
 }
 
 /**
