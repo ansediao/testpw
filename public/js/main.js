@@ -1132,10 +1132,10 @@ async function showMultiViewPreview(views) {
         #multi-view-preview-modal .modal__container {
             background-color: white !important;
             padding: 0 !important;
-            border-radius: 8px !important;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
-            width: 95vw !important;
-            height: 90vh !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            width: 100vw !important;
+            height: 100vh !important;
             max-width: none !important;
             max-height: none !important;
             overflow: hidden !important;
@@ -1207,21 +1207,26 @@ async function showMultiViewPreview(views) {
         }
         
         .thumbnail-list {
-            width: 300px;
+            width: 50%;
             background: #f8f9fa;
             border-right: 1px solid #eee;
             overflow-y: auto;
             padding: 20px;
             flex-shrink: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-content: flex-start;
         }
         
         .thumbnail-item {
-            margin-bottom: 15px;
+            width: calc(24% - 12px);
             cursor: pointer;
             border: 2px solid transparent;
             border-radius: 8px;
             overflow: hidden;
             transition: all 0.3s ease;
+            flex-shrink: 0;
         }
         
         .thumbnail-item:hover {
@@ -1251,18 +1256,22 @@ async function showMultiViewPreview(views) {
         }
         
         .main-preview {
-            flex: 1;
+            width: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            // padding: 20px;
             background: #fff;
             overflow: auto;
+            height: 100%;
         }
         
         .main-preview img {
             max-width: 100%;
             max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
@@ -1290,10 +1299,16 @@ async function showMultiViewPreview(views) {
                 max-height: 200px;
                 border-right: none;
                 border-bottom: 1px solid #eee;
+                gap: 8px;
+            }
+            
+            .thumbnail-item {
+                width: calc(25% - 6px);
             }
             
             .main-preview {
-                flex: 1;
+                width: 100%;
+                height: calc(100% - 200px);
             }
         }
     `;

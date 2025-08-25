@@ -1,6 +1,7 @@
 <?php
 $selected_category = isset($_GET['category']) ? sanitize_text_field($_GET['category']) : '';
 $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '';
+$selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'all';
 ?>
 <div class="wrap">
     <h1>Home Page for Design</h1>
@@ -47,10 +48,10 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
     </div>
 
     <div class="pw-design-tabs">
-        <a href="#" class="nav-tab nav-tab-active">All</a>
-        <a href="#" class="nav-tab">Universal</a>
-        <a href="#" class="nav-tab">Universal for Main View</a>
-        <a href="#" class="nav-tab">Product Specific</a>
+        <a href="?page=<?php echo esc_attr($_REQUEST['page']); ?>&tab=all" class="nav-tab <?php echo ($selected_tab == 'all' || empty($selected_tab)) ? 'nav-tab-active' : ''; ?>">All</a>
+        <a href="?page=<?php echo esc_attr($_REQUEST['page']); ?>&tab=universal" class="nav-tab <?php echo ($selected_tab == 'universal') ? 'nav-tab-active' : ''; ?>">Universal</a>
+        <a href="?page=<?php echo esc_attr($_REQUEST['page']); ?>&tab=universal-main-view" class="nav-tab <?php echo ($selected_tab == 'universal-main-view') ? 'nav-tab-active' : ''; ?>">Universal for Main View</a>
+        <a href="?page=<?php echo esc_attr($_REQUEST['page']); ?>&tab=product-specific" class="nav-tab <?php echo ($selected_tab == 'product-specific') ? 'nav-tab-active' : ''; ?>">Product Specific</a>
     </div>
                     <br><br><br>
     <div class="pw-design-bulk-actions">
@@ -80,6 +81,41 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
                 ),
             );
         }
+        
+        // 根据标签筛选设计
+        if ( ! empty( $selected_tab ) && $selected_tab !== 'all' ) {
+            $tag_slug = '';
+            switch ( $selected_tab ) {
+                case 'universal':
+                    $tag_slug = 'universal';
+                    break;
+                case 'universal-main-view':
+                    $tag_slug = 'universal-main-view';
+                    break;
+                case 'product-specific':
+                    $tag_slug = 'product-specific';
+                    break;
+            }
+            
+            if ( ! empty( $tag_slug ) ) {
+                // 添加标签查询条件
+                if ( ! isset( $args['tax_query'] ) ) {
+                    $args['tax_query'] = array();
+                }
+                
+                // 如果已经有分类查询条件，则使用AND关系
+                if ( ! empty( $args['tax_query'] ) && !isset($args['tax_query']['relation']) ) {
+                    $args['tax_query']['relation'] = 'AND';
+                }
+                
+                $args['tax_query'][] = array(
+                    'taxonomy' => 'pw_design_tag',
+                    'field'    => 'slug',
+                    'terms'    => $tag_slug,
+                );
+            }
+        }
+        
         $designs_query = new WP_Query( $args );
 
         if ( $designs_query->have_posts() ) :
@@ -399,6 +435,7 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
                         </label>
                         <input type="file" id="pw-design-image" name="design_image" accept="image/*" style="display:none;" onchange="console.log('File selected:', this.files);">
                     </div>
+                    </div>
                     
                     <!-- 名称字段 -->
                     <div class="pw-form-field" style="margin-bottom:25px;">
@@ -598,6 +635,7 @@ $search_query      = isset( $_GET['s'] ) ? sanitize_text_field( $_GET['s'] ) : '
                                 <select id="pw-scale-mode" name="scale_mode" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
                                     <option value="fit">Fit</option>
                                     <option value="fill">Fill</option>
+                                    <option value="stretch">Stretch</option>
                                     <option value="stretch">Stretch</option>
                                     <option value="center">Center</option>
                                 </select>
