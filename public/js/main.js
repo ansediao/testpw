@@ -1982,8 +1982,17 @@ async function generate4GridImagesForView(view) {
         }
     }
 
-    // 获取当前激活的画布
-    const activeCanvas = getActiveCanvas();
+    // 获取当前视图的画布而不是激活的画布
+    let activeCanvas = null;
+    if (window.CanvasManager && view.id) {
+        activeCanvas = window.CanvasManager.getCanvas(view.id);
+    }
+    
+    // 如果无法获取特定视图的画布，回退到原来的getActiveCanvas方法
+    if (!activeCanvas) {
+        activeCanvas = getActiveCanvas();
+    }
+    
     if (!activeCanvas) {
         console.error('No active canvas found for 4-grid generation');
         return [
