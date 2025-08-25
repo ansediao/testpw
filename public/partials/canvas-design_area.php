@@ -920,6 +920,9 @@ if ($first_image_url) {
         const printAreaMask = new fabric.Path(maskPath, {
             fill: 'rgba(0, 0, 0, 0.5)', // 半透明黑色遮罩
             fillRule: 'evenodd',
+            stroke: '#ffffff', // 白色虚线描边
+            strokeWidth: 2, // 描边宽度
+            strokeDashArray: [5, 5], // 虚线样式：5像素实线，5像素空白
             selectable: false,
             evented: false,
             excludeFromExport: true,
