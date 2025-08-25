@@ -408,29 +408,19 @@ if (backwardBtn) {
 
 // 添加渲染预览按钮的点击事件
 document.getElementById('renderBtn').addEventListener('click', async function () {
-    // 检查Pinia条件：productViewFlow = "Flat Flow" 且 views数组长度大于1
+    // 检查是否有多视图系统
     if (typeof window.useCanvasStore === 'function') {
         try {
             const store = window.useCanvasStore();
-            const productViewFlow = store.getProductViewFlow();
             const views = store.views || [];
 
-            if (productViewFlow === "Flat Flow" && views.length > 1) {
-                // 满足条件，在本窗口显示左右分栏的多Canvas预览
-                await showMultiViewPreview(views);
+            if (views.length > 0) {
+                // 使用统一的多视图预览函数
+                await showUniversalViewPreview(views);
                 return;
             }
-            // 4-Grid Flow 特殊处理
-            if (productViewFlow === "4-Grid Flow") {
-                // 满足条件，显示4格图预览
-                await show4GridPreview(views);
-                return;
-            }
-
-
-
         } catch (error) {
-            console.error('Failed to check Pinia conditions:', error);
+            console.error('Failed to check views:', error);
         }
     }
 
@@ -1062,23 +1052,23 @@ function applyArcDistortionToTextObject(textObject, arcValue) {
 }
 
 /**
- * 显示多视图预览界面（左右分栏）
+ * 统一的多视图预览函数，根据每个视图的 view_flow 属性决定渲染方式
  * @param {Array} views - 视图数组
  */
-async function showMultiViewPreview(views) {
+async function showUniversalViewPreview(views) {
     // 检查是否已存在预览界面，如果存在则先移除
-    const existingModal = document.getElementById('multi-view-preview-modal');
+    const existingModal = document.getElementById('universal-view-preview-modal');
     if (existingModal) {
         existingModal.remove();
     }
 
     // 创建MicroModal结构的预览界面
     const modalHTML = `
-        <div class="modal micromodal-slide" id="multi-view-preview-modal" aria-hidden="true">
+        <div class="modal micromodal-slide" id="universal-view-preview-modal" aria-hidden="true">
             <div class="modal__overlay" tabindex="-1" data-micromodal-close>
-                <div class="modal__container modal__container--fullscreen" role="dialog" aria-modal="true" aria-labelledby="multi-view-title">
+                <div class="modal__container modal__container--fullscreen" role="dialog" aria-modal="true" aria-labelledby="universal-view-title">
                     <header class="modal__header">
-                        <h2 class="modal__title" id="multi-view-title">多视图预览</h2>
+                        <h2 class="modal__title" id="universal-view-title">多视图预览</h2>
                         <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
                     </header>
                     <main class="modal__content modal__content--scrollable">
@@ -1096,11 +1086,11 @@ async function showMultiViewPreview(views) {
         </div>
     `;
 
-    // 添加样式
+    // 添加样式（复用原有样式，但修改ID）
     const style = document.createElement('style');
     style.textContent = `
-        /* MicroModal全屏样式 */
-        #multi-view-preview-modal {
+        /* 统一多视图预览样式 */
+        #universal-view-preview-modal {
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
@@ -1110,11 +1100,11 @@ async function showMultiViewPreview(views) {
             display: none;
         }
         
-        #multi-view-preview-modal.is-open {
+        #universal-view-preview-modal.is-open {
             display: flex !important;
         }
         
-        #multi-view-preview-modal .modal__overlay {
+        #universal-view-preview-modal .modal__overlay {
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
@@ -1129,7 +1119,7 @@ async function showMultiViewPreview(views) {
             height: 100% !important;
         }
         
-        #multi-view-preview-modal .modal__container {
+        #universal-view-preview-modal .modal__container {
             background-color: white !important;
             padding: 0 !important;
             border-radius: 0 !important;
@@ -1260,7 +1250,6 @@ async function showMultiViewPreview(views) {
             display: flex;
             align-items: center;
             justify-content: center;
-            // padding: 20px;
             background: #fff;
             overflow: auto;
             height: 100%;
@@ -1318,15 +1307,14 @@ async function showMultiViewPreview(views) {
 
     // 等待DOM插入完成
     setTimeout(() => {
-        const modal = document.getElementById('multi-view-preview-modal');
+        const modal = document.getElementById('universal-view-preview-modal');
         if (!modal) {
-            console.error('Modal element not found');
+            console.error('Universal modal element not found');
             return;
         }
 
         // 确保MicroModal已加载并初始化
         if (typeof MicroModal !== 'undefined') {
-            // 初始化MicroModal（如果还未初始化）
             try {
                 MicroModal.init({
                     disableScroll: true,
@@ -1338,59 +1326,95 @@ async function showMultiViewPreview(views) {
                 // 可能已经初始化过了，忽略错误
             }
 
-            // 显示弹窗
             try {
-                MicroModal.show('multi-view-preview-modal');
+                MicroModal.show('universal-view-preview-modal');
             } catch (e) {
                 console.warn('MicroModal show failed, using fallback:', e);
-                // 降级处理
                 modal.style.display = 'flex';
                 modal.classList.add('is-open');
             }
         } else {
             console.error('MicroModal not loaded, using fallback');
-            // 降级处理：直接显示
             modal.style.display = 'flex';
             modal.classList.add('is-open');
         }
     }, 10);
 
-    // 捕获所有视图的截图
-    const viewImages = await captureAllViewsImages(views);
+    // 生成所有视图的预览图片
+    const viewImages = await generateUniversalViewImages(views);
 
     // 生成缩略图列表
-    const thumbnailList = document.querySelector('#multi-view-preview-modal .thumbnail-list');
-    const mainPreview = document.querySelector('#multi-view-preview-modal .main-preview');
+    const thumbnailList = document.querySelector('#universal-view-preview-modal .thumbnail-list');
+    const mainPreview = document.querySelector('#universal-view-preview-modal .main-preview');
 
     thumbnailList.innerHTML = '';
 
     viewImages.forEach((imageData, index) => {
         const view = views[index];
-        const thumbnailItem = document.createElement('div');
-        thumbnailItem.className = `thumbnail-item ${index === 0 ? 'active' : ''}`;
-        thumbnailItem.innerHTML = `
-            <img src="${imageData}" alt="${view.name || `视图 ${index + 1}`}" />
-            <div class="thumbnail-label">${view.name || `视图 ${index + 1}`}</div>
-        `;
+        const isGridView = view.view_flow === '4-Grid Flow';
+        
+        if (isGridView && Array.isArray(imageData)) {
+            // 4格图视图：为每张图片创建独立的缩略图
+            const gridLabels = ['前视图', '左视图', '右视图', '后视图'];
+            imageData.forEach((gridImageData, gridIndex) => {
+                const thumbnailItem = document.createElement('div');
+                thumbnailItem.className = `thumbnail-item ${thumbnailList.children.length === 0 ? 'active' : ''}`;
+                thumbnailItem.innerHTML = `
+                    <img src="${gridImageData}" alt="${view.name || `视图 ${index + 1}`} - ${gridLabels[gridIndex]}" />
+                    <div class="thumbnail-label">${view.name || `视图 ${index + 1}`} - ${gridLabels[gridIndex]}</div>
+                `;
 
-        // 点击缩略图更新大图
-        thumbnailItem.addEventListener('click', () => {
-            // 移除其他缩略图的active状态
-            thumbnailList.querySelectorAll('.thumbnail-item').forEach(item => {
-                item.classList.remove('active');
+                // 点击缩略图更新大图
+                thumbnailItem.addEventListener('click', () => {
+                    // 移除其他缩略图的active状态
+                    thumbnailList.querySelectorAll('.thumbnail-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    // 添加当前缩略图的active状态
+                    thumbnailItem.classList.add('active');
+                    // 显示单张大图
+                    mainPreview.innerHTML = `<img src="${gridImageData}" alt="${view.name || `视图 ${index + 1}`} - ${gridLabels[gridIndex]}">`;
+                });
+
+                thumbnailList.appendChild(thumbnailItem);
             });
-            // 添加当前缩略图的active状态
-            thumbnailItem.classList.add('active');
-            // 更新大图
-            mainPreview.innerHTML = `<img src="${imageData}" alt="${view.name || `视图 ${index + 1}`}">`;
-        });
+        } else {
+            // 普通视图：创建单个缩略图
+            const thumbnailItem = document.createElement('div');
+            thumbnailItem.className = `thumbnail-item ${thumbnailList.children.length === 0 ? 'active' : ''}`;
+            thumbnailItem.innerHTML = `
+                <img src="${imageData}" alt="${view.name || `视图 ${index + 1}`}" />
+                <div class="thumbnail-label">${view.name || `视图 ${index + 1}`}</div>
+            `;
 
-        thumbnailList.appendChild(thumbnailItem);
+            // 点击缩略图更新大图
+            thumbnailItem.addEventListener('click', () => {
+                // 移除其他缩略图的active状态
+                thumbnailList.querySelectorAll('.thumbnail-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                // 添加当前缩略图的active状态
+                thumbnailItem.classList.add('active');
+                // 显示普通预览
+                mainPreview.innerHTML = `<img src="${imageData}" alt="${view.name || `视图 ${index + 1}`}">`;
+            });
+
+            thumbnailList.appendChild(thumbnailItem);
+        }
     });
 
-    // 设置默认大图（第一个视图）
+    // 设置默认大图（第一个缩略图）
     if (viewImages.length > 0) {
-        mainPreview.innerHTML = `<img src="${viewImages[0]}" alt="${views[0].name || '视图 1'}">`;
+        const firstView = views[0];
+        const firstImageData = viewImages[0];
+        
+        if (firstView.view_flow === '4-Grid Flow' && Array.isArray(firstImageData)) {
+            // 显示4格图的第一张（前视图）
+            mainPreview.innerHTML = `<img src="${firstImageData[0]}" alt="${firstView.name || '视图 1'} - 前视图">`;
+        } else {
+            // 显示普通视图
+            mainPreview.innerHTML = `<img src="${firstImageData}" alt="${firstView.name || '视图 1'}">`;
+        }
     }
 }
 
@@ -1869,296 +1893,54 @@ window.closeMultiViewPreview = closeMultiViewPreview;
 window.captureViewForPDF = captureViewForPDF;
 
 /**
- * 显示4格图预览弹窗
+ * 生成统一多视图预览图片，根据 view_flow 决定渲染方式
  * @param {Array} views - 视图数组
+ * @returns {Promise<Array>} 图片数据数组
  */
-async function show4GridPreview(views) {
-    // 创建MicroModal结构的4格图预览界面
-    const modalHTML = `
-        <div class="modal micromodal-slide" id="four-grid-preview-modal" aria-hidden="true">
-            <div class="modal__overlay" tabindex="-1" data-micromodal-close>
-                <div class="modal__container modal__container--fullscreen" role="dialog" aria-modal="true" aria-labelledby="four-grid-title">
-                    <header class="modal__header">
-                        <h2 class="modal__title" id="four-grid-title">4格图预览</h2>
-                        <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
-                    </header>
-                    <main class="modal__content modal__content--scrollable">
-                        <div class="four-grid-body">
-                             <div class="grid-thumbnail-list">
-                                 <div class="grid-item" data-view="front">
-                                     <div class="grid-image-container">
-                                         <div class="loading">正在生成前视图...</div>
-                                     </div>
-                                     <div class="grid-label">前视图</div>
-                                 </div>
-                                 <div class="grid-item" data-view="left">
-                                     <div class="grid-image-container">
-                                         <div class="loading">正在生成左视图...</div>
-                                     </div>
-                                     <div class="grid-label">左视图</div>
-                                 </div>
-                                 <div class="grid-item" data-view="right">
-                                     <div class="grid-image-container">
-                                         <div class="loading">正在生成右视图...</div>
-                                     </div>
-                                     <div class="grid-label">右视图</div>
-                                 </div>
-                                 <div class="grid-item" data-view="back">
-                                     <div class="grid-image-container">
-                                         <div class="loading">正在生成后视图...</div>
-                                     </div>
-                                     <div class="grid-label">后视图</div>
-                                 </div>
-                             </div>
-                             <div class="grid-main-preview">
-                                 <div class="preview-placeholder">请选择左侧视图查看预览</div>
-                             </div>
-                         </div>
-                    </main>
-                </div>
-            </div>
-        </div>
-    `;
+async function generateUniversalViewImages(views) {
+    const images = [];
 
-    // 添加4格图专用样式
-    const style = document.createElement('style');
-    style.textContent = `
-        /* 4格图预览弹窗样式 */
-        #four-grid-preview-modal {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            z-index: 99999 !important;
-            display: none;
-        }
-        
-        #four-grid-preview-modal.is-open {
-            display: flex !important;
-        }
-        
-        #four-grid-preview-modal .modal__overlay {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            bottom: 0 !important;
-            background: rgba(0, 0, 0, 0.8) !important;
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-            z-index: 99999 !important;
-            width: 100% !important;
-            height: 100% !important;
-        }
-        
-        #four-grid-preview-modal .modal__container--fullscreen {
-            width: 95% !important;
-            height: 90% !important;
-            max-width: none !important;
-            max-height: none !important;
-            margin: 0 !important;
-            background: white !important;
-            border-radius: 8px !important;
-            display: flex !important;
-            flex-direction: column !important;
-        }
-        
-        #four-grid-preview-modal .modal__header {
-            padding: 20px !important;
-            border-bottom: 1px solid #eee !important;
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            flex-shrink: 0 !important;
-        }
-        
-        #four-grid-preview-modal .modal__title {
-            margin: 0 !important;
-            font-size: 24px !important;
-            font-weight: 600 !important;
-            color: #333 !important;
-        }
-        
-        #four-grid-preview-modal .modal__content {
-            flex: 1 !important;
-            overflow: hidden !important;
-            padding: 0 !important;
-        }
-        
-        .four-grid-body {
-            display: flex;
-            height: 100%;
-            min-height: calc(100vh - 120px);
-        }
-        
-        .grid-thumbnail-list {
-            width: 320px;
-            background: #f8f9fa;
-            border-right: 1px solid #eee;
-            overflow-y: auto;
-            padding: 20px;
-            flex-shrink: 0;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-gap: 15px;
-            align-content: start;
-        }
-        
-        .grid-item {
-            cursor: pointer;
-            border: 2px solid transparent;
-            border-radius: 8px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            background: white;
-        }
-        
-        .grid-item:hover {
-            border-color: #007bff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
-        }
-        
-        .grid-item.active {
-            border-color: #007bff;
-            box-shadow: 0 0 0 1px #007bff;
-        }
-        
-        .grid-image-container {
-            width: 100%;
-            height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f0f0f0;
-            position: relative;
-        }
-        
-        .grid-image-container img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        
-        .grid-label {
-            padding: 10px;
-            text-align: center;
-            font-size: 14px;
-            color: #333;
-            border-top: 1px solid #eee;
-            font-weight: 500;
-        }
-        
-        .grid-main-preview {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            background: #fff;
-            overflow: auto;
-        }
-        
-        .grid-main-preview img {
-            max-width: 100%;
-            max-height: 100%;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        .loading {
-            text-align: center;
-            color: #666;
-            padding: 20px;
-            font-size: 12px;
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .four-grid-body {
-                flex-direction: column;
+    for (const view of views) {
+        try {
+            if (view.view_flow === '4-Grid Flow') {
+                // 生成4格图预览
+                const gridImages = await generate4GridImagesForView(view);
+                images.push(gridImages);
+            } else {
+                // 普通视图预览
+                const imageData = await captureViewImage(view);
+                images.push(imageData);
             }
-            
-            .grid-thumbnail-list {
-                width: 100%;
-                max-height: 300px;
-                border-right: none;
-                border-bottom: 1px solid #eee;
-                grid-template-columns: repeat(4, 1fr);
-            }
-            
-            .grid-main-preview {
-                flex: 1;
-            }
+        } catch (error) {
+            console.error(`Failed to generate image for view ${view.id}:`, error);
+            // 添加错误占位图
+            images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">截图失败</text></svg>'));
         }
-    `;
+    }
 
-    document.head.appendChild(style);
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-
-    // 等待DOM插入完成
-    setTimeout(() => {
-        const modal = document.getElementById('four-grid-preview-modal');
-        if (!modal) {
-            console.error('4Grid modal element not found');
-            return;
-        }
-
-        // 确保MicroModal已加载并初始化
-        if (typeof MicroModal !== 'undefined') {
-            try {
-                MicroModal.init({
-                    disableScroll: true,
-                    disableFocus: false,
-                    awaitCloseAnimation: false,
-                    debugMode: false
-                });
-            } catch (e) {
-                // 可能已经初始化过了，忽略错误
-            }
-
-            // 显示弹窗
-            try {
-                MicroModal.show('four-grid-preview-modal');
-            } catch (e) {
-                console.warn('MicroModal show failed, using fallback:', e);
-                modal.style.display = 'flex';
-                modal.classList.add('is-open');
-            }
-        } else {
-            console.error('MicroModal not loaded, using fallback');
-            modal.style.display = 'flex';
-            modal.classList.add('is-open');
-        }
-    }, 10);
-
-    // 生成4格图预览
-    await generate4GridImages(views);
+    return images;
 }
 
 /**
- * 生成4格图预览图片
- * @param {Array} views - 视图数组
+ * 为单个视图生成4格图预览图片
+ * @param {Object} view - 视图对象
+ * @returns {Promise<Array>} 4张图片的数据数组
  */
-async function generate4GridImages(views) {
-    if (!views || views.length === 0) {
-        console.error('No views provided for 4-grid generation');
-        return;
-    }
-
-    // 获取第一个视图作为基础视图
-    const baseView = views[0];
-    if (!baseView || !baseView.layers) {
-        console.error('Base view or layers not found');
-        return;
+async function generate4GridImagesForView(view) {
+    if (!view || !view.layers) {
+        console.error('View or layers not found for 4-grid generation');
+        return [
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">前视图</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">左视图</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">右视图</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">后视图</text></svg>')
+        ];
     }
 
     // 查找特定图层
-    const backgroundLayer = baseView.layers.find(layer => layer.name === 'Background Layer');
-    const baseLayer = baseView.layers.find(layer => layer.name === 'Base Layer');
-    const overlayLayer = baseView.layers.find(layer => layer.name === 'Overlay Layer');
+    const backgroundLayer = view.layers.find(layer => layer.name === 'Background Layer');
+    const baseLayer = view.layers.find(layer => layer.name === 'Base Layer');
+    const overlayLayer = view.layers.find(layer => layer.name === 'Overlay Layer');
 
     // 获取画布尺寸（从Background Layer或默认值）
     let canvasWidth = 400;
@@ -2175,11 +1957,16 @@ async function generate4GridImages(views) {
     // 获取当前激活的画布
     const activeCanvas = getActiveCanvas();
     if (!activeCanvas) {
-        console.error('No active canvas found');
-        return;
+        console.error('No active canvas found for 4-grid generation');
+        return [
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>')
+        ];
     }
 
-    // 定义4个视图的配置
+    // 定义4个视图的配置（裁剪参数）
     const viewConfigs = [
         {
             name: 'front',
@@ -2203,19 +1990,12 @@ async function generate4GridImages(views) {
         }
     ];
 
-    const gridItems = document.querySelectorAll('#four-grid-preview-modal .grid-item');
-    const mainPreview = document.querySelector('#four-grid-preview-modal .grid-main-preview');
+    const gridImages = [];
 
-    // 为每个视图生成图片
-    for (let i = 0; i < viewConfigs.length; i++) {
-        const config = viewConfigs[i];
-        const gridItem = gridItems[i];
-
-        if (!gridItem) continue;
-
+    // 为每个视图配置生成合成图片
+    for (const config of viewConfigs) {
         try {
-            // 生成合成图片
-            const imageData = await generateCompositeImage({
+            const imageData = await generateCompositeImageForGrid({
                 canvasWidth,
                 canvasHeight,
                 backgroundLayer,
@@ -2224,48 +2004,23 @@ async function generate4GridImages(views) {
                 activeCanvas,
                 cropConfig: config.cropConfig
             });
-
-            // 更新网格项
-            const imageContainer = gridItem.querySelector('.grid-image-container');
-            if (imageContainer && imageData) {
-                imageContainer.innerHTML = `<img src="${imageData}" alt="${config.label}" />`;
-
-                // 添加点击事件
-                gridItem.addEventListener('click', () => {
-                    // 移除其他项的active状态
-                    gridItems.forEach(item => item.classList.remove('active'));
-                    // 添加当前项的active状态
-                    gridItem.classList.add('active');
-                    // 更新大图预览
-                    if (mainPreview) {
-                        mainPreview.innerHTML = `<img src="${imageData}" alt="${config.label}">`;
-                    }
-                });
-
-                // 默认选中第一个
-                if (i === 0) {
-                    gridItem.classList.add('active');
-                    if (mainPreview) {
-                        mainPreview.innerHTML = `<img src="${imageData}" alt="${config.label}">`;
-                    }
-                }
-            }
+            gridImages.push(imageData);
         } catch (error) {
-            console.error(`Failed to generate image for ${config.name}:`, error);
-            const imageContainer = gridItem.querySelector('.grid-image-container');
-            if (imageContainer) {
-                imageContainer.innerHTML = `<div class="loading">生成${config.label}失败</div>`;
-            }
+            console.error(`Failed to generate ${config.name} view:`, error);
+            // 添加错误占位图
+            gridImages.push('data:image/svg+xml;base64,' + btoa(`<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">${config.label}生成失败</text></svg>`));
         }
     }
+
+    return gridImages;
 }
 
 /**
- * 生成合成图片（按图层叠加顺序）
+ * 生成4格图的合成图片（按图层叠加顺序）
  * @param {Object} options - 生成选项
  * @returns {Promise<string>} 图片数据URL
  */
-async function generateCompositeImage(options) {
+async function generateCompositeImageForGrid(options) {
     const { canvasWidth, canvasHeight, backgroundLayer, baseLayer, overlayLayer, activeCanvas, cropConfig } = options;
 
     // 创建临时画布
@@ -2280,39 +2035,39 @@ async function generateCompositeImage(options) {
     try {
         // 1. 绘制Background Layer（如果存在）
         if (backgroundLayer && backgroundLayer.layer_data && backgroundLayer.layer_data.content && backgroundLayer.layer_data.content.imageURL) {
-            await drawLayerImage(ctx, backgroundLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
+            await drawLayerImageForGrid(ctx, backgroundLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
         }
 
         // 2. 绘制Base Layer（如果存在）
         if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) {
-            await drawLayerImage(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
+            await drawLayerImageForGrid(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
         }
 
         // 3. 绘制当前激活画布的裁剪区域
         if (activeCanvas) {
-            await drawCroppedCanvasRegion(ctx, activeCanvas, cropConfig, canvasWidth, canvasHeight);
+            await drawCroppedCanvasRegionForGrid(ctx, activeCanvas, cropConfig, canvasWidth, canvasHeight);
         }
 
         // 4. 绘制Overlay Layer（如果存在）
         if (overlayLayer && overlayLayer.layer_data && overlayLayer.layer_data.content && overlayLayer.layer_data.content.imageURL) {
-            await drawLayerImage(ctx, overlayLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
+            await drawLayerImageForGrid(ctx, overlayLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
         }
 
         return tempCanvas.toDataURL('image/png');
     } catch (error) {
-        console.error('Error generating composite image:', error);
+        console.error('Error generating composite image for grid:', error);
         throw error;
     }
 }
 
 /**
- * 绘制图层图片
+ * 为4格图绘制图层图片
  * @param {CanvasRenderingContext2D} ctx - 画布上下文
  * @param {string} imageUrl - 图片URL
  * @param {number} width - 画布宽度
  * @param {number} height - 画布高度
  */
-async function drawLayerImage(ctx, imageUrl, width, height) {
+async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
@@ -2335,14 +2090,14 @@ async function drawLayerImage(ctx, imageUrl, width, height) {
 }
 
 /**
- * 绘制裁剪的画布区域
+ * 为4格图绘制裁剪的画布区域
  * @param {CanvasRenderingContext2D} ctx - 目标画布上下文
  * @param {fabric.Canvas} sourceCanvas - 源画布
  * @param {Object} cropConfig - 裁剪配置
  * @param {number} targetWidth - 目标宽度
  * @param {number} targetHeight - 目标高度
  */
-async function drawCroppedCanvasRegion(ctx, sourceCanvas, cropConfig, targetWidth, targetHeight) {
+async function drawCroppedCanvasRegionForGrid(ctx, sourceCanvas, cropConfig, targetWidth, targetHeight) {
     return new Promise((resolve) => {
         // 获取源画布的数据URL
         const sourceDataURL = sourceCanvas.toDataURL('image/png');
@@ -2421,5 +2176,88 @@ async function drawCroppedCanvasRegion(ctx, sourceCanvas, cropConfig, targetWidt
     });
 }
 
-// 暴露4格图预览函数到全局
-window.show4GridPreview = show4GridPreview;
+/**
+ * 根据裁剪配置裁剪图像
+ * @param {string} imageDataUrl - 基础图像数据URL
+ * @param {Object} cropConfig - 裁剪配置 {x, y, width, height}（百分比）
+ * @returns {Promise<string>} 裁剪后的图像数据URL
+ */
+function cropImageWithConfig(imageDataUrl, cropConfig) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 计算裁剪区域的像素坐标
+            const sourceX = img.width * cropConfig.x;
+            const sourceY = img.height * cropConfig.y;
+            const sourceWidth = img.width * cropConfig.width;
+            const sourceHeight = img.height * cropConfig.height;
+            
+            // 设置输出画布尺寸
+            canvas.width = sourceWidth;
+            canvas.height = sourceHeight;
+            
+            // 绘制裁剪后的图像
+            ctx.drawImage(
+                img,
+                sourceX, sourceY, sourceWidth, sourceHeight, // 源区域
+                0, 0, sourceWidth, sourceHeight // 目标区域
+            );
+            
+            resolve(canvas.toDataURL('image/png'));
+        };
+        
+        img.onerror = function() {
+            console.error('Failed to load base image for cropping');
+            resolve('data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">图像加载失败</text></svg>'));
+        };
+        
+        img.src = imageDataUrl;
+    });
+}
+
+/**
+ * 捕获单个视图的图像
+ * @param {Object} view - 视图对象
+ * @returns {Promise<string>} 图片数据URL
+ */
+async function captureViewImage(view) {
+    try {
+        // 获取所有Canvas图层元素
+        const baseCanvasElement = document.getElementById(`baseCanvas-${view.id}`);
+        const mainCanvasElement = document.getElementById(`mainCanvas-${view.id}`);
+        const overlayCanvasElement = document.getElementById(`overlayCanvas-${view.id}`);
+        const maskCanvasElement = document.getElementById(`maskCanvas-${view.id}`);
+
+        if (mainCanvasElement && window.CanvasManager) {
+            const fabricCanvas = window.CanvasManager.getCanvas(view.id);
+            if (fabricCanvas) {
+                // 强制渲染主Canvas
+                fabricCanvas.renderAll();
+
+                // 捕获多层Canvas内容（应用遮罩效果）
+                const imageData = await captureMultiLayerCanvasWithMask({
+                    baseCanvas: baseCanvasElement,
+                    mainCanvas: mainCanvasElement,
+                    overlayCanvas: overlayCanvasElement,
+                    maskCanvas: maskCanvasElement,
+                    fabricCanvas: fabricCanvas
+                }, view);
+                return imageData;
+            } else {
+                console.warn(`Canvas not found for view: ${view.id}`);
+                return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">无法加载视图</text></svg>');
+            }
+        } else {
+            console.warn(`Canvas element not found: mainCanvas-${view.id}`);
+            return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">视图不存在</text></svg>');
+        }
+    } catch (error) {
+        console.error(`Failed to capture view ${view.id}:`, error);
+        return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">截图失败</text></svg>');
+    }
+}
+
+
