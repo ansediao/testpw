@@ -1034,6 +1034,9 @@ const layersApp = Vue.createApp({
 
             // 同步到画布选中状态
             syncLayerSelectionToCanvas(layerId);
+            
+            // 控制蒙版画布的显示/隐藏
+            controlMaskCanvasVisibility(layerId);
         };
 
         // 切换可见性
@@ -1144,6 +1147,8 @@ const layersApp = Vue.createApp({
                 // 如果删除的是当前选中的图层，清除选中状态
                 if (store.activeObjectId === layer.id) {
                     store.setActiveObjectId(null);
+                    // 隐藏蒙版画布
+                    controlMaskCanvasVisibility(null);
                 }
             }
         };
@@ -1186,6 +1191,31 @@ const layersApp = Vue.createApp({
                     canvasInstance.renderAll();
                 }
             }
+        };
+        
+        // 检查图层是否属于分组
+        const isLayerInGroup = (layerId) => {
+            const currentViewId = store.activeViewId;
+            if (!currentViewId) return false;
+            
+            const currentViewLayers = store.getViewLayers(currentViewId);
+            const layer = currentViewLayers.find(l => l.id === layerId);
+            return layer && layer.groupId;
+        };
+        
+        // 控制蒙版画布的显示/隐藏
+        const controlMaskCanvasVisibility = (layerId) => {
+            const currentViewId = store.activeViewId;
+            if (!currentViewId) return;
+            
+            const maskWrapper = document.getElementById(`maskWrapper-${currentViewId}`);
+            if (!maskWrapper) return;
+            
+            // 检查选中的图层是否属于分组
+            const isGrouped = layerId ? isLayerInGroup(layerId) : false;
+            
+            // 显示或隐藏蒙版画布
+            maskWrapper.style.display = isGrouped ? 'block' : 'none';
         };
 
         // 复制画布对象
@@ -1381,6 +1411,12 @@ const layersApp = Vue.createApp({
                     groupOrder: getGroupLayers(groupId).length
                 };
                 store.setViewLayers(currentViewId, updatedLayers);
+                
+                // 检查该图层是否当前选中，如果是则显示蒙版画布
+                if (store.activeObjectId === selectedLayerForAssign.value.id) {
+                    controlMaskCanvasVisibility(selectedLayerForAssign.value.id);
+                    console.log(`[AssignLayer] 图层分配到组后，显示蒙版画布: ${selectedLayerForAssign.value.id}`);
+                }
             }
 
             showPrintMethodDialog.value = false;
@@ -1415,6 +1451,12 @@ const layersApp = Vue.createApp({
                     groupOrder: 0
                 };
                 store.setViewLayers(currentViewId, updatedLayers);
+                
+                // 检查该图层是否当前选中，如果是则隐藏蒙版画布
+                if (store.activeObjectId === layer.id) {
+                    controlMaskCanvasVisibility(layer.id);
+                    console.log(`[RemoveFromGroup] 图层从组中移除后，隐藏蒙版画布: ${layer.id}`);
+                }
             }
         };
 
@@ -1706,6 +1748,15 @@ const layersApp = Vue.createApp({
             // 清理状态
             selectedGroupForPrintMethod.value = null;
             selectedGroupPrintMethodId.value = null;
+            
+            // 检查当前选中的图层是否在受影响的图层中，如果是则更新蒙版画布显示
+            if (store.activeObjectId) {
+                const affectedLayerIds = groupLayers.map(layer => layer.id);
+                if (affectedLayerIds.includes(store.activeObjectId)) {
+                    controlMaskCanvasVisibility(store.activeObjectId);
+                    console.log(`[GroupPrintMethodChange] 图层组印刷方式修改后，更新蒙版画布显示: ${store.activeObjectId}`);
+                }
+            }
         };
 
         return {

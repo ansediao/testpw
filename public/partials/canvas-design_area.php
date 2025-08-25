@@ -622,7 +622,7 @@ if ($first_image_url) {
                 <div class="canvas-wrapper" id="overlayWrapper-${view.id}" style="z-index:30;pointer-events: none;">
                     <canvas id="overlayCanvas-${view.id}"></canvas>
                 </div>
-                <div class="canvas-wrapper" id="maskWrapper-${view.id}" style="z-index:40; pointer-events: none;">
+                <div class="canvas-wrapper" id="maskWrapper-${view.id}" style="z-index:40; pointer-events: none; display: none;">
                     <canvas id="maskCanvas-${view.id}"></canvas>
                 </div>
               

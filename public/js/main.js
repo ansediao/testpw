@@ -669,6 +669,9 @@ function syncSelectionToStore(objectId) {
 
             // ===== 核心修复：同步选中状态到.dongtai-area按钮组显示 =====
             updateDongtaiAreaButtons(objectId);
+            
+            // 控制蒙版画布的显示/隐藏
+            controlMaskCanvasFromMain(objectId);
 
         } catch (error) {
             console.error('Failed to sync selection state:', error);
@@ -733,6 +736,31 @@ function showRelevantButtonGroup(selectedObject) {
 // 暴露新增的函数到全局作用域
 window.updateDongtaiAreaButtons = updateDongtaiAreaButtons;
 window.showRelevantButtonGroup = showRelevantButtonGroup;
+
+// 从主画布控制蒙版画布的显示/隐藏
+function controlMaskCanvasFromMain(objectId) {
+    const store = window.useCanvasStore();
+    if (!store || !store.activeViewId) return;
+    
+    const currentViewId = store.activeViewId;
+    const maskWrapper = document.getElementById(`maskWrapper-${currentViewId}`);
+    if (!maskWrapper) return;
+    
+    // 检查选中的对象是否属于分组
+    let isGrouped = false;
+    if (objectId) {
+        const currentViewLayers = store.getViewLayers(currentViewId);
+        const layer = currentViewLayers.find(l => l.id === objectId);
+        isGrouped = layer && layer.groupId;
+    }
+    
+    // 显示或隐藏蒙版画布
+    maskWrapper.style.display = isGrouped ? 'block' : 'none';
+    console.log(`[MaskCanvas] ${isGrouped ? '显示' : '隐藏'}蒙版画布, 对象ID: ${objectId}, 分组状态: ${isGrouped}`);
+}
+
+// 暴露蒙版画布控制函数到全局作用域
+window.controlMaskCanvasFromMain = controlMaskCanvasFromMain;
 
 // 获取图层名称的辅助函数
 function getLayerName(obj) {
