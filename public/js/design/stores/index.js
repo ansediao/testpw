@@ -105,15 +105,11 @@ export const useCanvasStore = defineStore('canvas', {
         setProductDataError(error) { this.productDataError = error; },
         // 视图相关方法
         setViews(views) { this.views = views; },
-        setActiveView(view) { 
+        setActiveView(view) {
             this.activeView = view;
             // 直接设置activeViewId，不调用setActiveViewId方法
             if (view && view.id) {
                 this.activeViewId = view.id;
-            }
-            // 当activeView变化时，同步更新productViewFlow
-            if (view && view.view_flow) {
-                this.productViewFlow = view.view_flow;
             }
         },
         setProductViewFlow(viewFlow) { this.productViewFlow = viewFlow; },
@@ -122,20 +118,24 @@ export const useCanvasStore = defineStore('canvas', {
             if (this.productViewFlow !== null) {
                 return this.productViewFlow;
             }
-            // 直接从当前激活视图获取 view_flow
-            if (this.activeView && this.activeView.view_flow) {
-                return this.activeView.view_flow;
+            // 否则尝试从 productData 中获取
+            if (this.productData &&
+                this.productData.templates &&
+                this.productData.templates.views &&
+                this.productData.templates.views.length > 0 &&
+                this.productData.templates.views[0].view_flow) {
+                return this.productData.templates.views[0].view_flow;
             }
             return null;
         },
-        setActiveViewId(viewId) { 
+        setActiveViewId(viewId) {
             const previousViewId = this.activeViewId;
-            
+
             // 如果切换到相同视图，直接返回
             if (previousViewId === viewId) {
                 return;
             }
-            
+
             // 保存当前视图的图层数据
             if (previousViewId && this.layers.length > 0) {
                 this.viewLayers[previousViewId] = [...this.layers];
@@ -143,30 +143,26 @@ export const useCanvasStore = defineStore('canvas', {
             if (previousViewId && this.layerGroups.length > 0) {
                 this.viewLayerGroups[previousViewId] = [...this.layerGroups];
             }
-            
+
             // 切换到新视图
             this.activeViewId = viewId;
-            
+
             // 根据viewId查找对应的视图对象并设置为activeView
             const viewObject = this.views.find(view => view.id === viewId);
             if (viewObject) {
                 this.activeView = viewObject;
-                // 当activeView变化时，同步更新productViewFlow
-                if (viewObject.view_flow) {
-                    this.productViewFlow = viewObject.view_flow;
-                }
             }
-            
+
             // 加载新视图的图层数据
             this.layers = this.viewLayers[viewId] || [];
             this.layerGroups = this.viewLayerGroups[viewId] || [];
-            
+
             // 切换视图时，同步对应的打印方式数据
             const printMethodStore = window.usePrintMethodStore();
             if (printMethodStore) {
                 printMethodStore.switchToViewPrintMethods(viewId);
             }
-            
+
             console.log(`View switched: ${previousViewId} -> ${viewId}, layers count: ${this.layers.length}`);
         },
         // 异步获取产品数据
@@ -270,7 +266,7 @@ export const useCanvasStore = defineStore('canvas', {
                 this.setViews(productData.templates.views);
                 console.log('Successfully set views');
 
-                // 设置 productViewFlow - 直接从第一个视图的 view_flow 属性获取
+                // 设置 productViewFlow
                 if (productData.templates.views.length > 0 && productData.templates.views[0].view_flow) {
                     this.setProductViewFlow(productData.templates.views[0].view_flow);
                     console.log('Successfully set productViewFlow:', productData.templates.views[0].view_flow);
