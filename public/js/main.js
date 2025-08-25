@@ -2053,6 +2053,35 @@ async function generate4GridImagesForView(view) {
 }
 
 /**
+ * 获取当前选中的颜色
+ * @returns {string|null} 当前选中的颜色值
+ */
+function getCurrentSelectedColor() {
+    // 首先尝试从颜色选择器获取
+    const selectedSwatch = document.querySelector('.color-swatch.selected');
+    if (selectedSwatch) {
+        const color = selectedSwatch.getAttribute('data-color');
+        if (color) {
+            return color;
+        }
+    }
+    
+    // 尝试从全局变量获取
+    if (window.currentColor) {
+        return window.currentColor;
+    }
+    
+    // 尝试从自定义颜色选择器获取
+    const customColorPicker = document.getElementById('customColorPicker');
+    if (customColorPicker && customColorPicker.value) {
+        return customColorPicker.value;
+    }
+    
+    // 默认返回黑色
+    return '#000000';
+}
+
+/**
  * 生成4格图的合成图片（按图层叠加顺序）
  * @param {Object} options - 生成选项
  * @returns {Promise<string>} 图片数据URL
@@ -2075,9 +2104,10 @@ async function generateCompositeImageForGrid(options) {
             await drawLayerImageForGrid(ctx, backgroundLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
         }
 
-        // 2. 绘制Base Layer（如果存在）
+        // 2. 绘制Base Layer（如果存在）并应用当前选中的颜色
         if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) {
-            await drawLayerImageForGrid(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
+            const currentColor = getCurrentSelectedColor();
+            await drawLayerImageForGridWithColor(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight, currentColor);
         }
 
         // 3. 绘制Overlay Layer作为底层（如果存在）
@@ -2156,6 +2186,84 @@ async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
             };
             
             ctx.drawImage(img, x, y, targetWidth, targetHeight);
+            resolve();
+        };
+        img.onerror = reject;
+        img.src = imageUrl;
+    });
+}
+
+/**
+ * 为4格图绘制图层图片并应用颜色
+ * @param {CanvasRenderingContext2D} ctx - 画布上下文
+ * @param {string} imageUrl - 图片URL
+ * @param {number} width - 画布宽度
+ * @param {number} height - 画布高度
+ * @param {string} color - 要应用的颜色
+ */
+async function drawLayerImageForGridWithColor(ctx, imageUrl, width, height, color) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            // 计算保持长宽比的尺寸，高度为输出图片高度的80%
+            const targetHeight = height * 0.8;
+            const aspectRatio = img.width / img.height;
+            const targetWidth = targetHeight * aspectRatio;
+
+            // 计算居中位置
+            const x = (width - targetWidth) / 2;
+            const y = (height - targetHeight) / 2;
+
+            // 创建临时画布来检测非透明像素区域和应用颜色
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = targetWidth;
+            tempCanvas.height = targetHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // 先绘制原图
+            tempCtx.drawImage(img, 0, 0, targetWidth, targetHeight);
+            
+            // 应用颜色（使用 source-in 混合模式）
+            tempCtx.globalCompositeOperation = 'source-in';
+            tempCtx.fillStyle = color;
+            tempCtx.fillRect(0, 0, targetWidth, targetHeight);
+            
+            // 重置混合模式
+            tempCtx.globalCompositeOperation = 'source-over';
+            
+            // 获取图像数据来检测边界
+            const imageData = tempCtx.getImageData(0, 0, targetWidth, targetHeight);
+            const data = imageData.data;
+            
+            // 找到非透明像素的边界
+            let minX = targetWidth, maxX = 0, minY = targetHeight, maxY = 0;
+            for (let y = 0; y < targetHeight; y++) {
+                for (let x = 0; x < targetWidth; x++) {
+                    const alpha = data[(y * targetWidth + x) * 4 + 3];
+                    if (alpha > 10) { // 非透明像素阈值
+                        minX = Math.min(minX, x);
+                        maxX = Math.max(maxX, x);
+                        minY = Math.min(minY, y);
+                        maxY = Math.max(maxY, y);
+                    }
+                }
+            }
+            
+            // 存储杯子边界信息到全局变量，供canvas绘制函数使用
+            window.cupBoundary = {
+                x: x + minX,
+                y: y + minY,
+                width: maxX - minX,
+                height: maxY - minY,
+                originalX: x,
+                originalY: y,
+                originalWidth: targetWidth,
+                originalHeight: targetHeight
+            };
+            
+            // 将应用了颜色的图片绘制到目标画布
+            ctx.drawImage(tempCanvas, x, y);
             resolve();
         };
         img.onerror = reject;
