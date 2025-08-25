@@ -357,10 +357,11 @@
             toggleDeleteButton();
         });
         
-        // Toggle delete button visibility based on selection
+        // Toggle delete and bulk update button visibility based on selection
         function toggleDeleteButton() {
             const hasSelection = $('.pw-design-checkbox:checked').length > 0;
             $('#pw-delete-selected-designs').toggle(hasSelection);
+            $('#pw-bulk-update-designs').toggle(hasSelection);
         }
         
         // Bulk delete functionality
@@ -404,8 +405,81 @@
             }
         });
         
-        // Initialize checkbox states on page load
-        toggleDeleteButton();
+        // Bulk update functionality
+        $(document).on('click', '#pw-bulk-update-designs', function() {
+            const selectedDesigns = $('.pw-design-checkbox:checked').map(function() {
+                return $(this).val();
+            }).get();
+            
+            if (selectedDesigns.length === 0) {
+                alert('请选择要更新的设计');
+                return;
+            }
+            
+            // 更新选中数量显示
+            $('#pw-selected-count').text(selectedDesigns.length);
+            
+            // 设置选中的设计ID到隐藏字段
+            $('#pw-selected-design-ids').val(selectedDesigns.join(','));
+            
+            // 重置表单
+            $('#pw-bulk-update-form')[0].reset();
+            $('#pw-selected-design-ids').val(selectedDesigns.join(','));
+            $('#pw-selected-count').text(selectedDesigns.length);
+            
+            // 显示弹窗
+            if (typeof MicroModal !== 'undefined') {
+                MicroModal.show('pw-bulk-update-modal');
+            } else {
+                console.error('MicroModal not loaded');
+            }
+        });
+         
+         // Bulk update form submission
+         $(document).on('submit', '#pw-bulk-update-form', function(e) {
+             e.preventDefault();
+             
+             const formData = new FormData(this);
+             formData.append('action', 'pw_bulk_update_designs');
+             formData.append('nonce', pwDesignManagement.bulkUpdateNonce);
+             
+             // 显示加载状态
+             const submitButton = $(this).find('input[type="submit"]');
+             const originalText = submitButton.val();
+             submitButton.val('更新中...').prop('disabled', true);
+             
+             $.ajax({
+                 url: pwDesignManagement.ajaxUrl,
+                 type: 'POST',
+                 data: formData,
+                 processData: false,
+                 contentType: false,
+                 success: function(response) {
+                     if (response.success) {
+                         alert('批量更新成功！');
+                         // 关闭弹窗
+                         if (typeof MicroModal !== 'undefined') {
+                             MicroModal.close('pw-bulk-update-modal');
+                         }
+                         // 刷新页面以显示更新后的数据
+                         location.reload();
+                     } else {
+                         alert('更新失败：' + (response.data || '未知错误'));
+                     }
+                 },
+                 error: function(xhr, status, error) {
+                     console.error('AJAX Error:', error);
+                     alert('请求失败，请稍后重试');
+                 },
+                 complete: function() {
+                     // 恢复按钮状态
+                     submitButton.val(originalText).prop('disabled', false);
+                 }
+             });
+         });
+         
+         // Initialize checkbox states on page load
+         toggleDeleteButton();
         
         console.log('Simple Modal Handler initialized');
     });

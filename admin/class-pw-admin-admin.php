@@ -778,6 +778,112 @@ class Pw_Admin_Admin
         }
     }
 
+    /**
+     * Handle AJAX request to bulk update designs
+     *
+     * @since    1.0.0
+     */
+    public function handle_bulk_update_designs()
+    {
+        // 验证 nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'pw_bulk_update_designs_nonce')) {
+            wp_send_json_error('安全验证失败');
+            return;
+        }
+        
+        // 验证用户权限
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('权限不足');
+            return;
+        }
+        
+        // 获取并验证设计ID数组
+        $design_ids_string = isset($_POST['selected_design_ids']) ? sanitize_text_field($_POST['selected_design_ids']) : '';
+        $design_ids = array_filter(array_map('intval', explode(',', $design_ids_string)));
+        
+        if (empty($design_ids)) {
+            wp_send_json_error('请选择要更新的设计');
+            return;
+        }
+        
+        // 获取更新数据
+        $new_description = isset($_POST['bulk_description']) ? wp_kses_post($_POST['bulk_description']) : '';
+        $new_category = isset($_POST['bulk_category']) ? intval($_POST['bulk_category']) : 0;
+        $new_tags = isset($_POST['bulk_tags']) && is_array($_POST['bulk_tags']) ? array_map('sanitize_text_field', $_POST['bulk_tags']) : array();
+        
+        $updated_count = 0;
+        $errors = array();
+        
+        foreach ($design_ids as $design_id) {
+            if ($design_id <= 0) {
+                continue;
+            }
+            
+            // 验证当前用户是否有权限编辑此设计
+            if (!current_user_can('edit_post', $design_id)) {
+                $errors[] = 'ID: ' . $design_id . ' - 权限不足';
+                continue;
+            }
+            
+            // 检查是否为有效的设计文章
+            $post = get_post($design_id);
+            if (!$post || $post->post_type !== 'pw_design') {
+                $errors[] = 'ID: ' . $design_id . ' - 无效的设计';
+                continue;
+            }
+            
+            $update_data = array('ID' => $design_id);
+            $has_updates = false;
+            
+            // 更新描述
+            if (!empty($new_description)) {
+                $update_data['post_content'] = $new_description;
+                $has_updates = true;
+            }
+            
+            // 更新文章数据
+            if ($has_updates) {
+                $result = wp_update_post($update_data);
+                if (is_wp_error($result)) {
+                    $errors[] = 'ID: ' . $design_id . ' - 更新文章失败: ' . $result->get_error_message();
+                    continue;
+                }
+            }
+            
+            // 更新分类
+            if ($new_category > 0) {
+                $category_result = wp_set_post_terms($design_id, array($new_category), 'pw_design_category');
+                if (is_wp_error($category_result)) {
+                    $errors[] = 'ID: ' . $design_id . ' - 更新分类失败: ' . $category_result->get_error_message();
+                    continue;
+                }
+            }
+            
+            // 更新标签
+            if (!empty($new_tags)) {
+                // 直接使用勾选的标签数组
+                $tag_result = wp_set_post_terms($design_id, $new_tags, 'pw_design_tag');
+                
+                if (is_wp_error($tag_result)) {
+                    $errors[] = 'ID: ' . $design_id . ' - 更新标签失败: ' . $tag_result->get_error_message();
+                    continue;
+                }
+            }
+            
+            $updated_count++;
+        }
+        
+        if ($updated_count > 0) {
+            wp_send_json_success(array(
+                'updated' => $updated_count,
+                'errors' => $errors,
+                'message' => '成功更新 ' . $updated_count . ' 个设计'
+            ));
+        } else {
+            wp_send_json_error('没有设计被更新: ' . implode(', ', $errors));
+        }
+    }
+
 }
 
 

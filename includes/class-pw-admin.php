@@ -187,6 +187,9 @@ class Pw_Admin {
 		
 		// Register bulk delete designs handler
 		$this->loader->add_action( 'wp_ajax_pw_bulk_delete_designs', $plugin_admin, 'handle_bulk_delete_designs' );
+		
+		// Register bulk update designs handler
+		$this->loader->add_action( 'wp_ajax_pw_bulk_update_designs', $plugin_admin, 'handle_bulk_update_designs' );
 
 	}
 

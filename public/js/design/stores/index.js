@@ -111,6 +111,10 @@ export const useCanvasStore = defineStore('canvas', {
             if (view && view.id) {
                 this.activeViewId = view.id;
             }
+            // 当activeView变化时，同步更新productViewFlow
+            if (view && view.view_flow) {
+                this.productViewFlow = view.view_flow;
+            }
         },
         setProductViewFlow(viewFlow) { this.productViewFlow = viewFlow; },
         getProductViewFlow() {
@@ -118,13 +122,9 @@ export const useCanvasStore = defineStore('canvas', {
             if (this.productViewFlow !== null) {
                 return this.productViewFlow;
             }
-            // 否则尝试从 productData 中获取
-            if (this.productData &&
-                this.productData.templates &&
-                this.productData.templates.views &&
-                this.productData.templates.views.length > 0 &&
-                this.productData.templates.views[0].view_flow) {
-                return this.productData.templates.views[0].view_flow;
+            // 直接从当前激活视图获取 view_flow
+            if (this.activeView && this.activeView.view_flow) {
+                return this.activeView.view_flow;
             }
             return null;
         },
@@ -151,6 +151,10 @@ export const useCanvasStore = defineStore('canvas', {
             const viewObject = this.views.find(view => view.id === viewId);
             if (viewObject) {
                 this.activeView = viewObject;
+                // 当activeView变化时，同步更新productViewFlow
+                if (viewObject.view_flow) {
+                    this.productViewFlow = viewObject.view_flow;
+                }
             }
             
             // 加载新视图的图层数据
@@ -266,7 +270,7 @@ export const useCanvasStore = defineStore('canvas', {
                 this.setViews(productData.templates.views);
                 console.log('Successfully set views');
 
-                // 设置 productViewFlow
+                // 设置 productViewFlow - 直接从第一个视图的 view_flow 属性获取
                 if (productData.templates.views.length > 0 && productData.templates.views[0].view_flow) {
                     this.setProductViewFlow(productData.templates.views[0].view_flow);
                     console.log('Successfully set productViewFlow:', productData.templates.views[0].view_flow);

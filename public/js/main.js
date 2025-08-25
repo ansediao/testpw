@@ -412,7 +412,7 @@ document.getElementById('renderBtn').addEventListener('click', async function ()
   if (typeof window.useCanvasStore === 'function') {
     try {
       const store = window.useCanvasStore();
-      const productViewFlow = store.getProductViewFlow();
+      const productViewFlow = store.activeView.view_flow();
       const views = store.views || [];
       
       if (productViewFlow === "Flat Flow" && views.length > 1) {
