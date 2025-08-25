@@ -357,11 +357,25 @@ $plugin_url = plugin_dir_url(__FILE__);
                                         const tintFunction = typeof applyTintFilter === 'function' ? applyTintFilter : window.applyTintFilter;
                                         tintFunction(currentView.base_layer, color, 1);
                                         
+                                        // 强制重新应用滤镜并渲染
+                                        if (currentView.base_layer.applyFilters) {
+                                            currentView.base_layer.applyFilters();
+                                        }
+                                        
                                         // 获取当前激活的画布并重新渲染
                                         if (window.CanvasManager) {
                                             const activeCanvas = window.CanvasManager.getActiveCanvas();
                                             if (activeCanvas) {
+                                                // 强制重新渲染base_layer对象
+                                                if (currentView.base_layer.canvas) {
+                                                    currentView.base_layer.canvas.renderAll();
+                                                }
+                                                // 强制整个画布重新渲染
                                                 activeCanvas.renderAll();
+                                                // 使用requestAnimationFrame确保渲染在下一帧完成
+                                                requestAnimationFrame(() => {
+                                                    activeCanvas.renderAll();
+                                                });
                                             }
                                         }
                                         
@@ -469,11 +483,25 @@ $plugin_url = plugin_dir_url(__FILE__);
                                         // 由于fabric.js的滤镜不直接支持渐变，我们创建一个渐变滤镜函数
                                         applyGradientFilter(currentView.base_layer, color1, color2, direction);
                                         
+                                        // 强制重新应用滤镜并渲染
+                                        if (currentView.base_layer.applyFilters) {
+                                            currentView.base_layer.applyFilters();
+                                        }
+                                        
                                         // 获取当前激活的画布并重新渲染
                                         if (window.CanvasManager) {
                                             const activeCanvas = window.CanvasManager.getActiveCanvas();
                                             if (activeCanvas) {
+                                                // 强制重新渲染base_layer对象
+                                                if (currentView.base_layer.canvas) {
+                                                    currentView.base_layer.canvas.renderAll();
+                                                }
+                                                // 强制整个画布重新渲染
                                                 activeCanvas.renderAll();
+                                                // 使用requestAnimationFrame确保渲染在下一帧完成
+                                                requestAnimationFrame(() => {
+                                                    activeCanvas.renderAll();
+                                                });
                                             }
                                         }
                                         
@@ -545,11 +573,25 @@ $plugin_url = plugin_dir_url(__FILE__);
                                         const tintFunction = typeof applyTintFilter === 'function' ? applyTintFilter : window.applyTintFilter;
                                         tintFunction(currentView.base_layer, color, 1);
                                         
+                                        // 强制重新应用滤镜并渲染
+                                        if (currentView.base_layer.applyFilters) {
+                                            currentView.base_layer.applyFilters();
+                                        }
+                                        
                                         // 获取当前激活的画布并重新渲染
                                         if (window.CanvasManager) {
                                             const activeCanvas = window.CanvasManager.getActiveCanvas();
                                             if (activeCanvas) {
+                                                // 强制重新渲染base_layer对象
+                                                if (currentView.base_layer.canvas) {
+                                                    currentView.base_layer.canvas.renderAll();
+                                                }
+                                                // 强制整个画布重新渲染
                                                 activeCanvas.renderAll();
+                                                // 使用requestAnimationFrame确保渲染在下一帧完成
+                                                requestAnimationFrame(() => {
+                                                    activeCanvas.renderAll();
+                                                });
                                             }
                                         }
                                         

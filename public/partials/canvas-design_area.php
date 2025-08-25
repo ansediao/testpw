@@ -265,6 +265,11 @@ if ($first_image_url) {
             // 应用滤镜
             layerObject.filters = [colorFilter];
             layerObject.applyFilters();
+            
+            // 如果对象在画布上，强制重新渲染
+            if (layerObject.canvas) {
+                layerObject.canvas.renderAll();
+            }
         }
     }
 
