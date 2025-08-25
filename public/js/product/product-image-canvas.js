@@ -384,8 +384,6 @@
 
             // 重新加载顶层图片并应用新颜色
             loadTopLayerImage(color);
-            // 立即渲染画布以显示更改
-            canvas.renderAll();
             // Canvas颜色已更新
         }
     }
