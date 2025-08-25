@@ -3084,3 +3084,245 @@ function pw_get_cache_status() {
         'cache_expiry_minutes' => 30
     ));
 }
+
+/**
+ * 获取设计数据用于编辑
+ */
+function pw_get_design_data() {
+    // 验证nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'pw_admin_nonce')) {
+        wp_send_json_error('Invalid nonce');
+        return;
+    }
+    
+    $design_id = intval($_POST['design_id']);
+    
+    if (!$design_id) {
+        wp_send_json_error('Invalid design ID');
+        return;
+    }
+    
+    // 获取设计基本信息
+    $design = get_post($design_id);
+    if (!$design || $design->post_type !== 'pw_design') {
+        wp_send_json_error('Design not found');
+        return;
+    }
+    
+    // 获取分类信息
+    $categories = get_terms(array(
+        'taxonomy' => 'pw_design_category',
+        'hide_empty' => false,
+    ));
+    
+    $categories_data = array();
+    if (!empty($categories) && !is_wp_error($categories)) {
+        foreach ($categories as $category) {
+            $categories_data[] = array(
+                'id' => $category->term_id,
+                'name' => $category->name
+            );
+        }
+    }
+    
+    // 获取当前设计的分类
+    $current_categories = wp_get_post_terms($design_id, 'pw_design_category');
+    $current_category = !empty($current_categories) ? $current_categories[0]->term_id : '';
+    
+    // 获取标签
+    $tags = wp_get_post_terms($design_id, 'pw_design_tag', array('fields' => 'names'));
+    $tags_string = !empty($tags) && !is_wp_error($tags) ? implode(', ', $tags) : '';
+    
+    // 获取自定义字段
+    $enabled = get_post_meta($design_id, '_pw_design_enabled', true);
+    $description = get_post_meta($design_id, '_pw_design_description', true);
+    $priority = get_post_meta($design_id, '_pw_design_priority', true);
+    $featured = get_post_meta($design_id, '_pw_design_featured', true);
+    $visibility = get_post_meta($design_id, '_pw_design_visibility', true);
+    $allow_download = get_post_meta($design_id, '_pw_design_allow_download', true);
+    
+    // Get new advanced settings fields
+    $exclude_export = get_post_meta($design_id, '_design_exclude_export', true);
+    $layer_depth = get_post_meta($design_id, '_design_layer_depth', true);
+    $scale_mode = get_post_meta($design_id, '_design_scale_mode', true);
+    $stay_on_top = get_post_meta($design_id, '_design_stay_on_top', true);
+    $auto_select = get_post_meta($design_id, '_design_auto_select', true);
+    $rotatable = get_post_meta($design_id, '_design_rotatable', true);
+    $removable = get_post_meta($design_id, '_design_removable', true);
+    $movable = get_post_meta($design_id, '_design_movable', true);
+    $scalable = get_post_meta($design_id, '_design_scalable', true);
+    $proportional_scaling = get_post_meta($design_id, '_design_proportional_scaling', true);
+    $scale_by = get_post_meta($design_id, '_design_scale_by', true);
+    $min_scale_limit = get_post_meta($design_id, '_design_min_scale_limit', true);
+    $price = get_post_meta($design_id, '_design_price', true);
+    $sku = get_post_meta($design_id, '_design_sku', true);
+    
+    $response_data = array(
+        'id' => $design_id,
+        'name' => $design->post_title,
+        'description' => $description,
+        'categories' => $categories_data,
+        'current_category' => $current_category,
+        'tags' => $tags_string,
+        'enabled' => !empty($enabled),
+        'priority' => !empty($priority) ? intval($priority) : 0,
+        'featured' => !empty($featured),
+        'visibility' => !empty($visibility) ? $visibility : 'public',
+        'allow_download' => !empty($allow_download),
+        // New advanced settings fields
+        'exclude_export' => !empty($exclude_export),
+        'layer_depth' => !empty($layer_depth) ? intval($layer_depth) : 1,
+        'scale_mode' => !empty($scale_mode) ? $scale_mode : 'fit',
+        'stay_on_top' => !empty($stay_on_top),
+        'auto_select' => !empty($auto_select),
+        'rotatable' => !empty($rotatable),
+        'removable' => !empty($removable),
+        'movable' => !empty($movable),
+        'scalable' => !empty($scalable),
+        'proportional_scaling' => !empty($proportional_scaling),
+        'scale_by' => !empty($scale_by) ? $scale_by : 'factor',
+        'min_scale_limit' => !empty($min_scale_limit) ? floatval($min_scale_limit) : 0.2,
+        'price' => !empty($price) ? floatval($price) : 0,
+        'sku' => !empty($sku) ? $sku : ''
+    );
+    
+    wp_send_json_success($response_data);
+}
+add_action('wp_ajax_pw_get_design_data', 'pw_get_design_data');
+
+/**
+ * 更新设计meta信息
+ */
+function pw_update_design_meta() {
+    // 验证nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'pw_admin_nonce')) {
+        wp_send_json_error('Invalid nonce');
+        return;
+    }
+    
+    $design_id = intval($_POST['design_id']);
+    
+    if (!$design_id) {
+        wp_send_json_error('Invalid design ID');
+        return;
+    }
+    
+    // 验证设计是否存在
+    $design = get_post($design_id);
+    if (!$design || $design->post_type !== 'pw_design') {
+        wp_send_json_error('Design not found');
+        return;
+    }
+    
+    // 更新设计标题
+    if (!empty($_POST['design_name'])) {
+        wp_update_post(array(
+            'ID' => $design_id,
+            'post_title' => sanitize_text_field($_POST['design_name'])
+        ));
+    }
+    
+    // 更新描述
+    if (isset($_POST['design_description'])) {
+        update_post_meta($design_id, '_pw_design_description', sanitize_textarea_field($_POST['design_description']));
+    }
+    
+    // 更新分类
+    if (!empty($_POST['design_category'])) {
+        wp_set_post_terms($design_id, array(intval($_POST['design_category'])), 'pw_design_category');
+    } else {
+        wp_set_post_terms($design_id, array(), 'pw_design_category');
+    }
+    
+    // 更新标签
+    if (isset($_POST['design_tags'])) {
+        $tags = array_map('trim', explode(',', $_POST['design_tags']));
+        $tags = array_filter($tags); // 移除空标签
+        wp_set_post_terms($design_id, $tags, 'pw_design_tag');
+    }
+    
+    // 更新启用状态
+    $enabled = isset($_POST['design_enabled']) ? '1' : '0';
+    update_post_meta($design_id, '_pw_design_enabled', $enabled);
+    
+    // 更新高级设置
+    if (isset($_POST['design_priority'])) {
+        $priority = intval($_POST['design_priority']);
+        update_post_meta($design_id, '_pw_design_priority', $priority);
+    }
+    
+    $featured = isset($_POST['design_featured']) ? '1' : '0';
+    update_post_meta($design_id, '_pw_design_featured', $featured);
+    
+    if (isset($_POST['design_visibility'])) {
+        $visibility = sanitize_text_field($_POST['design_visibility']);
+        if (in_array($visibility, array('public', 'private', 'draft'))) {
+            update_post_meta($design_id, '_pw_design_visibility', $visibility);
+        }
+    }
+    
+    $allow_download = isset($_POST['design_allow_download']) ? '1' : '0';
+    update_post_meta($design_id, '_pw_design_allow_download', $allow_download);
+    
+    // Update new advanced settings fields
+    $exclude_export = isset($_POST['design_exclude_export']) ? '1' : '0';
+    update_post_meta($design_id, '_design_exclude_export', $exclude_export);
+    
+    if (isset($_POST['design_layer_depth'])) {
+        $layer_depth = intval($_POST['design_layer_depth']);
+        update_post_meta($design_id, '_design_layer_depth', $layer_depth);
+    }
+    
+    if (isset($_POST['design_scale_mode'])) {
+        $scale_mode = sanitize_text_field($_POST['design_scale_mode']);
+        if (in_array($scale_mode, array('fit', 'fill', 'stretch', 'none'))) {
+            update_post_meta($design_id, '_design_scale_mode', $scale_mode);
+        }
+    }
+    
+    $stay_on_top = isset($_POST['design_stay_on_top']) ? '1' : '0';
+    update_post_meta($design_id, '_design_stay_on_top', $stay_on_top);
+    
+    $auto_select = isset($_POST['design_auto_select']) ? '1' : '0';
+    update_post_meta($design_id, '_design_auto_select', $auto_select);
+    
+    $rotatable = isset($_POST['design_rotatable']) ? '1' : '0';
+    update_post_meta($design_id, '_design_rotatable', $rotatable);
+    
+    $removable = isset($_POST['design_removable']) ? '1' : '0';
+    update_post_meta($design_id, '_design_removable', $removable);
+    
+    $movable = isset($_POST['design_movable']) ? '1' : '0';
+    update_post_meta($design_id, '_design_movable', $movable);
+    
+    $scalable = isset($_POST['design_scalable']) ? '1' : '0';
+    update_post_meta($design_id, '_design_scalable', $scalable);
+    
+    $proportional_scaling = isset($_POST['design_proportional_scaling']) ? '1' : '0';
+    update_post_meta($design_id, '_design_proportional_scaling', $proportional_scaling);
+    
+    if (isset($_POST['design_scale_by'])) {
+        $scale_by = sanitize_text_field($_POST['design_scale_by']);
+        if (in_array($scale_by, array('factor', 'percentage', 'pixels'))) {
+            update_post_meta($design_id, '_design_scale_by', $scale_by);
+        }
+    }
+    
+    if (isset($_POST['design_min_scale_limit'])) {
+        $min_scale_limit = floatval($_POST['design_min_scale_limit']);
+        update_post_meta($design_id, '_design_min_scale_limit', $min_scale_limit);
+    }
+    
+    if (isset($_POST['design_price'])) {
+        $price = floatval($_POST['design_price']);
+        update_post_meta($design_id, '_design_price', $price);
+    }
+    
+    if (isset($_POST['design_sku'])) {
+        $sku = sanitize_text_field($_POST['design_sku']);
+        update_post_meta($design_id, '_design_sku', $sku);
+    }
+    
+    wp_send_json_success('Design updated successfully');
+}
+add_action('wp_ajax_pw_update_design_meta', 'pw_update_design_meta');

@@ -149,7 +149,7 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
                         ?>
                     </div>
                     <div class="pw-design-actions-bottom">
-                        <a href="<?php echo esc_url( $edit_link ); ?>" title="Edit Design"><span class="dashicons dashicons-edit"></span></a>
+                        <button type="button" class="pw-edit-design-btn" data-design-id="<?php echo esc_attr( $design_id ); ?>" title="Edit Design"><span class="dashicons dashicons-edit"></span></button>
                         <a href="<?php echo esc_url( $delete_link ); ?>" title="Delete Design" class="pw-delete-design-link"><span class="dashicons dashicons-trash"></span></a>
                     </div>
                 </div>
@@ -476,6 +476,79 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
     </div>
 </div>
 
+<!-- Edit Design Modal -->
+<div class="modal" id="pw-edit-design-modal" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1">
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-edit-design-modal-title" style="max-width: 1200px; width: 90vw;">
+            <header class="modal__header">
+                <h2 class="modal__title" id="pw-edit-design-modal-title">Edit Design Settings</h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
+            </header>
+            <div class="modal__content">
+                <form id="pw-edit-design-form">
+                    <?php wp_nonce_field('pw_edit_design_nonce', 'pw_edit_design_nonce_field'); ?>
+                    <input type="hidden" id="pw-edit-design-id" name="design_id" value="">
+                    
+                    <!-- 设计名称 -->
+                    <div class="pw-form-field" style="margin-bottom:20px;">
+                        <label for="pw-edit-design-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Design Name</label>
+                        <input type="text" id="pw-edit-design-name" name="design_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                    </div>
+                    
+                    <!-- 设计描述 -->
+                    <div class="pw-form-field" style="margin-bottom:20px;">
+                        <label for="pw-edit-design-description" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Description</label>
+                        <textarea id="pw-edit-design-description" name="design_description" rows="4" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px; resize:vertical;" placeholder="Enter design description..."></textarea>
+                    </div>
+                    
+                    <!-- 分类选择 -->
+                    <div class="pw-form-field" style="margin-bottom:20px;">
+                        <label for="pw-edit-design-category" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Design Category</label>
+                        <select id="pw-edit-design-category" name="design_category" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                            <option value="">Select Category</option>
+                            <?php
+                            $categories = get_terms( array(
+                                'taxonomy'   => 'pw_design_category',
+                                'hide_empty' => false,
+                            ) );
+                            if ( ! empty( $categories ) && ! is_wp_error( $categories ) ) {
+                                foreach ( $categories as $category ) {
+                                    printf(
+                                        '<option value="%s">%s</option>',
+                                        esc_attr( $category->term_id ),
+                                        esc_html( $category->name )
+                                    );
+                                }
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    
+                    <!-- 标签管理 -->
+                    <div class="pw-form-field" style="margin-bottom:20px;">
+                        <label for="pw-edit-design-tags" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Tags</label>
+                        <input type="text" id="pw-edit-design-tags" name="design_tags" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" placeholder="Enter tags separated by commas...">
+                        <small style="color:#666; font-size:12px; margin-top:5px; display:block;">Separate multiple tags with commas</small>
+                    </div>
+                    
+                    <!-- 启用设置 -->
+                    <div class="pw-form-field" style="margin-bottom:20px;">
+                        <label style="display:flex; align-items:center; cursor:pointer;">
+                            <input type="checkbox" id="pw-edit-design-enabled" name="design_enabled" value="1" style="margin-right:8px;">
+                            <span style="font-weight:600; color:#333;">Enable Setting</span>
+                        </label>
+                        <small style="color:#666; font-size:12px; margin-top:5px; display:block;">Check to enable this design setting</small>
+                    </div>
+                </form>
+            </div>
+            <footer class="modal__footer">
+                <button class="button" data-micromodal-close>Cancel</button>
+                <button type="submit" class="button button-primary" id="pw-edit-design-submit" form="pw-edit-design-form">Update Design</button>
+            </footer>
+        </div>
+    </div>
+</div>
+
 <!-- Bulk Update Modal -->
 <div class="modal" id="pw-bulk-update-modal" aria-hidden="true">
     <div class="modal__overlay" tabindex="-1">
@@ -760,6 +833,191 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
     </div>
 </div>
 
+<!-- Edit Design Modal -->
+<div class="modal" id="modal-edit-design" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-edit-design-title" style="max-width: 1500px; width: 90vw;">
+            <header class="modal__header" style="border-bottom:1px solid #eee; background:#f8f9fa; margin-bottom:0; padding:20px 30px;">
+                <h2 class="modal__title" id="modal-edit-design-title" style="margin:0; color:#333;">Edit Design</h2>
+                <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
+            </header>
+            <div class="modal__content" style="padding:30px;">
+                <form id="edit-design-form">
+                    <input type="hidden" id="edit-design-id" name="design_id">
+                    
+                    <!-- Design Name -->
+                    <div class="pw-form-field" style="margin-bottom:25px;">
+                        <label for="edit-design-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Design Name</label>
+                        <input type="text" id="edit-design-name" name="design_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                    </div>
+                    
+                    <!-- Category -->
+                    <div class="pw-form-field" style="margin-bottom:25px;">
+                        <label for="edit-design-category" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category</label>
+                        <select id="edit-design-category" name="design_category" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                            <option value="">Select Category</option>
+                            <?php
+                            $categories = get_terms(array(
+                                'taxonomy' => 'pw_design_category',
+                                'hide_empty' => false,
+                            ));
+                            if (!is_wp_error($categories)) {
+                                foreach ($categories as $category) {
+                                    echo '<option value="' . esc_attr($category->term_id) . '">' . esc_html($category->name) . '</option>';
+                                }
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    
+                    <!-- Enable Setting -->
+                     <div class="pw-form-field" style="margin-bottom:25px;">
+                         <label for="edit-design-enabled" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Enable Setting</label>
+                         <div class="pw-toggle-switch" style="display:flex; align-items:center;">
+                             <input type="checkbox" id="edit-design-enabled" name="design_enabled" class="pw-toggle-input" style="display:none;">
+                             <label for="edit-design-enabled" class="pw-toggle-label" style="position:relative; display:inline-block; width:60px; height:30px; background:#ccc; border-radius:15px; cursor:pointer; transition:background 0.3s;">
+                                 <span class="pw-toggle-slider" style="position:absolute; top:3px; left:3px; width:24px; height:24px; background:white; border-radius:50%; transition:transform 0.3s;"></span>
+                             </label>
+                             <span class="pw-toggle-text" style="margin-left:10px; color:#666;">Disabled</span>
+                         </div>
+                     </div>
+                     
+                     <!-- Advanced Settings (hidden by default) -->
+                     <div id="advanced-settings" class="pw-advanced-settings" style="display:none; border-top:1px solid #eee; padding-top:25px; margin-top:25px;">
+                         <h4 style="margin:0 0 20px 0; color:#333; font-size:16px;">Advanced Settings</h4>
+                         
+                         <!-- Tab Navigation -->
+                         <div class="pw-tabs-nav" style="display:flex; border-bottom:2px solid #f0f0f0; margin-bottom:20px; background:#f9f9f9; border-radius:4px 4px 0 0;">
+                             <button type="button" class="pw-tab-btn active" data-tab="initial-state" style="flex:1; padding:12px 20px; border:none; background:#fff; cursor:pointer; border-bottom:3px solid #007cba; color:#007cba; font-weight:600; border-radius:4px 0 0 0;">Initial State</button>
+                             <button type="button" class="pw-tab-btn" data-tab="operation-config" style="flex:1; padding:12px 20px; border:none; background:#f9f9f9; cursor:pointer; border-bottom:3px solid transparent; color:#666; font-weight:500;">Operation Config</button>
+                             <button type="button" class="pw-tab-btn" data-tab="price" style="flex:1; padding:12px 20px; border:none; background:#f9f9f9; cursor:pointer; border-bottom:3px solid transparent; color:#666; font-weight:500; border-radius:0 4px 0 0;">Price</button>
+                         </div>
+                         
+                         <!-- Tab Content -->
+                         <div class="pw-tab-content" style="min-height:300px; padding:20px; border:1px solid #f0f0f0; border-radius:0 0 4px 4px; background:#fff;">
+                             <!-- Initial State Tab -->
+                             <div id="tab-initial-state" class="pw-tab-panel active" style="display:block;">
+                                 <div class="pw-form-field" style="margin-bottom:20px;">
+                                     <label style="display:flex; align-items:center; cursor:pointer; margin-bottom:15px;">
+                                         <input type="checkbox" id="edit-design-exclude-export" name="design_exclude_export" value="1" style="margin-right:10px;">
+                                         <span style="font-weight:600; color:#333;">Exclude From Export</span>
+                                     </label>
+                                 </div>
+                                 
+                                 <div class="pw-form-field" style="margin-bottom:20px;">
+                                     <label for="edit-design-layer-depth" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Layer Depth</label>
+                                     <input type="number" id="edit-design-layer-depth" name="design_layer_depth" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" value="1" min="1">
+                                 </div>
+                                 
+                                 <div class="pw-form-field">
+                                     <label for="edit-design-scale-mode" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Scale Mode</label>
+                                     <select id="edit-design-scale-mode" name="design_scale_mode" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                                         <option value="fit">Fit</option>
+                                         <option value="fill">Fill</option>
+                                         <option value="stretch">Stretch</option>
+                                         <option value="none">None</option>
+                                     </select>
+                                 </div>
+                             </div>
+                             
+                             <!-- Operation Config Tab -->
+                             <div id="tab-operation-config" class="pw-tab-panel" style="display:none;">
+                                 <div class="pw-form-field" style="margin-bottom:20px;">
+                                     <label style="display:flex; align-items:center; cursor:pointer; margin-bottom:15px;">
+                                         <input type="checkbox" id="edit-design-stay-on-top" name="design_stay_on_top" value="1" style="margin-right:10px;">
+                                         <span style="font-weight:600; color:#333;">Stay On Top</span>
+                                     </label>
+                                 </div>
+                                 
+                                 <div class="pw-form-field" style="margin-bottom:20px;">
+                                     <div style="display:flex; align-items:center; justify-content:space-between;">
+                                         <span style="font-weight:600; color:#333;">Auto-Select</span>
+                                         <div class="pw-toggle-container" style="display:flex; align-items:center;">
+                                             <input type="checkbox" id="edit-design-auto-select" name="design_auto_select" value="1" style="display:none;">
+                                             <label for="edit-design-auto-select" class="pw-toggle-switch-small" style="position:relative; display:inline-block; width:40px; height:20px; background-color:#ccc; border-radius:20px; cursor:pointer; transition:background-color 0.3s;">
+                                                 <span class="pw-toggle-slider-small" style="position:absolute; top:2px; left:2px; width:16px; height:16px; background-color:white; border-radius:50%; transition:transform 0.3s;"></span>
+                                             </label>
+                                         </div>
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="pw-form-row" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
+                                     <div class="pw-form-field">
+                                         <label style="display:flex; align-items:center; cursor:pointer;">
+                                             <input type="checkbox" id="edit-design-rotatable" name="design_rotatable" value="1" style="margin-right:10px;">
+                                             <span style="font-weight:600; color:#333; font-size:13px;">ROTATABLE</span>
+                                         </label>
+                                     </div>
+                                     <div class="pw-form-field">
+                                         <label style="display:flex; align-items:center; cursor:pointer;">
+                                             <input type="checkbox" id="edit-design-removable" name="design_removable" value="1" style="margin-right:10px;">
+                                             <span style="font-weight:600; color:#333; font-size:13px;">REMOVABLE</span>
+                                         </label>
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="pw-form-row" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
+                                     <div class="pw-form-field">
+                                         <label style="display:flex; align-items:center; cursor:pointer;">
+                                             <input type="checkbox" id="edit-design-movable" name="design_movable" value="1" style="margin-right:10px;">
+                                             <span style="font-weight:600; color:#333; font-size:13px;">MOVABLE</span>
+                                         </label>
+                                     </div>
+                                     <div class="pw-form-field">
+                                         <label style="display:flex; align-items:center; cursor:pointer;">
+                                             <input type="checkbox" id="edit-design-scalable" name="design_scalable" value="1" style="margin-right:10px;">
+                                             <span style="font-weight:600; color:#333; font-size:13px;">SCALABLE</span>
+                                         </label>
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="pw-form-field" style="margin-bottom:20px;">
+                                     <label style="display:flex; align-items:center; cursor:pointer;">
+                                         <input type="checkbox" id="edit-design-proportional-scaling" name="design_proportional_scaling" value="1" style="margin-right:10px;">
+                                         <span style="font-weight:600; color:#333; font-size:13px;">ALLOW UNPROPORTIONAL SCALING</span>
+                                     </label>
+                                 </div>
+                                 
+                                 <div class="pw-form-row" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                                     <div class="pw-form-field">
+                                         <label for="edit-design-scale-by" style="display:block; margin-bottom:8px; font-weight:600; color:#333; font-size:13px;">SCALE BY</label>
+                                         <select id="edit-design-scale-by" name="design_scale_by" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:13px;">
+                                             <option value="factor">Factor</option>
+                                             <option value="percentage">Percentage</option>
+                                             <option value="pixels">Pixels</option>
+                                         </select>
+                                     </div>
+                                     <div class="pw-form-field">
+                                         <label for="edit-design-min-scale-limit" style="display:block; margin-bottom:8px; font-weight:600; color:#333; font-size:13px;">Min Scale Limit</label>
+                                         <input type="number" id="edit-design-min-scale-limit" name="design_min_scale_limit" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:13px;" value="0.2" min="0" max="10" step="0.1">
+                                     </div>
+                                 </div>
+                             </div>
+                             
+                             <!-- Price Tab -->
+                             <div id="tab-price" class="pw-tab-panel" style="display:none;">
+                                 <div class="pw-form-field" style="margin-bottom:20px;">
+                                     <label for="edit-design-price" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Price</label>
+                                     <input type="number" id="edit-design-price" name="design_price" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" value="0" min="0" step="0.01">
+                                 </div>
+                                 
+                                 <div class="pw-form-field">
+                                     <label for="edit-design-sku" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">SKU</label>
+                                     <input type="text" id="edit-design-sku" name="design_sku" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" placeholder="Enter SKU">
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                </form>
+            </div>
+            <footer class="modal__footer" style="border-top:1px solid #eee; padding:20px 30px; margin-top:0;">
+                <button class="button" data-micromodal-close>Cancel</button>
+                <button type="submit" class="button button-primary" id="save-design-changes" form="edit-design-form">Save Changes</button>
+            </footer>
+        </div>
+    </div>
+</div>
+
 <?php
 // 加载Micromodal.js
 wp_enqueue_script(
@@ -812,6 +1070,12 @@ wp_localize_script('pw-admin-micromodal-simple', 'pwDesignManagement', array(
     'ajaxUrl' => admin_url('admin-ajax.php'),
     'deleteNonce' => wp_create_nonce('pw_bulk_delete_designs_nonce'),
     'bulkUpdateNonce' => wp_create_nonce('pw_bulk_update_designs_nonce')
+));
+
+// 传递Edit Design相关数据
+wp_localize_script('pw-admin-micromodal-simple', 'pw_admin_ajax', array(
+    'nonce' => wp_create_nonce('pw_admin_nonce'),
+    'ajaxurl' => admin_url('admin-ajax.php')
 ));
 
 // 添加 micromodal 样式

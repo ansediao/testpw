@@ -2,3 +2,95 @@
  * All of the CSS for your admin-specific functionality should be
  * included in this file.
  */
+
+/* Edit Design Button Styles */
+.pw-edit-design-btn {
+    background: #0073aa;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.3s ease;
+}
+
+.pw-edit-design-btn:hover {
+    background: #005a87;
+}
+
+.pw-edit-design-btn:focus {
+    outline: 2px solid #0073aa;
+    outline-offset: 2px;
+}
+
+.pw-edit-design-btn .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+}
+
+.pw-design-actions-bottom .pw-edit-design-btn {
+    margin-left: 5px;
+}
+
+/* Toggle Switch Styles */
+.pw-toggle-input:checked + .pw-toggle-label {
+    background: #0073aa !important;
+}
+
+.pw-toggle-input:checked + .pw-toggle-label .pw-toggle-slider {
+    transform: translateX(30px);
+}
+
+.pw-toggle-label:hover {
+    background: #999 !important;
+}
+
+.pw-toggle-input:checked + .pw-toggle-label:hover {
+    background: #005a87 !important;
+}
+
+/* Advanced Settings Animation */
+.pw-advanced-settings {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.pw-advanced-settings.show {
+    display: block !important;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 500px;
+    }
+}
+
+/* Design Actions Bottom Styles */
+.pw-design-actions-bottom {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.pw-design-actions-bottom .pw-edit-design-btn,
+.pw-design-actions-bottom .pw-delete-design-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.pw-design-actions-bottom .pw-edit-design-btn:hover,
+.pw-design-actions-bottom .pw-delete-design-link:hover {
+    background-color: #f0f0f1;
+}

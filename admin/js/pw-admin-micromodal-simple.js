@@ -45,6 +45,13 @@
             MicroModal.show('pw-manage-category-modal');
         });
         
+        // Edit Design 按钮处理
+        $(document).on('click', '.pw-edit-design-btn', function(e) {
+            e.preventDefault();
+            const designId = $(this).data('design-id');
+            openEditDesignModal(designId);
+        });
+        
         // Add Tag 按钮处理
         $(document).on('click', '.pw-add-tag-button', function(e) {
             e.preventDefault();
@@ -596,6 +603,353 @@
     $(document).on('click', '#pw-tag-modal-save', function(e) {
         e.preventDefault();
         saveDesignTags();
+    });
+
+    /**
+     * 打开编辑设计模态框
+     */
+    function openEditDesignModal(designId) {
+        console.log('Opening edit modal for design:', designId);
+        
+        // 获取设计数据
+        $.ajax({
+            url: pw_admin_ajax.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'pw_get_design_data',
+                design_id: designId,
+                nonce: pw_admin_ajax.nonce
+            },
+            beforeSend: function() {
+                // 显示加载状态
+                $('#pw-edit-design-modal .modal__content').html('<div style="text-align:center; padding:40px;"><span class="spinner is-active"></span><p>Loading design data...</p></div>');
+                MicroModal.show('pw-edit-design-modal');
+            },
+            success: function(response) {
+                console.log('Design data response:', response);
+                if (response.success) {
+                    populateEditForm(response.data);
+                } else {
+                    alert('Error loading design data: ' + response.data);
+                    MicroModal.close('pw-edit-design-modal');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX error:', error);
+                alert('Failed to load design data');
+                MicroModal.close('pw-edit-design-modal');
+            }
+        });
+    }
+
+    /**
+     * 填充编辑表单
+     */
+    function populateEditForm(designData) {
+        console.log('Populating form with data:', designData);
+        
+        // 恢复原始表单内容
+        $('#pw-edit-design-modal .modal__content').html(`
+            <form id="pw-edit-design-form">
+                <input type="hidden" name="pw_edit_design_nonce_field" value="${pw_admin_ajax.nonce}">
+                <input type="hidden" id="pw-edit-design-id" name="design_id" value="${designData.id}">
+                
+                <!-- 分类选择 -->
+                <div class="pw-form-field" style="margin-bottom:20px;">
+                    <label for="pw-edit-design-category" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Design Category</label>
+                    <select id="pw-edit-design-category" name="design_category" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                        <option value="">Select Category</option>
+                        ${designData.categories.map(cat => `<option value="${cat.id}" ${cat.id == designData.current_category ? 'selected' : ''}>${cat.name}</option>`).join('')}
+                    </select>
+                </div>
+                
+                <!-- 启用设置 -->
+                <div class="pw-form-field" style="margin-bottom:20px;">
+                    <label style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Enable Setting</label>
+                    <div class="pw-toggle-container" style="display:flex; align-items:center; margin-bottom:10px;">
+                        <input type="checkbox" id="pw-edit-design-enabled" name="design_enabled" value="1" style="display:none;" ${designData.enabled ? 'checked' : ''}>
+                        <label for="pw-edit-design-enabled" class="pw-toggle-switch" style="position:relative; display:inline-block; width:50px; height:24px; background-color:#ccc; border-radius:24px; cursor:pointer; transition:background-color 0.3s;">
+                            <span class="pw-toggle-slider" style="position:absolute; top:2px; left:2px; width:20px; height:20px; background-color:white; border-radius:50%; transition:transform 0.3s;"></span>
+                        </label>
+                        <span class="pw-toggle-text" style="margin-left:10px; font-weight:600; color:#333;">${designData.enabled ? 'Enabled' : 'Disabled'}</span>
+                    </div>
+                    <small style="color:#666; font-size:12px; display:block;">Toggle to enable/disable this design setting</small>
+                    
+                    <!-- 高级设置 -->
+                    <div id="advanced-settings" style="margin-top:20px; padding:15px; border:1px solid #e0e0e0; border-radius:4px; background-color:#f9f9f9; ${designData.enabled ? 'display:block;' : 'display:none;'}">
+                        <h4 style="margin:0 0 15px 0; color:#333; font-size:14px;">Advanced Settings</h4>
+                        
+                        <!-- Tab Navigation -->
+                        <div class="pw-tabs-nav" style="display:flex; border-bottom:2px solid #f0f0f0; margin-bottom:15px; background:#f9f9f9; border-radius:4px 4px 0 0;">
+                            <button type="button" class="pw-tab-btn active" data-tab="initial-state" style="flex:1; padding:8px 15px; border:none; background:#fff; cursor:pointer; border-bottom:3px solid #007cba; color:#007cba; font-weight:600; border-radius:4px 0 0 0; font-size:12px;">Initial State</button>
+                            <button type="button" class="pw-tab-btn" data-tab="operation-config" style="flex:1; padding:8px 15px; border:none; background:#f9f9f9; cursor:pointer; border-bottom:3px solid transparent; color:#666; font-weight:500; font-size:12px;">Operation Config</button>
+                            <button type="button" class="pw-tab-btn" data-tab="price" style="flex:1; padding:8px 15px; border:none; background:#f9f9f9; cursor:pointer; border-bottom:3px solid transparent; color:#666; font-weight:500; border-radius:0 4px 0 0; font-size:12px;">Price</button>
+                        </div>
+                        
+                        <!-- Tab Content -->
+                        <div class="pw-tab-content" style="min-height:200px; padding:15px; border:1px solid #f0f0f0; border-radius:0 0 4px 4px; background:#fff;">
+                            <!-- Initial State Tab -->
+                            <div id="tab-initial-state" class="pw-tab-panel active" style="display:block;">
+                                <div class="pw-form-field" style="margin-bottom:15px;">
+                                    <label style="display:flex; align-items:center; cursor:pointer; margin-bottom:10px;">
+                                        <input type="checkbox" id="edit-design-exclude-export" name="design_exclude_export" value="1" style="margin-right:8px;" ${designData.exclude_export ? 'checked' : ''}>
+                                        <span style="font-weight:600; color:#333; font-size:13px;">Exclude From Export</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="pw-form-field" style="margin-bottom:15px;">
+                                    <label for="edit-design-layer-depth" style="display:block; margin-bottom:5px; font-weight:600; color:#333; font-size:13px;">Layer Depth</label>
+                                    <input type="number" id="edit-design-layer-depth" name="design_layer_depth" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:13px;" value="${designData.layer_depth || 1}" min="1">
+                                </div>
+                                
+                                <div class="pw-form-field">
+                                    <label for="edit-design-scale-mode" style="display:block; margin-bottom:5px; font-weight:600; color:#333; font-size:13px;">Scale Mode</label>
+                                    <select id="edit-design-scale-mode" name="design_scale_mode" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:13px;">
+                                        <option value="fit" ${(designData.scale_mode || 'fit') === 'fit' ? 'selected' : ''}>Fit</option>
+                                        <option value="fill" ${designData.scale_mode === 'fill' ? 'selected' : ''}>Fill</option>
+                                        <option value="stretch" ${designData.scale_mode === 'stretch' ? 'selected' : ''}>Stretch</option>
+                                        <option value="none" ${designData.scale_mode === 'none' ? 'selected' : ''}>None</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Operation Config Tab -->
+                            <div id="tab-operation-config" class="pw-tab-panel" style="display:none;">
+                                <div class="pw-form-field" style="margin-bottom:15px;">
+                                    <label style="display:flex; align-items:center; cursor:pointer; margin-bottom:10px;">
+                                        <input type="checkbox" id="edit-design-stay-on-top" name="design_stay_on_top" value="1" style="margin-right:8px;" ${designData.stay_on_top ? 'checked' : ''}>
+                                        <span style="font-weight:600; color:#333; font-size:13px;">Stay On Top</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="pw-form-field" style="margin-bottom:15px;">
+                                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                                        <span style="font-weight:600; color:#333; font-size:13px;">Auto-Select</span>
+                                        <div class="pw-toggle-container" style="display:flex; align-items:center;">
+                                            <input type="checkbox" id="edit-design-auto-select" name="design_auto_select" value="1" style="display:none;" ${designData.auto_select ? 'checked' : ''}>
+                                            <label for="edit-design-auto-select" class="pw-toggle-switch-small" style="position:relative; display:inline-block; width:30px; height:16px; background-color:${designData.auto_select ? '#007cba' : '#ccc'}; border-radius:16px; cursor:pointer; transition:background-color 0.3s;">
+                                                <span class="pw-toggle-slider-small" style="position:absolute; top:2px; left:2px; width:12px; height:12px; background-color:white; border-radius:50%; transition:transform 0.3s; transform:${designData.auto_select ? 'translateX(14px)' : 'translateX(0)'}"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="pw-form-row" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:15px;">
+                                    <div class="pw-form-field">
+                                        <label style="display:flex; align-items:center; cursor:pointer;">
+                                            <input type="checkbox" id="edit-design-rotatable" name="design_rotatable" value="1" style="margin-right:8px;" ${designData.rotatable ? 'checked' : ''}>
+                                            <span style="font-weight:600; color:#333; font-size:11px;">ROTATABLE</span>
+                                        </label>
+                                    </div>
+                                    <div class="pw-form-field">
+                                        <label style="display:flex; align-items:center; cursor:pointer;">
+                                            <input type="checkbox" id="edit-design-removable" name="design_removable" value="1" style="margin-right:8px;" ${designData.removable ? 'checked' : ''}>
+                                            <span style="font-weight:600; color:#333; font-size:11px;">REMOVABLE</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="pw-form-row" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:15px;">
+                                    <div class="pw-form-field">
+                                        <label style="display:flex; align-items:center; cursor:pointer;">
+                                            <input type="checkbox" id="edit-design-movable" name="design_movable" value="1" style="margin-right:8px;" ${designData.movable ? 'checked' : ''}>
+                                            <span style="font-weight:600; color:#333; font-size:11px;">MOVABLE</span>
+                                        </label>
+                                    </div>
+                                    <div class="pw-form-field">
+                                        <label style="display:flex; align-items:center; cursor:pointer;">
+                                            <input type="checkbox" id="edit-design-scalable" name="design_scalable" value="1" style="margin-right:8px;" ${designData.scalable ? 'checked' : ''}>
+                                            <span style="font-weight:600; color:#333; font-size:11px;">SCALABLE</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="pw-form-field" style="margin-bottom:15px;">
+                                    <label style="display:flex; align-items:center; cursor:pointer;">
+                                        <input type="checkbox" id="edit-design-proportional-scaling" name="design_proportional_scaling" value="1" style="margin-right:8px;" ${designData.proportional_scaling ? 'checked' : ''}>
+                                        <span style="font-weight:600; color:#333; font-size:11px;">ALLOW UNPROPORTIONAL SCALING</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="pw-form-row" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                                    <div class="pw-form-field">
+                                        <label for="edit-design-scale-by" style="display:block; margin-bottom:5px; font-weight:600; color:#333; font-size:11px;">SCALE BY</label>
+                                        <select id="edit-design-scale-by" name="design_scale_by" style="width:100%; padding:6px; border:1px solid #ddd; border-radius:4px; font-size:11px;">
+                                            <option value="factor" ${(designData.scale_by || 'factor') === 'factor' ? 'selected' : ''}>Factor</option>
+                                            <option value="percentage" ${designData.scale_by === 'percentage' ? 'selected' : ''}>Percentage</option>
+                                            <option value="pixels" ${designData.scale_by === 'pixels' ? 'selected' : ''}>Pixels</option>
+                                        </select>
+                                    </div>
+                                    <div class="pw-form-field">
+                                        <label for="edit-design-min-scale-limit" style="display:block; margin-bottom:5px; font-weight:600; color:#333; font-size:11px;">Min Scale Limit</label>
+                                        <input type="number" id="edit-design-min-scale-limit" name="design_min_scale_limit" style="width:100%; padding:6px; border:1px solid #ddd; border-radius:4px; font-size:11px;" value="${designData.min_scale_limit || 0.2}" min="0" max="10" step="0.1">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Price Tab -->
+                            <div id="tab-price" class="pw-tab-panel" style="display:none;">
+                                <div class="pw-form-field" style="margin-bottom:15px;">
+                                    <label for="edit-design-price" style="display:block; margin-bottom:5px; font-weight:600; color:#333; font-size:13px;">Price</label>
+                                    <input type="number" id="edit-design-price" name="design_price" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:13px;" value="${designData.price || 0}" min="0" step="0.01">
+                                </div>
+                                
+                                <div class="pw-form-field">
+                                    <label for="edit-design-sku" style="display:block; margin-bottom:5px; font-weight:600; color:#333; font-size:13px;">SKU</label>
+                                    <input type="text" id="edit-design-sku" name="design_sku" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:13px;" placeholder="Enter SKU" value="${designData.sku || ''}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        `);
+        
+        // 初始化主切换开关
+        initToggleSwitch();
+        
+        // 初始化小型切换开关
+        initToggleSwitches();
+        
+        // 初始化选项卡功能
+        initTabSwitching();
+        
+        // 绑定表单提交事件
+        bindEditFormSubmit();
+    }
+    
+    /**
+     * 初始化切换开关功能
+     */
+    function initToggleSwitch() {
+        const toggleInput = $('#pw-edit-design-enabled');
+        const toggleSwitch = $('.pw-toggle-switch');
+        const toggleSlider = $('.pw-toggle-slider');
+        const toggleText = $('.pw-toggle-text');
+        const advancedSettings = $('#advanced-settings');
+        
+        // 设置初始状态
+        updateToggleState();
+        
+        // 绑定点击事件
+        toggleSwitch.off('click').on('click', function(e) {
+            e.preventDefault();
+            toggleInput.prop('checked', !toggleInput.prop('checked'));
+            updateToggleState();
+        });
+        
+        // 更新切换开关状态
+        function updateToggleState() {
+            const isChecked = toggleInput.prop('checked');
+            
+            // 更新开关样式
+            if (isChecked) {
+                toggleSwitch.css('background-color', '#4CAF50');
+                toggleSlider.css('transform', 'translateX(26px)');
+                toggleText.text('Enabled');
+                advancedSettings.slideDown(300);
+            } else {
+                toggleSwitch.css('background-color', '#ccc');
+                toggleSlider.css('transform', 'translateX(0)');
+                toggleText.text('Disabled');
+                advancedSettings.slideUp(300);
+            }
+        }
+    }
+
+    /**
+     * 绑定编辑表单提交事件
+     */
+    function bindEditFormSubmit() {
+        $('#pw-edit-design-submit').off('click').on('click', function(e) {
+            e.preventDefault();
+            console.log('Submitting edit form');
+            
+            const formData = new FormData($('#pw-edit-design-form')[0]);
+            formData.append('action', 'pw_update_design_meta');
+            formData.append('nonce', pw_admin_ajax.nonce);
+            
+            $.ajax({
+                url: pw_admin_ajax.ajaxurl,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function() {
+                    $('#pw-edit-design-submit').prop('disabled', true).text('Updating...');
+                },
+                success: function(response) {
+                    console.log('Update response:', response);
+                    if (response.success) {
+                        alert('Design updated successfully!');
+                        MicroModal.close('pw-edit-design-modal');
+                        // 刷新页面或更新显示
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.data);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Update error:', error);
+                    alert('Failed to update design');
+                },
+                complete: function() {
+                    $('#pw-edit-design-submit').prop('disabled', false).text('Update Design');
+                }
+            });
+        });
+    }
+
+    /**
+     * 初始化选项卡切换功能
+     */
+    function initTabSwitching() {
+        $(document).on('click', '.pw-tab-btn', function() {
+            const targetTab = $(this).data('tab');
+            
+            // Update tab buttons
+            $('.pw-tab-btn').removeClass('active').css({
+                'background': '#f9f9f9',
+                'border-bottom': '3px solid transparent',
+                'color': '#666',
+                'font-weight': '500'
+            });
+            
+            $(this).addClass('active').css({
+                'background': '#fff',
+                'border-bottom': '3px solid #007cba',
+                'color': '#007cba',
+                'font-weight': '600'
+            });
+            
+            // Update tab panels
+            $('.pw-tab-panel').removeClass('active').hide();
+            $('#tab-' + targetTab).addClass('active').show();
+        });
+    }
+
+    /**
+     * 初始化小型切换开关功能
+     */
+    function initToggleSwitches() {
+        $(document).on('change', 'input[type="checkbox"]', function() {
+            const $toggle = $(this).siblings('.pw-toggle-switch-small');
+            const $slider = $toggle.find('.pw-toggle-slider-small');
+            
+            if ($(this).is(':checked')) {
+                $toggle.css('background-color', '#007cba');
+                $slider.css('transform', 'translateX(14px)');
+            } else {
+                $toggle.css('background-color', '#ccc');
+                $slider.css('transform', 'translateX(0)');
+            }
+        });
+    }
+
+    // Initialize all functionality when document is ready
+    $(document).ready(function() {
+        initTabSwitching();
+        initToggleSwitches();
     });
 
 })(jQuery);

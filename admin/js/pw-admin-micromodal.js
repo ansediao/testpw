@@ -120,6 +120,13 @@
             MicroModal.show('pw-add-design-modal');
         });
 
+        // Edit Design 模态框
+        $(document).on('click', '.pw-edit-design-btn', function(e) {
+            e.preventDefault();
+            const designId = $(this).data('design-id');
+            openEditDesignModal(designId);
+        });
+
         // Add Category 模态框
         $('#pw-add-category-btn').on('click', function(e) {
             e.preventDefault();
@@ -708,6 +715,132 @@
                 $(this).remove();
             });
         }, 5000);
+    }
+
+    /**
+     * 打开编辑设计模态框
+     */
+    function openEditDesignModal(designId) {
+        // 获取设计数据
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'pw_get_design_data',
+                design_id: designId,
+                nonce: pw_admin_ajax.nonce
+            },
+            beforeSend: function() {
+                // 显示加载状态
+                $('#pw-edit-design-modal .modal__content').html('<div style="text-align:center; padding:40px;"><span class="spinner is-active"></span><p>Loading design data...</p></div>');
+                MicroModal.show('pw-edit-design-modal');
+            },
+            success: function(response) {
+                if (response.success) {
+                    populateEditForm(response.data);
+                } else {
+                    showNotification('Error loading design data: ' + response.data, 'error');
+                    MicroModal.close('pw-edit-design-modal');
+                }
+            },
+            error: function() {
+                showNotification('Failed to load design data', 'error');
+                MicroModal.close('pw-edit-design-modal');
+            }
+        });
+    }
+
+    /**
+     * 填充编辑表单
+     */
+    function populateEditForm(designData) {
+        // 恢复原始表单内容
+        $('#pw-edit-design-modal .modal__content').html(`
+            <form id="pw-edit-design-form">
+                <input type="hidden" name="pw_edit_design_nonce_field" value="${pw_admin_ajax.nonce}">
+                <input type="hidden" id="pw-edit-design-id" name="design_id" value="${designData.id}">
+                
+                <!-- 设计名称 -->
+                <div class="pw-form-field" style="margin-bottom:20px;">
+                    <label for="pw-edit-design-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Design Name</label>
+                    <input type="text" id="pw-edit-design-name" name="design_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" value="${designData.name}">
+                </div>
+                
+                <!-- 设计描述 -->
+                <div class="pw-form-field" style="margin-bottom:20px;">
+                    <label for="pw-edit-design-description" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Description</label>
+                    <textarea id="pw-edit-design-description" name="design_description" rows="4" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px; resize:vertical;" placeholder="Enter design description...">${designData.description || ''}</textarea>
+                </div>
+                
+                <!-- 分类选择 -->
+                <div class="pw-form-field" style="margin-bottom:20px;">
+                    <label for="pw-edit-design-category" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Design Category</label>
+                    <select id="pw-edit-design-category" name="design_category" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
+                        <option value="">Select Category</option>
+                        ${designData.categories.map(cat => `<option value="${cat.id}" ${cat.id == designData.current_category ? 'selected' : ''}>${cat.name}</option>`).join('')}
+                    </select>
+                </div>
+                
+                <!-- 标签管理 -->
+                <div class="pw-form-field" style="margin-bottom:20px;">
+                    <label for="pw-edit-design-tags" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Tags</label>
+                    <input type="text" id="pw-edit-design-tags" name="design_tags" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" placeholder="Enter tags separated by commas..." value="${designData.tags || ''}">
+                    <small style="color:#666; font-size:12px; margin-top:5px; display:block;">Separate multiple tags with commas</small>
+                </div>
+                
+                <!-- 启用设置 -->
+                <div class="pw-form-field" style="margin-bottom:20px;">
+                    <label style="display:flex; align-items:center; cursor:pointer;">
+                        <input type="checkbox" id="pw-edit-design-enabled" name="design_enabled" value="1" style="margin-right:8px;" ${designData.enabled ? 'checked' : ''}>
+                        <span style="font-weight:600; color:#333;">Enable Setting</span>
+                    </label>
+                    <small style="color:#666; font-size:12px; margin-top:5px; display:block;">Check to enable this design setting</small>
+                </div>
+            </form>
+        `);
+        
+        // 绑定表单提交事件
+        bindEditFormSubmit();
+    }
+
+    /**
+     * 绑定编辑表单提交事件
+     */
+    function bindEditFormSubmit() {
+        $('#pw-edit-design-submit').off('click').on('click', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData($('#pw-edit-design-form')[0]);
+            formData.append('action', 'pw_update_design_meta');
+            formData.append('nonce', pw_admin_ajax.nonce);
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function() {
+                    $('#pw-edit-design-submit').prop('disabled', true).text('Updating...');
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showNotification('Design updated successfully!', 'success');
+                        MicroModal.close('pw-edit-design-modal');
+                        // 刷新页面或更新显示
+                        location.reload();
+                    } else {
+                        showNotification('Error: ' + response.data, 'error');
+                    }
+                },
+                error: function() {
+                    showNotification('Failed to update design', 'error');
+                },
+                complete: function() {
+                    $('#pw-edit-design-submit').prop('disabled', false).text('Update Design');
+                }
+            });
+        });
     }
 
 })(jQuery);
