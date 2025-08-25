@@ -258,14 +258,14 @@ if ($product_id > 0) {
           }
           
           // 初始检查
-          updateCustomizationAreaVisibility();
+          // updateCustomizationAreaVisibility();
           
-          // 监听 store 状态变化
-          store.$subscribe((mutation, state) => {
-            if (mutation.storeId === 'canvas') {
-              updateCustomizationAreaVisibility();
-            }
-          });
+          // // 监听 store 状态变化
+          // store.$subscribe((mutation, state) => {
+          //   if (mutation.storeId === 'canvas') {
+          //     updateCustomizationAreaVisibility();
+          //   }
+          // });
 
           // 尝试从API数据初始化画布
           // if (typeof window.initCanvasFromAPI === 'function') {
