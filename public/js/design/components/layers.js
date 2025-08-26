@@ -250,11 +250,11 @@ const layersApp = Vue.createApp({
                     <!-- 单选框选项 -->
                     <div v-if="isSelectedLayerInExistingGroup" class="pwca-combination-print-method-options">
                         <label class="pwca-print-method-option">
-                            <input type="radio" name="printMethodOption" value="merge" />
+                            <input type="radio" name="printMethodOption" value="merge" checked />
                             <span>合并印刷方式组</span>
                         </label>
                         <label class="pwca-print-method-option">
-                            <input type="radio" name="printMethodOption" value="separate"  />
+                            <input type="radio" name="printMethodOption" value="separate" />
                             <span>独立印刷方式组</span>
                         </label>
                     </div>
@@ -1401,34 +1401,80 @@ const layersApp = Vue.createApp({
             // 为图层分配打印方式
             printMethodStore.assignLayerPrintMethod(selectedLayerForAssign.value.id, selectedPrintMethodId.value);
 
-            // 创建或获取对应的打印方法分组
-            const groupId = `print-method-${selectedPrintMethodId.value}`;
-            let existingGroup = layerGroups.value.find(g => g.id === groupId);
+            // 检查是否显示了组合选项，如果显示了则获取用户选择
+            let printMethodOption = 'merge'; // 默认为合并
+            if (isSelectedLayerInExistingGroup.value) {
+                const selectedOption = document.querySelector('input[name="printMethodOption"]:checked');
+                if (selectedOption) {
+                    printMethodOption = selectedOption.value;
+                }
+            }
 
-            if (!existingGroup) {
+            console.log(`[AssignLayer] 选择的选项: ${printMethodOption}`);
+
+            // 根据选择的选项处理图层分配
+            if (printMethodOption === 'separate') {
+                // 独立印刷方式组：创建新的组ID
+                const timestamp = Date.now();
+                const groupId = `print-method-${selectedPrintMethodId.value}-${timestamp}`;
+                
                 const newGroup = {
                     id: groupId,
-                    name: selectedMethod.name,
+                    name: `${selectedMethod.name} (${timestamp})`,
                     color: getPrintMethodColor(selectedPrintMethodId.value),
                     visible: true,
                     locked: false,
                     expanded: true,
                     printMethodId: selectedPrintMethodId.value
                 };
+                
                 const updatedGroups = [...layerGroups.value, newGroup];
-
-                // 更新当前视图的图层组
                 const currentViewId = store.activeViewId;
                 if (currentViewId) {
                     store.setViewLayerGroups(currentViewId, updatedGroups);
                 } else {
                     store.setLayerGroups(updatedGroups);
                 }
+                
+                // 将图层分配到新创建的组
+                assignLayerToGroup(groupId);
+                console.log(`[AssignLayer] 创建独立组: ${groupId}`);
+            } else {
+                // 合并印刷方式组：使用现有组或创建标准组
+                const groupId = `print-method-${selectedPrintMethodId.value}`;
+                let existingGroup = layerGroups.value.find(g => g.id === groupId);
 
-                existingGroup = newGroup;
+                if (!existingGroup) {
+                    const newGroup = {
+                        id: groupId,
+                        name: selectedMethod.name,
+                        color: getPrintMethodColor(selectedPrintMethodId.value),
+                        visible: true,
+                        locked: false,
+                        expanded: true,
+                        printMethodId: selectedPrintMethodId.value
+                    };
+                    const updatedGroups = [...layerGroups.value, newGroup];
+
+                    // 更新当前视图的图层组
+                    const currentViewId = store.activeViewId;
+                    if (currentViewId) {
+                        store.setViewLayerGroups(currentViewId, updatedGroups);
+                    } else {
+                        store.setLayerGroups(updatedGroups);
+                    }
+
+                    existingGroup = newGroup;
+                }
+                
+                // 将图层分配到现有或新创建的标准组
+                assignLayerToGroup(groupId);
+                console.log(`[AssignLayer] 合并到现有组: ${groupId}`);
             }
-
-            // 将图层分配到选定的打印方法分组
+        };
+        
+        // 辅助函数：将图层分配到指定组
+        const assignLayerToGroup = (groupId) => {
             const currentViewId = store.activeViewId;
             if (!currentViewId) return;
 
