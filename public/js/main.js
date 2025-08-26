@@ -292,10 +292,40 @@ function addCanvasEventListeners(fabricCanvas) {
     // 监听元素移动事件
     fabricCanvas.on('object:moving', (e) => {
         const obj = e.target;
-        if (obj && ! isElementInLayerGroup(obj)) { // 标记需要在松开鼠标时显示提示
+        if (obj && !isElementInLayerGroup(obj)) {
+            // 标记需要在松开鼠标时显示提示
             needsAlertOnRelease = true;
             alertTargetObject = obj;
-        } else { // 如果元素在图层组中，清除标记
+        } else {
+            // 如果元素在图层组中，清除标记
+            needsAlertOnRelease = false;
+            alertTargetObject = null;
+        }
+    });
+    
+    // 监听元素缩放事件
+    fabricCanvas.on('object:scaling', (e) => {
+        const obj = e.target;
+        if (obj && !isElementInLayerGroup(obj)) {
+            // 标记需要在松开鼠标时显示提示
+            needsAlertOnRelease = true;
+            alertTargetObject = obj;
+        } else {
+            // 如果元素在图层组中，清除标记
+            needsAlertOnRelease = false;
+            alertTargetObject = null;
+        }
+    });
+    
+    // 监听元素旋转事件
+    fabricCanvas.on('object:rotating', (e) => {
+        const obj = e.target;
+        if (obj && !isElementInLayerGroup(obj)) {
+            // 标记需要在松开鼠标时显示提示
+            needsAlertOnRelease = true;
+            alertTargetObject = obj;
+        } else {
+            // 如果元素在图层组中，清除标记
             needsAlertOnRelease = false;
             alertTargetObject = null;
         }
