@@ -501,6 +501,32 @@ if (document.getElementById('model3dContainer')) {
     });
 }
 
+// 检查元素是否属于分组的函数
+function checkElementGroupStatus(activeObject) {
+    if (!activeObject) return false;
+    
+    // 检查是否有 groupId 属性
+    if (activeObject.groupId) {
+        return true;
+    }
+    
+    // 检查是否通过 Pinia store 分配了打印方式
+    if (window.usePrintMethodStore) {
+        const printMethodStore = window.usePrintMethodStore();
+        const layerPrintMethod = printMethodStore.getLayerPrintMethod(activeObject.id);
+        if (layerPrintMethod) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// 显示绑定印刷方式提示
+function showPrintMethodBindingAlert() {
+    alert('请先为此元素绑定印刷方式后再使用此工具。\n\n您可以在图层面板中点击"Switch Printing Method"按钮来绑定印刷方式。');
+}
+
 // 为当前激活的 canvas 添加3D模型更新事件监听器
 function addCanvas3DModelListeners(fabricCanvas) {
     if (!fabricCanvas) return;
@@ -519,15 +545,39 @@ function addCanvas3DModelListeners(fabricCanvas) {
         updateModelFromCanvas();
     });
     // 对象移动事件
-    fabricCanvas.on('object:moving', function () {
+    fabricCanvas.on('object:moving', function (e) {
+        const activeObject = e.target;
+        if (activeObject && !checkElementGroupStatus(activeObject)) {
+            showPrintMethodBindingAlert();
+            // 阻止移动操作
+            fabricCanvas.discardActiveObject();
+            fabricCanvas.renderAll();
+            return;
+        }
         updateModelFromCanvas();
     });
     // 对象缩放事件
-    fabricCanvas.on('object:scaling', function () {
+    fabricCanvas.on('object:scaling', function (e) {
+        const activeObject = e.target;
+        if (activeObject && !checkElementGroupStatus(activeObject)) {
+            showPrintMethodBindingAlert();
+            // 阻止缩放操作
+            fabricCanvas.discardActiveObject();
+            fabricCanvas.renderAll();
+            return;
+        }
         updateModelFromCanvas();
     });
     // 对象旋转事件
-    fabricCanvas.on('object:rotating', function () {
+    fabricCanvas.on('object:rotating', function (e) {
+        const activeObject = e.target;
+        if (activeObject && !checkElementGroupStatus(activeObject)) {
+            showPrintMethodBindingAlert();
+            // 阻止旋转操作
+            fabricCanvas.discardActiveObject();
+            fabricCanvas.renderAll();
+            return;
+        }
         updateModelFromCanvas();
     });
 }
