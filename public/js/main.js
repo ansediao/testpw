@@ -2,7 +2,8 @@
 // 管理Canvas初始化状态，防止API数据被误同步到图层面板
 const CanvasInitializationState = {
     isInitializing: false,
-    viewInitializationStatus: new Map(), // 跟踪每个视图的初始化状态
+    viewInitializationStatus: new Map(),
+    // 跟踪每个视图的初始化状态
 
     // 开始初始化过程
     startInitialization(viewId = 'global') {
@@ -16,8 +17,7 @@ const CanvasInitializationState = {
         this.viewInitializationStatus.set(viewId, false);
 
         // 检查是否所有视图都完成初始化
-        const allCompleted = Array.from(this.viewInitializationStatus.values())
-            .every(status => !status);
+        const allCompleted = Array.from(this.viewInitializationStatus.values()).every(status => !status);
 
         if (allCompleted) {
             this.isInitializing = false;
@@ -25,7 +25,9 @@ const CanvasInitializationState = {
 
             // 触发全局初始化完成事件
             document.dispatchEvent(new CustomEvent('canvasInitializationComplete', {
-                detail: { timestamp: Date.now() }
+                detail: {
+                    timestamp: Date.now()
+                }
             }));
         }
 
@@ -46,8 +48,7 @@ const CanvasInitializationState = {
 };
 
 // 检查对象是否为用户操作触发
-function isUserInitiatedAction(obj) {
-    // 检查是否明确标记跳过同步
+function isUserInitiatedAction(obj) { // 检查是否明确标记跳过同步
     if (obj.skipLayerSync === true) {
         return false;
     }
@@ -58,9 +59,7 @@ function isUserInitiatedAction(obj) {
     }
 
     // 检查对象是否有用户操作标记
-    return obj.userInitiated === true ||
-        obj.fromToolbar === true ||
-        obj.fromButton === true;
+    return obj.userInitiated === true || obj.fromToolbar === true || obj.fromButton === true;
 }
 
 // 暴露到全局作用域
@@ -74,17 +73,19 @@ function getActiveCanvasElements() {
     const store = window.useCanvasStore && window.useCanvasStore();
     if (store && store.activeViewId) {
         return {
-            colorCanvas: document.getElementById(`colorLayer-${store.activeViewId}`),
-            shadowCanvas: document.getElementById(`shadowLayer-${store.activeViewId}`),
-            mainCanvas: document.getElementById(`mainCanvas-${store.activeViewId}`)
+            colorCanvas: document.getElementById(`colorLayer-${
+                store.activeViewId
+            }`),
+            shadowCanvas: document.getElementById(`shadowLayer-${
+                store.activeViewId
+            }`),
+            mainCanvas: document.getElementById(`mainCanvas-${
+                store.activeViewId
+            }`)
         };
     }
     // 回退到原始 ID（兼容性）
-    return {
-        colorCanvas: document.getElementById('colorLayer'),
-        shadowCanvas: document.getElementById('shadowLayer'),
-        mainCanvas: document.getElementById('mainCanvas')
-    };
+    return {colorCanvas: document.getElementById('colorLayer'), shadowCanvas: document.getElementById('shadowLayer'), mainCanvas: document.getElementById('mainCanvas')};
 }
 
 // 动态获取上下文
@@ -100,12 +101,15 @@ function getActiveCanvasContexts() {
 let history = [];
 let historyPointer = -1;
 const MAX_HISTORY_STEPS = 50; // 限制历史记录步数
-let isRestoring = false; // 标志以防止恢复状态时触发保存
+let isRestoring = false;
+// 标志以防止恢复状态时触发保存
 
 // 保存画布当前状态到历史记录
 function saveState() {
     const activeCanvas = getActiveCanvas();
-    if (!activeCanvas) return;
+    if (! activeCanvas) 
+        return;
+    
 
     // 如果在历史记录中间进行了新操作，则清除未来的历史记录
     if (historyPointer < history.length - 1) {
@@ -128,15 +132,16 @@ function saveState() {
 // 从历史记录中加载指定状态并绘制到画布
 function restoreState(index) {
     const activeCanvas = getActiveCanvas();
-    if (!activeCanvas || index < 0 || index >= history.length) return;
+    if (! activeCanvas || index < 0 || index >= history.length) 
+        return;
+    
 
     isRestoring = true;
     activeCanvas.clear(); // 清空画布
     const img = new Image();
     img.src = history[index];
     img.onload = () => {
-        fabric.Image.fromURL(img.src, function (oImg) {
-            // 调整图像尺寸以适应画布
+        fabric.Image.fromURL(img.src, function (oImg) { // 调整图像尺寸以适应画布
             oImg.scaleToWidth(activeCanvas.width);
             oImg.scaleToHeight(activeCanvas.height);
             activeCanvas.add(oImg);
@@ -145,7 +150,7 @@ function restoreState(index) {
             updateHistoryButtons();
 
             isRestoring = false;
-        }, { crossOrigin: 'anonymous' });
+        }, {crossOrigin: 'anonymous'});
     };
 }
 
@@ -153,8 +158,12 @@ function restoreState(index) {
 function updateHistoryButtons() {
     const forwardBtn = document.getElementById('forward');
     const backwardBtn = document.getElementById('backward');
-    if (forwardBtn) forwardBtn.disabled = historyPointer >= history.length - 1;
-    if (backwardBtn) backwardBtn.disabled = historyPointer <= 0;
+    if (forwardBtn) 
+        forwardBtn.disabled = historyPointer >= history.length - 1;
+    
+    if (backwardBtn) 
+        backwardBtn.disabled = historyPointer <= 0;
+    
 
 }
 
@@ -171,17 +180,17 @@ function initializeCanvas() {
 let canvas = null;
 
 // 获取当前激活的 canvas 实例
-function getActiveCanvas() {
-    // 优先使用 CanvasManager
+function getActiveCanvas() { // 优先使用 CanvasManager
     if (window.CanvasManager) {
         return window.CanvasManager.getActiveCanvas();
     }
 
     // 回退到传统方式
     const store = window.useCanvasStore && window.useCanvasStore();
-    if (store && store.activeViewId) {
-        // 从 DOM 获取 Canvas 实例
-        const canvasElement = document.getElementById(`mainCanvas-${store.activeViewId}`);
+    if (store && store.activeViewId) { // 从 DOM 获取 Canvas 实例
+        const canvasElement = document.getElementById(`mainCanvas-${
+            store.activeViewId
+        }`);
         if (canvasElement && canvasElement.__fabricCanvas) {
             return canvasElement.__fabricCanvas;
         }
@@ -198,7 +207,9 @@ function setGlobalCanvas(fabricCanvas) {
 
 // 为 canvas 添加所有必要的事件监听器
 function initializeCanvasEventListeners(fabricCanvas, options = {}) {
-    if (!fabricCanvas) return;
+    if (!fabricCanvas) 
+        return;
+    
 
     // 立即添加基础事件监听器
     addCanvasEventListeners(fabricCanvas);
@@ -207,8 +218,7 @@ function initializeCanvasEventListeners(fabricCanvas, options = {}) {
 
     // ===== 核心修复：延迟添加图层监听器 =====
     // 检查是否需要延迟激活图层监听器
-    if (options.delayLayerListeners !== false) {
-        // 如果正在初始化，延迟添加图层监听器
+    if (options.delayLayerListeners !== false) { // 如果正在初始化，延迟添加图层监听器
         if (CanvasInitializationState.isInitializing) {
             console.log('[CanvasInit] 初始化中，延迟激活图层监听器');
 
@@ -219,13 +229,11 @@ function initializeCanvasEventListeners(fabricCanvas, options = {}) {
                 document.removeEventListener('canvasInitializationComplete', completeHandler);
             };
             document.addEventListener('canvasInitializationComplete', completeHandler);
-        } else {
-            // 立即添加图层监听器
+        } else { // 立即添加图层监听器
             console.log('[CanvasInit] 非初始化状态，立即激活图层监听器');
             addCanvasLayerListeners(fabricCanvas);
         }
-    } else {
-        // 强制立即添加图层监听器（用于特殊情况）
+    } else { // 强制立即添加图层监听器（用于特殊情况）
         console.log('[CanvasInit] 强制激活图层监听器');
         addCanvasLayerListeners(fabricCanvas);
     }
@@ -240,21 +248,72 @@ window.setGlobalCanvas = setGlobalCanvas;
 
 // 为当前激活的 canvas 添加事件监听器
 function addCanvasEventListeners(fabricCanvas) {
-    if (!fabricCanvas) return;
+    if (! fabricCanvas) 
+        return;
+    
+
+    // 用于标记需要在松开鼠标时显示提示的对象
+    let needsAlertOnRelease = false;
+    let alertTargetObject = null;
 
     // 监听画布对象修改事件，保存状态
-    fabricCanvas.on('object:modified', () => {
+    fabricCanvas.on('object:modified', (e) => {
         updatePreviewCanvas();
-        if (!isRestoring) saveState();
+        if (! isRestoring) 
+            saveState();
+        
+
+        // 如果标记了需要显示提示，在松开鼠标时显示
+        if (needsAlertOnRelease && alertTargetObject) { // 先取消该元素选中状态
+            fabricCanvas.discardActiveObject();
+            fabricCanvas.renderAll();
+
+            // 显示提示
+            showPrintMethodBindingAlert();
+
+            // 重置标记
+            needsAlertOnRelease = false;
+            alertTargetObject = null;
+        }
     });
     fabricCanvas.on('object:added', () => {
         updatePreviewCanvas();
-        if (!isRestoring) saveState();
+        if (! isRestoring) 
+            saveState();
+        
     });
     fabricCanvas.on('object:removed', () => {
         updatePreviewCanvas();
-        if (!isRestoring) saveState();
+        if (! isRestoring) 
+            saveState();
+        
     });
+
+    // 监听元素移动事件
+    fabricCanvas.on('object:moving', (e) => {
+        const obj = e.target;
+        if (obj && ! isElementInLayerGroup(obj)) { // 标记需要在松开鼠标时显示提示
+            needsAlertOnRelease = true;
+            alertTargetObject = obj;
+        } else { // 如果元素在图层组中，清除标记
+            needsAlertOnRelease = false;
+            alertTargetObject = null;
+        }
+    });
+}
+
+// 检查元素是否在图层组中
+function isElementInLayerGroup(obj) {
+    // 检查对象是否有图层组信息
+    // 这里可以根据实际的图层组实现来调整检查逻辑
+    return obj && obj.group !== null && obj.group !== undefined;
+}
+
+// 显示绑定印刷方式提示
+function showPrintMethodBindingAlert() {
+
+    alert('请先为此元素绑定印刷方式后再使用此工具。\n\n您可以在图层面板中点击"Switch Printing Method"按钮来绑定印刷方式。');
+
 }
 
 const arcSlider = document.getElementById('arcSlider');
@@ -268,15 +327,16 @@ if (arcSlider) {
 // 更新预览画布的函数
 function updatePreviewCanvas() {
     const activeCanvas = getActiveCanvas();
-    if (!activeCanvas) return;
+    if (! activeCanvas) 
+        return;
+    
 
     const designPreviewCanvas = document.getElementById('designPreviewCanvas');
-    if (!designPreviewCanvas) return;
+    if (! designPreviewCanvas) 
+        return;
+    
 
-    const mainCanvas = activeCanvas.toDataURL({
-        format: 'png',
-        quality: 1
-    });
+    const mainCanvas = activeCanvas.toDataURL({format: 'png', quality: 1});
 
     const img = new Image();
     img.onload = function () {
@@ -285,24 +345,15 @@ function updatePreviewCanvas() {
 
         // 计算中间50%的区域
         const sourceX = img.width * 0.25; // 从25%处开始
-        const sourceWidth = img.width * 0.5; // 截取50%的宽度
+        const sourceWidth = img.width * 0.5;
+        // 截取50%的宽度
 
         // 从 id="arcSlider" input 获取弧度参数
         const arcSlider = document.getElementById('arcSlider');
         const arc = arcSlider.value;
 
         // 使用弯曲函数替代普通的drawImage，传入裁剪参数
-        drawImageCurvedAndCentered(
-            ctx,
-            img,
-            0,
-            0,
-            designPreviewCanvas.width,
-            designPreviewCanvas.height,
-            arc,
-            sourceX,
-            sourceWidth
-        );
+        drawImageCurvedAndCentered(ctx, img, 0, 0, designPreviewCanvas.width, designPreviewCanvas.height, arc, sourceX, sourceWidth);
     };
     img.src = mainCanvas;
 }
@@ -317,26 +368,16 @@ function drawImageCurvedAndCentered(ctx, image, x, y, width, height, arc, source
         const sWidth = sourceWidth / steps;
         const dy = Math.sin((i / steps) * Math.PI) * (arc / 10);
 
-        ctx.drawImage(
-            image,
-            sx,
-            0,
-            sWidth,
-            image.height,
-            x + i * step,
-            y + dy,
-            step + 1,
-            height
-        );
+        ctx.drawImage(image, sx, 0, sWidth, image.height, x + i * step, y + dy, step + 1, height);
     }
 }
 
 
-
-
 // 为当前激活的 canvas 添加选择事件监听器
 function addCanvasSelectionListeners(fabricCanvas) {
-    if (!fabricCanvas) return;
+    if (! fabricCanvas) 
+        return;
+    
 
     // 监听对象选择事件
     fabricCanvas.on('selection:created', function (options) {
@@ -359,8 +400,7 @@ const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStor
 const isMultiViewMode = canvasStore && canvasStore.views && canvasStore.views.length > 0;
 const hasMultiViewContainer = document.querySelector('.multi-view-container') !== null;
 
-if (!isMultiViewMode && !hasMultiViewContainer) {
-    // 单视图模式：执行传统初始化
+if (! isMultiViewMode && ! hasMultiViewContainer) { // 单视图模式：执行传统初始化
     if (typeof window.initCanvasSystem === 'function') {
         window.initCanvasSystem();
     } else if (typeof init === 'function') {
@@ -374,8 +414,7 @@ if (!isMultiViewMode && !hasMultiViewContainer) {
     if (canvas) {
         initializeCanvas();
     }
-} else {
-    // 多视图模式：初始化将由多视图系统处理
+} else { // 多视图模式：初始化将由多视图系统处理
     console.log('多视图模式已激活，跳过传统初始化');
 }
 
@@ -386,9 +425,7 @@ if (forwardBtn) {
         if (historyPointer < history.length - 1) {
             restoreState(historyPointer + 1);
 
-        } else {
-
-        }
+        } else {}
     });
 }
 
@@ -407,15 +444,13 @@ if (backwardBtn) {
 
 
 // 添加渲染预览按钮的点击事件
-document.getElementById('renderBtn').addEventListener('click', async function () {
-    // 检查是否有多视图系统
+document.getElementById('renderBtn').addEventListener('click', async function () { // 检查是否有多视图系统
     if (typeof window.useCanvasStore === 'function') {
         try {
             const store = window.useCanvasStore();
             const views = store.views || [];
 
-            if (views.length > 0) {
-                // 使用统一的多视图预览函数
+            if (views.length > 0) { // 使用统一的多视图预览函数
                 await showUniversalViewPreview(views);
                 return;
             }
@@ -428,7 +463,7 @@ document.getElementById('renderBtn').addEventListener('click', async function ()
     // 检查是否存在预览容器
     const previewContainer = document.querySelector('.preview-canvas-container');
     // 根据是否存在预览容器选择不同的捕获函数
-    const imageData = await (previewContainer ? capturePreviewCanvas() : captureCanvas());
+    const imageData = await(previewContainer ? capturePreviewCanvas() : captureCanvas());
     // 创建一个新窗口并写入HTML内容
     const previewWindow = window.open('', '_blank');
     previewWindow.document.write(`
@@ -459,8 +494,7 @@ document.getElementById('renderBtn').addEventListener('click', async function ()
     previewWindow.document.close();
 });
 // 修改文本工具栏事件监听器，添加实时更新
-document.addEventListener('DOMContentLoaded', function () {
-    // 监听动态工具栏中的文本属性变化
+document.addEventListener('DOMContentLoaded', function () { // 监听动态工具栏中的文本属性变化
     document.body.addEventListener('change', function (e) {
         if (e.target.id === 'fontFamily' || e.target.id === 'fontSize') {
             setTimeout(() => updateModelFromCanvas(), 100);
@@ -474,10 +508,8 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // 有 id=model3dContainer 才初始化
-if (document.getElementById('model3dContainer')) {
-    // 页面加载完成后初始化3D模型
-    document.addEventListener('DOMContentLoaded', function () {
-        // 加载Font Awesome图标
+if (document.getElementById('model3dContainer')) { // 页面加载完成后初始化3D模型
+    document.addEventListener('DOMContentLoaded', function () { // 加载Font Awesome图标
         const fontAwesome = document.createElement('link');
         fontAwesome.rel = 'stylesheet';
         fontAwesome.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
@@ -492,8 +524,6 @@ if (document.getElementById('model3dContainer')) {
         init3DModel();
 
 
-
-
         // 添加一个短暂延迟后强制触发窗口大小调整事件，以确保3D渲染器正确初始化
         setTimeout(function () {
             window.dispatchEvent(new Event('resize'));
@@ -502,10 +532,11 @@ if (document.getElementById('model3dContainer')) {
 }
 
 
-
 // 为当前激活的 canvas 添加3D模型更新事件监听器
 function addCanvas3DModelListeners(fabricCanvas) {
-    if (!fabricCanvas) return;
+    if (! fabricCanvas) 
+        return;
+    
 
     // 添加Canvas事件监听，以便在修改时更新3D模型纹理
     // 对象修改事件
@@ -521,7 +552,7 @@ function addCanvas3DModelListeners(fabricCanvas) {
         updateModelFromCanvas();
     });
     // 对象移动事件
-    fabricCanvas.on('object:moving', function () {       
+    fabricCanvas.on('object:moving', function () {
         updateModelFromCanvas();
     });
     // 对象缩放事件
@@ -536,15 +567,21 @@ function addCanvas3DModelListeners(fabricCanvas) {
 
 // 为当前激活的 canvas 添加图层管理事件监听器
 function addCanvasLayerListeners(fabricCanvas) {
-    if (!fabricCanvas) return;
+    if (! fabricCanvas) 
+        return;
+    
 
     // 监听对象添加事件 - 同步到图层管理系统
     fabricCanvas.on('object:added', function (e) {
         const obj = e.target;
 
         // 确保对象有 ID
-        if (!obj.id) {
-            obj.id = `layer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        if (! obj.id) {
+            obj.id = `layer_${
+                Date.now()
+            }_${
+                Math.random().toString(36).substr(2, 9)
+            }`;
             console.log('Assigned ID to object:', obj.id);
         }
 
@@ -561,33 +598,31 @@ function addCanvasLayerListeners(fabricCanvas) {
     });
 
     // 监听选择事件，更新图层面板中的选中状态
-    fabricCanvas.on('selection:created', function (e) {
-        // 同步选中状态到 Pinia store
+    fabricCanvas.on('selection:created', function (e) { // 同步选中状态到 Pinia store
         if (e.selected && e.selected.length > 0 && e.selected[0].id) {
             syncSelectionToStore(e.selected[0].id);
         }
     });
 
-    fabricCanvas.on('selection:updated', function (e) {
-        // 同步选中状态到 Pinia store
+    fabricCanvas.on('selection:updated', function (e) { // 同步选中状态到 Pinia store
         if (e.selected && e.selected.length > 0 && e.selected[0].id) {
             syncSelectionToStore(e.selected[0].id);
         }
     });
 
-    fabricCanvas.on('selection:cleared', function () {
-        // 清除 Pinia store 中的选中状态
+    fabricCanvas.on('selection:cleared', function () { // 清除 Pinia store 中的选中状态
         syncSelectionToStore(null);
     });
 
     // 监听对象修改事件（用于更新缩略图）
     fabricCanvas.on('object:modified', function (e) {
         const obj = e.target;
-        if (obj && obj.id) {
-            // 触发缩略图刷新
+        if (obj && obj.id) { // 触发缩略图刷新
             setTimeout(() => {
                 const refreshEvent = new CustomEvent('layerThumbnailRefresh', {
-                    detail: { layerId: obj.id }
+                    detail: {
+                        layerId: obj.id
+                    }
                 });
                 document.dispatchEvent(refreshEvent);
             }, 100);
@@ -605,7 +640,7 @@ function syncCanvasObjectToStore(obj, action) {
     }
 
     // 检查对象是否来自用户操作
-    if (!isUserInitiatedAction(obj)) {
+    if (! isUserInitiatedAction(obj)) {
         console.log('[LayerSync] 跳过非用户操作的对象:', obj.id || 'unknown');
         return;
     }
@@ -615,18 +650,19 @@ function syncCanvasObjectToStore(obj, action) {
             const store = window.useCanvasStore();
             const currentViewId = store.activeViewId;
 
-            if (!currentViewId) {
+            if (! currentViewId) {
                 console.warn('No active view, cannot sync layer');
                 return;
             }
 
-            console.log(`[LayerSync] 同步用户操作的图层: ${obj.id}, 动作: ${action}, 视图: ${currentViewId}`);
+            console.log(`[LayerSync] 同步用户操作的图层: ${
+                obj.id
+            }, 动作: ${action}, 视图: ${currentViewId}`);
 
-            if (action === 'added' && obj.id) {
-                // 检查当前视图的图层是否已存在（避免重复添加）
+            if (action === 'added' && obj.id) { // 检查当前视图的图层是否已存在（避免重复添加）
                 const currentViewLayers = store.getViewLayers(currentViewId);
                 const existingLayer = currentViewLayers.find(layer => layer.id === obj.id);
-                if (!existingLayer) {
+                if (! existingLayer) {
                     const layerName = getLayerName(obj);
                     const layerType = getLayerType(obj);
 
@@ -635,7 +671,7 @@ function syncCanvasObjectToStore(obj, action) {
                         name: layerName,
                         type: layerType,
                         visible: obj.visible !== false,
-                        locked: !obj.selectable,
+                        locked: ! obj.selectable,
                         groupId: obj.groupId || null,
                         groupOrder: obj.groupOrder || 0
                     };
@@ -646,8 +682,7 @@ function syncCanvasObjectToStore(obj, action) {
                 } else {
                     console.log('[LayerSync] 图层已存在，跳过添加:', obj.id);
                 }
-            } else if (action === 'removed' && obj.id) {
-                // 从当前视图中移除图层
+            } else if (action === 'removed' && obj.id) { // 从当前视图中移除图层
                 store.removeLayerFromView(currentViewId, obj.id);
 
                 // 如果删除的是当前选中的图层，清除选中状态
@@ -671,7 +706,7 @@ function syncSelectionToStore(objectId) {
 
             // ===== 核心修复：同步选中状态到.dongtai-area按钮组显示 =====
             updateDongtaiAreaButtons(objectId);
-            
+
             // 控制蒙版画布的显示/隐藏
             controlMaskCanvasFromMain(objectId);
 
@@ -684,10 +719,12 @@ function syncSelectionToStore(objectId) {
 // 新增：更新.dongtai-area按钮组显示
 function updateDongtaiAreaButtons(objectId) {
     const dongtaiArea = document.querySelector('.dongtai-area');
-    if (!dongtaiArea) return;
+    if (! dongtaiArea) 
+        return;
+    
 
     const canvas = getActiveCanvas();
-    if (!canvas || !objectId) {
+    if (! canvas || ! objectId) {
         dongtaiArea.style.display = 'none';
         return;
     }
@@ -707,14 +744,20 @@ function updateDongtaiAreaButtons(objectId) {
 
 // 新增：根据对象类型显示相关按钮组
 function showRelevantButtonGroup(selectedObject) {
-    if (!selectedObject) return;
+    if (! selectedObject) 
+        return;
+    
 
     // 隐藏所有工具栏
     const textToolbar = document.querySelector('.text_toolbar');
     const imgToolbar = document.querySelector('.img_toolbar');
 
-    if (textToolbar) textToolbar.style.display = 'none';
-    if (imgToolbar) imgToolbar.style.display = 'none';
+    if (textToolbar) 
+        textToolbar.style.display = 'none';
+    
+    if (imgToolbar) 
+        imgToolbar.style.display = 'none';
+    
 
     // 根据对象类型显示对应工具栏
     if (selectedObject.type === 'text' || selectedObject.type === 'i-text') {
@@ -742,12 +785,16 @@ window.showRelevantButtonGroup = showRelevantButtonGroup;
 // 从主画布控制蒙版画布的显示/隐藏
 function controlMaskCanvasFromMain(objectId) {
     const store = window.useCanvasStore();
-    if (!store || !store.activeViewId) return;
+    if (! store || ! store.activeViewId) 
+        return;
     
+
     const currentViewId = store.activeViewId;
     const maskWrapper = document.getElementById(`maskWrapper-${currentViewId}`);
-    if (!maskWrapper) return;
+    if (! maskWrapper) 
+        return;
     
+
     // 检查选中的对象是否属于分组
     let isGrouped = false;
     if (objectId) {
@@ -755,18 +802,19 @@ function controlMaskCanvasFromMain(objectId) {
         const layer = currentViewLayers.find(l => l.id === objectId);
         isGrouped = layer && layer.groupId;
     }
-    
+
     // 显示或隐藏蒙版画布
     maskWrapper.style.display = isGrouped ? 'block' : 'none';
-    console.log(`[MaskCanvas] ${isGrouped ? '显示' : '隐藏'}蒙版画布, 对象ID: ${objectId}, 分组状态: ${isGrouped}`);
+    console.log(`[MaskCanvas] ${
+        isGrouped ? '显示' : '隐藏'
+    }蒙版画布, 对象ID: ${objectId}, 分组状态: ${isGrouped}`);
 }
 
 // 暴露蒙版画布控制函数到全局作用域
 window.controlMaskCanvasFromMain = controlMaskCanvasFromMain;
 
 // 获取图层名称的辅助函数
-function getLayerName(obj) {
-    // 优先使用对象上设置的 layerName 属性（用于复制等场景）
+function getLayerName(obj) { // 优先使用对象上设置的 layerName 属性（用于复制等场景）
     if (obj.layerName) {
         return obj.layerName;
     }
@@ -782,8 +830,7 @@ function getLayerName(obj) {
 }
 
 // 获取图层类型的辅助函数
-function getLayerType(obj) {
-    // 优先使用对象上设置的 layerType 属性（用于复制等场景）
+function getLayerType(obj) { // 优先使用对象上设置的 layerType 属性（用于复制等场景）
     if (obj.layerType) {
         return obj.layerType;
     }
@@ -800,7 +847,7 @@ function getLayerType(obj) {
 // 导出所有视图的画板图片
 async function exportAllViewsAsImages() {
     const store = window.useCanvasStore();
-    if (!store || !store.views || store.views.length === 0) {
+    if (! store || ! store.views || store.views.length === 0) {
         console.error('No view data found');
         return;
     }
@@ -810,15 +857,18 @@ async function exportAllViewsAsImages() {
 
     try {
         for (const view of store.views) {
-            console.log(`Exporting view: ${view.name}`);
+            console.log(`Exporting view: ${
+                view.name
+            }`);
 
             // 切换到当前视图
             store.setActiveViewId(view.id);
 
             // 手动触发视图切换逻辑
-            const viewContainer = document.getElementById(`view-container-${view.id}`);
-            if (viewContainer) {
-                // 隐藏所有视图容器
+            const viewContainer = document.getElementById(`view-container-${
+                view.id
+            }`);
+            if (viewContainer) { // 隐藏所有视图容器
                 document.querySelectorAll('.view-container').forEach(container => {
                     container.style.display = 'none';
                 });
@@ -829,8 +879,7 @@ async function exportAllViewsAsImages() {
             // 使用 CanvasManager 获取当前视图的画布
             if (window.CanvasManager) {
                 const canvas = window.CanvasManager.getCanvas(view.id);
-                if (canvas) {
-                    // 取消所有视图上所有元素的选中状态
+                if (canvas) { // 取消所有视图上所有元素的选中状态
                     const allCanvasIds = window.CanvasManager.getAllCanvasIds();
                     allCanvasIds.forEach(canvasId => {
                         const viewCanvas = window.CanvasManager.getCanvas(canvasId);
@@ -859,13 +908,14 @@ async function exportAllViewsAsImages() {
             // 捕获当前视图的画板内容
             const imageDataUrl = await captureCanvas();
             if (imageDataUrl) {
-                exportedImages.push({
-                    viewName: view.name,
-                    imageData: imageDataUrl
-                });
-                console.log(`View ${view.name} exported successfully`);
+                exportedImages.push({viewName: view.name, imageData: imageDataUrl});
+                console.log(`View ${
+                    view.name
+                } exported successfully`);
             } else {
-                console.warn(`View ${view.name} export failed`);
+                console.warn(`View ${
+                    view.name
+                } export failed`);
             }
         }
 
@@ -892,10 +942,22 @@ async function exportAllViewsAsImages() {
             exportedImages.forEach((item, index) => {
                 htmlContent += `
                     <div class="view-section">
-                        <div class="view-title">${item.viewName}</div>
-                        <img src="${item.imageData}" alt="${item.viewName}" />
+                        <div class="view-title">${
+                    item.viewName
+                }</div>
+                        <img src="${
+                    item.imageData
+                }" alt="${
+                    item.viewName
+                }" />
                         <br>
-                        <a href="${item.imageData}" download="${item.viewName}.png" class="download-link">下载 ${item.viewName}</a>
+                        <a href="${
+                    item.imageData
+                }" download="${
+                    item.viewName
+                }.png" class="download-link">下载 ${
+                    item.viewName
+                }</a>
                     </div>
                 `;
             });
@@ -908,22 +970,22 @@ async function exportAllViewsAsImages() {
             newWindow.document.write(htmlContent);
             newWindow.document.close();
 
-            console.log(`Successfully exported ${exportedImages.length} views`);
+            console.log(`Successfully exported ${
+                exportedImages.length
+            } views`);
         } else {
             console.warn('No views were successfully exported');
         }
     } catch (error) {
         console.error('Error occurred while exporting all views:', error);
-    } finally {
-        // 恢复到原始激活视图
+    } finally { // 恢复到原始激活视图
         if (originalActiveViewId) {
             console.log(`Restored to original view: ${originalActiveViewId}`);
             store.setActiveViewId(originalActiveViewId);
 
             // 手动触发视图切换逻辑以恢复显示
             const originalViewContainer = document.getElementById(`view-container-${originalActiveViewId}`);
-            if (originalViewContainer) {
-                // 隐藏所有视图容器
+            if (originalViewContainer) { // 隐藏所有视图容器
                 document.querySelectorAll('.view-container').forEach(container => {
                     container.style.display = 'none';
                 });
@@ -942,8 +1004,7 @@ async function exportAllViewsAsImages() {
                     } else {
                         window.canvas = originalCanvas;
                         window.fabricCanvas = originalCanvas;
-                    }
-                    originalCanvas.renderAll();
+                    } originalCanvas.renderAll();
                 }
             }
         }
@@ -958,15 +1019,15 @@ function calculateArcTextProperties(textObject, arcValue) {
     const fontSize = textObject.fontSize;
 
     const charProperties = [];
-    let currentX = 0; // 相对于文本对象左边缘的当前X位置
+    let currentX = 0;
+    // 相对于文本对象左边缘的当前X位置
 
     // 假设每个字符的宽度是大致相等的，这里可以做更精确的测量
     // Fabric.js 的 Text 对象在渲染时会处理字符间距和宽度
     // 这里我们近似计算每个字符的平均宽度
     const avgCharWidth = totalWidth / chars.length;
 
-    chars.forEach((char, index) => {
-        // 字符的中心X位置相对于文本对象的中心
+    chars.forEach((char, index) => { // 字符的中心X位置相对于文本对象的中心
         const charRelativeCenterX = currentX + avgCharWidth / 2 - totalWidth / 2;
 
         // 归一化字符的X位置到 -0.5 到 0.5 之间
@@ -975,7 +1036,8 @@ function calculateArcTextProperties(textObject, arcValue) {
         // 使用正弦函数计算垂直偏移 (dy)
         // arcValue 控制弯曲程度，除以一个系数来调整幅度
         // 增加幅度，例如乘以一个更大的系数
-        const dy = Math.sin((normalizedX + 0.5) * Math.PI) * (arcValue * 0.5); // 调整幅度
+        const dy = Math.sin((normalizedX + 0.5) * Math.PI) * (arcValue * 0.5);
+        // 调整幅度
 
         // 计算旋转角度 (angle)
         // 角度与正弦曲线的斜率相关，即余弦函数
@@ -998,7 +1060,7 @@ function calculateArcTextProperties(textObject, arcValue) {
 
 // 应用弧形文字扭曲到 Fabric.js 文本对象
 function applyArcDistortionToTextObject(textObject, arcValue) {
-    if (!textObject || (textObject.type !== 'text' && !(textObject.type === 'group' && textObject._isArcDistorted))) {
+    if (! textObject || (textObject.type !== 'text' && !(textObject.type === 'group' && textObject._isArcDistorted))) {
         return;
     }
 
@@ -1024,17 +1086,19 @@ function applyArcDistortionToTextObject(textObject, arcValue) {
 
     const chars = originalText.split('');
     const charObjects = [];
-    let currentXOffset = 0; // 累积的字符宽度偏移
+    let currentXOffset = 0;
+    // 累积的字符宽度偏移
 
     // 使用一个临时的 Fabric.Text 对象来精确测量每个字符的宽度
     const tempMeasurer = new fabric.Text('', {
         fontFamily: originalOptions.fontFamily,
-        fontSize: originalOptions.fontSize,
+        fontSize: originalOptions.fontSize
     });
 
     chars.forEach((char, index) => {
         tempMeasurer.set('text', char);
-        const charWidth = tempMeasurer.width * originalOptions.scaleX; // 考虑原始缩放
+        const charWidth = tempMeasurer.width * originalOptions.scaleX;
+        // 考虑原始缩放
 
         // 调用之前定义的函数计算弧形属性
         // 确保传入 calculateArcTextProperties 的 textObject 包含正确的 width
@@ -1085,8 +1149,7 @@ function applyArcDistortionToTextObject(textObject, arcValue) {
  * 统一的多视图预览函数，根据每个视图的 view_flow 属性决定渲染方式
  * @param {Array} views - 视图数组
  */
-async function showUniversalViewPreview(views) {
-    // 检查是否已存在预览界面，如果存在则先移除
+async function showUniversalViewPreview(views) { // 检查是否已存在预览界面，如果存在则先移除
     const existingModal = document.getElementById('universal-view-preview-modal');
     if (existingModal) {
         existingModal.remove();
@@ -1338,7 +1401,7 @@ async function showUniversalViewPreview(views) {
     // 等待DOM插入完成
     setTimeout(() => {
         const modal = document.getElementById('universal-view-preview-modal');
-        if (!modal) {
+        if (! modal) {
             console.error('Universal modal element not found');
             return;
         }
@@ -1346,14 +1409,8 @@ async function showUniversalViewPreview(views) {
         // 确保MicroModal已加载并初始化
         if (typeof MicroModal !== 'undefined') {
             try {
-                MicroModal.init({
-                    disableScroll: true,
-                    disableFocus: false,
-                    awaitCloseAnimation: false,
-                    debugMode: false
-                });
-            } catch (e) {
-                // 可能已经初始化过了，忽略错误
+                MicroModal.init({disableScroll: true, disableFocus: false, awaitCloseAnimation: false, debugMode: false});
+            } catch (e) { // 可能已经初始化过了，忽略错误
             }
 
             try {
@@ -1382,51 +1439,81 @@ async function showUniversalViewPreview(views) {
     viewImages.forEach((imageData, index) => {
         const view = views[index];
         const isGridView = view.view_flow === '4-Grid Flow';
-        
-        if (isGridView && Array.isArray(imageData)) {
-            // 4格图视图：为每张图片创建独立的缩略图
+
+        if (isGridView && Array.isArray(imageData)) { // 4格图视图：为每张图片创建独立的缩略图
             const gridLabels = ['前视图', '左视图', '右视图', '后视图'];
             imageData.forEach((gridImageData, gridIndex) => {
                 const thumbnailItem = document.createElement('div');
-                thumbnailItem.className = `thumbnail-item ${thumbnailList.children.length === 0 ? 'active' : ''}`;
+                thumbnailItem.className = `thumbnail-item ${
+                    thumbnailList.children.length === 0 ? 'active' : ''
+                }`;
                 thumbnailItem.innerHTML = `
-                    <img src="${gridImageData}" alt="${view.name || `视图 ${index + 1}`} - ${gridLabels[gridIndex]}" />
-                    <div class="thumbnail-label">${view.name || `视图 ${index + 1}`} - ${gridLabels[gridIndex]}</div>
+                    <img src="${gridImageData}" alt="${
+                    view.name || `视图 ${
+                        index + 1
+                    }`
+                } - ${
+                    gridLabels[gridIndex]
+                }" />
+                    <div class="thumbnail-label">${
+                    view.name || `视图 ${
+                        index + 1
+                    }`
+                } - ${
+                    gridLabels[gridIndex]
+                }</div>
                 `;
 
                 // 点击缩略图更新大图
-                thumbnailItem.addEventListener('click', () => {
-                    // 移除其他缩略图的active状态
+                thumbnailItem.addEventListener('click', () => { // 移除其他缩略图的active状态
                     thumbnailList.querySelectorAll('.thumbnail-item').forEach(item => {
                         item.classList.remove('active');
                     });
                     // 添加当前缩略图的active状态
                     thumbnailItem.classList.add('active');
                     // 显示单张大图
-                    mainPreview.innerHTML = `<img src="${gridImageData}" alt="${view.name || `视图 ${index + 1}`} - ${gridLabels[gridIndex]}">`;
+                    mainPreview.innerHTML = `<img src="${gridImageData}" alt="${
+                        view.name || `视图 ${
+                            index + 1
+                        }`
+                    } - ${
+                        gridLabels[gridIndex]
+                    }">`;
                 });
 
                 thumbnailList.appendChild(thumbnailItem);
             });
-        } else {
-            // 普通视图：创建单个缩略图
+        } else { // 普通视图：创建单个缩略图
             const thumbnailItem = document.createElement('div');
-            thumbnailItem.className = `thumbnail-item ${thumbnailList.children.length === 0 ? 'active' : ''}`;
+            thumbnailItem.className = `thumbnail-item ${
+                thumbnailList.children.length === 0 ? 'active' : ''
+            }`;
             thumbnailItem.innerHTML = `
-                <img src="${imageData}" alt="${view.name || `视图 ${index + 1}`}" />
-                <div class="thumbnail-label">${view.name || `视图 ${index + 1}`}</div>
+                <img src="${imageData}" alt="${
+                view.name || `视图 ${
+                    index + 1
+                }`
+            }" />
+                <div class="thumbnail-label">${
+                view.name || `视图 ${
+                    index + 1
+                }`
+            }</div>
             `;
 
             // 点击缩略图更新大图
-            thumbnailItem.addEventListener('click', () => {
-                // 移除其他缩略图的active状态
+            thumbnailItem.addEventListener('click', () => { // 移除其他缩略图的active状态
                 thumbnailList.querySelectorAll('.thumbnail-item').forEach(item => {
                     item.classList.remove('active');
                 });
                 // 添加当前缩略图的active状态
                 thumbnailItem.classList.add('active');
                 // 显示普通预览
-                mainPreview.innerHTML = `<img src="${imageData}" alt="${view.name || `视图 ${index + 1}`}">`;
+                mainPreview.innerHTML = `<img src="${imageData}" alt="${
+                    view.name || `视图 ${
+                        index + 1
+                    }`
+                }">`;
             });
 
             thumbnailList.appendChild(thumbnailItem);
@@ -1437,13 +1524,17 @@ async function showUniversalViewPreview(views) {
     if (viewImages.length > 0) {
         const firstView = views[0];
         const firstImageData = viewImages[0];
-        
-        if (firstView.view_flow === '4-Grid Flow' && Array.isArray(firstImageData)) {
-            // 显示4格图的第一张（前视图）
-            mainPreview.innerHTML = `<img src="${firstImageData[0]}" alt="${firstView.name || '视图 1'} - 前视图">`;
-        } else {
-            // 显示普通视图
-            mainPreview.innerHTML = `<img src="${firstImageData}" alt="${firstView.name || '视图 1'}">`;
+
+        if (firstView.view_flow === '4-Grid Flow' && Array.isArray(firstImageData)) { // 显示4格图的第一张（前视图）
+            mainPreview.innerHTML = `<img src="${
+                firstImageData[0]
+            }" alt="${
+                firstView.name || '视图 1'
+            } - 前视图">`;
+        } else { // 显示普通视图
+            mainPreview.innerHTML = `<img src="${firstImageData}" alt="${
+                firstView.name || '视图 1'
+            }">`;
         }
     }
 }
@@ -1457,17 +1548,23 @@ async function captureAllViewsImages(views) {
     const images = [];
 
     for (const view of views) {
-        try {
-            // 获取所有Canvas图层元素
-            const baseCanvasElement = document.getElementById(`baseCanvas-${view.id}`);
-            const mainCanvasElement = document.getElementById(`mainCanvas-${view.id}`);
-            const overlayCanvasElement = document.getElementById(`overlayCanvas-${view.id}`);
-            const maskCanvasElement = document.getElementById(`maskCanvas-${view.id}`);
+        try { // 获取所有Canvas图层元素
+            const baseCanvasElement = document.getElementById(`baseCanvas-${
+                view.id
+            }`);
+            const mainCanvasElement = document.getElementById(`mainCanvas-${
+                view.id
+            }`);
+            const overlayCanvasElement = document.getElementById(`overlayCanvas-${
+                view.id
+            }`);
+            const maskCanvasElement = document.getElementById(`maskCanvas-${
+                view.id
+            }`);
 
             if (mainCanvasElement && window.CanvasManager) {
                 const fabricCanvas = window.CanvasManager.getCanvas(view.id);
-                if (fabricCanvas) {
-                    // 强制渲染主Canvas
+                if (fabricCanvas) { // 强制渲染主Canvas
                     fabricCanvas.renderAll();
 
                     // 捕获多层Canvas内容（应用遮罩效果）
@@ -1480,17 +1577,23 @@ async function captureAllViewsImages(views) {
                     }, view);
                     images.push(imageData);
                 } else {
-                    console.warn(`Canvas not found for view: ${view.id}`);
+                    console.warn(`Canvas not found for view: ${
+                        view.id
+                    }`);
                     // 添加占位图
                     images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">无法加载视图</text></svg>'));
                 }
             } else {
-                console.warn(`Canvas element not found: mainCanvas-${view.id}`);
+                console.warn(`Canvas element not found: mainCanvas-${
+                    view.id
+                }`);
                 // 添加占位图
                 images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">视图不存在</text></svg>'));
             }
         } catch (error) {
-            console.error(`Failed to capture view ${view.id}:`, error);
+            console.error(`Failed to capture view ${
+                view.id
+            }:`, error);
             // 添加错误占位图
             images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">截图失败</text></svg>'));
         }
@@ -1512,8 +1615,7 @@ async function captureAllViewsImages(views) {
  * @returns {Promise<string>} - 返回图片的base64数据
  */
 async function captureViewForPDF(viewId) {
-    try {
-        // 获取指定视图的所有Canvas图层
+    try { // 获取指定视图的所有Canvas图层
         const baseCanvas = document.getElementById(`baseCanvas-${viewId}`);
         const mainCanvas = document.getElementById(`mainCanvas-${viewId}`);
         const overlayCanvas = document.getElementById(`overlayCanvas-${viewId}`);
@@ -1529,7 +1631,10 @@ async function captureViewForPDF(viewId) {
         };
 
         // 创建一个临时视图对象
-        const view = { id: viewId, name: `View ${viewId}` };
+        const view = {
+            id: viewId,
+            name: `View ${viewId}`
+        };
 
         // 使用多层Canvas合成逻辑
         return await captureMultiLayerCanvasWithMask(canvasLayers, view);
@@ -1548,11 +1653,18 @@ async function captureViewForPDF(viewId) {
 function captureMultiLayerCanvasWithMask(canvasLayers, view) {
     return new Promise((resolve) => {
         try {
-            const { baseCanvas, mainCanvas, overlayCanvas, maskCanvas, fabricCanvas } = canvasLayers;
+            const {
+                baseCanvas,
+                mainCanvas,
+                overlayCanvas,
+                maskCanvas,
+                fabricCanvas
+            } = canvasLayers;
 
             // 获取打印区域尺寸
             let printAreaWidth = 100; // 默认值
-            let printAreaHeight = 120; // 默认值
+            let printAreaHeight = 120;
+            // 默认值
 
             // 从 Pinia printMethod store 获取打印区域尺寸
             if (window.usePrintMethodStore) {
@@ -1561,8 +1673,7 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
 
                 if (currentMethods && currentMethods.length > 0) {
                     const firstMethod = currentMethods[0];
-                    if (firstMethod.print_method_area_width && firstMethod.print_method_area_height) {
-                        // 将尺寸乘以50转换为像素
+                    if (firstMethod.print_method_area_width && firstMethod.print_method_area_height) { // 将尺寸乘以50转换为像素
                         printAreaWidth = firstMethod.print_method_area_width * 50;
                         printAreaHeight = firstMethod.print_method_area_height * 50;
                     }
@@ -1591,23 +1702,17 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                         return;
                     }
 
-                    if (layerName === 'mainCanvas') {
-                        // 主Canvas使用fabric.js的toDataURL
-                        const dataURL = fabricCanvas.toDataURL({
-                            format: 'png',
-                            quality: 1,
-                            multiplier: 1
-                        });
+                    if (layerName === 'mainCanvas') { // 主Canvas使用fabric.js的toDataURL
+                        const dataURL = fabricCanvas.toDataURL({format: 'png', quality: 1, multiplier: 1});
                         const img = new Image();
-                        img.onload = () => layerResolve({ img, layerName });
+                        img.onload = () => layerResolve({img, layerName});
                         img.onerror = () => layerResolve(null);
                         img.src = dataURL;
-                    } else {
-                        // 其他Canvas直接使用toDataURL
+                    } else { // 其他Canvas直接使用toDataURL
                         try {
                             const dataURL = canvasElement.toDataURL('image/png');
                             const img = new Image();
-                            img.onload = () => layerResolve({ img, layerName });
+                            img.onload = () => layerResolve({img, layerName});
                             img.onerror = () => layerResolve(null);
                             img.src = dataURL;
                         } catch (error) {
@@ -1639,8 +1744,7 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                 }
 
                 // 2. 处理mainCanvas和maskCanvas的遮罩效果 (z-index: 20)
-                if (layers.mainCanvas && layers.maskCanvas) {
-                    // 创建临时画布用于遮罩处理
+                if (layers.mainCanvas && layers.maskCanvas) { // 创建临时画布用于遮罩处理
                     const tempCanvas = document.createElement('canvas');
                     tempCanvas.width = finalCanvas.width;
                     tempCanvas.height = finalCanvas.height;
@@ -1667,8 +1771,7 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                         }
                     }
 
-                    if (hasContent) {
-                        // 检查maskCanvas的像素数据以确定处理方式
+                    if (hasContent) { // 检查maskCanvas的像素数据以确定处理方式
                         const debugMaskCanvas = document.createElement('canvas');
                         debugMaskCanvas.width = layers.maskCanvas.width;
                         debugMaskCanvas.height = layers.maskCanvas.height;
@@ -1690,8 +1793,7 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                         }
 
                         // 处理半透明像素的遮罩
-                        if (opaquePixels > 0 || semiTransparentPixels > 0) {
-                            // 创建二值化遮罩：将半透明像素转换为完全不透明
+                        if (opaquePixels > 0 || semiTransparentPixels > 0) { // 创建二值化遮罩：将半透明像素转换为完全不透明
                             const binaryMaskCanvas = document.createElement('canvas');
                             binaryMaskCanvas.width = layers.maskCanvas.width;
                             binaryMaskCanvas.height = layers.maskCanvas.height;
@@ -1702,8 +1804,7 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
 
                             // 获取像素数据并二值化
                             const binaryImageData = binaryMaskCtx.getImageData(0, 0, binaryMaskCanvas.width, binaryMaskCanvas.height);
-                            for (let i = 3; i < binaryImageData.data.length; i += 4) {
-                                // 将任何非透明像素设为完全不透明
+                            for (let i = 3; i < binaryImageData.data.length; i += 4) { // 将任何非透明像素设为完全不透明
                                 if (binaryImageData.data[i] > 0) {
                                     binaryImageData.data[i] = 255;
                                 }
@@ -1759,13 +1860,13 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
 
 function captureCanvasWithMask(fabricCanvas, view) {
     return new Promise((resolve) => {
-        try {
-            // 强制渲染
+        try { // 强制渲染
             fabricCanvas.renderAll();
 
             // 获取打印区域尺寸
             let printAreaWidth = 100; // 默认值
-            let printAreaHeight = 120; // 默认值
+            let printAreaHeight = 120;
+            // 默认值
 
             // 从 Pinia printMethod store 获取打印区域尺寸
             if (window.usePrintMethodStore) {
@@ -1774,8 +1875,7 @@ function captureCanvasWithMask(fabricCanvas, view) {
 
                 if (currentMethods && currentMethods.length > 0) {
                     const firstMethod = currentMethods[0];
-                    if (firstMethod.print_method_area_width && firstMethod.print_method_area_height) {
-                        // 将尺寸乘以50转换为像素
+                    if (firstMethod.print_method_area_width && firstMethod.print_method_area_height) { // 将尺寸乘以50转换为像素
                         printAreaWidth = firstMethod.print_method_area_width * 50;
                         printAreaHeight = firstMethod.print_method_area_height * 50;
                     }
@@ -1794,14 +1894,9 @@ function captureCanvasWithMask(fabricCanvas, view) {
 
             // 获取fabric.js画布的数据URL
             const fabricImage = new Image();
-            fabricImage.src = fabricCanvas.toDataURL({
-                format: 'png',
-                quality: 1,
-                multiplier: 1
-            });
+            fabricImage.src = fabricCanvas.toDataURL({format: 'png', quality: 1, multiplier: 1});
 
-            fabricImage.onload = function () {
-                // 绘制主画布内容
+            fabricImage.onload = function () { // 绘制主画布内容
                 tempCtx.drawImage(fabricImage, 0, 0);
 
                 // 应用遮罩效果：只保留镂空区域
@@ -1851,8 +1946,7 @@ function captureCanvasWithMask(fabricCanvas, view) {
  */
 function captureCanvasById(fabricCanvas) {
     return new Promise((resolve) => {
-        try {
-            // 强制渲染
+        try { // 强制渲染
             fabricCanvas.renderAll();
 
             // 创建临时画布
@@ -1867,14 +1961,9 @@ function captureCanvasById(fabricCanvas) {
 
             // 获取fabric.js画布的数据URL
             const fabricImage = new Image();
-            fabricImage.src = fabricCanvas.toDataURL({
-                format: 'png',
-                quality: 1,
-                multiplier: 1
-            });
+            fabricImage.src = fabricCanvas.toDataURL({format: 'png', quality: 1, multiplier: 1});
 
-            fabricImage.onload = function () {
-                // 绘制主画布内容
+            fabricImage.onload = function () { // 绘制主画布内容
                 tempCtx.drawImage(fabricImage, 0, 0);
                 resolve(tempCanvas.toDataURL('image/png'));
             };
@@ -1895,8 +1984,7 @@ function captureCanvasById(fabricCanvas) {
  */
 function closeMultiViewPreview() {
     const modal = document.getElementById('multi-view-preview-modal');
-    if (modal) {
-        // 先尝试用MicroModal关闭
+    if (modal) { // 先尝试用MicroModal关闭
         if (typeof MicroModal !== 'undefined') {
             try {
                 MicroModal.close('multi-view-preview-modal');
@@ -1932,17 +2020,17 @@ async function generateUniversalViewImages(views) {
 
     for (const view of views) {
         try {
-            if (view.view_flow === '4-Grid Flow') {
-                // 生成4格图预览
+            if (view.view_flow === '4-Grid Flow') { // 生成4格图预览
                 const gridImages = await generate4GridImagesForView(view);
                 images.push(gridImages);
-            } else {
-                // 普通视图预览
+            } else { // 普通视图预览
                 const imageData = await captureViewImage(view);
                 images.push(imageData);
             }
         } catch (error) {
-            console.error(`Failed to generate image for view ${view.id}:`, error);
+            console.error(`Failed to generate image for view ${
+                view.id
+            }:`, error);
             // 添加错误占位图
             images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">截图失败</text></svg>'));
         }
@@ -1957,7 +2045,7 @@ async function generateUniversalViewImages(views) {
  * @returns {Promise<Array>} 4张图片的数据数组
  */
 async function generate4GridImagesForView(view) {
-    if (!view || !view.layers) {
+    if (! view || ! view.layers) {
         console.error('View or layers not found for 4-grid generation');
         return [
             'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">前视图</text></svg>'),
@@ -1989,13 +2077,13 @@ async function generate4GridImagesForView(view) {
     if (window.CanvasManager && view.id) {
         activeCanvas = window.CanvasManager.getCanvas(view.id);
     }
-    
+
     // 如果无法获取特定视图的画布，回退到原来的getActiveCanvas方法
-    if (!activeCanvas) {
+    if (! activeCanvas) {
         activeCanvas = getActiveCanvas();
     }
-    
-    if (!activeCanvas) {
+
+    if (! activeCanvas) {
         console.error('No active canvas found for 4-grid generation');
         return [
             'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>'),
@@ -2010,22 +2098,45 @@ async function generate4GridImagesForView(view) {
         {
             name: 'front',
             label: '前视图',
-            cropConfig: { x: 0.25, y: 0, width: 0.5, height: 1 } // 中心1/2
-        },
-        {
+            cropConfig: {
+                x: 0.25,
+                y: 0,
+                width: 0.5,
+                height: 1
+            } // 中心1/2
+        }, {
             name: 'left',
             label: '左视图',
-            cropConfig: { x: 0, y: 0, width: 0.5, height: 1 } // 左边1/2
-        },
-        {
+            cropConfig: {
+                x: 0,
+                y: 0,
+                width: 0.5,
+                height: 1
+            } // 左边1/2
+        }, {
             name: 'right',
             label: '右视图',
-            cropConfig: { x: 0.5, y: 0, width: 0.5, height: 1 } // 右边1/2
-        },
-        {
+            cropConfig: {
+                x: 0.5,
+                y: 0,
+                width: 0.5,
+                height: 1
+            } // 右边1/2
+        }, {
             name: 'back',
             label: '后视图',
-            cropConfig: { x: 0.75, y: 0, width: 0.25, height: 1, extraCrop: { x: 0, y: 0, width: 0.25, height: 1 } } // 右边1/4 + 左边1/4
+            cropConfig: {
+                x: 0.75,
+                y: 0,
+                width: 0.25,
+                height: 1,
+                extraCrop: {
+                    x: 0,
+                    y: 0,
+                    width: 0.25,
+                    height: 1
+                }
+            } // 右边1/4 + 左边1/4
         }
     ];
 
@@ -2045,9 +2156,13 @@ async function generate4GridImagesForView(view) {
             });
             gridImages.push(imageData);
         } catch (error) {
-            console.error(`Failed to generate ${config.name} view:`, error);
+            console.error(`Failed to generate ${
+                config.name
+            } view:`, error);
             // 添加错误占位图
-            gridImages.push('data:image/svg+xml;base64,' + btoa(`<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">${config.label}生成失败</text></svg>`));
+            gridImages.push('data:image/svg+xml;base64,' + btoa(`<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">${
+                config.label
+            }生成失败</text></svg>`));
         }
     }
 
@@ -2058,8 +2173,7 @@ async function generate4GridImagesForView(view) {
  * 获取当前选中的颜色
  * @returns {string|null} 当前选中的颜色值
  */
-function getCurrentSelectedColor() {
-    // 首先尝试从颜色选择器获取
+function getCurrentSelectedColor() { // 首先尝试从颜色选择器获取
     const selectedSwatch = document.querySelector('.color-swatch.selected');
     if (selectedSwatch) {
         const color = selectedSwatch.getAttribute('data-color');
@@ -2067,18 +2181,18 @@ function getCurrentSelectedColor() {
             return color;
         }
     }
-    
+
     // 尝试从全局变量获取
     if (window.currentColor) {
         return window.currentColor;
     }
-    
+
     // 尝试从自定义颜色选择器获取
     const customColorPicker = document.getElementById('customColorPicker');
     if (customColorPicker && customColorPicker.value) {
         return customColorPicker.value;
     }
-    
+
     // 默认返回黑色
     return '#000000';
 }
@@ -2089,7 +2203,15 @@ function getCurrentSelectedColor() {
  * @returns {Promise<string>} 图片数据URL
  */
 async function generateCompositeImageForGrid(options) {
-    const { canvasWidth, canvasHeight, backgroundLayer, baseLayer, overlayLayer, activeCanvas, cropConfig } = options;
+    const {
+        canvasWidth,
+        canvasHeight,
+        backgroundLayer,
+        baseLayer,
+        overlayLayer,
+        activeCanvas,
+        cropConfig
+    } = options;
 
     // 创建临时画布
     const tempCanvas = document.createElement('canvas');
@@ -2100,8 +2222,7 @@ async function generateCompositeImageForGrid(options) {
     // 清空画布
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    try {
-        // 1. 绘制Background Layer（如果存在）
+    try { // 1. 绘制Background Layer（如果存在）
         if (backgroundLayer && backgroundLayer.layer_data && backgroundLayer.layer_data.content && backgroundLayer.layer_data.content.imageURL) {
             await drawLayerImageForGrid(ctx, backgroundLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
         }
@@ -2140,8 +2261,7 @@ async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
-        img.onload = () => {
-            // 计算保持长宽比的尺寸，高度为输出图片高度的80%
+        img.onload = () => { // 计算保持长宽比的尺寸，高度为输出图片高度的80%
             const targetHeight = height * 0.8;
             const aspectRatio = img.width / img.height;
             const targetWidth = targetHeight * aspectRatio;
@@ -2156,13 +2276,16 @@ async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
             tempCanvas.height = targetHeight;
             const tempCtx = tempCanvas.getContext('2d');
             tempCtx.drawImage(img, 0, 0, targetWidth, targetHeight);
-            
+
             // 获取图像数据来检测边界
             const imageData = tempCtx.getImageData(0, 0, targetWidth, targetHeight);
             const data = imageData.data;
-            
+
             // 找到非透明像素的边界
-            let minX = targetWidth, maxX = 0, minY = targetHeight, maxY = 0;
+            let minX = targetWidth,
+                maxX = 0,
+                minY = targetHeight,
+                maxY = 0;
             for (let y = 0; y < targetHeight; y++) {
                 for (let x = 0; x < targetWidth; x++) {
                     const alpha = data[(y * targetWidth + x) * 4 + 3];
@@ -2174,7 +2297,7 @@ async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
                     }
                 }
             }
-            
+
             // 存储杯子边界信息到全局变量，供canvas绘制函数使用
             window.cupBoundary = {
                 x: x + minX,
@@ -2186,7 +2309,7 @@ async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
                 originalWidth: targetWidth,
                 originalHeight: targetHeight
             };
-            
+
             ctx.drawImage(img, x, y, targetWidth, targetHeight);
             resolve();
         };
@@ -2207,8 +2330,7 @@ async function drawLayerImageForGridWithColor(ctx, imageUrl, width, height, colo
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
-        img.onload = () => {
-            // 计算保持长宽比的尺寸，高度为输出图片高度的80%
+        img.onload = () => { // 计算保持长宽比的尺寸，高度为输出图片高度的80%
             const targetHeight = height * 0.8;
             const aspectRatio = img.width / img.height;
             const targetWidth = targetHeight * aspectRatio;
@@ -2222,24 +2344,27 @@ async function drawLayerImageForGridWithColor(ctx, imageUrl, width, height, colo
             tempCanvas.width = targetWidth;
             tempCanvas.height = targetHeight;
             const tempCtx = tempCanvas.getContext('2d');
-            
+
             // 先绘制原图
             tempCtx.drawImage(img, 0, 0, targetWidth, targetHeight);
-            
+
             // 应用颜色（使用 source-in 混合模式）
             tempCtx.globalCompositeOperation = 'source-in';
             tempCtx.fillStyle = color;
             tempCtx.fillRect(0, 0, targetWidth, targetHeight);
-            
+
             // 重置混合模式
             tempCtx.globalCompositeOperation = 'source-over';
-            
+
             // 获取图像数据来检测边界
             const imageData = tempCtx.getImageData(0, 0, targetWidth, targetHeight);
             const data = imageData.data;
-            
+
             // 找到非透明像素的边界
-            let minX = targetWidth, maxX = 0, minY = targetHeight, maxY = 0;
+            let minX = targetWidth,
+                maxX = 0,
+                minY = targetHeight,
+                maxY = 0;
             for (let y = 0; y < targetHeight; y++) {
                 for (let x = 0; x < targetWidth; x++) {
                     const alpha = data[(y * targetWidth + x) * 4 + 3];
@@ -2251,7 +2376,7 @@ async function drawLayerImageForGridWithColor(ctx, imageUrl, width, height, colo
                     }
                 }
             }
-            
+
             // 存储杯子边界信息到全局变量，供canvas绘制函数使用
             window.cupBoundary = {
                 x: x + minX,
@@ -2263,7 +2388,7 @@ async function drawLayerImageForGridWithColor(ctx, imageUrl, width, height, colo
                 originalWidth: targetWidth,
                 originalHeight: targetHeight
             };
-            
+
             // 将应用了颜色的图片绘制到目标画布
             ctx.drawImage(tempCanvas, x, y);
             resolve();
@@ -2282,8 +2407,7 @@ async function drawLayerImageForGridWithColor(ctx, imageUrl, width, height, colo
  * @param {number} targetHeight - 目标高度
  */
 async function drawCroppedCanvasRegionForGrid(ctx, sourceCanvas, cropConfig, targetWidth, targetHeight) {
-    return new Promise((resolve) => {
-        // 获取源画布的数据URL
+    return new Promise((resolve) => { // 获取源画布的数据URL
         const sourceDataURL = sourceCanvas.toDataURL('image/png');
         const img = new Image();
 
@@ -2305,19 +2429,11 @@ async function drawCroppedCanvasRegionForGrid(ctx, sourceCanvas, cropConfig, tar
 
                 // 绘制右边1/4
                 const rightCropX = sourceWidth * cropConfig.x;
-                tempCtx.drawImage(
-                    img,
-                    rightCropX, 0, rightCropWidth, sourceHeight,
-                    0, 0, rightCropWidth, sourceHeight
-                );
+                tempCtx.drawImage(img, rightCropX, 0, rightCropWidth, sourceHeight, 0, 0, rightCropWidth, sourceHeight);
 
                 // 绘制左边1/4
                 const leftCropX = sourceWidth * cropConfig.extraCrop.x;
-                tempCtx.drawImage(
-                    img,
-                    leftCropX, 0, leftCropWidth, sourceHeight,
-                    rightCropWidth, 0, leftCropWidth, sourceHeight
-                );
+                tempCtx.drawImage(img, leftCropX, 0, leftCropWidth, sourceHeight, rightCropWidth, 0, leftCropWidth, sourceHeight);
 
                 // 计算保持长宽比的尺寸
                 const cropHeight = targetHeight * 0.8;
@@ -2330,8 +2446,7 @@ async function drawCroppedCanvasRegionForGrid(ctx, sourceCanvas, cropConfig, tar
 
                 // 限制在杯子边界内绘制
                 drawCanvasWithinBoundary(ctx, tempCanvas, targetWidth, targetHeight);
-            } else {
-                // 普通裁剪
+            } else { // 普通裁剪
                 const cropX = sourceWidth * cropConfig.x;
                 const cropY = sourceHeight * cropConfig.y;
                 const cropWidth = sourceWidth * cropConfig.width;
@@ -2342,12 +2457,8 @@ async function drawCroppedCanvasRegionForGrid(ctx, sourceCanvas, cropConfig, tar
                 tempCanvas.width = cropWidth;
                 tempCanvas.height = cropHeight;
                 const tempCtx = tempCanvas.getContext('2d');
-                
-                tempCtx.drawImage(
-                    img,
-                    cropX, cropY, cropWidth, cropHeight,
-                    0, 0, cropWidth, cropHeight
-                );
+
+                tempCtx.drawImage(img, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
                 // 限制在杯子边界内绘制
                 drawCanvasWithinBoundary(ctx, tempCanvas, targetWidth, targetHeight);
@@ -2369,19 +2480,18 @@ async function drawCroppedCanvasRegionForGrid(ctx, sourceCanvas, cropConfig, tar
  * @param {number} targetHeight - 目标高度
  */
 async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropConfig, targetWidth, targetHeight) {
-    return new Promise((resolve) => {
-        // 获取源画布的数据URL
+    return new Promise((resolve) => { // 获取源画布的数据URL
         const sourceDataURL = sourceCanvas.toDataURL('image/png');
         const img = new Image();
 
         img.onload = () => {
             const sourceWidth = img.width;
             const sourceHeight = img.height;
-            
+
             // 获取杯子边界信息
             const cupBoundary = window.cupBoundary;
-            
-            if (!cupBoundary) {
+
+            if (! cupBoundary) {
                 console.warn('Cup boundary not found, using original drawing method');
                 // 如果没有边界信息，使用原来的绘制方式
                 drawCroppedCanvasRegionForGrid(ctx, sourceCanvas, cropConfig, targetWidth, targetHeight).then(resolve);
@@ -2390,14 +2500,13 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
 
             // 保存当前画布状态
             ctx.save();
-            
+
             // 创建杯子边界的裁剪路径
             ctx.beginPath();
             ctx.rect(cupBoundary.x, cupBoundary.y, cupBoundary.width, cupBoundary.height);
             ctx.clip();
 
-            if (cropConfig.extraCrop) {
-                // 后视图特殊处理：右边1/4 + 左边1/4
+            if (cropConfig.extraCrop) { // 后视图特殊处理：右边1/4 + 左边1/4
                 const tempCanvas = document.createElement('canvas');
                 const rightCropWidth = sourceWidth * cropConfig.width;
                 const leftCropWidth = sourceWidth * cropConfig.extraCrop.width;
@@ -2409,24 +2518,15 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
 
                 // 绘制右边1/4
                 const rightCropX = sourceWidth * cropConfig.x;
-                tempCtx.drawImage(
-                    img,
-                    rightCropX, 0, rightCropWidth, sourceHeight,
-                    0, 0, rightCropWidth, sourceHeight
-                );
+                tempCtx.drawImage(img, rightCropX, 0, rightCropWidth, sourceHeight, 0, 0, rightCropWidth, sourceHeight);
 
                 // 绘制左边1/4
                 const leftCropX = sourceWidth * cropConfig.extraCrop.x;
-                tempCtx.drawImage(
-                    img,
-                    leftCropX, 0, leftCropWidth, sourceHeight,
-                    rightCropWidth, 0, leftCropWidth, sourceHeight
-                );
+                tempCtx.drawImage(img, leftCropX, 0, leftCropWidth, sourceHeight, rightCropWidth, 0, leftCropWidth, sourceHeight);
 
                 // 在杯子边界内绘制
                 drawCanvasWithinBoundaryForWindow(ctx, tempCanvas, cupBoundary);
-            } else {
-                // 普通裁剪
+            } else { // 普通裁剪
                 const cropX = sourceWidth * cropConfig.x;
                 const cropY = sourceHeight * cropConfig.y;
                 const cropWidth = sourceWidth * cropConfig.width;
@@ -2437,17 +2537,13 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
                 tempCanvas.width = cropWidth;
                 tempCanvas.height = cropHeight;
                 const tempCtx = tempCanvas.getContext('2d');
-                
-                tempCtx.drawImage(
-                    img,
-                    cropX, cropY, cropWidth, cropHeight,
-                    0, 0, cropWidth, cropHeight
-                );
+
+                tempCtx.drawImage(img, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
                 // 在杯子边界内绘制
                 drawCanvasWithinBoundaryForWindow(ctx, tempCanvas, cupBoundary);
             }
-            
+
             // 恢复画布状态
             ctx.restore();
             resolve();
@@ -2463,19 +2559,18 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
  * @param {HTMLCanvasElement} sourceCanvas - 源画布
  * @param {Object} cupBoundary - 杯子边界信息
  */
-function drawCanvasWithinBoundaryForWindow(ctx, sourceCanvas, cupBoundary) {
-    // 计算源画布的缩放比例以适应杯子边界
+function drawCanvasWithinBoundaryForWindow(ctx, sourceCanvas, cupBoundary) { // 计算源画布的缩放比例以适应杯子边界
     const scaleX = cupBoundary.width / sourceCanvas.width;
     const scaleY = cupBoundary.height / sourceCanvas.height;
     const scale = Math.min(scaleX, scaleY) * 0.95; // 稍微缩小一点确保不超出边界
-    
+
     const scaledWidth = sourceCanvas.width * scale;
     const scaledHeight = sourceCanvas.height * scale;
-    
+
     // 在杯子边界内居中绘制
     const x = cupBoundary.x + (cupBoundary.width - scaledWidth) / 2;
     const y = cupBoundary.y + (cupBoundary.height - scaledHeight) / 2;
-    
+
     ctx.drawImage(sourceCanvas, x, y, scaledWidth, scaledHeight);
 }
 
@@ -2486,11 +2581,10 @@ function drawCanvasWithinBoundaryForWindow(ctx, sourceCanvas, cupBoundary) {
  * @param {number} targetWidth - 目标宽度
  * @param {number} targetHeight - 目标高度
  */
-function drawCanvasWithinBoundary(ctx, sourceCanvas, targetWidth, targetHeight) {
-    // 获取杯子边界信息
+function drawCanvasWithinBoundary(ctx, sourceCanvas, targetWidth, targetHeight) { // 获取杯子边界信息
     const cupBoundary = window.cupBoundary;
-    
-    if (!cupBoundary) {
+
+    if (! cupBoundary) {
         console.warn('Cup boundary not found, using default drawing');
         // 如果没有边界信息，使用原来的绘制方式
         const drawHeight = targetHeight * 0.8;
@@ -2501,19 +2595,19 @@ function drawCanvasWithinBoundary(ctx, sourceCanvas, targetWidth, targetHeight) 
         ctx.drawImage(sourceCanvas, x, y, drawWidth, drawHeight);
         return;
     }
-    
+
     // 计算源画布的缩放比例以适应杯子边界
     const scaleX = cupBoundary.width / sourceCanvas.width;
     const scaleY = cupBoundary.height / sourceCanvas.height;
     const scale = Math.min(scaleX, scaleY) * 0.9; // 稍微缩小一点确保不超出边界
-    
+
     const scaledWidth = sourceCanvas.width * scale;
     const scaledHeight = sourceCanvas.height * scale;
-    
+
     // 在杯子边界内居中绘制
     const x = cupBoundary.x + (cupBoundary.width - scaledWidth) / 2;
     const y = cupBoundary.y + (cupBoundary.height - scaledHeight) / 2;
-    
+
     ctx.drawImage(sourceCanvas, x, y, scaledWidth, scaledHeight);
 }
 
@@ -2526,35 +2620,33 @@ function drawCanvasWithinBoundary(ctx, sourceCanvas, targetWidth, targetHeight) 
 function cropImageWithConfig(imageDataUrl, cropConfig) {
     return new Promise((resolve) => {
         const img = new Image();
-        img.onload = function() {
+        img.onload = function () {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            
+
             // 计算裁剪区域的像素坐标
             const sourceX = img.width * cropConfig.x;
             const sourceY = img.height * cropConfig.y;
             const sourceWidth = img.width * cropConfig.width;
             const sourceHeight = img.height * cropConfig.height;
-            
+
             // 设置输出画布尺寸
             canvas.width = sourceWidth;
             canvas.height = sourceHeight;
-            
+
             // 绘制裁剪后的图像
-            ctx.drawImage(
-                img,
-                sourceX, sourceY, sourceWidth, sourceHeight, // 源区域
-                0, 0, sourceWidth, sourceHeight // 目标区域
+            ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, // 源区域
+                    0, 0, sourceWidth, sourceHeight // 目标区域
             );
-            
+
             resolve(canvas.toDataURL('image/png'));
         };
-        
-        img.onerror = function() {
+
+        img.onerror = function () {
             console.error('Failed to load base image for cropping');
             resolve('data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">图像加载失败</text></svg>'));
         };
-        
+
         img.src = imageDataUrl;
     });
 }
@@ -2565,17 +2657,23 @@ function cropImageWithConfig(imageDataUrl, cropConfig) {
  * @returns {Promise<string>} 图片数据URL
  */
 async function captureViewImage(view) {
-    try {
-        // 获取所有Canvas图层元素
-        const baseCanvasElement = document.getElementById(`baseCanvas-${view.id}`);
-        const mainCanvasElement = document.getElementById(`mainCanvas-${view.id}`);
-        const overlayCanvasElement = document.getElementById(`overlayCanvas-${view.id}`);
-        const maskCanvasElement = document.getElementById(`maskCanvas-${view.id}`);
+    try { // 获取所有Canvas图层元素
+        const baseCanvasElement = document.getElementById(`baseCanvas-${
+            view.id
+        }`);
+        const mainCanvasElement = document.getElementById(`mainCanvas-${
+            view.id
+        }`);
+        const overlayCanvasElement = document.getElementById(`overlayCanvas-${
+            view.id
+        }`);
+        const maskCanvasElement = document.getElementById(`maskCanvas-${
+            view.id
+        }`);
 
         if (mainCanvasElement && window.CanvasManager) {
             const fabricCanvas = window.CanvasManager.getCanvas(view.id);
-            if (fabricCanvas) {
-                // 强制渲染主Canvas
+            if (fabricCanvas) { // 强制渲染主Canvas
                 fabricCanvas.renderAll();
 
                 // 捕获多层Canvas内容（应用遮罩效果）
@@ -2588,17 +2686,21 @@ async function captureViewImage(view) {
                 }, view);
                 return imageData;
             } else {
-                console.warn(`Canvas not found for view: ${view.id}`);
+                console.warn(`Canvas not found for view: ${
+                    view.id
+                }`);
                 return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">无法加载视图</text></svg>');
             }
         } else {
-            console.warn(`Canvas element not found: mainCanvas-${view.id}`);
+            console.warn(`Canvas element not found: mainCanvas-${
+                view.id
+            }`);
             return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">视图不存在</text></svg>');
         }
     } catch (error) {
-        console.error(`Failed to capture view ${view.id}:`, error);
+        console.error(`Failed to capture view ${
+            view.id
+        }:`, error);
         return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">截图失败</text></svg>');
     }
 }
-
-
