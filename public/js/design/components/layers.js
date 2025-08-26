@@ -248,7 +248,7 @@ const layersApp = Vue.createApp({
                     </div>
                     
                     <!-- 单选框选项 -->
-                    <div class="pwca-combination-print-method-options">
+                    <div v-if="isSelectedLayerInExistingGroup" class="pwca-combination-print-method-options">
                         <label class="pwca-print-method-option">
                             <input type="radio" name="printMethodOption" value="merge" />
                             <span>合并印刷方式组</span>
@@ -456,6 +456,26 @@ const layersApp = Vue.createApp({
         // 图层组印刷方式修改相关数据
         const selectedGroupForPrintMethod = Vue.ref(null);
         const selectedGroupPrintMethodId = Vue.ref(null);
+
+        // 检查选中的打印方法是否对应已存在的图层组
+        const isSelectedLayerInExistingGroup = Vue.computed(() => {
+            if (!selectedPrintMethodId.value) return false;
+            
+            // 根据选择的打印方法ID构造对应的图层组ID
+            const expectedGroupId = `print-method-${selectedPrintMethodId.value}`;
+            
+            // 检查当前视图中是否存在这个图层组
+            const existingGroup = currentViewLayerGroups.value.find(group => group.id === expectedGroupId);
+            
+            console.log('isSelectedLayerInExistingGroup check:', {
+                selectedPrintMethodId: selectedPrintMethodId.value,
+                expectedGroupId: expectedGroupId,
+                existingGroup: existingGroup,
+                hasExistingGroup: !!existingGroup
+            });
+            
+            return !!existingGroup;
+        });
 
         // 计算属性：当前视图未分组的图层
         const currentViewUngroupedLayers = Vue.computed(() => {
@@ -1805,6 +1825,7 @@ const layersApp = Vue.createApp({
             // 图层组印刷方式修改相关数据
             selectedGroupForPrintMethod,
             selectedGroupPrintMethodId,
+            isSelectedLayerInExistingGroup,
 
             // 打印方式相关数据
             printMethods,
