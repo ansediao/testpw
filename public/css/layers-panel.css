@@ -130,8 +130,8 @@
   border-color: #3b82f6;
 }
 .pwca-group-print-modal__btn--primary:hover, .modal#pwca-group-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn.modal__btn-primary:hover {
-  background: rgb(11.1512195122, 99.1219512195, 242.8487804878);
-  border-color: rgb(11.1512195122, 99.1219512195, 242.8487804878);
+  background: #0b63f3;
+  border-color: #0b63f3;
 }
 
 .pwca-group-info {
@@ -591,7 +591,7 @@
   color: #333;
 }
 .print-method-dialog-overlay .print-method-dialog .print-methods {
-  margin: 30px 30px 0px 30px;
+  margin: 30px 30px 0;
   border-bottom: 1px solid #d7d7d7;
 }
 .print-method-dialog-overlay .print-method-dialog .print-methods .method-grid {
@@ -647,6 +647,13 @@
   padding: 16px;
   background: #f8f9fa;
   border-radius: 4px;
+}
+.print-method-dialog-overlay .print-method-dialog .pwca-combination-print-method-options {
+  display: flex;
+  flex-direction: column;
+  width: -moz-fit-content;
+  width: fit-content;
+  margin: auto;
 }
 .print-method-dialog-overlay .print-method-dialog .dialog-actions {
   display: flex;

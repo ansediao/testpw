@@ -247,6 +247,18 @@ const layersApp = Vue.createApp({
                         </div>
                     </div>
                     
+                    <!-- 单选框选项 -->
+                    <div class="pwca-combination-print-method-options">
+                        <label class="pwca-print-method-option">
+                            <input type="radio" name="printMethodOption" value="merge" />
+                            <span>合并印刷方式组</span>
+                        </label>
+                        <label class="pwca-print-method-option">
+                            <input type="radio" name="printMethodOption" value="separate"  />
+                            <span>独立印刷方式组</span>
+                        </label>
+                    </div>
+                    
                     <div class="dialog-actions">
                         <button @click="assignLayerToPrintMethod" class="save-btn">Save</button>
                     </div>
@@ -439,7 +451,7 @@ const layersApp = Vue.createApp({
         const newGroupName = Vue.ref('');
         const selectedLayerForAssign = Vue.ref(null);
         const selectedPrintMethodId = Vue.ref(printMethodStore.selectedPrintMethodId);
-        const activeTab = Vue.ref('color');
+        const activeTab = Vue.ref('color');        
 
         // 图层组印刷方式修改相关数据
         const selectedGroupForPrintMethod = Vue.ref(null);
@@ -1788,7 +1800,7 @@ const layersApp = Vue.createApp({
             newGroupName,
             selectedLayerForAssign,
             selectedPrintMethodId,
-            activeTab,
+            activeTab,            
 
             // 图层组印刷方式修改相关数据
             selectedGroupForPrintMethod,
