@@ -24,7 +24,7 @@ const AddToCart = {
         
         const customizeNow = () => {
             const productId = window.pwProductConfig?.productId || store.productId;
-            const customizeUrl = `https://woo-cuz-cart-checkout.local/pwcanvas/?product_id=${productId}`;
+            const customizeUrl = `/pwcanvas/?product_id=${productId}`;
             window.location.href = customizeUrl;
         };
         
