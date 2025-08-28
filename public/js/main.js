@@ -66,6 +66,102 @@ function isUserInitiatedAction(obj) { // 检查是否明确标记跳过同步
 window.CanvasInitializationState = CanvasInitializationState;
 window.isUserInitiatedAction = isUserInitiatedAction;
 
+// 动态加载 Tab 控制工具
+/**
+ * 操作面板 Tab 控制工具
+ * 提供控制台接口来切换操作面板的 tab 状态
+ */
+
+// ===== 操作面板 Tab 控制工具 =====
+
+/**
+ * 切换操作面板的 tab
+ * @param {string} tabId - tab 的 ID
+ * @returns {boolean} - 操作是否成功
+ */
+function switchOperationPanelTab(tabId) {
+    // 验证 tabId 是否有效
+    const validTabs = ['tab-pinming', 'tab-tuan', 'tab-pianquan', 'tab-wenzi', 'tab-sheji'];
+    if (!validTabs.includes(tabId)) {
+        return false;
+    }
+
+    // 获取所有 tab 元素
+    const tabs = document.querySelectorAll('.tabs-nav .tab');
+    const contentPanes = document.querySelectorAll('.content-area .content-pane');
+
+    if (tabs.length === 0 || contentPanes.length === 0) {
+        return false;
+    }
+
+    // 移除所有 active 类
+    tabs.forEach(tab => tab.classList.remove('active'));
+    contentPanes.forEach(pane => pane.classList.remove('active'));
+
+    // 激活指定的 tab
+    const targetTab = document.getElementById(tabId);
+    if (targetTab) {
+        targetTab.classList.add('active');
+    } else {
+        return false;
+    }
+
+    // 激活对应的内容面板
+    const contentId = tabId.replace('tab-', 'content-');
+    const targetContent = document.getElementById(contentId);
+    if (targetContent) {
+        targetContent.classList.add('active');
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * 获取当前激活的 tab
+ * @returns {string|null} - 当前激活的 tab ID
+ */
+function getCurrentActiveTab() {
+    const activeTab = document.querySelector('.tabs-nav .tab.active');
+    return activeTab ? activeTab.id : null;
+}
+
+/**
+ * 列出所有可用的 tab
+ * @returns {Array} - tab 列表
+ */
+function listAvailableTabs() {
+    const tabs = document.querySelectorAll('.tabs-nav .tab');
+    return Array.from(tabs).map(tab => ({
+        id: tab.id,
+        title: tab.querySelector('.tab_title')?.textContent || 'Unknown',
+        active: tab.classList.contains('active')
+    }));
+}
+
+// 暴露到全局作用域供控制台使用
+window.switchOperationPanelTab = switchOperationPanelTab;
+window.getCurrentActiveTab = getCurrentActiveTab;
+window.listAvailableTabs = listAvailableTabs;
+
+// 提供帮助函数（可选）
+window.showTabControlHelp = function() {
+    const help = {
+        'switchOperationPanelTab(tabId)': '切换到指定的 tab',
+        'getCurrentActiveTab()': '获取当前激活的 tab ID',
+        'listAvailableTabs()': '列出所有可用的 tab 及其状态',
+        '可用的 tabId': [
+            'tab-pinming (Product)',
+            'tab-tuan (Layers)',
+            'tab-pianquan (Image)',
+            'tab-wenzi (Text)',
+            'tab-sheji (Designs)'
+        ]
+    };
+    return help;
+};
+
 // ===== Canvas 元素获取函数 =====
 
 // 获取画布和上下文 - 动态获取当前激活视图的 canvas
