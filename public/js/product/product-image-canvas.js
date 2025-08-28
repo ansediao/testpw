@@ -277,7 +277,7 @@
      * 初始化Fabric.js Canvas
      * @param {string} backgroundColor - 背景颜色
      */
-    function initializeFabricCanvas(backgroundColor) {
+    function initializeFabricCanvas(backgroundColor, detailsImageUrl,baseImageUrl) {
         // 检查Canvas管理器和Fabric.js是否已加载
         if (typeof window.CanvasManager === 'undefined') {
             console.error('CanvasManager未加载，无法初始化Canvas');
@@ -301,9 +301,9 @@
                 height: 400,
                 backgroundColor: 'transparent'
             });
-
+            baseImageUrl = baseImageUrl || 'https://pwfiles.939666.xyz/t-shirt/color.png';
             // 加载底层图片（color.png）
-            fabric.Image.fromURL('https://pwfiles.939666.xyz/t-shirt/color.png', function (img) {
+            fabric.Image.fromURL(baseImageUrl, function (img) {
                 img.set({
                     left: canvas.width / 2,
                     top: canvas.height / 2,
@@ -321,7 +321,7 @@
                 canvas.sendToBack(img);
 
                 // 加载顶层图片（details.png）并应用颜色
-                loadTopLayerImage(backgroundColor);
+                loadTopLayerImage(backgroundColor, detailsImageUrl);
             }, { crossOrigin: 'anonymous' });
         } catch (error) {
             console.error('初始化Canvas失败:', error);
@@ -331,15 +331,19 @@
     /**
      * 加载顶层图片并应用颜色
      * @param {string} color - 要应用的颜色
+     * @param {string} imageUrl - 可选的图片URL，如果提供则替换默认的details.png
      */
-    function loadTopLayerImage(color) {
+    function loadTopLayerImage(color, imageUrl) {
         const canvas = window.CanvasManager.getCanvas(VIEW_ID);
         if (!canvas) {
             console.error('Canvas实例未找到');
             return;
         }
 
-        fabric.Image.fromURL('https://pwfiles.939666.xyz/t-shirt/details.png', function (img) {
+        // 使用提供的图片URL或默认的details.png
+        const detailsUrl = imageUrl || 'https://pwfiles.939666.xyz/t-shirt/details.png';
+        
+        fabric.Image.fromURL(detailsUrl, function (img) {
             img.set({
                 left: canvas.width / 2,
                 top: canvas.height / 2,
@@ -370,8 +374,9 @@
     /**
      * 更新Canvas颜色（重新加载顶层图片并应用新颜色）
      * @param {string} color - 新的颜色
+     * @param {string} imageUrl - 可选的图片URL，如果提供则替换默认的details.png
      */
-    function updateCanvasBackgroundColor(color) {
+    function updateCanvasBackgroundColor(color, imageUrl) {
         const canvas = window.CanvasManager.getCanvas(VIEW_ID);
         if (canvas) {
             // 移除现有的顶层图片
@@ -383,7 +388,7 @@
             }
 
             // 重新加载顶层图片并应用新颜色
-            loadTopLayerImage(color);
+            loadTopLayerImage(color, imageUrl);
             // Canvas颜色已更新
         }
     }
