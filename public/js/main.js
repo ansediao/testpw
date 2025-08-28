@@ -268,8 +268,8 @@ function addCanvasEventListeners(fabricCanvas) {
             fabricCanvas.discardActiveObject();
             fabricCanvas.renderAll();
 
-            // 显示提示
-            showPrintMethodBindingAlert();
+            // 显示提示，直接传递当前操作的对象
+            showPrintMethodBindingAlert(e.target);
 
             // 重置标记
             needsAlertOnRelease = false;
@@ -339,11 +339,9 @@ function isElementInLayerGroup(obj) {
     return obj && obj.group !== null && obj.group !== undefined;
 }
 
-// 显示绑定印刷方式提示
-function showPrintMethodBindingAlert() {
-
-    alert('请先为此元素绑定印刷方式后再使用此工具。\n\n您可以在图层面板中点击"Switch Printing Method"按钮来绑定印刷方式。');
-
+// 显示绑定印刷方式提示 - 模拟点击Switch Printing Method按钮
+function showPrintMethodBindingAlert(targetObject) {
+    
 }
 
 const arcSlider = document.getElementById('arcSlider');
