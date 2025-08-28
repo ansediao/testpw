@@ -324,93 +324,252 @@ $plugin_url = plugin_dir_url(__FILE__);
 
         <div class="color-section">
             <h3>Trim color</h3>
-            <div class="color-swatches-box">
-                <div class="color-swatch selected" style="background-color: #000;" data-color="#000000"></div>
-                <div class="color-swatch" style="background-color: #ef4444;" data-color="#ef4444"></div>
-                <div class="color-swatch" style="background-color: #14b8a6;" data-color="#14b8a6"></div>
-                <div class="color-swatch" style="background-color: #ec4899;" data-color="#ec4899"></div>
-                <div class="color-swatch" style="background-color: #fff; border: 1px solid #9ca3af;" data-color="#ffffff"></div>
-                <div class="color-swatch" style="background-color: #22d3ee;" data-color="#22d3ee"></div>
-                <div class="color-swatch" style="background-color: #2563eb;" data-color="#2563eb"></div>
-                <div class="color-swatch" style="background-color: #fde047;" data-color="#fde047"></div>
+            <div class="color-swatches-box" id="color-swatches-container">
+                <!-- 颜色样本将通过 JavaScript 动态生成 -->
             </div>
         </div>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                const colorSwatches = document.querySelectorAll('.color-swatch');
-                colorSwatches.forEach(swatch => {
-                    swatch.addEventListener('click', function() {
-                        colorSwatches.forEach(s => s.classList.remove('selected'));
-                        swatch.classList.add('selected');
-                        const color = swatch.getAttribute('data-color');
+                // 动态生成颜色样本
+                function generateColorSwatches() {
+                    const container = document.getElementById('color-swatches-container');
+                    if (!container) return;
 
-                        // 获取当前视图的 base_layer 并应用 tint 滤镜
-                        function applyColorTint() {
-                            if (window.useCanvasStore && (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function')) {
-                                const store = window.useCanvasStore();
-                                const activeViewId = store.activeViewId;
-                                
-                                if (activeViewId && store.views) {
-                                    const currentView = store.views.find(v => v.id === activeViewId);
-                                    if (currentView && currentView.base_layer) {
-                                        // 应用色调滤镜到 base_layer
-                                        const tintFunction = typeof applyTintFilter === 'function' ? applyTintFilter : window.applyTintFilter;
-                                        tintFunction(currentView.base_layer, color, 1);
-                                        
-                                        // 强制重新应用滤镜并渲染
-                                        if (currentView.base_layer.applyFilters) {
-                                            currentView.base_layer.applyFilters();
-                                        }
-                                        
-                                        // 获取当前激活的画布并重新渲染
-                                        if (window.CanvasManager) {
-                                            const activeCanvas = window.CanvasManager.getActiveCanvas();
-                                            if (activeCanvas) {
-                                                // 强制重新渲染base_layer对象
-                                                if (currentView.base_layer.canvas) {
-                                                    currentView.base_layer.canvas.renderAll();
-                                                }
-                                                // 强制整个画布重新渲染
-                                                activeCanvas.renderAll();
-                                                // 使用requestAnimationFrame确保渲染在下一帧完成
-                                                requestAnimationFrame(() => {
-                                                    activeCanvas.renderAll();
-                                                });
-                                            }
-                                        }
-                                        
-                                        console.log(`已将颜色 ${color} 应用到当前视图的 base_layer`);
-                                    } else {
-                                        console.warn('当前视图没有 base_layer 或视图不存在');
-                                    }
-                                } else {
-                                    console.warn('没有激活的视图或 store 不可用');
-                                }
-                            } else {
-                                console.warn('applyTintFilter 函数或 useCanvasStore 不可用');
-                            }
+                    // 保存当前选中的颜色
+                    const currentSelected = container.querySelector('.color-swatch.selected');
+                    const selectedColor = currentSelected ? currentSelected.getAttribute('data-color') : null;
+
+                    // 检查 canvasStore 是否可用
+                    if (typeof window.useCanvasStore === 'undefined') {
+                        console.warn('CanvasStore 未加载，使用默认颜色');
+                        generateDefaultColors(container, selectedColor);
+                        return;
+                    }
+
+                    const store = window.useCanvasStore();
+                    
+                    // 检查产品数据是否存在
+                    if (!store.productData || !store.productData.variants || !store.productData.variants.data) {
+                        console.warn('产品变体数据未加载，使用默认颜色');
+                        generateDefaultColors(container, selectedColor);
+                        return;
+                    }
+
+                    const variants = store.productData.variants.data;
+                    if (!variants || variants.length === 0) {
+                        console.warn('没有找到产品变体，使用默认颜色');
+                        generateDefaultColors(container, selectedColor);
+                        return;
+                    }
+
+                    // 过滤出 type 为 'normal' 且有 variant_color 值的变体
+                    const normalVariants = variants.filter(variant => 
+                        variant.type === 'normal' && 
+                        variant.variant_color && 
+                        variant.variant_color.trim() !== ''
+                    );
+
+                    if (normalVariants.length === 0) {
+                        console.warn('没有找到有效的颜色变体，使用默认颜色');
+                        generateDefaultColors(container, selectedColor);
+                        return;
+                    }
+
+                    // 清空容器
+                    container.innerHTML = '';
+
+                    // 生成颜色样本
+                    normalVariants.forEach((variant, index) => {
+                        const colorSwatch = document.createElement('div');
+                        // 如果有指定的选中颜色，则使用它；否则默认选中第一个
+                        const isSelected = selectedColor ? (variant.variant_color === selectedColor) : (index === 0);
+                        colorSwatch.className = 'color-swatch' + (isSelected ? ' selected' : '');
+                        colorSwatch.style.backgroundColor = variant.variant_color;
+                        colorSwatch.setAttribute('data-color', variant.variant_color);
+                        colorSwatch.setAttribute('data-variant-id', variant.id);
+                        colorSwatch.setAttribute('data-variant-name', variant.variant_name);
+                        colorSwatch.title = variant.variant_name || variant.variant_color;
+                        
+                        // 如果是白色或浅色，添加边框
+                        if (isLightColor(variant.variant_color)) {
+                            colorSwatch.style.border = '1px solid #9ca3af';
                         }
                         
-                        // 如果 applyTintFilter 函数已经可用，立即执行
-                        if (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function') {
-                            applyColorTint();
-                        } else {
-                            // 否则等待函数可用
-                            const checkInterval = setInterval(() => {
-                                if (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function') {
-                                    clearInterval(checkInterval);
-                                    applyColorTint();
-                                }
-                            }, 100);
-                            
-                            // 设置超时，避免无限等待
-                            setTimeout(() => {
-                                clearInterval(checkInterval);
-                                console.warn('applyTintFilter function not available after timeout');
-                            }, 5000);
-                        }
+                        container.appendChild(colorSwatch);
                     });
-                });
+
+                    // 重新绑定事件监听器
+                    bindColorSwatchEvents();
+                }
+
+                // 生成默认颜色
+                function generateDefaultColors(container, selectedColor = null) {
+                    const defaultColors = [
+                        { color: '#000000', name: '黑色' },
+                        { color: '#ef4444', name: '红色' },
+                        { color: '#14b8a6', name: '青色' },
+                        { color: '#ec4899', name: '粉色' },
+                        { color: '#ffffff', name: '白色' },
+                        { color: '#22d3ee', name: '天蓝色' },
+                        { color: '#2563eb', name: '蓝色' },
+                        { color: '#fde047', name: '黄色' }
+                    ];
+
+                    container.innerHTML = '';
+                    defaultColors.forEach((colorData, index) => {
+                        const colorSwatch = document.createElement('div');
+                        // 如果有指定的选中颜色，则使用它；否则默认选中第一个
+                        const isSelected = selectedColor ? (colorData.color === selectedColor) : (index === 0);
+                        colorSwatch.className = 'color-swatch' + (isSelected ? ' selected' : '');
+                        colorSwatch.style.backgroundColor = colorData.color;
+                        colorSwatch.setAttribute('data-color', colorData.color);
+                        colorSwatch.title = colorData.name;
+                        
+                        if (isLightColor(colorData.color)) {
+                            colorSwatch.style.border = '1px solid #9ca3af';
+                        }
+                        
+                        container.appendChild(colorSwatch);
+                    });
+
+                    bindColorSwatchEvents();
+                }
+
+                // 判断是否为浅色
+                function isLightColor(color) {
+                    const hex = color.replace('#', '');
+                    const r = parseInt(hex.substr(0, 2), 16);
+                    const g = parseInt(hex.substr(2, 2), 16);
+                    const b = parseInt(hex.substr(4, 2), 16);
+                    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+                    return brightness > 200;
+                }
+
+                // 绑定颜色样本事件
+                function bindColorSwatchEvents() {
+                    const colorSwatches = document.querySelectorAll('.color-swatch');
+                    colorSwatches.forEach(swatch => {
+                        // 移除已有的事件监听器，避免重复绑定
+                        swatch.removeEventListener('click', swatch._colorSwatchHandler);
+                        
+                        // 创建新的事件处理函数
+                        swatch._colorSwatchHandler = function() {
+                            colorSwatches.forEach(s => s.classList.remove('selected'));
+                            swatch.classList.add('selected');
+                            const color = swatch.getAttribute('data-color');
+                            
+                            // 调用颜色应用逻辑
+                            handleColorSwatchClick(color);
+                        };
+                        
+                        // 绑定新的事件监听器
+                        swatch.addEventListener('click', swatch._colorSwatchHandler);
+                    });
+                }
+                
+                // 处理颜色样本点击的逻辑
+                function handleColorSwatchClick(color) {
+                    // 获取当前视图的 base_layer 并应用 tint 滤镜
+                    function applyColorTint() {
+                        if (window.useCanvasStore && (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function')) {
+                            const store = window.useCanvasStore();
+                            const activeViewId = store.activeViewId;
+                            
+                            if (activeViewId && store.views) {
+                                const currentView = store.views.find(v => v.id === activeViewId);
+                                if (currentView && currentView.base_layer) {
+                                    // 应用色调滤镜到 base_layer
+                                    const tintFunction = typeof applyTintFilter === 'function' ? applyTintFilter : window.applyTintFilter;
+                                    tintFunction(currentView.base_layer, color, 1);
+                                    
+                                    // 强制重新应用滤镜并渲染
+                                    if (currentView.base_layer.applyFilters) {
+                                        currentView.base_layer.applyFilters();
+                                    }
+                                    
+                                    // 获取当前激活的画布并重新渲染
+                                    if (window.CanvasManager) {
+                                        const activeCanvas = window.CanvasManager.getActiveCanvas();
+                                        if (activeCanvas) {
+                                            // 强制重新渲染base_layer对象
+                                            if (currentView.base_layer.canvas) {
+                                                currentView.base_layer.canvas.renderAll();
+                                            }
+                                            // 强制整个画布重新渲染
+                                            activeCanvas.renderAll();
+                                            // 使用requestAnimationFrame确保渲染在下一帧完成
+                                            requestAnimationFrame(() => {
+                                                activeCanvas.renderAll();
+                                            });
+                                        }
+                                    }
+                                    
+                                    console.log(`已将颜色 ${color} 应用到当前视图的 base_layer`);
+                                } else {
+                                    console.warn('当前视图没有 base_layer 或视图不存在');
+                                }
+                            } else {
+                                console.warn('没有激活的视图或 store 不可用');
+                            }
+                        } else {
+                            console.warn('applyTintFilter 函数或 useCanvasStore 不可用');
+                        }
+                    }
+                    
+                    // 如果 applyTintFilter 函数已经可用，立即执行
+                    if (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function') {
+                        applyColorTint();
+                    } else {
+                        // 否则等待函数可用
+                        const checkInterval = setInterval(() => {
+                            if (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function') {
+                                clearInterval(checkInterval);
+                                applyColorTint();
+                            }
+                        }, 100);
+                        
+                        // 设置超时，避免无限等待
+                        setTimeout(() => {
+                            clearInterval(checkInterval);
+                            console.warn('applyTintFilter function not available after timeout');
+                        }, 5000);
+                    }
+                }
+
+                // 监听 canvasStore 数据变化
+                function waitForCanvasData() {
+                    if (typeof window.useCanvasStore !== 'undefined') {
+                        const store = window.useCanvasStore();
+                        
+                        // 如果数据已经加载，立即生成颜色样本
+                        if (store.productData && store.productData.variants && store.productData.variants.data) {
+                            generateColorSwatches();
+                            return;
+                        }
+                        
+                        // 监听数据变化
+                        if (store.$subscribe) {
+                            store.$subscribe((mutation, state) => {
+                                if (state.productData && state.productData.variants && state.productData.variants.data) {
+                                    generateColorSwatches();
+                                }
+                            });
+                        }
+                    }
+                    
+                    // 如果 store 还没有加载，使用默认颜色
+                    setTimeout(() => {
+                        if (typeof window.useCanvasStore === 'undefined') {
+                            const container = document.getElementById('color-swatches-container');
+                            if (container && container.children.length === 0) {
+                                // generateDefaultColors(container);
+                            }
+                        }
+                    }, 2000);
+                }
+
+                // 初始化
+                waitForCanvasData();
             });
         </script>
 
