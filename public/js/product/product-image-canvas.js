@@ -187,6 +187,75 @@
     }
 
     /**
+     * 从 Pinia store 中获取图层图片URL
+     * @returns {Object} 包含 baseImageUrl 和 overlayImageUrl 的对象
+     */
+    function getLayerImages() {
+        try {
+            // 检查是否有可用的 store
+            if (typeof window.useProductStore === 'undefined') {
+                console.warn('ProductStore 未加载，使用默认图片');
+                return {
+                    baseImageUrl: 'https://pwfiles.939666.xyz/t-shirt/color.png',
+                    overlayImageUrl: 'https://pwfiles.939666.xyz/t-shirt/details.png'
+                };
+            }
+
+            const store = window.useProductStore();
+            
+            // 检查产品数据是否存在
+            if (!store.productData || !store.productData.apiData || !store.productData.apiData.templates) {
+                console.warn('产品数据未加载，使用默认图片');
+                return {
+                    baseImageUrl: 'https://pwfiles.939666.xyz/t-shirt/color.png',
+                    overlayImageUrl: 'https://pwfiles.939666.xyz/t-shirt/details.png'
+                };
+            }
+
+            const views = store.productData.apiData.templates.views;
+            if (!views || views.length === 0) {
+                console.warn('视图数据不存在，使用默认图片');
+                return {
+                    baseImageUrl: 'https://pwfiles.939666.xyz/t-shirt/color.png',
+                    overlayImageUrl: 'https://pwfiles.939666.xyz/t-shirt/details.png'
+                };
+            }
+
+            const firstView = views[0];
+            if (!firstView.layers) {
+                console.warn('图层数据不存在，使用默认图片');
+                return {
+                    baseImageUrl: 'https://pwfiles.939666.xyz/t-shirt/color.png',
+                    overlayImageUrl: 'https://pwfiles.939666.xyz/t-shirt/details.png'
+                };
+            }
+
+            let baseImageUrl = 'https://pwfiles.939666.xyz/t-shirt/color.png';
+            let overlayImageUrl = 'https://pwfiles.939666.xyz/t-shirt/details.png';
+
+            // 查找 Base Layer 和 Overlay Layer
+            firstView.layers.forEach(layer => {
+                if (layer.name === 'Base Layer' && layer.layer_data && layer.layer_data.content && layer.layer_data.content.imageURL) {
+                    baseImageUrl = layer.layer_data.content.imageURL;
+                }
+                if (layer.name === 'Overlay Layer' && layer.layer_data && layer.layer_data.content && layer.layer_data.content.imageURL) {
+                    overlayImageUrl = layer.layer_data.content.imageURL;
+                }
+            });
+
+            console.log('获取到的图层图片:', { baseImageUrl, overlayImageUrl });
+            
+            return { baseImageUrl, overlayImageUrl };
+        } catch (error) {
+            console.error('获取图层图片时出错:', error);
+            return {
+                baseImageUrl: 'https://pwfiles.939666.xyz/t-shirt/color.png',
+                overlayImageUrl: 'https://pwfiles.939666.xyz/t-shirt/details.png'
+            };
+        }
+    }
+
+    /**
      * 切换到Canvas模式
      * @param {string} backgroundColor - 背景颜色
      */
@@ -198,10 +267,13 @@
             return;
         }
 
+        // 获取图层图片URL
+        const layerImages = getLayerImages();
+
         // 如果已经是Canvas模式，只更新背景色
         if (isCanvasMode && window.CanvasManager && window.CanvasManager.hasCanvas(VIEW_ID)) {
             console.log('Canvas already in mode, updating background color');
-            updateCanvasBackgroundColor(backgroundColor);
+            updateCanvasBackgroundColor(backgroundColor, layerImages.overlayImageUrl);
             return;
         }
 
@@ -214,7 +286,7 @@
         hideOriginalImage();
 
         // 初始化Fabric.js Canvas
-        initializeFabricCanvas(backgroundColor);
+        initializeFabricCanvas(backgroundColor, layerImages.baseImageUrl, layerImages.overlayImageUrl);
 
         // 标记为Canvas模式
         isCanvasMode = true;
@@ -276,8 +348,10 @@
     /**
      * 初始化Fabric.js Canvas
      * @param {string} backgroundColor - 背景颜色
+     * @param {string} baseImageUrl - 底层图片URL
+     * @param {string} overlayImageUrl - 顶层图片URL
      */
-    function initializeFabricCanvas(backgroundColor, detailsImageUrl,baseImageUrl) {
+    function initializeFabricCanvas(backgroundColor, baseImageUrl, overlayImageUrl) {
         // 检查Canvas管理器和Fabric.js是否已加载
         if (typeof window.CanvasManager === 'undefined') {
             console.error('CanvasManager未加载，无法初始化Canvas');
@@ -301,9 +375,12 @@
                 height: 400,
                 backgroundColor: 'transparent'
             });
-            baseImageUrl = baseImageUrl || 'https://pwfiles.939666.xyz/t-shirt/color.png';
-            // 加载底层图片（color.png）
-            fabric.Image.fromURL(baseImageUrl, function (img) {
+            
+            // 使用提供的底层图片URL或默认的color.png
+            const baseUrl = baseImageUrl || 'https://pwfiles.939666.xyz/t-shirt/color.png';
+            
+            // 加载底层图片（Base Layer）
+            fabric.Image.fromURL(baseUrl, function (img) {
                 img.set({
                     left: canvas.width / 2,
                     top: canvas.height / 2,
@@ -320,8 +397,8 @@
                 canvas.add(img);
                 canvas.sendToBack(img);
 
-                // 加载顶层图片（details.png）并应用颜色
-                loadTopLayerImage(backgroundColor, detailsImageUrl);
+                // 加载顶层图片（Overlay Layer）并应用颜色
+                loadTopLayerImage(backgroundColor, overlayImageUrl);
             }, { crossOrigin: 'anonymous' });
         } catch (error) {
             console.error('初始化Canvas失败:', error);
