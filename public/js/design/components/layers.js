@@ -204,63 +204,66 @@ const layersApp = Vue.createApp({
                 </div>
             </div>
             
-            <!-- 打印方法选择对话框 -->
-            <div v-if="showPrintMethodDialog" class="print-method-dialog-overlay" @click="showPrintMethodDialog = false">
-                <div class="print-method-dialog" @click.stop>
-                    <div class="dialog-header">
-                        <h3>Print Method Setting</h3>
-                        <button class="close-btn" @click="showPrintMethodDialog = false">×</button>
-                    </div>
-                    
-                    <div class="print-methods">
-                        <div class="method-grid">
-                            <label v-for="method in printMethods" :key="method.id" class="method-option">
-                                <input 
-                                    type="radio" 
-                                    v-model="selectedPrintMethodId" 
-                                    :value="method.id" 
-                                    name="printMethod" 
-                                />
-                                <span class="method-label">{{ method.label }}</span>                               
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="method-tabs">
-                        <div class="tab" :class="{active: activeTab === 'color'}" @click="activeTab = 'color'">Color</div>
-                        <div class="tab" :class="{active: activeTab === 'moq'}" @click="activeTab = 'moq'">MOQ</div>
-                        <div class="tab" :class="{active: activeTab === 'printarea'}" @click="activeTab = 'printarea'">Print Area</div>
-                    </div>
-                    
-                    <div class="tab-content">
-                        <div v-if="activeTab === 'color'" class="color-content">
-                            <!-- Color 选项卡内容 -->
-                            <p>Color settings will be displayed here</p>
-                        </div>
-                        <div v-if="activeTab === 'moq'" class="moq-content">
-                            <!-- MOQ 选项卡内容 -->
-                            <p>MOQ settings will be displayed here</p>
-                        </div>
-                        <div v-if="activeTab === 'printarea'" class="printarea-content">
-                            <!-- Print Area 选项卡内容 -->
-                            <p>Print Area settings will be displayed here</p>
-                        </div>
-                    </div>
-                    
-                    <!-- 单选框选项 -->
-                    <div v-if="isSelectedLayerInExistingGroup" class="pwca-combination-print-method-options">
-                        <label class="pwca-print-method-option">
-                            <input type="radio" name="printMethodOption" value="merge" checked />
-                            <span>合并印刷方式组</span>
-                        </label>
-                        <label class="pwca-print-method-option">
-                            <input type="radio" name="printMethodOption" value="separate" />
-                            <span>独立印刷方式组</span>
-                        </label>
-                    </div>
-                    
-                    <div class="dialog-actions">
-                        <button @click="assignLayerToPrintMethod" class="save-btn">Save</button>
+            <!-- 打印方法选择对话框 - 使用 MicroModal 标准结构 -->
+            <div class="pwca-print-method-modal modal micromodal-slide" id="pwca-print-method-modal" aria-hidden="true">
+                <div class="pwca-print-method-modal__overlay modal__overlay" tabindex="-1" data-micromodal-close>
+                    <div class="pwca-print-method-modal__container modal__container" role="dialog" aria-modal="true" aria-labelledby="pwca-print-method-title">
+                        <header class="pwca-print-method-modal__header modal__header">
+                            <h2 class="pwca-print-method-modal__title modal__title" id="pwca-print-method-title">Print Method Setting</h2>
+                            <button class="pwca-print-method-modal__close modal__close" aria-label="Close modal" data-micromodal-close></button>
+                        </header>
+                        <main class="pwca-print-method-modal__content modal__content">
+                            <div class="pwca-print-methods">
+                                <div class="pwca-method-grid">
+                                    <label v-for="method in printMethods" :key="method.id" class="pwca-method-option">
+                                        <input 
+                                            type="radio" 
+                                            v-model="selectedPrintMethodId" 
+                                            :value="method.id" 
+                                            name="printMethod" 
+                                        />
+                                        <span class="pwca-method-label">{{ method.label }}</span>                               
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="pwca-method-tabs">
+                                <div class="pwca-tab" :class="{active: activeTab === 'color'}" @click="activeTab = 'color'">Color</div>
+                                <div class="pwca-tab" :class="{active: activeTab === 'moq'}" @click="activeTab = 'moq'">MOQ</div>
+                                <div class="pwca-tab" :class="{active: activeTab === 'printarea'}" @click="activeTab = 'printarea'">Print Area</div>
+                            </div>
+                            
+                            <div class="pwca-tab-content">
+                                <div v-if="activeTab === 'color'" class="pwca-color-content">
+                                    <!-- Color 选项卡内容 -->
+                                    <p>Color settings will be displayed here</p>
+                                </div>
+                                <div v-if="activeTab === 'moq'" class="pwca-moq-content">
+                                    <!-- MOQ 选项卡内容 -->
+                                    <p>MOQ settings will be displayed here</p>
+                                </div>
+                                <div v-if="activeTab === 'printarea'" class="pwca-printarea-content">
+                                    <!-- Print Area 选项卡内容 -->
+                                    <p>Print Area settings will be displayed here</p>
+                                </div>
+                            </div>
+                            
+                            <!-- 单选框选项 -->
+                            <div v-if="isSelectedLayerInExistingGroup" class="pwca-combination-print-method-options">
+                                <label class="pwca-print-method-option">
+                                    <input type="radio" name="printMethodOption" value="merge" checked />
+                                    <span>合并印刷方式组</span>
+                                </label>
+                                <label class="pwca-print-method-option">
+                                    <input type="radio" name="printMethodOption" value="separate" />
+                                    <span>独立印刷方式组</span>
+                                </label>
+                            </div>
+                        </main>
+                        <footer class="pwca-print-method-modal__footer modal__footer">
+                            <button class="pwca-print-method-modal__btn modal__btn" data-micromodal-close>取消</button>
+                            <button class="pwca-print-method-modal__btn pwca-print-method-modal__btn--primary modal__btn modal__btn-primary" @click="assignLayerToPrintMethod">Save</button>
+                        </footer>
                     </div>
                 </div>
             </div>
@@ -1376,7 +1379,15 @@ const layersApp = Vue.createApp({
             const currentMethod = printMethodStore.getLayerPrintMethod(layer.id);
             selectedPrintMethodId.value = currentMethod ? currentMethod.id : printMethodStore.selectedPrintMethodId;
             activeTab.value = 'color';
-            showPrintMethodDialog.value = true;
+            
+            // 使用 MicroModal 显示弹窗
+            if (typeof MicroModal !== 'undefined') {
+                MicroModal.show('pwca-print-method-modal');
+            } else {
+                console.error('MicroModal 库未加载');
+                // 备用方案：使用原有的弹窗方式
+                alert('请选择印刷方式。');
+            }
         };
 
         const assignLayerToPrintMethod = () => {
@@ -1497,7 +1508,12 @@ const layersApp = Vue.createApp({
                 }
             }
 
-            showPrintMethodDialog.value = false;
+            // 关闭 MicroModal 弹窗
+            if (typeof MicroModal !== 'undefined') {
+                MicroModal.close('pwca-print-method-modal');
+            } else {
+                console.error('MicroModal 库未加载');
+            }
         };
 
         // 获取打印方式对应的颜色

@@ -1,0 +1,296 @@
+@charset "UTF-8";
+/**
+ * SCSS 变量集中定义文件
+ * 定义新变量前请先检查是否已存在相同或相似变量
+ * 每个变量必须包含使用说明注释
+ */
+/**
+ * SCSS 混合器集中定义文件
+ * 用于复用常见样式模式
+ */
+/*
+  PW Canvas 打印方法选择对话框样式
+  采用 BEM 命名法和嵌套语法实现命名空间隔离
+  使用防冲突命名规范：pwca- 前缀
+*/
+.pwca-print-method-modal.modal#pwca-print-method-modal.micromodal-slide {
+  display: none;
+}
+.pwca-print-method-modal.modal#pwca-print-method-modal.micromodal-slide.is-open {
+  display: block;
+}
+.pwca-print-method-modal__overlay, .modal#pwca-print-method-modal .modal__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+.pwca-print-method-modal__container, .modal#pwca-print-method-modal .modal__overlay .modal__container {
+  background-color: #ffffff;
+  padding: 32px;
+  max-width: 800px;
+  max-height: 90vh;
+  border-radius: 8px;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  position: relative;
+  margin: 0 16px;
+}
+.pwca-print-method-modal__header, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.pwca-print-method-modal__title, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__header .modal__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #64748b;
+}
+.pwca-print-method-modal__close, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__header .modal__close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.pwca-print-method-modal__close:hover, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__header .modal__close:hover {
+  color: #64748b;
+  background: #f8fafc;
+}
+.pwca-print-method-modal__content, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__content {
+  margin-bottom: 16px;
+}
+.pwca-print-method-modal__footer, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  padding-top: 4px;
+  border-top: 1px solid #e2e8f0;
+}
+.pwca-print-method-modal__btn, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid #e2e8f0;
+  font-weight: 500;
+  background: #ffffff;
+  color: #64748b;
+}
+.pwca-print-method-modal__btn:focus, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+.pwca-print-method-modal__btn:disabled, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.pwca-print-method-modal__btn:hover, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn:hover {
+  background: #f8fafc;
+  border-color: #9ca3af;
+}
+.pwca-print-method-modal__btn--primary, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn.modal__btn-primary {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+.pwca-print-method-modal__btn--primary:hover, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn.modal__btn-primary:hover {
+  background: #0b63f3;
+  border-color: #0b63f3;
+}
+
+.pwca-print-methods {
+  margin-bottom: 24px;
+}
+.pwca-print-methods__grid, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__content .pwca-print-methods .pwca-method-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.pwca-method-option, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__content .pwca-print-methods .pwca-method-grid .pwca-method-option {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #ffffff;
+}
+.pwca-method-option:hover, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__content .pwca-print-methods .pwca-method-grid .pwca-method-option:hover {
+  border-color: #3b82f6;
+  background: #f8fafc;
+}
+.pwca-method-option--selected {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+.pwca-method-option input[type=radio], .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__content .pwca-print-methods .pwca-method-grid .pwca-method-option input[type=radio] {
+  margin-right: 4px;
+}
+.pwca-method-option input[type=radio]:checked, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__content .pwca-print-methods .pwca-method-grid .pwca-method-option input[type=radio]:checked {
+  accent-color: #3b82f6;
+}
+.pwca-method-option input[type=radio]:checked + .pwca-method-label, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__content .pwca-print-methods .pwca-method-grid .pwca-method-option input[type=radio]:checked + .pwca-method-label {
+  font-weight: 600;
+  color: #3b82f6;
+}
+.pwca-method-option:has(input[type=radio]:checked), .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__content .pwca-print-methods .pwca-method-grid .pwca-method-option:has(input[type=radio]:checked) {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.pwca-method-label, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__content .pwca-print-methods .pwca-method-grid .pwca-method-option .pwca-method-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.pwca-method-tabs, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__content .pwca-method-tabs {
+  margin-top: 16px;
+}
+.pwca-method-tabs__nav {
+  display: flex;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 16px;
+}
+.pwca-method-tabs__tab, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__content .pwca-method-tabs .pwca-tab {
+  padding: 4px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #6b7280;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.pwca-method-tabs__tab:hover, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__content .pwca-method-tabs .pwca-tab:hover {
+  color: #64748b;
+}
+.pwca-method-tabs__tab--active, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__content .pwca-method-tabs .pwca-tab.pwca-tab-active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+  font-weight: 500;
+}
+
+.pwca-tab-content__panel {
+  display: none;
+}
+.pwca-tab-content__panel--active {
+  display: block;
+}
+
+.pwca-color-content__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+}
+.pwca-color-content__color {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  border: 2px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.pwca-color-content__color:hover {
+  transform: scale(1.1);
+  border-color: #3b82f6;
+}
+.pwca-color-content__color--selected {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.pwca-moq-content__input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.pwca-moq-content__input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+.pwca-moq-content__label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.pwca-printarea-content__options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pwca-printarea-content__option {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.pwca-printarea-content__option:hover {
+  background: #f8fafc;
+  border-color: #3b82f6;
+}
+.pwca-printarea-content__option--selected {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+}
+.pwca-printarea-content__option input[type=radio] {
+  margin-right: 4px;
+}
+.pwca-printarea-content__option input[type=radio]:checked {
+  accent-color: #3b82f6;
+}
+.pwca-printarea-content__option label {
+  font-size: 14px;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.modal#pwca-print-method-modal.micromodal-slide {
+  display: none;
+}
+.modal#pwca-print-method-modal.micromodal-slide.is-open {
+  display: block;
+}/*# sourceMappingURL=pwca-print-method-modal.css.map */

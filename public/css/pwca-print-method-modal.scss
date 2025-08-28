@@ -1,0 +1,431 @@
+// MicroModal 打印方法选择对话框样式 SCSS 源文件
+// 导入变量和混合器
+@import 'variables';
+@import 'mixins';
+
+/*
+  PW Canvas 打印方法选择对话框样式
+  采用 BEM 命名法和嵌套语法实现命名空间隔离
+  使用防冲突命名规范：pwca- 前缀
+*/
+
+// 主模态弹窗容器
+.pwca-print-method-modal {
+    // MicroModal 兼容性支持
+    &.modal {
+        &#pwca-print-method-modal {
+            &.micromodal-slide {
+                display: none;
+                
+                &.is-open {
+                    display: block;
+                }
+            }
+        }
+    }
+    
+    // 弹窗遮罩层
+    &__overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    }
+    
+    // 弹窗容器
+    &__container {
+        background-color: $canvas-bg-color;
+        padding: $canvas-spacing-xl;
+        max-width: 800px;
+        max-height: 90vh;
+        border-radius: $canvas-border-radius-lg;
+        overflow-y: auto;
+        box-shadow: $canvas-shadow-lg;
+        position: relative;
+        margin: 0 $canvas-spacing-md;
+    }
+    
+    // 弹窗头部
+    &__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: $canvas-spacing-md;
+        padding-bottom: $canvas-spacing-xs;
+        border-bottom: 1px solid $canvas-border-color;
+    }
+    
+    // 弹窗标题
+    &__title {
+        margin: 0;
+        font-size: $canvas-font-size-xl;
+        font-weight: 600;
+        color: $canvas-secondary-color;
+    }
+    
+    // 关闭按钮
+    &__close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #6b7280;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: $canvas-border-radius;
+        transition: all $canvas-transition-base;
+        
+        &:hover {
+            color: $canvas-secondary-color;
+            background: $canvas-bg-secondary;
+        }
+    }
+    
+    // 弹窗内容
+    &__content {
+        margin-bottom: $canvas-spacing-md;
+    }
+    
+    // 弹窗底部
+    &__footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: $canvas-spacing-xs;
+        padding-top: $canvas-spacing-xs;
+        border-top: 1px solid $canvas-border-color;
+    }
+    
+    // 按钮样式
+    &__btn {
+        @include canvas-button-base;
+        border: 1px solid $canvas-border-color;
+        font-weight: 500;
+        background: $canvas-bg-color;
+        color: $canvas-secondary-color;
+        
+        &:hover {
+            background: $canvas-bg-secondary;
+            border-color: #9ca3af;
+        }
+        
+        // 主要按钮修饰符
+        &--primary {
+            background: $canvas-primary-color;
+            color: $canvas-bg-color;
+            border-color: $canvas-primary-color;
+            
+            &:hover {
+                background: darken($canvas-primary-color, 10%);
+                border-color: darken($canvas-primary-color, 10%);
+            }
+        }
+    }
+}
+
+// 打印方法网格
+.pwca-print-methods {
+    margin-bottom: $canvas-spacing-lg;
+    
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: $canvas-spacing-md;
+        margin-bottom: $canvas-spacing-lg;
+    }
+}
+
+// 打印方法选项
+.pwca-method-option {
+    display: flex;
+    flex-direction: column;
+    padding: $canvas-spacing-md;
+    border: 2px solid $canvas-border-color;
+    border-radius: $canvas-border-radius-lg;
+    cursor: pointer;
+    transition: all $canvas-transition-base;
+    background: $canvas-bg-color;
+    
+    &:hover {
+        border-color: $canvas-primary-color;
+        background: $canvas-bg-secondary;
+    }
+    
+    &--selected {
+        border-color: $canvas-primary-color;
+        background: rgba($canvas-primary-color, 0.1);
+    }
+    
+    input[type="radio"] {
+        margin-right: $canvas-spacing-xs;
+        
+        &:checked {
+            accent-color: $canvas-primary-color;
+        }
+        
+        &:checked + .pwca-method-label {
+            font-weight: 600;
+            color: $canvas-primary-color;
+        }
+    }
+    
+    &:has(input[type="radio"]:checked) {
+        border-color: $canvas-primary-color;
+        background: rgba($canvas-primary-color, 0.1);
+    }
+}
+
+// 方法标签
+.pwca-method-label {
+    font-size: $canvas-font-size-base;
+    font-weight: 500;
+    color: $canvas-secondary-color;
+    margin-bottom: $canvas-spacing-xs;
+    display: flex;
+    align-items: center;
+}
+
+// 方法标签页
+.pwca-method-tabs {
+    margin-top: $canvas-spacing-md;
+    
+    &__nav {
+        display: flex;
+        border-bottom: 1px solid $canvas-border-color;
+        margin-bottom: $canvas-spacing-md;
+    }
+    
+    &__tab {
+        padding: $canvas-spacing-xs $canvas-spacing-md;
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: $canvas-font-size-base;
+        color: #6b7280;
+        border-bottom: 2px solid transparent;
+        transition: all $canvas-transition-base;
+        
+        &:hover {
+            color: $canvas-secondary-color;
+        }
+        
+        &--active {
+            color: $canvas-primary-color;
+            border-bottom-color: $canvas-primary-color;
+            font-weight: 500;
+        }
+    }
+}
+
+// 标签页内容
+.pwca-tab-content {
+    &__panel {
+        display: none;
+        
+        &--active {
+            display: block;
+        }
+    }
+}
+
+// 颜色内容
+.pwca-color-content {
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+        gap: $canvas-spacing-xs;
+        max-height: 200px;
+        overflow-y: auto;
+        padding: $canvas-spacing-xs;
+        border: 1px solid $canvas-border-color;
+        border-radius: $canvas-border-radius;
+    }
+    
+    &__color {
+        width: 40px;
+        height: 40px;
+        border-radius: $canvas-border-radius;
+        border: 2px solid $canvas-border-color;
+        cursor: pointer;
+        transition: all $canvas-transition-base;
+        
+        &:hover {
+            transform: scale(1.1);
+            border-color: $canvas-primary-color;
+        }
+        
+        &--selected {
+            border-color: $canvas-primary-color;
+            box-shadow: 0 0 0 2px rgba($canvas-primary-color, 0.3);
+        }
+    }
+}
+
+// MOQ内容
+.pwca-moq-content {
+    &__input {
+        width: 100%;
+        padding: $canvas-spacing-xs $canvas-spacing-sm;
+        border: 1px solid $canvas-border-color;
+        border-radius: $canvas-border-radius;
+        font-size: $canvas-font-size-base;
+        transition: all $canvas-transition-base;
+        
+        &:focus {
+            outline: none;
+            border-color: $canvas-primary-color;
+            box-shadow: 0 0 0 3px rgba($canvas-primary-color, 0.2);
+        }
+    }
+    
+    &__label {
+        display: block;
+        margin-bottom: $canvas-spacing-xs;
+        font-size: $canvas-font-size-base;
+        font-weight: 500;
+        color: $canvas-secondary-color;
+    }
+}
+
+// 印刷区域内容
+.pwca-printarea-content {
+    &__options {
+        display: flex;
+        flex-direction: column;
+        gap: $canvas-spacing-xs;
+    }
+    
+    &__option {
+        display: flex;
+        align-items: center;
+        padding: $canvas-spacing-xs;
+        border: 1px solid $canvas-border-color;
+        border-radius: $canvas-border-radius;
+        cursor: pointer;
+        transition: all $canvas-transition-base;
+        
+        &:hover {
+            background: $canvas-bg-secondary;
+            border-color: $canvas-primary-color;
+        }
+        
+        &--selected {
+            background: rgba($canvas-primary-color, 0.1);
+            border-color: $canvas-primary-color;
+        }
+        
+        input[type="radio"] {
+            margin-right: $canvas-spacing-xs;
+            
+            &:checked {
+                accent-color: $canvas-primary-color;
+            }
+        }
+        
+        label {
+            font-size: $canvas-font-size-base;
+            color: $canvas-secondary-color;
+            cursor: pointer;
+        }
+    }
+}
+
+// MicroModal 兼容性支持
+.modal {
+    &#pwca-print-method-modal {
+        &.micromodal-slide {
+            display: none;
+            
+            &.is-open {
+                display: block;
+            }
+        }
+        
+        .modal__overlay {
+            @extend .pwca-print-method-modal__overlay;
+            
+            .modal__container {
+                @extend .pwca-print-method-modal__container;
+                
+                .modal__header {
+                    @extend .pwca-print-method-modal__header;
+                    
+                    .modal__title {
+                        @extend .pwca-print-method-modal__title;
+                    }
+                    
+                    .modal__close {
+                        @extend .pwca-print-method-modal__close;
+                    }
+                }
+                
+                .modal__content {
+                    @extend .pwca-print-method-modal__content;
+                    
+                    .pwca-print-methods {
+                        .pwca-method-grid {
+                            @extend .pwca-print-methods__grid;
+                            
+                            .pwca-method-option {
+                                @extend .pwca-method-option;
+                                
+                                .pwca-method-label {
+                                    @extend .pwca-method-label;
+                                }
+                            }
+                        }
+                    }
+                    
+                    .pwca-method-tabs {
+                        @extend .pwca-method-tabs;
+                        
+                        .pwca-tab {
+                            @extend .pwca-method-tabs__tab;
+                            
+                            &.pwca-tab-active {
+                                @extend .pwca-method-tabs__tab--active;
+                            }
+                        }
+                    }
+                    
+                    .pwca-tab-content {
+                        @extend .pwca-tab-content;
+                        
+                        .pwca-color-content {
+                            @extend .pwca-color-content;
+                        }
+                        
+                        .pwca-moq-content {
+                            @extend .pwca-moq-content;
+                        }
+                        
+                        .pwca-printarea-content {
+                            @extend .pwca-printarea-content;
+                        }
+                    }
+                }
+                
+                .modal__footer {
+                    @extend .pwca-print-method-modal__footer;
+                    
+                    .modal__btn {
+                        @extend .pwca-print-method-modal__btn;
+                        
+                        &.modal__btn-primary {
+                            @extend .pwca-print-method-modal__btn--primary;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

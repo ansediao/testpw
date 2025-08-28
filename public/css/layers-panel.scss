@@ -3,8 +3,9 @@
 @import 'variables';
 @import 'mixins';
 
-// 导入 MicroModal 图层组印刷方式修改弹窗样式
+// 导入 MicroModal 弹窗样式
 @import 'pwca-group-print-method-modal';
+@import 'pwca-print-method-modal';
 
 // 图层面板特有变量
 // 按钮尺寸 - 用于图层面板中的操作按钮
