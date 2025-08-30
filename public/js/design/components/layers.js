@@ -1056,6 +1056,9 @@ const layersApp = Vue.createApp({
                 if (!currentViewId)
                     return;
 
+                // 记录删除前所属组 ID（用于后续检测是否需要删除空组）
+                const parentGroupId = layer.groupId;
+
                 // 先从画布中删除对象
                 deleteCanvasObject(layer.id);
 
@@ -1070,6 +1073,23 @@ const layersApp = Vue.createApp({
                     store.setActiveObjectId(null);
                     // 隐藏蒙版画布
                     controlMaskCanvasVisibility(null);
+                }
+
+                // 如果有所属组，检查该组是否已为空；若为空则自动删除该组
+                if (parentGroupId) {
+                    const remaining = getGroupLayers(parentGroupId);
+                    if (!remaining || remaining.length === 0) {
+                        const currentViewGroups = store.getViewLayerGroups(currentViewId) || [];
+                        const groupExists = currentViewGroups.some(g => g.id === parentGroupId);
+                        if (groupExists) {
+                            const updatedGroups = currentViewGroups.filter(g => g.id !== parentGroupId);
+                            store.setViewLayerGroups(currentViewId, updatedGroups);
+                        }
+                        // 清除组选中状态
+                        if (store.activeGroupId === parentGroupId) {
+                            store.setActiveGroupId(null);
+                        }
+                    }
                 }
             }
         };
