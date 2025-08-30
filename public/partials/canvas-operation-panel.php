@@ -1024,7 +1024,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                 }
             </script>
 
-            <button id="addImageBtn" style="margin-top: 10px;" onclick="document.getElementById('imageInput').click()">
+            <button id="addImageBtn" class="btn btn-custom" style="margin-top: 10px;" onclick="document.getElementById('imageInput').click()">
                 <svg viewBox="0 0 24 24" width="16" height="16" style="vertical-align: middle;">
                     <path fill="currentColor"
                         d="M21,19V5c0-1.1-0.9-2-2-2H5c-1.1,0-2,0.9-2,2v14c0,1.1,0.9,2,2,2h14C20.1,21,21,20.1,21,19z M8.5,13.5l2.5,3.01L14.5,12l4.5,6H5l3.5-4.5z" />
