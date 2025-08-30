@@ -34,15 +34,15 @@ export const layerModalsTemplate = `
                     <div class="pwca-tab-content">
                         <div v-if="activeTab === 'color'" class="pwca-color-content">
                             <!-- Color 选项卡内容 -->
-                            <p>Color settings will be displayed here</p>
+                            <p>{{ printMethods.find(method => method.id === selectedPrintMethodId)?.apiData.printable_color || 'No method selected' }}</p>
                         </div>
                         <div v-if="activeTab === 'moq'" class="pwca-moq-content">
                             <!-- MOQ 选项卡内容 -->
-                            <p>MOQ settings will be displayed here</p>
+                            <p>{{ printMethods.find(method => method.id === selectedPrintMethodId)?.apiData.moq_quantity || 'No method selected' }}</p>
                         </div>
                         <div v-if="activeTab === 'printarea'" class="pwca-printarea-content">
                             <!-- Print Area 选项卡内容 -->
-                            <p>Print Area settings will be displayed here</p>
+                            <p>{{ printMethods.find(method => method.id === selectedPrintMethodId)?.apiData.print_method_area || 'No method selected' }}</p>
                         </div>
                     </div>
                     
