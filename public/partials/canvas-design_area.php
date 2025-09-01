@@ -144,7 +144,7 @@ if ($first_image_url) {
      * @param {object} layer - 来自 API 的单个图层对象。
      * @returns {Promise<fabric.Object|null>} 一个 Promise，如果图层无法创建，则解析为 fabric 对象或 null。
      */
-    function createFabricObjectFromLayer(layer) {
+    function createFabricObjectFromLayer(canvas, layer) {
         return new Promise((resolve, reject) => {
             const data = layer.layer_data;
             const controls = data.controls;
@@ -159,6 +159,18 @@ if ($first_image_url) {
                     }
 
                     fabric.Image.fromURL(data.content.imageURL, (img) => {
+
+                        const canvasWidth = canvas.getWidth();
+                        const canvasHeight = canvas.getHeight();
+                        // 注意：img.width 和 img.height 是图片的原始尺寸
+                        const imgWidth = img.width;
+                        const imgHeight = img.height;
+
+                        const scale = Math.min(canvasWidth / imgWidth, canvasHeight / imgHeight);
+
+
+
+
                         const origins = getOriginFromAnchorPoint(position.anchorPoint || 'top-left');
 
                         // 使用坐标转换函数处理不同原点的坐标
@@ -170,29 +182,36 @@ if ($first_image_url) {
                             origins.originX,
                             origins.originY
                         );
+                       
 
                         img.set({
-                            left: convertedCoords.x,
-                            top: convertedCoords.y,
+
                             angle: position.rotation,
                             originX: origins.originX,
                             originY: origins.originY,
-                            width: data.dimensions.layerSize.width,
-                            height: data.dimensions.layerSize.height,
+
                             opacity: data.content.opacity / 100,
                             selectable: controls.movable,
                             evented: controls.movable,
                             lockRotation: !controls.rotatable,
-                            lockScalingX: !controls.scalable,
-                            lockScalingY: !controls.scalable,
+                            // lockScalingX: !controls.scalable,
+                            // lockScalingY: !controls.scalable,
                             hasControls: controls.movable && controls.scalable,
                             hasBorders: controls.movable,
                             name: layer.name
                         });
+                        img.scale(scale);
+
+                        //如果 center
+                        if (position.anchorPoint === 'center') {
+                            canvas.centerObject(img);
+                            canvas.renderAll();
+                        }
                         resolve(img);
                     }, {
                         crossOrigin: 'anonymous'
                     });
+
                     break;
 
                 case 'text':
@@ -265,7 +284,7 @@ if ($first_image_url) {
             // 应用滤镜
             layerObject.filters = [colorFilter];
             layerObject.applyFilters();
-            
+
             // 如果对象在画布上，强制重新渲染
             if (layerObject.canvas) {
                 layerObject.canvas.renderAll();
@@ -818,7 +837,7 @@ if ($first_image_url) {
         }
 
         try {
-            const fabricObject = await createFabricObjectFromLayer(layer);            
+            const fabricObject = await createFabricObjectFromLayer(canvas, layer);
 
             // 如果满足条件（图层名称为 Base Layer），将对象存入 Pinia store
             if (fabricObject && layer.name === 'Base Layer' && view && store) {
