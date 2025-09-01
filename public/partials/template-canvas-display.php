@@ -118,57 +118,42 @@ if ($product_id > 0) {
                 const moqDesignEl = document.getElementById('moqDesignLine');
                 if (!moqDesignEl) return;
 
-                function updateMoqDesignVisibility() {
+                function applyVisibilityByGetter() {
                   try {
                     const store = window.useCanvasStore && window.useCanvasStore();
                     if (!store) return;
-
-                    const flag = store.productData && store.productData.customization_settings && store.productData.customization_settings.data ?
-                      store.productData.customization_settings.data.moq_items_design :
-                      undefined;
-
-                    if (flag === false || flag === 0 || flag === 'false') {
-                      moqDesignEl.style.display = 'none';
-                    } else {
-                      moqDesignEl.style.display = '';
-                    }
-                    // 找到紧邻的换行元素（<br>）
-                    const brEl = moqDesignEl.nextElementSibling && moqDesignEl.nextElementSibling.tagName === 'BR' ?
-                      moqDesignEl.nextElementSibling :
-                      null;
-
-                    if (flag === false || flag === 0 || flag === 'false') {
-                      moqDesignEl.style.display = 'none';
-                      if (brEl) brEl.style.display = 'none';
-                    } else {
+                    const shouldShow = !!store.shouldShowMoqDesign;
+                    const brEl = moqDesignEl.nextElementSibling && moqDesignEl.nextElementSibling.tagName === 'BR'
+                      ? moqDesignEl.nextElementSibling
+                      : null;
+                    if (shouldShow) {
                       moqDesignEl.style.display = '';
                       if (brEl) brEl.style.display = '';
+                    } else {
+                      moqDesignEl.style.display = 'none';
+                      if (brEl) brEl.style.display = 'none';
                     }
                   } catch (e) {
-                    console.warn('[Canvas] 更新 MOQ 设计行可见性失败:', e);
+                    console.warn('[Canvas] 应用 MOQ 可见性失败:', e);
                   }
                 }
 
-                // 初次尝试
-                updateMoqDesignVisibility();
+                applyVisibilityByGetter();
 
-                // 订阅 Pinia 变化
                 try {
                   const store = window.useCanvasStore && window.useCanvasStore();
                   if (store && typeof store.$subscribe === 'function') {
                     store.$subscribe((mutation, state) => {
                       if (mutation.storeId === 'canvas') {
-                        updateMoqDesignVisibility();
+                        applyVisibilityByGetter();
                       }
                     });
                   }
-                } catch (e) {
-                  /* 忽略订阅错误 */ }
+                } catch (e) { /* 忽略订阅错误 */ }
 
-                // Pinia 就绪事件触发时再尝试一次（确保模块脚本初始化完成）
-                document.addEventListener('canvasPiniaReady', updateMoqDesignVisibility, {
-                  once: true
-                });
+                document.addEventListener('canvasPiniaReady', applyVisibilityByGetter, { once: true });
+
+                window.__pwcaUpdateMoqDesignVisibility = applyVisibilityByGetter;
               });
             </script>
 

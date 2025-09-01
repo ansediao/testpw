@@ -43,7 +43,44 @@ export const useCanvasStore = defineStore('canvas', {
         activeViewId: null,     // 当前激活的视图ID
         productViewFlow: null,  // 产品视图流程类型，来自 productData.templates.views[0].view_flow
     }),
-    // 4. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
+    // 4. getters 定义依赖状态的计算逻辑（所有依赖 Store 状态的计算放在这里）
+    getters: {
+        // 原始开关值
+        moqItemsDesignRaw: (state) => state.productData && state.productData.customization_settings && state.productData.customization_settings.data
+            ? state.productData.customization_settings.data.moq_items_design
+            : undefined,
+        // 标准化布尔：只要不是 false/0/'false'/'0'/null/undefined 即认为开启
+        moqItemsDesignEnabled() {
+            const raw = this.moqItemsDesignRaw;
+            return !(raw === false || raw === 0 || raw === 'false' || raw === '0' || raw === null || raw === undefined);
+        },
+        // 是否任意视图存在被分组的图层（依据 layer.groupId）
+        hasAnyGroupedLayersAcrossViews() {
+            try {
+                const viewIds = Object.keys(this.viewLayers || {});
+                for (const vid of viewIds) {
+                    const layers = typeof this.getViewLayers === 'function' ? this.getViewLayers(vid) : (this.viewLayers[vid] || []);
+                    if (layers && layers.some(l => l && l.groupId)) return true;
+                }
+                if (Array.isArray(this.views)) {
+                    for (const v of this.views) {
+                        const vid = v && v.id;
+                        if (!vid) continue;
+                        const layers = typeof this.getViewLayers === 'function' ? this.getViewLayers(vid) : ((this.viewLayers && this.viewLayers[vid]) || []);
+                        if (layers && layers.some(l => l && l.groupId)) return true;
+                    }
+                }
+            } catch (e) {
+                console.warn('[Canvas] hasAnyGroupedLayersAcrossViews getter error:', e);
+            }
+            return false;
+        },
+        // 最终是否显示“按设计 MOQ”
+        shouldShowMoqDesign() {
+            return this.moqItemsDesignEnabled && this.hasAnyGroupedLayersAcrossViews;
+        }
+    },
+    // 5. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
     actions: {
         // 切换当前激活的画板
         setActiveCanvasId(id) { this.activeCanvasId = id; },
