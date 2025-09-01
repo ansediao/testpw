@@ -542,7 +542,27 @@ class Pw_Admin_Promowares_Api
             $aggregated_data['variants_error'] = $variant_data->get_error_message();
         }
 
-        // 4. Get mock data from external API
+        // 4. Get user customization settings (global)
+        $customization_settings = $this->call_promowares_api("customization-settings", $token);
+        if (!is_wp_error($customization_settings)) {
+            $aggregated_data['customization_settings'] = $customization_settings;
+            $aggregated_data['has_customization_settings'] = true;
+        } else {
+            $aggregated_data['has_customization_settings'] = false;
+            $aggregated_data['customization_settings_error'] = $customization_settings->get_error_message();
+        }
+
+        // 5. Get user points info
+        $points_info = $this->call_promowares_api("points/info", $token);
+        if (!is_wp_error($points_info)) {
+            $aggregated_data['points'] = $points_info;
+            $aggregated_data['has_points'] = true;
+        } else {
+            $aggregated_data['has_points'] = false;
+            $aggregated_data['points_error'] = $points_info->get_error_message();
+        }
+
+        // 6. Get mock data from external API
         $mock_data = $this->call_mock_api($product_id);
         if (!is_wp_error($mock_data)) {
             $aggregated_data['mock_data'] = $mock_data;
@@ -552,7 +572,7 @@ class Pw_Admin_Promowares_Api
             $aggregated_data['mock_data_error'] = $mock_data->get_error_message();
         }
 
-        // 5. Get WooCommerce product data if exists
+        // 7. Get WooCommerce product data if exists
         $woo_products = get_posts(array(
             'post_type' => 'product',
             'meta_query' => array(
