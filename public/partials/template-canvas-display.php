@@ -38,7 +38,7 @@ if ($product_id > 0) {
   <script src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
 
 
-  
+
   <link rel="stylesheet" href="//at.alicdn.com/t/c/font_4970780_pfyts3fzl6.css?time=<?php echo  microtime(true); ?>" />
   <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/203.css?time=<?php echo  microtime(true); ?>" />
   <!-- 设计页面 画布区域 css -->
@@ -109,7 +109,68 @@ if ($product_id > 0) {
         <div class="product-card__info">
           <div class="product-card__detail">
             <span class="product-card__label">Minimum Order Quantity</span>
-            <span class="product-card__value">100Pcs / Design<br>25Pcs / Color</span>
+            <span class="product-card__value">
+              <span id="moqDesignLine">100Pcs / Design</span><br><span id="moqColorLine">25Pcs / Color</span>
+            </span>
+
+            <script>
+              document.addEventListener('DOMContentLoaded', function() {
+                const moqDesignEl = document.getElementById('moqDesignLine');
+                if (!moqDesignEl) return;
+
+                function updateMoqDesignVisibility() {
+                  try {
+                    const store = window.useCanvasStore && window.useCanvasStore();
+                    if (!store) return;
+
+                    const flag = store.productData && store.productData.customization_settings && store.productData.customization_settings.data ?
+                      store.productData.customization_settings.data.moq_items_design :
+                      undefined;
+
+                    if (flag === false || flag === 0 || flag === 'false') {
+                      moqDesignEl.style.display = 'none';
+                    } else {
+                      moqDesignEl.style.display = '';
+                    }
+                    // 找到紧邻的换行元素（<br>）
+                    const brEl = moqDesignEl.nextElementSibling && moqDesignEl.nextElementSibling.tagName === 'BR' ?
+                      moqDesignEl.nextElementSibling :
+                      null;
+
+                    if (flag === false || flag === 0 || flag === 'false') {
+                      moqDesignEl.style.display = 'none';
+                      if (brEl) brEl.style.display = 'none';
+                    } else {
+                      moqDesignEl.style.display = '';
+                      if (brEl) brEl.style.display = '';
+                    }
+                  } catch (e) {
+                    console.warn('[Canvas] 更新 MOQ 设计行可见性失败:', e);
+                  }
+                }
+
+                // 初次尝试
+                updateMoqDesignVisibility();
+
+                // 订阅 Pinia 变化
+                try {
+                  const store = window.useCanvasStore && window.useCanvasStore();
+                  if (store && typeof store.$subscribe === 'function') {
+                    store.$subscribe((mutation, state) => {
+                      if (mutation.storeId === 'canvas') {
+                        updateMoqDesignVisibility();
+                      }
+                    });
+                  }
+                } catch (e) {
+                  /* 忽略订阅错误 */ }
+
+                // Pinia 就绪事件触发时再尝试一次（确保模块脚本初始化完成）
+                document.addEventListener('canvasPiniaReady', updateMoqDesignVisibility, {
+                  once: true
+                });
+              });
+            </script>
 
           </div>
           <div class="product-card__detail">
@@ -199,7 +260,7 @@ if ($product_id > 0) {
 
   <!-- 加载 Pinia 同步工具 -->
   <script src="<?php echo plugin_dir_url(__FILE__) . '../js/utils/piniaSync.js?time=' . microtime(true); ?>"></script>
-  
+
 
   <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>
     <!-- 开发环境：画布同步示例 -->
@@ -241,7 +302,7 @@ if ($product_id > 0) {
           const store = window.useCanvasStore();
           await store.fetchProductData(pwId);
           console.log('产品数据已加载到 Pinia store');
-          
+
           // 监听 productViewFlow 变化，控制 customization-area 显示
           function updateCustomizationAreaVisibility() {
             const customizationArea = document.querySelector('.customization-area');
@@ -256,10 +317,10 @@ if ($product_id > 0) {
               }
             }
           }
-          
+
           // 初始检查
           // updateCustomizationAreaVisibility();
-          
+
           // // 监听 store 状态变化
           // store.$subscribe((mutation, state) => {
           //   if (mutation.storeId === 'canvas') {
@@ -512,7 +573,7 @@ if ($product_id > 0) {
           if (window.CanvasManager) {
             window.CanvasManager.setActiveCanvas(view.id);
           }
-          
+
           // 获取当前视图的画布实例
           const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(view.id) : null;
           if (canvas) {
@@ -663,7 +724,7 @@ if ($product_id > 0) {
           if (window.CanvasManager) {
             window.CanvasManager.setActiveCanvas(originalActiveViewId);
           }
-          
+
           const originalCanvas = window.CanvasManager ? window.CanvasManager.getCanvas(originalActiveViewId) : null;
           if (originalCanvas) {
             if (window.setGlobalCanvas) {
