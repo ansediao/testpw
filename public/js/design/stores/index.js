@@ -78,6 +78,20 @@ export const useCanvasStore = defineStore('canvas', {
         // 最终是否显示“按设计 MOQ”
         shouldShowMoqDesign() {
             return this.moqItemsDesignEnabled && this.hasAnyGroupedLayersAcrossViews;
+        },
+        
+        // 原始开关值（Color）
+        moqItemsColorRaw: (state) => state.productData && state.productData.customization_settings && state.productData.customization_settings.data
+            ? state.productData.customization_settings.data.moq_items_color
+            : undefined,
+        // 标准化布尔：与 moq_items_design 规则一致
+        moqItemsColorEnabled() {
+            const raw = this.moqItemsColorRaw;
+            return !(raw === false || raw === 0 || raw === 'false' || raw === '0' || raw === null || raw === undefined);
+        },
+        // 最终是否显示“按颜色 MOQ”
+        shouldShowMoqColor() {
+            return this.moqItemsColorEnabled;
         }
     },
     // 5. actions 定义所有修改 state 的方法（类似于 class 的成员方法）

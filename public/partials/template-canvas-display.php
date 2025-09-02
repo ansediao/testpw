@@ -118,28 +118,49 @@ if ($product_id > 0) {
                 const moqDesignEl = document.getElementById('moqDesignLine');
                 if (!moqDesignEl) return;
 
+                const moqColorEl = document.getElementById('moqColorLine');
+
                 function applyVisibilityByGetter() {
                   try {
                     const store = window.useCanvasStore && window.useCanvasStore();
                     if (!store) return;
-                    const shouldShow = !!store.shouldShowMoqDesign;
+
+                    // 1) 计算是否显示 “Pcs / Design”
+                    const showDesign = !!store.shouldShowMoqDesign;
+
+                    // 2) 计算是否显示 “Pcs / Color”
+                    // 优先使用 Pinia getter，与 moq_items_design 规则保持一致；
+                    // 回退到原始字段判断时，也按相同的“非 false/0/'false'/'0'/null/undefined 即开启”的规则。
+                    let showColor = false;
+                    try {
+                      if (Object.prototype.hasOwnProperty.call(store, 'shouldShowMoqColor')) {
+                        showColor = !!store.shouldShowMoqColor;
+                      } else {
+                        const raw = store?.productData?.customization_settings?.data?.moq_items_color;
+                        showColor = !(raw === false || raw === 0 || raw === 'false' || raw === '0' || raw === null || raw === undefined);
+                      }
+                    } catch (e) {
+                      showColor = false;
+                    }
+
+                    // 3) <br> 在 Design 与 Color 之间，仅当两者都显示时才显示
                     const brEl = moqDesignEl.nextElementSibling && moqDesignEl.nextElementSibling.tagName === 'BR'
                       ? moqDesignEl.nextElementSibling
                       : null;
-                    if (shouldShow) {
-                      moqDesignEl.style.display = '';
-                      if (brEl) brEl.style.display = '';
-                    } else {
-                      moqDesignEl.style.display = 'none';
-                      if (brEl) brEl.style.display = 'none';
-                    }
+
+                    // 应用显示/隐藏
+                    moqDesignEl.style.display = showDesign ? '' : 'none';
+                    if (moqColorEl) moqColorEl.style.display = showColor ? '' : 'none';
+                    if (brEl) brEl.style.display = (showDesign && showColor) ? '' : 'none';
                   } catch (e) {
                     console.warn('[Canvas] 应用 MOQ 可见性失败:', e);
                   }
                 }
 
+                // 初始应用一次
                 applyVisibilityByGetter();
 
+                // 订阅 Pinia 变化
                 try {
                   const store = window.useCanvasStore && window.useCanvasStore();
                   if (store && typeof store.$subscribe === 'function') {
@@ -151,8 +172,10 @@ if ($product_id > 0) {
                   }
                 } catch (e) { /* 忽略订阅错误 */ }
 
+                // Pinia 就绪回调（防止脚本早于 stores 执行）
                 document.addEventListener('canvasPiniaReady', applyVisibilityByGetter, { once: true });
 
+                // 暴露调试函数（可在控制台手动触发）
                 window.__pwcaUpdateMoqDesignVisibility = applyVisibilityByGetter;
               });
             </script>
