@@ -245,6 +245,36 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                 }
             }
             return max;
+        },
+        
+        // 获取所有视图中已使用印刷方式的print_cost总和（每种印刷方式只计算一次）
+        getTotalPrintCostFromUsedMethods: (state) => {
+            const uniqueMethodIds = new Set();
+            let totalCost = 0;
+            
+            const viewsMap = state.usedPrintMethodsByView || {};
+            for (const viewId in viewsMap) {
+                if (!Object.prototype.hasOwnProperty.call(viewsMap, viewId)) continue;
+                const methodsMap = viewsMap[viewId] || {};
+                
+                for (const methodId in methodsMap) {
+                    if (!Object.prototype.hasOwnProperty.call(methodsMap, methodId)) continue;
+                    
+                    // 确保每种印刷方式只计算一次
+                    if (uniqueMethodIds.has(methodId)) continue;
+                    uniqueMethodIds.add(methodId);
+                    
+                    const method = methodsMap[methodId];
+                    if (!method || !method.apiData) continue;
+                    
+                    const printCost = Number(method.apiData.print_cost);
+                    if (Number.isFinite(printCost) && printCost > 0) {
+                        totalCost += printCost;
+                    }
+                }
+            }
+            
+            return totalCost;
         }
     },
 

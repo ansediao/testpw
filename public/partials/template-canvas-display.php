@@ -365,14 +365,20 @@ if ($product_id > 0) {
                 const updatePriceDisplay = () => {
                   try {
                     const canvasStore = window.useCanvasStore && window.useCanvasStore();
+                    const printMethodStore = window.usePrintMethodStore && window.usePrintMethodStore();
+                    
                     if (canvasStore) {
-                      // 获取所有视图中price的最大值
+                      // 更新基础价格：获取所有视图中price的最大值
                       const maxPrice = canvasStore.getMaxPriceFromSelectedColors || 0;
-                      const priceValue = Number.isFinite(maxPrice) ? maxPrice.toFixed(1) : '0.0';
-                      
-                      // 更新基础价格和定制价格显示
-                      basePriceEl.textContent = priceValue;
-                      customizationPriceEl.textContent = priceValue;
+                      const basePriceValue = Number.isFinite(maxPrice) ? maxPrice.toFixed(1) : '0.0';
+                      basePriceEl.textContent = basePriceValue;
+                    }
+                    
+                    if (printMethodStore) {
+                      // 更新定制价格：获取所有已使用印刷方式的print_cost总和
+                      const totalPrintCost = printMethodStore.getTotalPrintCostFromUsedMethods || 0;
+                      const customizationPriceValue = Number.isFinite(totalPrintCost) ? totalPrintCost.toFixed(2) : '0.00';
+                      customizationPriceEl.textContent = customizationPriceValue;
                     }
                   } catch (e) {
                     console.warn('[Canvas] 更新价格显示失败:', e);
@@ -385,8 +391,18 @@ if ($product_id > 0) {
                 // 订阅 Pinia store 变化
                 try {
                   const canvasStore = window.useCanvasStore && window.useCanvasStore();
+                  const printMethodStore = window.usePrintMethodStore && window.usePrintMethodStore();
+                  
+                  // 订阅 canvasStore 变化（影响基础价格）
                   if (canvasStore && typeof canvasStore.$subscribe === 'function') {
                     canvasStore.$subscribe(() => {
+                      updatePriceDisplay();
+                    });
+                  }
+                  
+                  // 订阅 printMethodStore 变化（影响定制价格）
+                  if (printMethodStore && typeof printMethodStore.$subscribe === 'function') {
+                    printMethodStore.$subscribe(() => {
                       updatePriceDisplay();
                     });
                   }
