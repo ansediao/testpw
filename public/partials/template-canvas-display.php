@@ -250,6 +250,66 @@ if ($product_id > 0) {
               });
             </script>
 
+            <script>
+              document.addEventListener('DOMContentLoaded', function() {
+                const moqColorEl = document.getElementById('moqColorLine');
+                if (!moqColorEl) return;
+
+                const getSampleCheckbox = () => document.querySelector('.sample-check input#sample');
+
+                const computeAndRenderMoqColor = () => {
+                  try {
+                    const canvasStore = window.useCanvasStore && window.useCanvasStore();
+
+                    let isSampleOrderEnabledByApi = false;
+                    try {
+                      const val = canvasStore?.productData?.customization_settings?.data?.moq_sample_order;
+                      isSampleOrderEnabledByApi = (val === true || val === 1 || val === '1' || val === 'true');
+                    } catch (e) {}
+
+                    const sampleChecked = !!(getSampleCheckbox() && getSampleCheckbox().checked);
+
+                    let qty = 0;
+                    if (isSampleOrderEnabledByApi || sampleChecked) {
+                      qty = 1;
+                    } else {
+                      const maxQty = Number(canvasStore ? canvasStore.getMaxUsedColorMoqQuantity : 0);
+                      qty = Number.isFinite(maxQty) ? maxQty : 0;
+                    }
+
+                    moqColorEl.textContent = `${qty}Pcs / Color`;
+                  } catch (e) {
+                    console.warn('[Canvas] 计算 MOQ/Color 失败:', e);
+                  }
+                };
+
+                // 初次渲染
+                computeAndRenderMoqColor();
+
+                // 勾选框变化即刻更新
+                const checkbox = getSampleCheckbox();
+                if (checkbox) {
+                  checkbox.addEventListener('change', computeAndRenderMoqColor);
+                }
+
+                // 订阅 Pinia store 变化
+                try {
+                  const canvasStore = window.useCanvasStore && window.useCanvasStore();
+                  if (canvasStore && typeof canvasStore.$subscribe === 'function') {
+                    canvasStore.$subscribe(() => {
+                      computeAndRenderMoqColor();
+                    });
+                  }
+                } catch (e) {}
+
+                // Pinia 就绪事件（防止脚本早于 stores）
+                document.addEventListener('canvasPiniaReady', computeAndRenderMoqColor, { once: true });
+
+                // 暴露调试函数
+                window.__pwcaUpdateMoqColorQuantity = computeAndRenderMoqColor;
+              });
+            </script>
+
           </div>
           <div class="product-card__detail">
             <span class="product-card__label">Price</span>
