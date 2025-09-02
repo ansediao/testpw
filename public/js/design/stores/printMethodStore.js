@@ -220,7 +220,32 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
         // 某视图下“已使用”的印刷方式ID列表
         getUsedPrintMethodIdsByView: (state) => (viewId) => Object.keys(state.usedPrintMethodsByView[viewId] || {}),
         // 判断某印刷方式在指定视图下是否已被使用
-        isPrintMethodUsedInView: (state) => (viewId, methodId) => Boolean((state.usedPrintMethodsByView[viewId] || {})[methodId])
+        isPrintMethodUsedInView: (state) => (viewId, methodId) => Boolean((state.usedPrintMethodsByView[viewId] || {})[methodId]),
+        
+        // 获取“所有视图中”且 apiData.moq_enabled 为真时，对应 apiData.moq_quantity 的最大值
+        // 若无符合条件的记录，则返回 0
+        getMaxUsedMoqQuantity: (state) => {
+            let max = 0;
+            const viewsMap = state.usedPrintMethodsByView || {};
+            for (const viewId in viewsMap) {
+                if (!Object.prototype.hasOwnProperty.call(viewsMap, viewId)) continue;
+                const methodsMap = viewsMap[viewId] || {};
+                for (const methodId in methodsMap) {
+                    if (!Object.prototype.hasOwnProperty.call(methodsMap, methodId)) continue;
+                    const method = methodsMap[methodId];
+                    if (!method || !method.apiData) continue;
+                    const api = method.apiData;
+                    // 兼容多种布尔表示: true/1/'1'/'true'
+                    const moqEnabled = api.moq_enabled === true || api.moq_enabled === 1 || api.moq_enabled === '1' || api.moq_enabled === 'true';
+                    if (!moqEnabled) continue;
+                    const qty = Number(api.moq_quantity);
+                    if (Number.isFinite(qty) && qty > max) {
+                        max = qty;
+                    }
+                }
+            }
+            return max;
+        }
     },
 
     actions: {
