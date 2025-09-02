@@ -353,7 +353,52 @@ if ($product_id > 0) {
           </div>
           <div class="product-card__detail">
             <span class="product-card__label">Price</span>
-            <span class="product-card__value">Base Price: $3.0<br>Customization Price: $3.0</span>
+            <span class="product-card__value">Base Price: $<span id="basePriceValue">0.0</span><br>Customization Price: $<span id="customizationPriceValue">0.0</span></span>
+
+            <script>
+              document.addEventListener('DOMContentLoaded', () => {
+                const basePriceEl = document.getElementById('basePriceValue');
+                const customizationPriceEl = document.getElementById('customizationPriceValue');
+                
+                if (!basePriceEl || !customizationPriceEl) return;
+
+                const updatePriceDisplay = () => {
+                  try {
+                    const canvasStore = window.useCanvasStore && window.useCanvasStore();
+                    if (canvasStore) {
+                      // 获取所有视图中price的最大值
+                      const maxPrice = canvasStore.getMaxPriceFromSelectedColors || 0;
+                      const priceValue = Number.isFinite(maxPrice) ? maxPrice.toFixed(1) : '0.0';
+                      
+                      // 更新基础价格和定制价格显示
+                      basePriceEl.textContent = priceValue;
+                      customizationPriceEl.textContent = priceValue;
+                    }
+                  } catch (e) {
+                    console.warn('[Canvas] 更新价格显示失败:', e);
+                  }
+                };
+
+                // 初次渲染
+                updatePriceDisplay();
+
+                // 订阅 Pinia store 变化
+                try {
+                  const canvasStore = window.useCanvasStore && window.useCanvasStore();
+                  if (canvasStore && typeof canvasStore.$subscribe === 'function') {
+                    canvasStore.$subscribe(() => {
+                      updatePriceDisplay();
+                    });
+                  }
+                } catch (e) {}
+
+                // Pinia 就绪事件（防止脚本早于 stores）
+                document.addEventListener('canvasPiniaReady', updatePriceDisplay, { once: true });
+
+                // 暴露调试函数
+                window.__pwcaUpdatePriceDisplay = updatePriceDisplay;
+              });
+            </script>
 
           </div>
           <div class="product-card__detail">

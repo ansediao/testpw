@@ -127,6 +127,23 @@ export const useCanvasStore = defineStore('canvas', {
             return max;
         },
         
+        // ===== 新增：获取所有视图中price的最大值 =====
+        // 从selectedColorsByView获取所有视图的price最大值
+        getMaxPriceFromSelectedColors: (state) => {
+            let maxPrice = 0;
+            const colorsMap = state.selectedColorsByView || {};
+            for (const viewId in colorsMap) {
+                if (!Object.prototype.hasOwnProperty.call(colorsMap, viewId)) continue;
+                const colorData = colorsMap[viewId];
+                if (!colorData) continue;
+                const price = Number(colorData.price);
+                if (Number.isFinite(price) && price > maxPrice) {
+                    maxPrice = price;
+                }
+            }
+            return maxPrice;
+        },
+        
         // ===== 新增：计算各视图 rts_for_bulk_order 最大值相加 =====
         // 获取所有视图中 rts_for_bulk_order 的最大值相加
         getTotalMaxRtsForBulkOrder: (state) => {
