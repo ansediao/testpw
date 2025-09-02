@@ -23,6 +23,11 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
         // 图层组与打印方式的映射关系
         groupPrintMethodMap: {},
         
+        // 按视图分组：记录“已使用”的印刷方式（仅当元素实际使用时才记录）
+        usedPrintMethodsByView: {}, // { [viewId]: { [methodId]: methodObject } }
+        // 计数器：用于增减引用，自动删除未使用的方式
+        usedPrintMethodCountsByView: {}, // { [viewId]: { [methodId]: number } }
+        
         // API 相关状态
         loadingPrintMethods: false,
         printMethodsError: null
@@ -203,7 +208,19 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
         // 检查是否允许切换印刷方式
         canSwitchPrintMethod: (state) => {
             return state.currentViewPrintMethods.length > 1;
-        }
+        },
+
+        // 某视图下“已使用”的印刷方式（数组，去重、统一格式）
+        getUsedPrintMethodsByView: (state) => (viewId) => {
+            const map = state.usedPrintMethodsByView[viewId] || {};
+            return Object.values(map);
+        },
+        // 某视图下“已使用”的印刷方式（映射，按ID）
+        getUsedPrintMethodsMapByView: (state) => (viewId) => state.usedPrintMethodsByView[viewId] || {},
+        // 某视图下“已使用”的印刷方式ID列表
+        getUsedPrintMethodIdsByView: (state) => (viewId) => Object.keys(state.usedPrintMethodsByView[viewId] || {}),
+        // 判断某印刷方式在指定视图下是否已被使用
+        isPrintMethodUsedInView: (state) => (viewId, methodId) => Boolean((state.usedPrintMethodsByView[viewId] || {})[methodId])
     },
 
     actions: {
@@ -242,7 +259,7 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                 if (!result.success) {
                     throw new Error(result.error || '获取印刷方式数据失败');
                 }
-
+                
                 // 验证并转换API数据格式
                 let convertedData = [];
                 // 检查API返回的数据结构，可能是嵌套的data字段
@@ -350,6 +367,8 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
             const printMethods = await this.fetchPrintMethods(printingMethodIds);
             this.viewPrintMethods[viewId] = printMethods;
             
+            // 注意：不在此处写入“已使用”的集合，只有当元素实际分配时才记录
+            
             // 如果当前没有激活的视图，或者设置的是当前激活视图，更新当前打印方式
             const canvasStore = window.useCanvasStore();
             if (!canvasStore.activeViewId || canvasStore.activeViewId === viewId) {
@@ -374,9 +393,48 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
             }
         },
         
+        // 记录某视图下某印刷方式被使用（引用计数）
+        recordPrintMethodUsage(viewId, methodId) {
+            if (!viewId || methodId == null) return;
+            if (!this.usedPrintMethodCountsByView[viewId]) this.usedPrintMethodCountsByView[viewId] = {};
+            if (!this.usedPrintMethodsByView[viewId]) this.usedPrintMethodsByView[viewId] = {};
+
+            // 首次引用时，放入完整对象
+            if (!this.usedPrintMethodCountsByView[viewId][methodId]) {
+                // 尝试在该视图的配置中查找完整对象
+                const methodList = this.viewPrintMethods[viewId] || [];
+                const found = methodList.find(m => m.id === methodId) || this.currentViewPrintMethods.find(m => m.id === methodId);
+                if (found) {
+                    this.usedPrintMethodsByView[viewId][methodId] = found;
+                    this.usedPrintMethodCountsByView[viewId][methodId] = 1;
+                } else {
+                    // 未找到完整对象则忽略，但记录告警
+                    console.warn('recordPrintMethodUsage: 未能在视图配置中找到对应的印刷方式对象', { viewId, methodId });
+                    return;
+                }
+            } else {
+                this.usedPrintMethodCountsByView[viewId][methodId] += 1;
+            }
+        },
+
+        // 撤销记录（引用计数为0则移除）
+        unrecordPrintMethodUsage(viewId, methodId) {
+            if (!viewId || methodId == null) return;
+            const counts = this.usedPrintMethodCountsByView[viewId];
+            if (!counts || !counts[methodId]) return;
+
+            counts[methodId] -= 1;
+            if (counts[methodId] <= 0) {
+                delete counts[methodId];
+                if (this.usedPrintMethodsByView[viewId]) {
+                    delete this.usedPrintMethodsByView[viewId][methodId];
+                }
+            }
+        },
+
         // 获取视图的打印方式数据
         retrieveViewPrintMethods(viewId) {
-            return this.printMethodsByView[viewId] || [];
+            return this.viewPrintMethods[viewId] || [];
         },
 
         // 设置选中的打印方式
@@ -386,10 +444,91 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
             }
         },
 
-        // 为图层分配打印方式
+        // 为图层分配打印方式（仅当元素实际分配时，才记录为“已使用”）
         assignLayerPrintMethod(layerId, methodId) {
             if (this.currentViewPrintMethods.find(method => method.id === methodId)) {
                 this.layerPrintMethodMap[layerId] = methodId;
+                const canvasStore = window.useCanvasStore();
+                const viewId = canvasStore && canvasStore.activeViewId ? canvasStore.activeViewId : null;
+                if (viewId) this.recordPrintMethodUsage(viewId, methodId);
+            }
+        },
+
+        // 取消图层的打印方式分配
+        unassignLayerPrintMethod(layerId) {
+            const methodId = this.layerPrintMethodMap[layerId];
+            if (methodId != null) {
+                delete this.layerPrintMethodMap[layerId];
+                const canvasStore = window.useCanvasStore();
+                const viewId = canvasStore && canvasStore.activeViewId ? canvasStore.activeViewId : null;
+                if (viewId) this.unrecordPrintMethodUsage(viewId, methodId);
+            }
+        },
+
+        // 为图层组分配打印方式
+        assignGroupPrintMethod(groupId, methodId) {
+            if (!groupId) return;
+            if (this.currentViewPrintMethods.find(method => method.id === methodId)) {
+                this.groupPrintMethodMap[groupId] = methodId;
+                const canvasStore = window.useCanvasStore();
+                const viewId = canvasStore && canvasStore.activeViewId ? canvasStore.activeViewId : null;
+                if (viewId) this.recordPrintMethodUsage(viewId, methodId);
+            }
+        },
+
+        // 取消图层组的打印方式分配
+        unassignGroupPrintMethod(groupId) {
+            if (!groupId) return;
+            const methodId = this.groupPrintMethodMap[groupId];
+            if (methodId != null) {
+                delete this.groupPrintMethodMap[groupId];
+                const canvasStore = window.useCanvasStore();
+                const viewId = canvasStore && canvasStore.activeViewId ? canvasStore.activeViewId : null;
+                if (viewId) this.unrecordPrintMethodUsage(viewId, methodId);
+            }
+        },
+
+        // 基于当前分配关系，重新计算某视图下“已使用”的印刷方式
+        recomputeUsedPrintMethodsForView(viewId) {
+            if (!viewId) return;
+            const canvasStore = window.useCanvasStore();
+            const layers = canvasStore && typeof canvasStore.getViewLayers === 'function' ? (canvasStore.getViewLayers(viewId) || []) : [];
+            const methodIds = new Set();
+
+            // 1) 图层直接分配
+            for (const layer of layers) {
+                const lid = layer.id;
+                const mid = this.layerPrintMethodMap[lid];
+                if (mid != null) methodIds.add(mid);
+
+                // 2) 图层组分配
+                if (layer.groupId) {
+                    const fromMap = this.groupPrintMethodMap[layer.groupId];
+                    if (fromMap != null) methodIds.add(fromMap);
+                    // 3) 通过组ID约定推断（print-method-<id>）
+                    const match = String(layer.groupId).match(/^print-method-(.+)$/);
+                    if (match && match[1]) methodIds.add(match[1]);
+                }
+            }
+
+            // 重建映射和计数
+            this.usedPrintMethodsByView[viewId] = {};
+            this.usedPrintMethodCountsByView[viewId] = {};
+
+            const list = this.viewPrintMethods[viewId] || [];
+            for (const id of methodIds) {
+                const obj = list.find(m => String(m.id) === String(id));
+                if (obj) {
+                    this.usedPrintMethodsByView[viewId][obj.id] = obj;
+                    this.usedPrintMethodCountsByView[viewId][obj.id] = 1; // 计数重建为至少1
+                }
+            }
+        },
+
+        // 重新计算所有视图的“已使用”集合
+        recomputeUsedPrintMethodsForAllViews() {
+            for (const viewId of Object.keys(this.viewPrintMethods)) {
+                this.recomputeUsedPrintMethodsForView(viewId);
             }
         },
 
