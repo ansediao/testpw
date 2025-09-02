@@ -145,15 +145,21 @@ export const useCanvasStore = defineStore('canvas', {
         },
         
         // ===== 新增：计算预期发货日期 =====
-        // 基于今天的日期加上颜色选择后的最大 RTS 值
+        // 基于今天的日期加上颜色选择后的最大 RTS 值和印刷方式的最大 process_time
         estimatedDeliveryDate() {
             const currentDate = new Date();
             
             // 获取颜色选择后的最大 RTS 值（这里使用 bulk order 的值作为默认）
             const maxRtsValue = this.getTotalMaxRtsForBulkOrder;
             
-            // 如果没有选择颜色或 RTS 值为 0，使用默认的 7 天
-            const daysToAdd = maxRtsValue > 0 ? maxRtsValue : 7;
+            // 获取印刷方式的最大 process_time
+            const maxProcessTime = this.getMaxProcessTimeFromPrintMethods;
+            
+            // 计算总的处理时间：RTS 值 + 印刷方式处理时间
+            const totalProcessingDays = maxRtsValue + maxProcessTime;
+            
+            // 如果总处理时间为 0，使用默认的 0天
+            const daysToAdd = totalProcessingDays > 0 ? totalProcessingDays : 0;
             
             // 计算目标日期
             const deliveryDate = new Date(currentDate);
@@ -182,6 +188,35 @@ export const useCanvasStore = defineStore('canvas', {
                 }
             }
             return total;
+        },
+        
+        // ===== 新增：计算各视图印刷方式的最大 process_time =====
+        // 获取所有视图中印刷方式的最大 process_time
+        getMaxProcessTimeFromPrintMethods: (state) => {
+            const printMethodStore = window.usePrintMethodStore && window.usePrintMethodStore();
+            if (!printMethodStore) return 0;
+            
+            let maxProcessTime = 0;
+            const usedPrintMethodsByView = printMethodStore.usedPrintMethodsByView || {};
+            
+            for (const viewId in usedPrintMethodsByView) {
+                if (!Object.prototype.hasOwnProperty.call(usedPrintMethodsByView, viewId)) continue;
+                const methodsMap = usedPrintMethodsByView[viewId] || {};
+                
+                for (const methodId in methodsMap) {
+                    if (!Object.prototype.hasOwnProperty.call(methodsMap, methodId)) continue;
+                    const method = methodsMap[methodId];
+                    
+                    if (method && method.apiData && method.apiData.process_time) {
+                        const processTime = Number(method.apiData.process_time);
+                        if (Number.isFinite(processTime) && processTime > maxProcessTime) {
+                            maxProcessTime = processTime;
+                        }
+                    }
+                }
+            }
+            
+            return maxProcessTime;
         }
     },
     // 5. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
