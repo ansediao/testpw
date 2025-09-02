@@ -367,6 +367,26 @@ if ($product_id > 0) {
                   () => window.useCanvasStore(),
                   "estimatedDeliveryDate"
                 );
+                
+                syncPiniaToElement(
+                  "estimatedArrivalDate",
+                  () => window.useCanvasStore(),
+                  "estimatedArrivalDate"
+                );
+                
+                // 监听 Sample Order 复选框变化，触发到货日期重新计算
+                const sampleCheckbox = document.querySelector('.sample-check input#sample');
+                if (sampleCheckbox) {
+                  sampleCheckbox.addEventListener('change', () => {
+                    // 触发 Pinia store 的响应式更新
+                    const canvasStore = window.useCanvasStore && window.useCanvasStore();
+                    if (canvasStore) {
+                      // 通过访问 getter 来触发重新计算
+                      const arrivalDate = canvasStore.estimatedArrivalDate;
+                      console.log('Sample Order 状态变化，重新计算到货日期:', arrivalDate);
+                    }
+                  });
+                }
               });
             </script>
           </div>

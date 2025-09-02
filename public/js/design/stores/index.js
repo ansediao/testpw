@@ -217,6 +217,59 @@ export const useCanvasStore = defineStore('canvas', {
             }
             
             return maxProcessTime;
+        },
+        
+        // ===== 新增：计算预期到货日期 =====
+        // 基于 estimatedDeliveryDate 加上产品的 shipping_info 中的 RTS 值
+        estimatedArrivalDate() {
+            // 获取预期发货日期
+            const deliveryDateStr = this.estimatedDeliveryDate;
+            if (!deliveryDateStr) return '';
+            
+            // 解析发货日期
+            const deliveryDate = new Date(deliveryDateStr);
+            if (isNaN(deliveryDate.getTime())) return '';
+            
+            // 获取产品数据中的 shipping_info
+            if (!this.productData) return deliveryDateStr;
+            
+            const productData = this.productData;
+            let shippingDays = 5;
+            
+            // 检查是否勾选了 Sample Order 复选框
+            const sampleCheckbox = document.querySelector('.sample-check input#sample');
+            const isSampleOrder = sampleCheckbox && sampleCheckbox.checked;
+            
+            // 从 API 数据中获取 shipping_info
+            if (productData && productData.product && productData.product.data && productData.product.data.shipping_info) {
+                const shippingInfo = productData.product.data.shipping_info;
+                
+                if (isSampleOrder && shippingInfo.rts_for_sample_order) {
+                    shippingDays = Number(shippingInfo.rts_for_sample_order) || 0;
+                } else if (!isSampleOrder && shippingInfo.rts_for_bulk_order) {
+                    shippingDays = Number(shippingInfo.rts_for_bulk_order) || 0;
+                }
+            }
+            
+            // 如果没有从 API 数据获取到，使用默认值
+            if (shippingDays === 0) {
+                if (isSampleOrder) {
+                    shippingDays = 1; // 样品订单默认1天运输时间
+                } else {
+                    shippingDays = 2; // 批量订单默认2天运输时间
+                }
+            }
+            
+            // 计算到货日期
+            const arrivalDate = new Date(deliveryDate);
+            arrivalDate.setDate(deliveryDate.getDate() + shippingDays);
+            
+            // 格式化日期为 YYYY-MM-DD 格式
+            const year = arrivalDate.getFullYear();
+            const month = String(arrivalDate.getMonth() + 1).padStart(2, '0');
+            const day = String(arrivalDate.getDate()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}`;
         }
     },
     // 5. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
