@@ -106,6 +106,27 @@ export const useCanvasStore = defineStore('canvas', {
             const vid = this.activeViewId;
             if (!vid) return null;
             return state.selectedColorsByView[vid] || null;
+        },
+        
+        // 获取"所有视图中"且 moq_setting.enable 为真时，对应 moq_setting.minimum_order_quantity 的最大值
+        // 若无符合条件的记录，则返回 0
+        getMaxUsedColorMoqQuantity: (state) => {
+            let max = 0;
+            const colorsMap = state.selectedColorsByView || {};
+            for (const viewId in colorsMap) {
+                if (!Object.prototype.hasOwnProperty.call(colorsMap, viewId)) continue;
+                const colorData = colorsMap[viewId];
+                if (!colorData || !colorData.moq_setting) continue;
+                const moqSetting = colorData.moq_setting;
+                // 兼容多种布尔表示: true/1/'1'/'true'
+                const moqEnabled = moqSetting.enable === true || moqSetting.enable === 1 || moqSetting.enable === '1' || moqSetting.enable === 'true';
+                if (!moqEnabled) continue;
+                const qty = Number(moqSetting.minimum_order_quantity);
+                if (Number.isFinite(qty) && qty > max) {
+                    max = qty;
+                }
+            }
+            return max;
         }
     },
     // 5. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
