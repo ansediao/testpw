@@ -1,0 +1,300 @@
+// PW Canvas 产品询价弹窗样式
+// 采用 BEM 命名法和嵌套语法实现命名空间隔离
+// 使用防冲突命名规范：pwca- 前缀
+
+// 导入变量和混合器
+@import 'variables';
+@import 'mixins';
+
+/*
+  询价弹窗样式
+  遵循 MicroModal 标准结构
+  使用项目统一的设计语言
+*/
+
+// 询价弹窗根容器
+.pwca-inquiry-modal {
+  &.modal#pwca-inquiry-modal.micromodal-slide {
+    display: none;
+    
+    &.is-open {
+      display: block;
+    }
+  }
+  
+  // 弹窗遮罩层
+  &__overlay,
+  .modal#pwca-inquiry-modal .modal__overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+  }
+  
+  // 弹窗容器
+  &__container,
+  .modal#pwca-inquiry-modal .modal__overlay .modal__container {
+    background-color: $canvas-bg-color;
+    padding: $canvas-spacing-xl;
+    max-width: 500px;
+    max-height: 80vh;
+    border-radius: $canvas-border-radius;
+    overflow-y: auto;
+    box-shadow: $canvas-shadow-lg;
+    position: relative;
+    margin: 0 $canvas-spacing-md;
+    width:100%;
+  }
+  
+  // 弹窗头部
+  &__header,
+  .modal#pwca-inquiry-modal .modal__overlay .modal__container .modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $canvas-spacing-lg;
+    padding-bottom: $canvas-spacing-md;
+    border-bottom: 1px solid $canvas-border-color;
+  }
+  
+  // 弹窗标题
+  &__title,
+  .modal#pwca-inquiry-modal .modal__overlay .modal__container .modal__header .modal__title {
+    margin: 0;
+    font-size: $canvas-font-size-xl;
+    font-weight: 600;
+    color: $canvas-secondary-color;
+  }
+  
+  // 关闭按钮
+  &__close,
+  .modal#pwca-inquiry-modal .modal__overlay .modal__container .modal__header .modal__close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    color: #999;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $canvas-border-radius-sm;
+    transition: all 0.2s;
+    
+    &:hover {
+      color: $canvas-primary-color;
+      background: $canvas-bg-secondary;
+    }
+  }
+  
+  // 弹窗内容区域
+  &__content,
+  .modal#pwca-inquiry-modal .modal__overlay .modal__container .modal__content {
+    margin-bottom: $canvas-spacing-lg;
+  }
+}
+
+// 询价表单样式
+.pwca-inquiry-form {
+  // 表单行
+  .pwca-form-row {
+    margin-bottom: $canvas-spacing-md;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    // 文本域行特殊样式
+    &--textarea {
+      margin-bottom: $canvas-spacing-lg;
+    }
+  }
+  
+  // 表单标签
+  .pwca-form-label {
+    display: block;
+    margin-bottom: $canvas-spacing-sm;
+    font-size: $canvas-font-size-base;
+    font-weight: 500;
+    color: $canvas-secondary-color;
+  }
+  
+  // 必填标记
+  .pwca-form-required {
+    color: $canvas-error-color;
+  }
+  
+  // 表单输入框
+  .pwca-form-input,
+  .pwca-form-textarea {
+    width: 100%;
+    padding: $canvas-spacing-sm $canvas-spacing-md;
+    border: 1px solid $canvas-border-color;
+    border-radius: $canvas-border-radius-sm;
+    font-size: $canvas-font-size-base;
+    font-family: $canvas-font-family;
+    transition: all $canvas-transition-base $canvas-ease;
+    box-sizing: border-box;
+    
+    &:focus {
+      outline: none;
+      border-color: $canvas-primary-color;
+      box-shadow: 0 0 0 3px rgba($canvas-primary-color, 0.1);
+    }
+    
+    &::placeholder {
+      color: #999;
+    }
+    
+    // 错误状态
+    &--error {
+      border-color: $canvas-error-color;
+      
+      &:focus {
+        box-shadow: 0 0 0 3px rgba($canvas-error-color, 0.1);
+      }
+    }
+  }
+  
+  // 文本域特殊样式
+  .pwca-form-textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  // 表单消息
+  .pwca-form-message {
+    padding: $canvas-spacing-sm $canvas-spacing-md;
+    border-radius: $canvas-border-radius-sm;
+    margin-top: $canvas-spacing-md;
+    font-size: $canvas-font-size-sm;
+    display: none;
+    
+    &--success {
+      display: block;
+      background-color: rgba($canvas-success-color, 0.1);
+      border: 1px solid rgba($canvas-success-color, 0.3);
+      color: darken($canvas-success-color, 20%);
+    }
+    
+    &--error {
+      display: block;
+      background-color: rgba($canvas-error-color, 0.1);
+      border: 1px solid rgba($canvas-error-color, 0.3);
+      color: darken($canvas-error-color, 20%);
+    }
+  }
+}
+
+// 弹窗底部按钮区域
+.pwca-inquiry-modal {
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: $canvas-spacing-sm;
+    margin-top: $canvas-spacing-lg;
+    padding-top: $canvas-spacing-md;
+    border-top: 1px solid $canvas-border-color;
+  }
+  
+  // 弹窗按钮
+  &__btn {
+    @include canvas-button-base;
+    padding: $canvas-spacing-sm $canvas-spacing-lg;
+    font-weight: 500;
+    
+    // 提交按钮
+    &--submit {
+      background-color: $canvas-primary-color;
+      color: $canvas-bg-color;
+      
+      &:hover {
+        background-color: darken($canvas-primary-color, 10%);
+      }
+      
+      &:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+        
+        &:hover {
+          background-color: #ccc;
+        }
+      }
+    }
+    
+    // 取消按钮
+    &--cancel {
+      background-color: transparent;
+      color: $canvas-secondary-color;
+      border: 1px solid $canvas-border-color;
+      
+      &:hover {
+        background-color: $canvas-bg-secondary;
+        border-color: $canvas-secondary-color;
+      }
+    }
+  }
+}
+
+// 加载状态
+.pwca-inquiry-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $canvas-spacing-sm;
+  
+  &__spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid $canvas-border-color;
+    border-top: 2px solid $canvas-primary-color;
+    border-radius: 50%;
+    animation: pwca-spin 1s linear infinite;
+  }
+  
+  &__text {
+    font-size: $canvas-font-size-sm;
+    color: $canvas-secondary-color;
+  }
+}
+
+
+
+// 动画定义
+@keyframes pwca-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .pwca-inquiry-modal {
+    &__container,
+    .modal#pwca-inquiry-modal .modal__overlay .modal__container {
+      margin: 0 $canvas-spacing-sm;
+      padding: $canvas-spacing-lg;
+      max-width: calc(100vw - #{$canvas-spacing-sm * 2});
+    }
+  }
+  
+  .pwca-inquiry-modal {
+    &__footer {
+      flex-direction: column;
+      
+      .pwca-inquiry-modal__btn {
+        width: 100%;
+      }
+    }
+  }
+}

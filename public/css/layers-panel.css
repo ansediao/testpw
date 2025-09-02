@@ -574,6 +574,260 @@
 .modal#pwca-print-method-modal.micromodal-slide.is-open {
   display: block;
 }
+/**
+ * SCSS 变量集中定义文件
+ * 定义新变量前请先检查是否已存在相同或相似变量
+ * 每个变量必须包含使用说明注释
+ */
+/**
+ * SCSS 混合器集中定义文件
+ * 用于复用常见样式模式
+ */
+/*
+  询价弹窗样式
+  遵循 MicroModal 标准结构
+  使用项目统一的设计语言
+*/
+.pwca-inquiry-modal.modal#pwca-inquiry-modal.micromodal-slide {
+  display: none;
+}
+.pwca-inquiry-modal.modal#pwca-inquiry-modal.micromodal-slide.is-open {
+  display: block;
+}
+.pwca-inquiry-modal__overlay,
+.pwca-inquiry-modal .modal#pwca-inquiry-modal .modal__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+.pwca-inquiry-modal__container,
+.pwca-inquiry-modal .modal#pwca-inquiry-modal .modal__overlay .modal__container {
+  background-color: #ffffff;
+  padding: 32px;
+  max-width: 500px;
+  max-height: 80vh;
+  border-radius: 4px;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  position: relative;
+  margin: 0 16px;
+  width: 100%;
+}
+.pwca-inquiry-modal__header,
+.pwca-inquiry-modal .modal#pwca-inquiry-modal .modal__overlay .modal__container .modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.pwca-inquiry-modal__title,
+.pwca-inquiry-modal .modal#pwca-inquiry-modal .modal__overlay .modal__container .modal__header .modal__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #64748b;
+}
+.pwca-inquiry-modal__close,
+.pwca-inquiry-modal .modal#pwca-inquiry-modal .modal__overlay .modal__container .modal__header .modal__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #999;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+.pwca-inquiry-modal__close:hover,
+.pwca-inquiry-modal .modal#pwca-inquiry-modal .modal__overlay .modal__container .modal__header .modal__close:hover {
+  color: #3b82f6;
+  background: #f8fafc;
+}
+.pwca-inquiry-modal__content,
+.pwca-inquiry-modal .modal#pwca-inquiry-modal .modal__overlay .modal__container .modal__content {
+  margin-bottom: 24px;
+}
+
+.pwca-inquiry-form .pwca-form-row {
+  margin-bottom: 16px;
+}
+.pwca-inquiry-form .pwca-form-row:last-child {
+  margin-bottom: 0;
+}
+.pwca-inquiry-form .pwca-form-row--textarea {
+  margin-bottom: 24px;
+}
+.pwca-inquiry-form .pwca-form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+}
+.pwca-inquiry-form .pwca-form-required {
+  color: #ef4444;
+}
+.pwca-inquiry-form .pwca-form-input,
+.pwca-inquiry-form .pwca-form-textarea {
+  width: 100%;
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 2px;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  transition: all 0.2s ease-in-out;
+  box-sizing: border-box;
+}
+.pwca-inquiry-form .pwca-form-input:focus,
+.pwca-inquiry-form .pwca-form-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.pwca-inquiry-form .pwca-form-input::-moz-placeholder, .pwca-inquiry-form .pwca-form-textarea::-moz-placeholder {
+  color: #999;
+}
+.pwca-inquiry-form .pwca-form-input::placeholder,
+.pwca-inquiry-form .pwca-form-textarea::placeholder {
+  color: #999;
+}
+.pwca-inquiry-form .pwca-form-input--error,
+.pwca-inquiry-form .pwca-form-textarea--error {
+  border-color: #ef4444;
+}
+.pwca-inquiry-form .pwca-form-input--error:focus,
+.pwca-inquiry-form .pwca-form-textarea--error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+.pwca-inquiry-form .pwca-form-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+.pwca-inquiry-form .pwca-form-message {
+  padding: 8px 16px;
+  border-radius: 2px;
+  margin-top: 16px;
+  font-size: 12px;
+  display: none;
+}
+.pwca-inquiry-form .pwca-form-message--success {
+  display: block;
+  background-color: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #136e34;
+}
+.pwca-inquiry-form .pwca-form-message--error {
+  display: block;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #bd1010;
+}
+
+.pwca-inquiry-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+.pwca-inquiry-modal__btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+  padding: 8px 24px;
+  font-weight: 500;
+}
+.pwca-inquiry-modal__btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+.pwca-inquiry-modal__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.pwca-inquiry-modal__btn--submit {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+.pwca-inquiry-modal__btn--submit:hover {
+  background-color: #0b63f3;
+}
+.pwca-inquiry-modal__btn--submit:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+.pwca-inquiry-modal__btn--submit:disabled:hover {
+  background-color: #ccc;
+}
+.pwca-inquiry-modal__btn--cancel {
+  background-color: transparent;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+.pwca-inquiry-modal__btn--cancel:hover {
+  background-color: #f8fafc;
+  border-color: #64748b;
+}
+
+.pwca-inquiry-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.pwca-inquiry-loading__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: pwca-spin 1s linear infinite;
+}
+.pwca-inquiry-loading__text {
+  font-size: 12px;
+  color: #64748b;
+}
+
+@keyframes pwca-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 768px) {
+  .pwca-inquiry-modal__container,
+  .pwca-inquiry-modal .modal#pwca-inquiry-modal .modal__overlay .modal__container {
+    margin: 0 8px;
+    padding: 24px;
+    max-width: calc(100vw - 16px);
+  }
+  .pwca-inquiry-modal__footer {
+    flex-direction: column;
+  }
+  .pwca-inquiry-modal__footer .pwca-inquiry-modal__btn {
+    width: 100%;
+  }
+}
 /*
   SCSS 样式严格按照 HTML 结构嵌套
   根选择器: .layers-box
