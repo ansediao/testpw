@@ -527,6 +527,26 @@ $plugin_url = plugin_dir_url(__FILE__);
                     // 先保存颜色数据到 store
                     saveColorToStore(color);
                     
+                    // ===== 新增：计算各视图 rts_for_bulk_order 最大值相加 =====
+                    function calculateBulkOrderRts() {
+                        if (window.useCanvasStore) {
+                            const store = window.useCanvasStore();
+                            const totalRts = store.getTotalMaxRtsForBulkOrder;
+                            console.log(`颜色选择后，各视图 rts_for_bulk_order 最大值相加: ${totalRts}`);
+                            
+                            // 触发自定义事件，供其他组件监听
+                            document.dispatchEvent(new CustomEvent('pw-bulk-order-rts-calculated', {
+                                detail: { totalRts: totalRts }
+                            }));
+                            
+                            return totalRts;
+                        }
+                        return 0;
+                    }
+                    
+                    // 执行计算
+                    calculateBulkOrderRts();
+                    
                     // 获取当前视图的 base_layer 并应用 tint 滤镜
                     function applyColorTint() {
                         if (window.useCanvasStore && (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function')) {
@@ -859,6 +879,41 @@ $plugin_url = plugin_dir_url(__FILE__);
             </div>
             <button class="btn btn-custom">Inquiry</button>
         </div>
+        
+        <script>
+        // ===== 新增：样品订单复选框事件监听 =====
+        document.addEventListener('DOMContentLoaded', function() {
+            const sampleCheckbox = document.querySelector('.sample-check input#sample');
+            if (sampleCheckbox) {
+                sampleCheckbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        // 当勾选样品订单时，计算各视图 rts_for_sample_order 最大值相加
+                        calculateSampleOrderRts();
+                    } else {
+                        console.log('样品订单复选框已取消勾选');
+                        // 可以在这里添加取消勾选时的逻辑
+                    }
+                });
+            }
+        });
+        
+        // ===== 新增：计算各视图 rts_for_sample_order 最大值相加 =====
+        function calculateSampleOrderRts() {
+            if (window.useCanvasStore) {
+                const store = window.useCanvasStore();
+                const totalRts = store.getTotalMaxRtsForSampleOrder;
+                console.log(`样品订单勾选后，各视图 rts_for_sample_order 最大值相加: ${totalRts}`);
+                
+                // 触发自定义事件，供其他组件监听
+                document.dispatchEvent(new CustomEvent('pw-sample-order-rts-calculated', {
+                    detail: { totalRts: totalRts }
+                }));
+                
+                return totalRts;
+            }
+            return 0;
+        }
+        </script>
     </div>
 
     <!-- 图层 -->

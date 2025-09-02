@@ -10,8 +10,6 @@ const { createPinia, defineStore } = window.Pinia;
 export const useCanvasStore = defineStore('canvas', {
     // 3. state 定义所有需要全局管理的数据
     state: () => ({
-        // 预期发货日期
-        estimatedDeliveryDate: '2024-12-31',
         // 预期到货日期
         estimatedArrivalDate: '2025-01-15',
 
@@ -127,6 +125,63 @@ export const useCanvasStore = defineStore('canvas', {
                 }
             }
             return max;
+        },
+        
+        // ===== 新增：计算各视图 rts_for_bulk_order 最大值相加 =====
+        // 获取所有视图中 rts_for_bulk_order 的最大值相加
+        getTotalMaxRtsForBulkOrder: (state) => {
+            let total = 0;
+            const colorsMap = state.selectedColorsByView || {};
+            for (const viewId in colorsMap) {
+                if (!Object.prototype.hasOwnProperty.call(colorsMap, viewId)) continue;
+                const colorData = colorsMap[viewId];
+                if (!colorData) continue;
+                const rtsValue = Number(colorData.rts_for_bulk_order);
+                if (Number.isFinite(rtsValue) && rtsValue > 0) {
+                    total += rtsValue;
+                }
+            }
+            return total;
+        },
+        
+        // ===== 新增：计算预期发货日期 =====
+        // 基于今天的日期加上颜色选择后的最大 RTS 值
+        estimatedDeliveryDate() {
+            const currentDate = new Date();
+            
+            // 获取颜色选择后的最大 RTS 值（这里使用 bulk order 的值作为默认）
+            const maxRtsValue = this.getTotalMaxRtsForBulkOrder;
+            
+            // 如果没有选择颜色或 RTS 值为 0，使用默认的 7 天
+            const daysToAdd = maxRtsValue > 0 ? maxRtsValue : 7;
+            
+            // 计算目标日期
+            const deliveryDate = new Date(currentDate);
+            deliveryDate.setDate(currentDate.getDate() + daysToAdd);
+            
+            // 格式化日期为 YYYY-MM-DD 格式
+            const year = deliveryDate.getFullYear();
+            const month = String(deliveryDate.getMonth() + 1).padStart(2, '0');
+            const day = String(deliveryDate.getDate()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}`;
+        },
+        
+        // ===== 新增：计算各视图 rts_for_sample_order 最大值相加 =====
+        // 获取所有视图中 rts_for_sample_order 的最大值相加
+        getTotalMaxRtsForSampleOrder: (state) => {
+            let total = 0;
+            const colorsMap = state.selectedColorsByView || {};
+            for (const viewId in colorsMap) {
+                if (!Object.prototype.hasOwnProperty.call(colorsMap, viewId)) continue;
+                const colorData = colorsMap[viewId];
+                if (!colorData) continue;
+                const rtsValue = Number(colorData.rts_for_sample_order);
+                if (Number.isFinite(rtsValue) && rtsValue > 0) {
+                    total += rtsValue;
+                }
+            }
+            return total;
         }
     },
     // 5. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
@@ -285,9 +340,9 @@ export const useCanvasStore = defineStore('canvas', {
                 this.setLoadingProductData(false);
             }
         },
-        // 更新预期日期
+        // 更新预期到货日期（发货日期现在是自动计算的）
         updateEstimatedDates(deliveryDate, arrivalDate) {
-            if (deliveryDate) this.estimatedDeliveryDate = deliveryDate;
+            // estimatedDeliveryDate 现在是计算属性，不需要手动设置
             if (arrivalDate) this.estimatedArrivalDate = arrivalDate;
         },
 
