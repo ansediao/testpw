@@ -33,7 +33,7 @@ function showPrintMethodBindingAlert() {
     alert('请先为此元素绑定印刷方式后再使用此工具。\n\n您可以在图层面板中点击"Switch Printing Method"按钮来绑定印刷方式。');
 }
 
-document.querySelectorAll('.toolbar_button').forEach(button => {
+document.querySelectorAll('.text_toolbar .toolbar_button').forEach(button => {
     button.addEventListener('click', function() {
         // 获取当前激活的画布和对象
         const activeCanvas = window.CanvasManager ? window.CanvasManager.getActiveCanvas() : (window.canvas || window.fabricCanvas);
@@ -43,6 +43,11 @@ document.querySelectorAll('.toolbar_button').forEach(button => {
         if (activeObject && !checkElementGroupStatus(activeObject)) {
             showPrintMethodBindingAlert();
             return; // 阻止工具的使用
+        }
+        
+        // 调用面板切换方法 - 文本工具栏切换到文字面板
+        if (typeof window.switchOperationPanelTab === 'function') {
+            window.switchOperationPanelTab('tab-wenzi');
         }
         
         // 移除所有按钮的激活样式
@@ -79,6 +84,11 @@ document.querySelectorAll('.img_toolbar .toolbar_button').forEach(button => {
         if (activeObject && !checkElementGroupStatus(activeObject)) {
             showPrintMethodBindingAlert();
             return; // 阻止工具的使用
+        }
+        
+        // 调用面板切换方法 - 图片工具栏切换到片圈面板
+        if (typeof window.switchOperationPanelTab === 'function') {
+            window.switchOperationPanelTab('tab-pianquan');
         }
         
         // 移除所有按钮的激活样式
