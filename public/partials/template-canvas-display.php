@@ -157,6 +157,76 @@ if ($product_id > 0) {
               });
             </script>
 
+            <script>
+              document.addEventListener('DOMContentLoaded', function() {
+                const moqDesignEl = document.getElementById('moqDesignLine');
+                if (!moqDesignEl) return;
+
+                const getSampleCheckbox = () => document.querySelector('.sample-check input#sample');
+
+                const computeAndRenderMoqDesign = () => {
+                  try {
+                    const canvasStore = window.useCanvasStore && window.useCanvasStore();
+                    const printStore = window.usePrintMethodStore && window.usePrintMethodStore();
+
+                    let isSampleOrderEnabledByApi = false;
+                    try {
+                      const val = canvasStore?.productData?.customization_settings?.data?.moq_sample_order;
+                      isSampleOrderEnabledByApi = (val === true || val === 1 || val === '1' || val === 'true');
+                    } catch (e) {}
+
+                    const sampleChecked = !!(getSampleCheckbox() && getSampleCheckbox().checked);
+
+                    let qty = 0;
+                    if (isSampleOrderEnabledByApi || sampleChecked) {
+                      qty = 1;
+                    } else {
+                      const maxQty = Number(printStore ? printStore.getMaxUsedMoqQuantity : 0);
+                      qty = Number.isFinite(maxQty) ? maxQty : 0;
+                    }
+
+                    moqDesignEl.textContent = `${qty}Pcs / Design`;
+                  } catch (e) {
+                    console.warn('[Canvas] 计算 MOQ/Design 失败:', e);
+                  }
+                };
+
+                // 初次渲染
+                computeAndRenderMoqDesign();
+
+                // 勾选框变化即刻更新
+                const checkbox = getSampleCheckbox();
+                if (checkbox) {
+                  checkbox.addEventListener('change', computeAndRenderMoqDesign);
+                }
+
+                // 订阅 Pinia store 变化
+                try {
+                  const canvasStore = window.useCanvasStore && window.useCanvasStore();
+                  if (canvasStore && typeof canvasStore.$subscribe === 'function') {
+                    canvasStore.$subscribe(() => {
+                      computeAndRenderMoqDesign();
+                    });
+                  }
+                } catch (e) {}
+
+                try {
+                  const printStore = window.usePrintMethodStore && window.usePrintMethodStore();
+                  if (printStore && typeof printStore.$subscribe === 'function') {
+                    printStore.$subscribe(() => {
+                      computeAndRenderMoqDesign();
+                    });
+                  }
+                } catch (e) {}
+
+                // Pinia 就绪事件（防止脚本早于 stores）
+                document.addEventListener('canvasPiniaReady', computeAndRenderMoqDesign, { once: true });
+
+                // 暴露调试函数
+                window.__pwcaUpdateMoqDesignQuantity = computeAndRenderMoqDesign;
+              });
+            </script>
+
           </div>
           <div class="product-card__detail">
             <span class="product-card__label">Price</span>
