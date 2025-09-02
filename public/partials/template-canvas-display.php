@@ -181,6 +181,34 @@ if ($product_id > 0) {
             </script>
 
             <script>
+              // 检查并更新数量输入框的共享函数
+              window.updateQuantityInputIfNeeded = () => {
+                try {
+                  const quantityInput = document.querySelector('.product-card__input');
+                  if (!quantityInput) return;
+
+                  // 获取当前 MOQ 值
+                  const moqDesignText = document.getElementById('moqDesignLine')?.textContent || '0Pcs / Design';
+                  const moqColorText = document.getElementById('moqColorLine')?.textContent || '0Pcs / Color';
+                  
+                  const moqDesignValue = parseInt(moqDesignText.match(/\d+/)?.[0] || '0');
+                  const moqColorValue = parseInt(moqColorText.match(/\d+/)?.[0] || '0');
+                  
+                  const maxMoq = Math.max(moqDesignValue, moqColorValue);
+                  const currentQuantity = parseInt(quantityInput.value) || 0;
+                  
+                  // 如果当前数量小于最大 MOQ，则更新为最大 MOQ
+                  if (currentQuantity < maxMoq && maxMoq > 0) {
+                    quantityInput.value = maxMoq;
+                    console.log(`[Canvas] 数量已更新为最小 MOQ: ${maxMoq}`);
+                  }
+                } catch (e) {
+                  console.warn('[Canvas] 更新数量输入框失败:', e);
+                }
+              };
+            </script>
+
+            <script>
               document.addEventListener('DOMContentLoaded', function() {
                 const moqDesignEl = document.getElementById('moqDesignLine');
                 if (!moqDesignEl) return;
@@ -209,6 +237,11 @@ if ($product_id > 0) {
                     }
 
                     moqDesignEl.textContent = `${qty}Pcs / Design`;
+                    
+                    // 检查并更新数量输入框
+                    if (window.updateQuantityInputIfNeeded) {
+                      window.updateQuantityInputIfNeeded();
+                    }
                   } catch (e) {
                     console.warn('[Canvas] 计算 MOQ/Design 失败:', e);
                   }
@@ -278,10 +311,17 @@ if ($product_id > 0) {
                     }
 
                     moqColorEl.textContent = `${qty}Pcs / Color`;
+                    
+                    // 检查并更新数量输入框
+                    if (window.updateQuantityInputIfNeeded) {
+                      window.updateQuantityInputIfNeeded();
+                    }
                   } catch (e) {
                     console.warn('[Canvas] 计算 MOQ/Color 失败:', e);
                   }
                 };
+
+
 
                 // 初次渲染
                 computeAndRenderMoqColor();
