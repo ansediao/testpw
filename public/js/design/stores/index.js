@@ -42,6 +42,9 @@ export const useCanvasStore = defineStore('canvas', {
         activeView: null,       // 当前激活的视图对象
         activeViewId: null,     // 当前激活的视图ID
         productViewFlow: null,  // 产品视图流程类型，来自 productData.templates.views[0].view_flow
+        // ===== 新增：按视图记录用户选择的颜色（来源于 variants.data 的颜色） =====
+        // 结构：{ [viewId]: 完整的变体对象 (包含API返回的所有字段) + selectedColor }
+        selectedColorsByView: {},
     }),
     // 4. getters 定义依赖状态的计算逻辑（所有依赖 Store 状态的计算放在这里）
     getters: {
@@ -92,6 +95,17 @@ export const useCanvasStore = defineStore('canvas', {
         // 最终是否显示“按颜色 MOQ”
         shouldShowMoqColor() {
             return this.moqItemsColorEnabled;
+        },
+        // ===== 新增：获取颜色选择状态 =====
+        // 获取指定视图下的颜色选择
+        getSelectedColorByView: (state) => (viewId) => {
+            return state.selectedColorsByView[viewId] || null;
+        },
+        // 获取当前激活视图下的颜色选择
+        currentViewSelectedColor(state) {
+            const vid = this.activeViewId;
+            if (!vid) return null;
+            return state.selectedColorsByView[vid] || null;
         }
     },
     // 5. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
@@ -215,6 +229,19 @@ export const useCanvasStore = defineStore('canvas', {
             }
 
             console.log(`View switched: ${previousViewId} -> ${viewId}, layers count: ${this.layers.length}`);
+        },
+        // ===== 新增：颜色选择相关方法 =====
+        // 设置指定视图的选中颜色
+        setSelectedColorByView(viewId, colorData) {
+            this.selectedColorsByView[viewId] = colorData;
+        },
+        // 清除指定视图的选中颜色
+        clearSelectedColorByView(viewId) {
+            delete this.selectedColorsByView[viewId];
+        },
+        // 清除所有视图的选中颜色
+        clearAllSelectedColors() {
+            this.selectedColorsByView = {};
         },
         // 异步获取产品数据
         async fetchProductData(pwId) {

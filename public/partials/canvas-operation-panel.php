@@ -469,6 +469,64 @@ $plugin_url = plugin_dir_url(__FILE__);
                 
                 // 处理颜色样本点击的逻辑
                 function handleColorSwatchClick(color) {
+                    // ===== 新增：将颜色数据存储到 Pinia store =====
+                    function saveColorToStore(selectedColor) {
+                        if (window.useCanvasStore) {
+                            const store = window.useCanvasStore();
+                            const activeViewId = store.activeViewId;
+                            
+                            if (activeViewId) {
+                                // 从当前选中的颜色样本获取变体ID
+                                const selectedSwatch = document.querySelector('.color-swatch.selected');
+                                if (selectedSwatch) {
+                                    const variantId = selectedSwatch.getAttribute('data-variant-id');
+                                    
+                                    // 从store中获取完整的变体数据
+                                    let completeVariantData = null;
+                                    if (variantId && store.productData && store.productData.variants && store.productData.variants.data) {
+                                        const variants = store.productData.variants.data;
+                                        completeVariantData = variants.find(variant => variant.id == variantId);
+                                    }
+                                    
+                                    // 如果找到完整的变体数据，存储整个对象；否则使用基本信息
+                                    let colorData;
+                                    if (completeVariantData) {
+                                        // 存储完整的变体对象
+                                        colorData = {
+                                            ...completeVariantData,
+                                            // 确保包含当前选中的颜色
+                                            selectedColor: selectedColor
+                                        };
+                                    } else {
+                                        // 回退到基本信息
+                                        const variantName = selectedSwatch.getAttribute('data-variant-name');
+                                        const color = selectedSwatch.getAttribute('data-color');
+                                        colorData = {
+                                            variantId: variantId || null,
+                                            variantName: variantName || null,
+                                            color: color || selectedColor,
+                                            selectedColor: selectedColor
+                                        };
+                                    }
+                                    
+                                    // 存储到 store
+                                    store.setSelectedColorByView(activeViewId, colorData);
+                                    
+                                    console.log(`完整颜色数据已存储到视图 ${activeViewId}:`, colorData);
+                                } else {
+                                    console.warn('未找到选中的颜色样本元素');
+                                }
+                            } else {
+                                console.warn('没有激活的视图ID');
+                            }
+                        } else {
+                            console.warn('CanvasStore 不可用');
+                        }
+                    }
+                    
+                    // 先保存颜色数据到 store
+                    saveColorToStore(color);
+                    
                     // 获取当前视图的 base_layer 并应用 tint 滤镜
                     function applyColorTint() {
                         if (window.useCanvasStore && (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function')) {
