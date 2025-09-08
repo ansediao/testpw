@@ -244,7 +244,9 @@ add_action('manage_product_posts_custom_column', function ($column, $post_id) {
             echo '<div class="cross-sells-tooltip">▲ ' . count($child_product_ids) . ' sub-products
                 <div class="tooltip">' . implode(
                 '<br>',
-                array_map('get_the_title', $child_product_ids)
+                array_map(function($post_id) {
+                    return '<i class="iconfont icon-xiaji"></i> ' . get_the_title($post_id);
+                }, $child_product_ids)
             ) . '</div>
                 </div>';
         }
