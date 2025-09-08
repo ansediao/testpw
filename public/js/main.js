@@ -361,8 +361,8 @@ function addCanvasEventListeners(fabricCanvas) {
 
         // 如果标记了需要显示提示，在松开鼠标时显示
         if (needsAlertOnRelease && alertTargetObject) { // 先取消该元素选中状态
-            fabricCanvas.discardActiveObject();
-            fabricCanvas.renderAll();
+            // fabricCanvas.discardActiveObject();
+            // fabricCanvas.renderAll();
 
             // 显示提示，直接传递当前操作的对象
             showPrintMethodBindingAlert(e.target);
