@@ -1044,13 +1044,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         </script>
 
-        <div class="tab_footer">
-            <div class="sample-check">
-                <input type="checkbox" id="sample">
-                <label for="sample">Sample Order</label>
-            </div>
-            <button class="btn btn-custom" id="pwca-inquiry-btn">Inquiry</button>
-        </div>
+        
         
         <script>
         // ===== 新增：样品订单复选框事件监听 =====
@@ -1499,7 +1493,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <hr>
         <div id="content-wenzi-control"></div>
     </div>
-
+    
     <script>
         // 修改添加文字函数，确保添加到图层面板
         function addText() {
@@ -1775,6 +1769,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         ?>
     </div>
+
+    <!-- 页脚 始终在底部             -->
+     <div class="content-area-footer">
+                <div class="tab_footer">
+            <div class="sample-check">
+                <input type="checkbox" id="sample">
+                <label for="sample">Sample Order</label>
+            </div>
+            <button class="btn btn-custom" id="pwca-inquiry-btn">Inquiry</button>
+        </div>
+     </div>
 </div>
 
 <script>
