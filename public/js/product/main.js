@@ -89,7 +89,8 @@ document.addEventListener('DOMContentLoaded', function () {
         colorVariants: !!window.ColorVariants,
         checkboxOptions: !!window.CheckboxOptions,
         quantityDiscountSlider: !!window.QuantityDiscountSlider,
-        productAccessories: !!window.ProductAccessories
+        productAccessories: !!window.ProductAccessories,
+        customColorsButton: !!window.CustomColorsButton
     };
 
 
@@ -135,7 +136,8 @@ function initializeModularApp(productId) {
             ColorVariants: window.ColorVariants,
             CheckboxOptions: window.CheckboxOptions,
             QuantityDiscountSlider: window.QuantityDiscountSlider,
-            ...(window.ProductAccessories && { ProductAccessories: window.ProductAccessories })
+            ...(window.ProductAccessories && { ProductAccessories: window.ProductAccessories }),
+            ...(window.CustomColorsButton && { CustomColorsButton: window.CustomColorsButton })
         },
 
         template: `
@@ -144,6 +146,11 @@ function initializeModularApp(productId) {
                 <div class="app-content">
                     <div class="color-variants-section">
                         <ColorVariants />
+                    </div>
+                    
+                    <!-- 自定义颜色按钮组 -->
+                    <div class="custom-colors-section" v-if="$options.components.CustomColorsButton">
+                        <CustomColorsButton />
                     </div>
                     
                     <!-- 添加新模块 -->
@@ -200,6 +207,9 @@ function initializeBasicApp(productId, modulesLoaded) {
     if (modulesLoaded.productAccessories && window.ProductAccessories) {
         components.ProductAccessories = window.ProductAccessories;
     }
+    if (modulesLoaded.customColorsButton && window.CustomColorsButton) {
+        components.CustomColorsButton = window.CustomColorsButton;
+    }
 
     const app = createApp({
         data() {
@@ -223,6 +233,10 @@ function initializeBasicApp(productId, modulesLoaded) {
                 <div v-if="$options.components && $options.components.ProductAccessories">
                     <h4>Product Accessories (Basic):</h4>
                     <ProductAccessories />
+                </div>
+                <div v-if="$options.components && $options.components.CustomColorsButton">
+                    <h4>Custom Colors (Basic):</h4>
+                    <CustomColorsButton />
                 </div>
             </div>
         `
