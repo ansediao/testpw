@@ -332,7 +332,7 @@
         if (multiViewContainer) {
             // 应用缩放到 multi-view-container
             multiViewContainer.style.transform = `scale(${scale})`;
-            multiViewContainer.style.transformOrigin = 'top center';
+            multiViewContainer.style.transformOrigin = 'center center';
         } else {
             console.warn('multi-view-container not found for zoom control');
         }
@@ -448,7 +448,7 @@ function updateCanvasZoom() {
     if (multiViewContainer) {
         // 应用缩放到 multi-view-container
         multiViewContainer.style.transform = `scale(${scale})`;
-        multiViewContainer.style.transformOrigin = 'top center';
+        multiViewContainer.style.transformOrigin = 'center center';
         
         console.log('multi-view-container 缩放比例更新为：', scale);
     } else {

@@ -18,23 +18,78 @@ window.CustomColorsButton = {
                 <button 
                     class="pw-custom-color-btn pw-custom-colors-btn"
                     :class="{ 'selected': selectedButton === 'custom' }"
-                    @click="selectCustomColor('custom', '#3498DB')"
+                    @click="openColorModal"
                     :disabled="!isButtonClickable"
                 >
                     <span class="btn-text">Custom Colors</span>
                 </button>
+            </div>
+            
+            <!-- 颜色选择弹窗 - 参考设计页面样式 -->
+            <div id="pw-custom-color-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:9999; align-items:center; justify-content:center;" @click="handleModalBackgroundClick">
+                <div style="background:#fff; border-radius:8px; max-width:300px; width:90vw; padding:1rem; position:relative;" @click.stop>
+                    <button id="close-custom-color-modal" style="position:absolute; right:0.5rem; top:0.5rem; background:none; border:none; font-size:1.5rem; cursor:pointer;" @click="closeColorModal">&times;</button>
+                    <h3 style="margin-top:0;">选择自定义颜色</h3>
+                    <input 
+                        type="color" 
+                        id="customColorPicker" 
+                        v-model="selectedColor"
+                        @input="onColorInput"
+                        style="width:100%; height:100px; margin-bottom:1rem;" 
+                    />
+                    <button id="applyCustomColor" class="btn btn-inquiry" style="width:100%;" @click="confirmColorSelection">应用颜色</button>
+                </div>
             </div>
         </div>
     `,
     
     setup() {
         const selectedButton = Vue.ref(null);
+        const selectedColor = Vue.ref('#3498DB');
         const canvasStore = (typeof Pinia !== 'undefined' && Pinia.useCanvasStore) ? Pinia.useCanvasStore() : null;
+        
+
         
         // 计算按钮是否可点击（参考ColorVariants组件逻辑）
         const isButtonClickable = Vue.computed(() => {
             return true; // 默认可点击，可根据需要添加更复杂的逻辑
         });
+        
+        // 打开颜色选择弹窗
+        const openColorModal = () => {
+            const modal = document.getElementById('pw-custom-color-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        };
+        
+        // 关闭颜色选择弹窗
+        const closeColorModal = () => {
+            const modal = document.getElementById('pw-custom-color-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        };
+        
+        // 处理点击弹窗背景关闭弹窗
+        const handleModalBackgroundClick = (event) => {
+            if (event.target.id === 'pw-custom-color-modal') {
+                closeColorModal();
+            }
+        };
+        
+        // 处理颜色输入变化
+        const onColorInput = (event) => {
+            selectedColor.value = event.target.value;
+        };
+        
+
+        
+        // 确认颜色选择
+        const confirmColorSelection = () => {
+            selectCustomColor('custom', selectedColor.value);
+            closeColorModal();
+        };
         
         // 选择自定义颜色的处理函数
         const selectCustomColor = (buttonType, colorValue) => {
@@ -136,8 +191,14 @@ window.CustomColorsButton = {
         
         return {
             selectedButton,
+            selectedColor,
             isButtonClickable,
-            selectCustomColor
+            selectCustomColor,
+            openColorModal,
+            closeColorModal,
+            handleModalBackgroundClick,
+            onColorInput,
+            confirmColorSelection
         };
     }
 };
