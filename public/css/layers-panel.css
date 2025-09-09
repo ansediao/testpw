@@ -130,8 +130,8 @@
   border-color: #3b82f6;
 }
 .pwca-group-print-modal__btn--primary:hover, .modal#pwca-group-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn.modal__btn-primary:hover {
-  background: #0b63f3;
-  border-color: #0b63f3;
+  background: rgb(11.1512195122, 99.1219512195, 242.8487804878);
+  border-color: rgb(11.1512195122, 99.1219512195, 242.8487804878);
 }
 
 .pwca-group-info {
@@ -396,8 +396,8 @@
   border-color: #3b82f6;
 }
 .pwca-print-method-modal__btn--primary:hover, .modal#pwca-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn.modal__btn-primary:hover {
-  background: #0b63f3;
-  border-color: #0b63f3;
+  background: rgb(11.1512195122, 99.1219512195, 242.8487804878);
+  border-color: rgb(11.1512195122, 99.1219512195, 242.8487804878);
 }
 
 .pwca-print-methods {
@@ -727,13 +727,13 @@
   display: block;
   background-color: rgba(34, 197, 94, 0.1);
   border: 1px solid rgba(34, 197, 94, 0.3);
-  color: #136e34;
+  color: rgb(18.987012987, 110.012987013, 52.4935064935);
 }
 .pwca-inquiry-form .pwca-form-message--error {
   display: block;
   background-color: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #bd1010;
+  color: rgb(188.842364532, 16.157635468, 16.157635468);
 }
 
 .pwca-inquiry-modal__footer {
@@ -768,7 +768,7 @@
   color: #ffffff;
 }
 .pwca-inquiry-modal__btn--submit:hover {
-  background-color: #0b63f3;
+  background-color: rgb(11.1512195122, 99.1219512195, 242.8487804878);
 }
 .pwca-inquiry-modal__btn--submit:disabled {
   background-color: #ccc;

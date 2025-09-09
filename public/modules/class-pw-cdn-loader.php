@@ -119,11 +119,10 @@ class Pw_CDN_Loader {
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/QuantityDiscountSlider.css?v=' . time(); ?>">
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/ProductAccessories.css?v=' . time(); ?>">
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/CustomColorsButton.css?v=' . time(); ?>">
-            <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../css/pw-color-picker-modal.css?v=' . time(); ?>">
-                        
+            <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../css/pw-gradient-modal.css?v=' . time(); ?>">
+
             <!-- 引入产品页面主脚本 -->
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/main.js?v=' . time(); ?>"></script>
-            
             <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>
             <!-- 开发环境：Pinia同步示例 -->
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/utils/pinia-sync-examples.js?v=' . time(); ?>"></script>
