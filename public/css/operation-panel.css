@@ -34,3 +34,32 @@
 .panel-collapse-btn:hover svg {
     color: #374151;
 }
+
+/* 关闭按钮样式 */
+.close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin-left: 8px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+}
+
+.close-btn:hover svg {
+    color: #ffffff;
+}
+
+.close-btn svg {
+    color: #6b7280;
+    transition: color 0.2s ease;
+}

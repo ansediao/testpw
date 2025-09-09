@@ -18,4 +18,7 @@
         <button class="design-switch-btn" id="renderBtn" data-tab="viewMockup">Mockups</button>
     </div>
     <button id="generatePdfBtn">PDF</button>
+    <button id="closeCanvasBtn" class="close-btn" title="返回产品页">
+        X
+    </button>
 </div>

@@ -2833,3 +2833,29 @@ async function captureViewImage(view) {
         return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">截图失败</text></svg>');
     }
 }
+
+// 添加关闭按钮的事件监听器
+document.addEventListener('DOMContentLoaded', function() {
+    const closeCanvasBtn = document.getElementById('closeCanvasBtn');
+    if (closeCanvasBtn) {
+        closeCanvasBtn.addEventListener('click', function() {
+            // 获取当前产品ID，从页面标题中提取或使用其他方式
+            const productName = document.querySelector('.header_title')?.textContent;
+            
+            // 构建产品页URL
+            // 假设产品页URL格式为 /product/产品名称 或 /产品名称
+            let productUrl;
+            if (productName) {
+                // 将产品名称转换为URL友好的格式
+                const productSlug = productName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '');
+                productUrl = `/${productSlug}`;
+            } else {
+                // 如果无法获取产品名称，则返回首页
+                productUrl = '/';
+            }
+            
+            // 跳转到产品页
+            window.location.href = productUrl;
+        });
+    }
+});
