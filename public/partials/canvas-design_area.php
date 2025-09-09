@@ -933,7 +933,7 @@ if ($first_image_url) {
             }
         }
 
-        // 创建遮罩路径（四周半透明，中心镂空）
+        // 创建遮罩蒙版路径（四周半透明，中心镂空）
         const maskPath = `M 0 0 L ${canvasWidth} 0 L ${canvasWidth} ${canvasHeight} L 0 ${canvasHeight} Z M ${(canvasWidth - printAreaWidth) / 2} ${(canvasHeight - printAreaHeight) / 2} L ${(canvasWidth + printAreaWidth) / 2} ${(canvasHeight - printAreaHeight) / 2} L ${(canvasWidth + printAreaWidth) / 2} ${(canvasHeight + printAreaHeight) / 2} L ${(canvasWidth - printAreaWidth) / 2} ${(canvasHeight + printAreaHeight) / 2} Z`;
 
         const printAreaMask = new fabric.Path(maskPath, {

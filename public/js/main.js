@@ -839,6 +839,9 @@ function syncSelectionToStore(objectId) {
             // 控制蒙版画布的显示/隐藏
             controlMaskCanvasFromMain(objectId);
 
+            // 控制 mainWrapper 的显示范围
+            controlMainWrapperDisplayArea(objectId);
+
         } catch (error) {
             console.error('Failed to sync selection state:', error);
         }
@@ -939,8 +942,75 @@ function controlMaskCanvasFromMain(objectId) {
     }蒙版画布, 对象ID: ${objectId}, 分组状态: ${isGrouped}`);
 }
 
+// 控制 mainWrapper 的显示范围
+function controlMainWrapperDisplayArea(objectId) {
+    const store = window.useCanvasStore();
+    if (!store || !store.activeViewId) 
+        return;
+    
+    const currentViewId = store.activeViewId;
+    const mainWrapper = document.getElementById(`mainWrapper-${currentViewId}`);
+    if (!mainWrapper) 
+        return;
+    
+    // 如果没有选中任何元素，限制显示范围到打印区域
+    if (!objectId) {
+        // 获取打印区域尺寸
+        let printAreaWidth = 100; // 默认值
+        let printAreaHeight = 120; // 默认值
+        let canvasWidth = 456; // 默认画布宽度
+        let canvasHeight = 456; // 默认画布高度
+        
+        // 从 Pinia printMethod store 获取打印区域尺寸
+        if (window.usePrintMethodStore) {
+            const printMethodStore = window.usePrintMethodStore();
+            const currentMethods = printMethodStore.currentViewPrintMethods;
+            
+            if (currentMethods && currentMethods.length > 0) {
+                const firstMethod = currentMethods[0];
+                if (firstMethod.print_method_area_width && firstMethod.print_method_area_height) {
+                    // 将尺寸乘以50转换为像素
+                    printAreaWidth = firstMethod.print_method_area_width * 50;
+                    printAreaHeight = firstMethod.print_method_area_height * 50;
+                }
+            }
+        }
+        
+        // 从视图数据获取画布尺寸
+        const views = store.views;
+        const currentView = views.find(v => v.id === currentViewId);
+        if (currentView && currentView.layers && currentView.layers.length > 0) {
+            const targetLayer = currentView.layers[0];
+            if (targetLayer && targetLayer.layer_data?.dimensions) {
+                canvasWidth = targetLayer.layer_data.dimensions.contentArea?.width || 
+                             targetLayer.layer_data.dimensions.layerSize?.width || canvasWidth;
+                canvasHeight = targetLayer.layer_data.dimensions.contentArea?.height || 
+                              targetLayer.layer_data.dimensions.layerSize?.height || canvasHeight;
+            }
+        }
+        
+        // 计算打印区域的位置（居中）
+        const printAreaLeft = (canvasWidth - printAreaWidth) / 2;
+        const printAreaTop = (canvasHeight - printAreaHeight) / 2;
+        const printAreaRight = printAreaLeft + printAreaWidth;
+        const printAreaBottom = printAreaTop + printAreaHeight;
+        
+        // 使用 clip-path 限制显示范围到打印区域
+        const clipPath = `polygon(${printAreaLeft}px ${printAreaTop}px, ${printAreaRight}px ${printAreaTop}px, ${printAreaRight}px ${printAreaBottom}px, ${printAreaLeft}px ${printAreaBottom}px)`;
+        mainWrapper.style.clipPath = clipPath;
+        
+        console.log(`[MainWrapper] 限制显示范围到打印区域: ${printAreaWidth}x${printAreaHeight}px, 位置: (${printAreaLeft}, ${printAreaTop})`);
+    } else {
+        // 有选中元素时，移除显示范围限制
+        mainWrapper.style.clipPath = 'none';
+        console.log(`[MainWrapper] 移除显示范围限制, 选中对象ID: ${objectId}`);
+    }
+}
+
 // 暴露蒙版画布控制函数到全局作用域
 window.controlMaskCanvasFromMain = controlMaskCanvasFromMain;
+// 暴露 mainWrapper 显示范围控制函数到全局作用域
+window.controlMainWrapperDisplayArea = controlMainWrapperDisplayArea;
 
 // 获取图层名称的辅助函数
 function getLayerName(obj) { // 优先使用对象上设置的 layerName 属性（用于复制等场景）
