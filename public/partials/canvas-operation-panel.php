@@ -785,6 +785,68 @@ document.addEventListener('DOMContentLoaded', function() {
                         }, 5000);
                     }
                 }
+    // ===== 新增：全局方法 - 应用颜色到所有视图 =====
+    window.applyColorToAllViews = function(color) {
+        if (!window.useCanvasStore) {
+            console.warn('useCanvasStore 不可用');
+            return;
+        }
+        
+        const store = window.useCanvasStore();
+        if (!store.views || store.views.length === 0) {
+            console.warn('没有视图数据');
+            return;
+        }
+        
+        // 确保 applyTintFilter 函数可用
+        const tintFunction = typeof applyTintFilter === 'function' ? applyTintFilter : window.applyTintFilter;
+        if (typeof tintFunction !== 'function') {
+            console.warn('applyTintFilter 函数不可用');
+            return;
+        }
+        
+        // 遍历所有视图并应用颜色
+        store.views.forEach(view => {
+            if (view.base_layer) {
+                // 应用 tint 滤镜到 base_layer
+                tintFunction(view.base_layer, color, 1);
+                
+                // 强制重新应用滤镜
+                if (view.base_layer.applyFilters) {
+                    view.base_layer.applyFilters();
+                }
+                
+                // 通过 CanvasManager 获取并渲染对应 canvas
+                if (window.CanvasManager) {
+                    const canvas = window.CanvasManager.getCanvas(view.id);
+                    if (canvas) {
+                        // 强制重新渲染 base_layer 对象
+                        if (view.base_layer.canvas) {
+                            view.base_layer.canvas.renderAll();
+                        }
+                        // 强制整个画布重新渲染
+                        canvas.renderAll();
+                        // 使用 requestAnimationFrame 优化渲染
+                        requestAnimationFrame(() => {
+                            canvas.renderAll();
+                        });
+                        console.log(`已将颜色 ${color} 应用到视图 ${view.name} (ID: ${view.id})`);
+                    } else {
+                        console.warn(`视图 ${view.name} 的 canvas 未找到`);
+                    }
+                }
+            } else {
+                console.warn(`视图 ${view.name} 没有 base_layer`);
+            }
+        });
+        
+        // 更新价格显示（如果有相关 getter）
+        if (typeof window.__pwcaUpdatePriceDisplay === 'function') {
+            window.__pwcaUpdatePriceDisplay();
+        }
+        
+        console.log(`全局颜色 ${color} 已应用到所有 ${store.views.length} 个视图`);
+    };
 
                 // 监听 canvasStore 数据变化
                 function waitForCanvasData() {
