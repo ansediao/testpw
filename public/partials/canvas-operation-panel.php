@@ -766,23 +766,44 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                     
-                    // 如果 applyTintFilter 函数已经可用，立即执行
-                    if (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function') {
-                        applyColorTint();
-                    } else {
-                        // 否则等待函数可用
-                        const checkInterval = setInterval(() => {
-                            if (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function') {
-                                clearInterval(checkInterval);
-                                applyColorTint();
+                    // 判断是否为第一个视图
+                    function isFirstView() {
+                        if (window.useCanvasStore) {
+                            const store = window.useCanvasStore();
+                            if (store.views && store.views.length > 0) {
+                                return store.activeViewId === store.views[0].id;
                             }
-                        }, 100);
-                        
-                        // 设置超时，避免无限等待
-                        setTimeout(() => {
-                            clearInterval(checkInterval);
-                            console.warn('applyTintFilter function not available after timeout');
-                        }, 5000);
+                        }
+                        return false;
+                    }
+                    
+                    // 如果是第一个视图，使用全局方法；否则使用原逻辑
+                    if (isFirstView()) {
+                        if (typeof window.applyColorToAllViews === 'function') {
+                            window.applyColorToAllViews(color);
+                        } else {
+                            console.warn('全局方法 applyColorToAllViews 不可用，使用原逻辑');
+                            applyColorTint();
+                        }
+                    } else {
+                        // 原逻辑：应用到当前视图
+                        if (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function') {
+                            applyColorTint();
+                        } else {
+                            // 否则等待函数可用
+                            const checkInterval = setInterval(() => {
+                                if (typeof applyTintFilter === 'function' || typeof window.applyTintFilter === 'function') {
+                                    clearInterval(checkInterval);
+                                    applyColorTint();
+                                }
+                            }, 100);
+                            
+                            // 设置超时，避免无限等待
+                            setTimeout(() => {
+                                clearInterval(checkInterval);
+                                console.warn('applyTintFilter function not available after timeout');
+                            }, 5000);
+                        }
                     }
                 }
     // ===== 新增：全局方法 - 应用颜色到所有视图 =====
