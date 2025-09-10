@@ -13,6 +13,9 @@ export const useCanvasStore = defineStore('canvas', {
         // 预期到货日期
         estimatedArrivalDate: '2025-01-15',
 
+        // 数量
+        quantity: 100,
+
 
         // canvasStates：存储每个画板的状态（如对象、图层等），初始有3个画板
         canvasStates: { canvas1: null, canvas2: null, canvas3: null },
@@ -46,6 +49,9 @@ export const useCanvasStore = defineStore('canvas', {
     }),
     // 4. getters 定义依赖状态的计算逻辑（所有依赖 Store 状态的计算放在这里）
     getters: {
+        // 获取当前数量
+        getQuantity: (state) => state.quantity,
+
         // 原始开关值
         moqItemsDesignRaw: (state) => state.productData && state.productData.customization_settings && state.productData.customization_settings.data
             ? state.productData.customization_settings.data.moq_items_design
@@ -291,6 +297,11 @@ export const useCanvasStore = defineStore('canvas', {
     },
     // 5. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
     actions: {
+        // 设置数量
+        setQuantity(newValue) {
+            this.quantity = Math.max(1, newValue);
+        },
+
         // 切换当前激活的画板
         setActiveCanvasId(id) { this.activeCanvasId = id; },
         // 更新指定画板的状态（如对象、图层等）

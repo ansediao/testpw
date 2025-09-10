@@ -187,6 +187,9 @@ if ($product_id > 0) {
                   const quantityInput = document.querySelector('.product-card__input');
                   if (!quantityInput) return;
 
+                  const canvasStore = window.useCanvasStore && window.useCanvasStore();
+                  if (!canvasStore) return;
+
                   // 获取当前 MOQ 值
                   const moqDesignText = document.getElementById('moqDesignLine')?.textContent || '0Pcs / Design';
                   const moqColorText = document.getElementById('moqColorLine')?.textContent || '0Pcs / Color';
@@ -195,13 +198,16 @@ if ($product_id > 0) {
                   const moqColorValue = parseInt(moqColorText.match(/\d+/)?.[0] || '0');
                   
                   const maxMoq = Math.max(moqDesignValue, moqColorValue);
-                  const currentQuantity = parseInt(quantityInput.value) || 0;
+                  const currentQuantity = canvasStore.getQuantity;
                   
                   // 如果当前数量小于最大 MOQ，则更新为最大 MOQ
                   if (currentQuantity < maxMoq && maxMoq > 0) {
-                    quantityInput.value = maxMoq;
+                    canvasStore.setQuantity(maxMoq);
                     console.log(`[Canvas] 数量已更新为最小 MOQ: ${maxMoq}`);
                   }
+
+                  // 同步到 input
+                  quantityInput.value = canvasStore.getQuantity;
                 } catch (e) {
                   console.warn('[Canvas] 更新数量输入框失败:', e);
                 }
@@ -457,6 +463,61 @@ if ($product_id > 0) {
           <input type="text" value="100" class="product-card__input">
           <button class="product-card__button product-card__button--plus">+</button>
         </div>
+
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            const minusBtn = document.querySelector('.product-card__button--minus');
+            const plusBtn = document.querySelector('.product-card__button--plus');
+            const quantityInput = document.querySelector('.product-card__input');
+
+            if (!minusBtn || !plusBtn || !quantityInput) return;
+
+            const canvasStore = window.useCanvasStore && window.useCanvasStore();
+            if (!canvasStore) {
+              console.warn('[Canvas] Canvas store not available for quantity binding');
+              return;
+            }
+
+            // 绑定减按钮
+            minusBtn.addEventListener('click', () => {
+              canvasStore.setQuantity(canvasStore.getQuantity - 1);
+            });
+
+            // 绑定加按钮
+            plusBtn.addEventListener('click', () => {
+              canvasStore.setQuantity(canvasStore.getQuantity + 1);
+            });
+
+            // 绑定输入框变化
+            quantityInput.addEventListener('input', (e) => {
+              const value = parseInt(e.target.value) || 1;
+              canvasStore.setQuantity(value);
+            });
+
+            // 初始同步
+            quantityInput.value = canvasStore.getQuantity;
+
+            // 订阅 store 变化更新 input
+            if (canvasStore.$subscribe) {
+              canvasStore.$subscribe((mutation) => {
+                if (mutation.storeId === 'canvas' && mutation.type === 'direct' && mutation.path && mutation.path.includes('quantity')) {
+                  quantityInput.value = canvasStore.getQuantity;
+                }
+              });
+            }
+
+            // 初始检查 MOQ
+            if (window.updateQuantityInputIfNeeded) {
+              window.updateQuantityInputIfNeeded();
+            }
+
+            // 暴露调试函数
+            window.__pwcaUpdateQuantityBinding = () => {
+              quantityInput.value = canvasStore.getQuantity;
+              window.updateQuantityInputIfNeeded();
+            };
+          });
+        </script>
       </div>
       <!-- 添加画板缩放滑块 -->
       <div class="zoom-control" style="margin-top: 15px;">
