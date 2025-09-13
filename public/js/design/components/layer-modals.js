@@ -38,7 +38,7 @@ export const layerModalsTemplate = `
                         </div>
                         <div v-if="activeTab === 'moq'" class="pwca-moq-content">
                             <!-- MOQ 选项卡内容 -->
-                            <p>{{ printMethods.find(method => method.id === selectedPrintMethodId)?.apiData.moq_quantity || 'No method selected' }}</p>
+                            <p>MOQ is {{ printMethods.find(method => method.id === selectedPrintMethodId)?.apiData.moq_quantity || 'No method selected' }}</p>
                         </div>
                         <div v-if="activeTab === 'printarea'" class="pwca-printarea-content">
                             <!-- Print Area 选项卡内容 -->
