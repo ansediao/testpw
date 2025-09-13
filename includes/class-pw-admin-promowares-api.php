@@ -484,6 +484,24 @@ class Pw_Admin_Promowares_Api
                 ),
             ),
         ));
+
+        // Register custom colors endpoint
+        register_rest_route('pw-canvas/v1', '/custom-colors', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'get_custom_colors_data'),
+            'permission_callback' => '__return_true',
+            'args' => array(
+                'color_list_id' => array(
+                    'required' => true,
+                    'validate_callback' => function ($param, $request, $key) {
+                        return is_numeric($param) && $param > 0;
+                    },
+                    'sanitize_callback' => function ($param, $request, $key) {
+                        return intval($param);
+                    }
+                ),
+            ),
+        ));
     }
 
     /**
@@ -1129,6 +1147,50 @@ class Pw_Admin_Promowares_Api
             'total_methods' => is_array($api_response) ? count($api_response) : 0,
             'requested_ids' => $printing_method_ids,
             'has_errors' => false
+        );
+
+        return new WP_REST_Response($response_data, 200);
+    }
+
+    /**
+     * Get custom colors data from Promowares API.
+     *
+     * @since    1.0.0
+     * @param    WP_REST_Request    $request    The REST request object.
+     * @return   WP_REST_Response              The custom colors response.
+     */
+    public function get_custom_colors_data($request)
+    {
+        $color_list_id = $request['color_list_id'];
+        $token = $this->hardcoded_token;
+
+        if (empty($token)) {
+            return new WP_REST_Response(array(
+                'error' => 'API token not configured'
+            ), 401);
+        }
+
+        if (empty($color_list_id)) {
+            return new WP_REST_Response(array(
+                'error' => 'color_list_id is required'
+            ), 400);
+        }
+
+        // Call the custom-colors API endpoint
+        $api_response = $this->call_promowares_api("custom-colors/{$color_list_id}", $token);
+        
+        if (is_wp_error($api_response)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'error' => $api_response->get_error_message(),
+                'color_list_id' => $color_list_id
+            ), 500);
+        }
+
+        $response_data = array(
+            'success' => true,
+            'data' => $api_response,
+            'color_list_id' => $color_list_id
         );
 
         return new WP_REST_Response($response_data, 200);

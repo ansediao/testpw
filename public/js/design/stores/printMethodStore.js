@@ -321,11 +321,78 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                 const apiData = result.data?.data || result.data;
                 
                 if (apiData && Array.isArray(apiData)) {
-                    convertedData = apiData.map(item => this.convertApiDataToInternalFormat(item));
+                    // 为每个印刷方式获取颜色数据
+                    const methodsWithColors = await Promise.all(
+                        apiData.map(async (item) => {
+                            const convertedMethod = this.convertApiDataToInternalFormat(item);
+                            
+                            // 如果color_list_id有值，获取颜色数据
+                            if (item.color_list_id) {
+                                try {
+                                    const colorResponse = await fetch('/wp-json/pw-canvas/v1/custom-colors', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({
+                                            color_list_id: item.color_list_id
+                                        })
+                                    });
+                                    
+                                    if (colorResponse.ok) {
+                                         const colorResult = await colorResponse.json();
+                                         if (colorResult.success && colorResult.data) {
+                                             // 将颜色数据整合到印刷方式对象中
+                                             convertedMethod.customColors = colorResult.data;
+                                             convertedMethod.apiData.customColors = colorResult.data;
+                                             convertedMethod.settings.color.availableColors = colorResult.data;
+                                             console.log(`成功获取印刷方式 ${item.id} 的颜色数据:`, colorResult.data);
+                                         }
+                                     } else {
+                                         console.warn(`获取印刷方式 ${item.id} 的颜色数据失败:`, colorResponse.status);
+                                     }
+                                } catch (colorError) {
+                                    console.error(`获取印刷方式 ${item.id} 的颜色数据时出错:`, colorError);
+                                }
+                            }
+                            
+                            return convertedMethod;
+                        })
+                    );
+                    convertedData = methodsWithColors;
                 } else if (apiData) {
                     // 如果data不是数组，尝试将其包装为数组
                     console.warn('API返回的data不是数组格式:', apiData);
-                    convertedData = [this.convertApiDataToInternalFormat(apiData)];
+                    const convertedMethod = this.convertApiDataToInternalFormat(apiData);
+                    
+                    // 为单个印刷方式获取颜色数据
+                    if (apiData.color_list_id) {
+                        try {
+                            const colorResponse = await fetch('/wp-json/pw-canvas/v1/custom-colors', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    color_list_id: apiData.color_list_id
+                                })
+                            });
+                            
+                            if (colorResponse.ok) {
+                                 const colorResult = await colorResponse.json();
+                                 if (colorResult.success && colorResult.data) {
+                                     convertedMethod.customColors = colorResult.data;
+                                     convertedMethod.apiData.customColors = colorResult.data;
+                                     convertedMethod.settings.color.availableColors = colorResult.data;
+                                     console.log(`成功获取印刷方式 ${apiData.id} 的颜色数据:`, colorResult.data);
+                                 }
+                             }
+                        } catch (colorError) {
+                            console.error(`获取印刷方式 ${apiData.id} 的颜色数据时出错:`, colorError);
+                        }
+                    }
+                    
+                    convertedData = [convertedMethod];
                 } else {
                     console.warn('API返回的数据中没有有效的data字段:', result);
                 }
@@ -357,6 +424,8 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                 size_unit:apiMethod.size_unit,
                 code: apiMethod.code,
                 description: apiMethod.description,
+                // 初始化customColors字段，后续会在fetchPrintMethods中填充
+                customColors: null,
                 features: {
                     allowCopy: apiMethod.copyable,
                     allowDelete: true, // API 中没有对应字段，默认为 true
@@ -377,7 +446,9 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                     color: {
                         maxColors: apiMethod.printable_color === 'All Color' ? null : apiMethod.color_list_id,
                         colorType: apiMethod.printable_color === 'All Color' ? 'full' : 'limited',
-                        pantoneSupport: true // API 中没有对应字段，默认为 true
+                        pantoneSupport: true, // API 中没有对应字段，默认为 true
+                        // 添加颜色列表字段，后续会在fetchPrintMethods中填充
+                        availableColors: null
                     },
                     moq: {
                         minimum: apiMethod.moq_quantity,
