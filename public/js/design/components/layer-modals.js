@@ -34,7 +34,17 @@ export const layerModalsTemplate = `
                     <div class="pwca-tab-content">
                         <div v-if="activeTab === 'color'" class="pwca-color-content">
                             <!-- Color 选项卡内容 -->
-                            <p>{{ printMethods.find(method => method.id === selectedPrintMethodId)?.apiData.color_list_id || 'No method selected' }}</p>
+                            <!-- 颜色矩形框显示 -->
+                            <div v-if="printMethods.find(method => method.id === selectedPrintMethodId)?.customColors?.data?.colors" class="pwca-color-swatches-box">
+                                <div 
+                                    v-for="color in printMethods.find(method => method.id === selectedPrintMethodId).customColors.data.colors" 
+                                    :key="color.hex_code"
+                                    class="pwca-color-swatch"
+                                    :style="{ backgroundColor: color.hex_code }"
+                                    :title="color.name"
+                                ></div>
+                            </div>
+                            <p v-else>No colors available</p>
                         </div>
                         <div v-if="activeTab === 'moq'" class="pwca-moq-content">
                             <!-- MOQ 选项卡内容 -->

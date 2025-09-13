@@ -232,6 +232,29 @@
             font-size: $canvas-font-size-base;
         }
     }
+    
+    // 颜色矩形框容器
+    .pwca-color-swatches-box {
+        display: flex;
+        flex-wrap: wrap;
+        gap: $canvas-spacing-xs;
+        margin: $canvas-spacing-sm 0;
+        
+        .pwca-color-swatch {
+            width: 32px;
+            height: 32px;
+            border-radius: $canvas-border-radius;
+            border: 2px solid $canvas-border-color;
+            cursor: default;
+            transition: all $canvas-transition-base;
+            
+            &:hover {
+                transform: scale(1.1);
+                border-color: $canvas-primary-color;
+                box-shadow: $canvas-shadow-sm;
+            }
+        }
+    }
 }
 
 // 组合印刷方式选项

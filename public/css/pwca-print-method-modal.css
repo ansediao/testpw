@@ -117,8 +117,8 @@
   border-color: #3b82f6;
 }
 .pwca-print-method-modal__btn--primary:hover {
-  background: rgb(11.1512195122, 99.1219512195, 242.8487804878);
-  border-color: rgb(11.1512195122, 99.1219512195, 242.8487804878);
+  background: #0b63f3;
+  border-color: #0b63f3;
 }
 
 .pwca-print-methods {
@@ -201,6 +201,25 @@
   margin: 8px 0;
   color: #64748b;
   font-size: 14px;
+}
+.pwca-tab-content .pwca-color-swatches-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0;
+}
+.pwca-tab-content .pwca-color-swatches-box .pwca-color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: 2px solid #e2e8f0;
+  cursor: default;
+  transition: all 0.2s;
+}
+.pwca-tab-content .pwca-color-swatches-box .pwca-color-swatch:hover {
+  transform: scale(1.1);
+  border-color: #3b82f6;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .pwca-combination-print-method-options {
