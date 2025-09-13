@@ -42,7 +42,11 @@ export const layerModalsTemplate = `
                         </div>
                         <div v-if="activeTab === 'printarea'" class="pwca-printarea-content">
                             <!-- Print Area 选项卡内容 -->
-                            <p>{{ printMethods.find(method => method.id === selectedPrintMethodId)?.apiData.print_method_area || 'No method selected' }}</p>
+                            <img v-if="printMethods.find(method => method.id === selectedPrintMethodId)?.apiData.print_method_area" 
+                                 :src="printMethods.find(method => method.id === selectedPrintMethodId)?.apiData.print_method_area" 
+                                 alt="Print Method Area" 
+                                 class="pwca-print-method-area-image" />
+                            <p v-else>No method selected</p>
                         </div>
                     </div>
                     
