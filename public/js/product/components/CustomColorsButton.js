@@ -137,6 +137,7 @@ window.CustomColorsButton = {
         const gradientColor = Vue.ref('#E91E63');
         const gradientPosition = Vue.ref(50);
         const canvasStore = (typeof Pinia !== 'undefined' && Pinia.useCanvasStore) ? Pinia.useCanvasStore() : null;
+        const productStore = (typeof window.useProductStore !== 'undefined') ? window.useProductStore() : null;
         
         const gradientCSS = Vue.computed(() => {
             return `linear-gradient(to right, ${baseColor.value} ${gradientPosition.value}%, ${gradientColor.value} ${gradientPosition.value}%)`;
@@ -184,6 +185,13 @@ window.CustomColorsButton = {
         const applyGradient = () => {
             const gradientValue = `${baseColor.value},${gradientColor.value}`;
             selectCustomColor('gradient', gradientValue);
+            
+            // 更新productStore状态，隐藏复选框和添加到购物车按钮
+            if (productStore && productStore.setGradientColorApplied) {
+                productStore.setGradientColorApplied(true);
+                console.log('Gradient color applied - hiding checkboxes and add to cart button');
+            }
+            
             MicroModal.close('pw-gradient-modal');
         };
         
@@ -295,6 +303,12 @@ window.CustomColorsButton = {
             document.addEventListener('pw-color-variant-selected', (event) => {
                 // 如果其他颜色被选中，清除当前选中状态
                 selectedButton.value = null;
+                
+                // 重置渐变颜色应用状态，重新显示复选框和按钮
+                if (productStore && productStore.setGradientColorApplied) {
+                    productStore.setGradientColorApplied(false);
+                    console.log('Other color selected - showing checkboxes and add to cart button');
+                }
             });
         });
         

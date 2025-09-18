@@ -35,6 +35,9 @@ const useProductStore = Pinia.defineStore('product', () => {
     const buySampleChecked = Vue.ref(false);
     const blankProductChecked = Vue.ref(false);
 
+    // Gradient color button state
+    const gradientColorApplied = Vue.ref(false);
+
     // Accessories price state
     const accessoriesPrice = Vue.ref(0);
 
@@ -178,8 +181,8 @@ const useProductStore = Pinia.defineStore('product', () => {
 
     // Button visibility getters
     const showAddToCartButton = Vue.computed(() => {
-        // 默认显示，可以根据业务逻辑调整
-        return productData.value && !loading.value;
+        // 当渐变颜色被应用时隐藏按钮
+        return productData.value && !loading.value && !gradientColorApplied.value;
     });
 
     const showCustomizeButton = Vue.computed(() => {
@@ -194,8 +197,8 @@ const useProductStore = Pinia.defineStore('product', () => {
     });
 
     const showBlankProductCheckbox = Vue.computed(() => {
-        // 默认显示，可以根据业务逻辑调整
-        return productData.value && !loading.value;
+        // 当渐变颜色被应用时隐藏复选框
+        return productData.value && !loading.value && !gradientColorApplied.value;
     });
 
     // Actions (methods)
@@ -213,6 +216,10 @@ const useProductStore = Pinia.defineStore('product', () => {
 
     const setError = (err) => {
         error.value = err;
+    };
+
+    const setGradientColorApplied = (applied) => {
+        gradientColorApplied.value = applied;
     };
 
     const updateQuantity = (qty) => {
@@ -638,6 +645,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         rts_for_sample_order,
         buySampleChecked,
         blankProductChecked,
+        gradientColorApplied,
         accessoriesPrice,
         moqSettings,
         minQuantity,
@@ -671,6 +679,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         setProductData,
         setLoading,
         setError,
+        setGradientColorApplied,
         updateQuantity,
         setQuantityDirect,
         getNextValidQuantity,
