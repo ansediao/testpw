@@ -963,8 +963,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         const color2 = gradientColor2.value;
                         const direction = gradientDirection.value;
                         
-                        // 应用渐变色到当前视图的 base_layer
-                        function applyGradientToBaseLayer() {
+                        // 创建渐变矩形框住 base 图层有像素的部分
+                        function createGradientRectangle() {
                             if (window.useCanvasStore) {
                                 const store = window.useCanvasStore();
                                 const activeViewId = store.activeViewId;
@@ -972,32 +972,156 @@ document.addEventListener('DOMContentLoaded', function() {
                                 if (activeViewId && store.views) {
                                     const currentView = store.views.find(v => v.id === activeViewId);
                                     if (currentView && currentView.base_layer) {
-                                        // 由于fabric.js的滤镜不直接支持渐变，我们创建一个渐变滤镜函数
-                                        applyGradientFilter(currentView.base_layer, color1, color2, direction);
+                                        // 获取 base 图层有像素部分的边界
+                                        const bounds = window.getBaseLayerPixelBounds(currentView.base_layer);
                                         
-                                        // 强制重新应用滤镜并渲染
-                                        if (currentView.base_layer.applyFilters) {
-                                            currentView.base_layer.applyFilters();
+                                        if (!bounds) {
+                                            console.warn('无法获取 base 图层的像素边界');
+                                            return;
                                         }
                                         
-                                        // 获取当前激活的画布并重新渲染
-                                        if (window.CanvasManager) {
-                                            const activeCanvas = window.CanvasManager.getActiveCanvas();
-                                            if (activeCanvas) {
-                                                // 强制重新渲染base_layer对象
-                                                if (currentView.base_layer.canvas) {
-                                                    currentView.base_layer.canvas.renderAll();
-                                                }
-                                                // 强制整个画布重新渲染
-                                                activeCanvas.renderAll();
-                                                // 使用requestAnimationFrame确保渲染在下一帧完成
-                                                requestAnimationFrame(() => {
-                                                    activeCanvas.renderAll();
+                                        // 获取当前激活的画布
+                                        const activeCanvas = window.CanvasManager.getActiveCanvas();
+                                        if (!activeCanvas) {
+                                            console.warn('无法获取当前激活的画布');
+                                            return;
+                                        }
+                                        
+                                        // 创建渐变对象
+                                        let gradient;
+                                        
+                                        // 根据方向设置渐变坐标
+                                        switch (direction) {
+                                            case 'to right':
+                                                gradient = new fabric.Gradient({
+                                                    type: 'linear',
+                                                    coords: {
+                                                        x1: 0,
+                                                        y1: 0,
+                                                        x2: bounds.width,
+                                                        y2: 0
+                                                    },
+                                                    colorStops: [
+                                                        { offset: 0, color: color1 },
+                                                        { offset: 1, color: color2 }
+                                                    ]
                                                 });
-                                            }
+                                                break;
+                                            case 'to left':
+                                                gradient = new fabric.Gradient({
+                                                    type: 'linear',
+                                                    coords: {
+                                                        x1: bounds.width,
+                                                        y1: 0,
+                                                        x2: 0,
+                                                        y2: 0
+                                                    },
+                                                    colorStops: [
+                                                        { offset: 0, color: color1 },
+                                                        { offset: 1, color: color2 }
+                                                    ]
+                                                });
+                                                break;
+                                            case 'to bottom':
+                                                gradient = new fabric.Gradient({
+                                                    type: 'linear',
+                                                    coords: {
+                                                        x1: 0,
+                                                        y1: 0,
+                                                        x2: 0,
+                                                        y2: bounds.height
+                                                    },
+                                                    colorStops: [
+                                                        { offset: 0, color: color1 },
+                                                        { offset: 1, color: color2 }
+                                                    ]
+                                                });
+                                                break;
+                                            case 'to top':
+                                                gradient = new fabric.Gradient({
+                                                    type: 'linear',
+                                                    coords: {
+                                                        x1: 0,
+                                                        y1: bounds.height,
+                                                        x2: 0,
+                                                        y2: 0
+                                                    },
+                                                    colorStops: [
+                                                        { offset: 0, color: color1 },
+                                                        { offset: 1, color: color2 }
+                                                    ]
+                                                });
+                                                break;
+                                            case 'to bottom right':
+                                                gradient = new fabric.Gradient({
+                                                    type: 'linear',
+                                                    coords: {
+                                                        x1: 0,
+                                                        y1: 0,
+                                                        x2: bounds.width,
+                                                        y2: bounds.height
+                                                    },
+                                                    colorStops: [
+                                                        { offset: 0, color: color1 },
+                                                        { offset: 1, color: color2 }
+                                                    ]
+                                                });
+                                                break;
+                                            case 'to bottom left':
+                                                gradient = new fabric.Gradient({
+                                                    type: 'linear',
+                                                    coords: {
+                                                        x1: bounds.width,
+                                                        y1: 0,
+                                                        x2: 0,
+                                                        y2: bounds.height
+                                                    },
+                                                    colorStops: [
+                                                        { offset: 0, color: color1 },
+                                                        { offset: 1, color: color2 }
+                                                    ]
+                                                });
+                                                break;
+                                            default:
+                                                // 默认从左到右
+                                                gradient = new fabric.Gradient({
+                                                    type: 'linear',
+                                                    coords: {
+                                                        x1: 0,
+                                                        y1: 0,
+                                                        x2: bounds.width,
+                                                        y2: 0
+                                                    },
+                                                    colorStops: [
+                                                        { offset: 0, color: color1 },
+                                                        { offset: 1, color: color2 }
+                                                    ]
+                                                });
                                         }
                                         
-                                        console.log(`已将渐变色 ${color1} 到 ${color2} 应用到当前视图的 base_layer`);
+                                        // 创建矩形对象
+                                        const gradientRect = new fabric.Rect({
+                                            left: bounds.left,
+                                            top: bounds.top,
+                                            width: bounds.width,
+                                            height: bounds.height,
+                                            fill: gradient,
+                                            selectable: true,
+                                            hasControls: true,
+                                            hasBorders: true,
+                                            cornerSize: 10,
+                                            transparentCorners: false,
+                                            id: 'gradient-rect-' + Date.now()
+                                        });
+                                        
+                                        // 添加到画布
+                                        activeCanvas.add(gradientRect);
+                                        activeCanvas.setActiveObject(gradientRect);
+                                        activeCanvas.renderAll();
+                                        
+                                        console.log(`已创建渐变矩形: ${color1} 到 ${color2}, 方向: ${direction}`);
+                                        console.log('矩形位置和尺寸:', bounds);
+                                        
                                     } else {
                                         console.warn('当前视图没有 base_layer 或视图不存在');
                                     }
@@ -1009,7 +1133,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         }
                         
-                        applyGradientToBaseLayer();
+                        createGradientRectangle();
                         
                         // 更新颜色样本中的选中状态
                         const colorSwatches = document.querySelectorAll('.color-swatch');

@@ -1045,4 +1045,102 @@ if ($first_image_url) {
     //         }
     //     }, 100);
     // }
+
+    /**
+     * 获取 base 图层有像素部分的边界框
+     * @param {fabric.Object} baseLayer - base 图层对象
+     * @returns {Object|null} 返回边界框信息 {left, top, width, height} 或 null
+     */
+    function getBaseLayerPixelBounds(baseLayer) {
+        if (!baseLayer || !baseLayer.getElement) {
+            console.warn('无效的 base 图层对象');
+            return null;
+        }
+
+        try {
+            // 获取图层的图像元素
+            const imageElement = baseLayer.getElement();
+            if (!imageElement) {
+                console.warn('无法获取 base 图层的图像元素');
+                return null;
+            }
+
+            // 创建临时 canvas 来分析像素
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // 设置临时 canvas 尺寸
+            tempCanvas.width = imageElement.width || imageElement.naturalWidth;
+            tempCanvas.height = imageElement.height || imageElement.naturalHeight;
+            
+            // 绘制图像到临时 canvas
+            tempCtx.drawImage(imageElement, 0, 0);
+            
+            // 获取图像数据
+            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            const data = imageData.data;
+            
+            let minX = tempCanvas.width;
+            let minY = tempCanvas.height;
+            let maxX = 0;
+            let maxY = 0;
+            let hasPixels = false;
+            
+            // 扫描所有像素，找到非透明像素的边界
+            for (let y = 0; y < tempCanvas.height; y++) {
+                for (let x = 0; x < tempCanvas.width; x++) {
+                    const index = (y * tempCanvas.width + x) * 4;
+                    const alpha = data[index + 3]; // Alpha 通道
+                    
+                    // 如果像素不是完全透明的
+                    if (alpha > 0) {
+                        hasPixels = true;
+                        minX = Math.min(minX, x);
+                        minY = Math.min(minY, y);
+                        maxX = Math.max(maxX, x);
+                        maxY = Math.max(maxY, y);
+                    }
+                }
+            }
+            
+            if (!hasPixels) {
+                console.warn('base 图层中没有找到有像素的部分');
+                return null;
+            }
+            
+            // 计算在 fabric.js 坐标系中的位置和尺寸
+            const scaleX = baseLayer.scaleX || 1;
+            const scaleY = baseLayer.scaleY || 1;
+            
+            // 获取 base 图层在画布中的位置
+            const layerLeft = baseLayer.left || 0;
+            const layerTop = baseLayer.top || 0;
+            
+            // 计算像素边界在画布坐标系中的位置
+            const pixelWidth = maxX - minX + 1;
+            const pixelHeight = maxY - minY + 1;
+            
+            // 考虑图层的缩放和位置
+            const boundsLeft = layerLeft + (minX * scaleX) - (baseLayer.width * scaleX / 2);
+            const boundsTop = layerTop + (minY * scaleY) - (baseLayer.height * scaleY / 2);
+            const boundsWidth = pixelWidth * scaleX;
+            const boundsHeight = pixelHeight * scaleY;
+            
+            return {
+                left: boundsLeft,
+                top: boundsTop,
+                width: boundsWidth,
+                height: boundsHeight
+            };
+            
+        } catch (error) {
+            console.error('获取 base 图层像素边界时出错:', error);
+            return null;
+        }
+    }
+
+    // 将函数暴露到全局作用域
+    window.getBaseLayerPixelBounds = getBaseLayerPixelBounds;
+
+    // ... existing code ...
 </script>
