@@ -182,12 +182,13 @@ const useProductStore = Pinia.defineStore('product', () => {
     // Button visibility getters
     const showAddToCartButton = Vue.computed(() => {
         // 当渐变颜色被应用时隐藏按钮
-        return productData.value && !loading.value && !gradientColorApplied.value;
+        // 当勾选Blank Product时显示，未勾选时隐藏
+        return productData.value && !loading.value && !gradientColorApplied.value && blankProductChecked.value;
     });
 
     const showCustomizeButton = Vue.computed(() => {
-        // 默认显示，可以根据业务逻辑调整
-        return productData.value && !loading.value;
+        // 当勾选Blank Product时隐藏，未勾选时显示
+        return productData.value && !loading.value && !blankProductChecked.value;
     });
 
     // Checkbox visibility getters
