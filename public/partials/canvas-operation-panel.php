@@ -641,6 +641,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // 处理颜色样本点击的逻辑
                 function handleColorSwatchClick(color) {
+                    // 先清除所有渐变色对象
+                    if (window.clearAllGradientRects) {
+                        window.clearAllGradientRects();
+                    }
+                    
                     // ===== 新增：将颜色数据存储到 Pinia store =====
                     function saveColorToStore(selectedColor) {
                         if (window.useCanvasStore) {
@@ -972,6 +977,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 if (activeViewId && store.views) {
                                     const currentView = store.views.find(v => v.id === activeViewId);
                                     if (currentView && currentView.base_layer) {
+                                        // 先清除所有旧的渐变色对象
+                                        if (window.clearAllGradientRects) {
+                                            window.clearAllGradientRects();
+                                        }
+                                        
                                         // 获取 base 图层有像素部分的边界
                                         const bounds = window.getBaseLayerPixelBounds(currentView.base_layer);
                                         
@@ -1106,17 +1116,23 @@ document.addEventListener('DOMContentLoaded', function() {
                                             width: bounds.width,
                                             height: bounds.height,
                                             fill: gradient,
-                                            selectable: true,
-                                            hasControls: true,
-                                            hasBorders: true,
-                                            cornerSize: 10,
-                                            transparentCorners: false,
+                                            selectable: false,
+                                            evented: false,
+                                            hasControls: false,
+                                            hasBorders: false,
+                                            lockMovementX: true,
+                                            lockMovementY: true,
+                                            lockRotation: true,
+                                            lockScalingX: true,
+                                            lockScalingY: true,
+                                            hoverCursor: 'default',
+                                            moveCursor: 'default',
                                             id: 'gradient-rect-' + Date.now()
                                         });
                                         
                                         // 添加到画布
                                         activeCanvas.add(gradientRect);
-                                        activeCanvas.setActiveObject(gradientRect);
+                                        // 不设置为选中状态，因为不允许选中
                                         activeCanvas.renderAll();
                                         
                                         console.log(`已创建渐变矩形: ${color1} 到 ${color2}, 方向: ${direction}`);
@@ -1175,6 +1191,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     applyCustomColorBtn.addEventListener('click', function() {
                         const color = customColorPicker.value;
+                        
+                        // 先清除所有渐变色对象
+                        if (window.clearAllGradientRects) {
+                            window.clearAllGradientRects();
+                        }
                         
                         // 应用自定义颜色到当前视图的 base_layer
                         function applyCustomColorToBaseLayer() {

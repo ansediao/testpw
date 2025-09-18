@@ -1142,5 +1142,59 @@ if ($first_image_url) {
     // 将函数暴露到全局作用域
     window.getBaseLayerPixelBounds = getBaseLayerPixelBounds;
 
+    // 清除所有渐变色对象的函数
+    function clearAllGradientRects() {
+        try {
+            if (window.useCanvasStore) {
+                const store = window.useCanvasStore();
+                const activeViewId = store.activeViewId;
+                
+                if (activeViewId && store.views) {
+                    // 获取当前激活的画布
+                    const activeCanvas = window.CanvasManager.getActiveCanvas();
+                    if (!activeCanvas) {
+                        console.warn('无法获取当前激活的画布');
+                        return;
+                    }
+                    
+                    // 查找并移除所有渐变矩形对象
+                    const objectsToRemove = [];
+                    activeCanvas.getObjects().forEach(obj => {
+                        // 检查对象是否是渐变矩形（通过ID前缀识别）
+                        if (obj.id && obj.id.startsWith('gradient-rect-')) {
+                            objectsToRemove.push(obj);
+                        }
+                    });
+                    
+                    // 移除找到的渐变矩形对象
+                    objectsToRemove.forEach(obj => {
+                        activeCanvas.remove(obj);
+                    });
+                    
+                    // 重新渲染画布
+                    activeCanvas.renderAll();
+                    
+                    if (objectsToRemove.length > 0) {
+                        console.log(`已清除 ${objectsToRemove.length} 个渐变色对象`);
+                    }
+                    
+                    return objectsToRemove.length;
+                } else {
+                    console.warn('没有激活的视图或 store 不可用');
+                    return 0;
+                }
+            } else {
+                console.warn('useCanvasStore 不可用');
+                return 0;
+            }
+        } catch (error) {
+            console.error('清除渐变色对象时发生错误:', error);
+            return 0;
+        }
+    }
+
+    // 将函数暴露到全局作用域
+    window.clearAllGradientRects = clearAllGradientRects;
+
     // ... existing code ...
 </script>
