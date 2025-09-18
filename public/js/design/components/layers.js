@@ -258,7 +258,12 @@ const layersApp = Vue.createApp({
 
         const currentViewLayerGroups = Vue.computed(() => {
             if (!activeViewId.value) return [];
-            return store.getViewLayerGroups(activeViewId.value);
+            const allGroups = store.getViewLayerGroups(activeViewId.value);
+            // 过滤掉只有一个图层的组，让它们显示为普通图层
+            return allGroups.filter(group => {
+                const groupLayers = layers.value.filter(layer => layer.groupId === group.id);
+                return groupLayers.length > 1;
+            });
         });
 
         // 打印方式相关的计算属性
@@ -346,7 +351,7 @@ const layersApp = Vue.createApp({
         const selectedGroupForPrintMethod = Vue.ref(null);
         const selectedGroupPrintMethodId = Vue.ref(null);
 
-        // 检查选中的打印方法是否对应已存在的图层组
+        // 检查选中的打印方法是否对应已存在的图层组，并且是否应该显示合并选项
         const isSelectedLayerInExistingGroup = Vue.computed(() => {
             if (!selectedPrintMethodId.value) return false;
             
@@ -354,21 +359,41 @@ const layersApp = Vue.createApp({
             const expectedGroupId = `print-method-${selectedPrintMethodId.value}`;
             
             // 检查当前视图中是否存在这个图层组
-            const existingGroup = currentViewLayerGroups.value.find(group => group.id === expectedGroupId);
+            const allGroups = store.getViewLayerGroups(store.activeViewId);
+            const existingGroup = allGroups.find(group => group.id === expectedGroupId);
+            
+            if (!existingGroup) return false;
+            
+            // 计算该组中的图层数量
+            const groupLayers = layers.value.filter(layer => layer.groupId === expectedGroupId);
+            const groupLayerCount = groupLayers.length;
             
             console.log('isSelectedLayerInExistingGroup check:', {
                 selectedPrintMethodId: selectedPrintMethodId.value,
                 expectedGroupId: expectedGroupId,
                 existingGroup: existingGroup,
-                hasExistingGroup: !!existingGroup
+                groupLayerCount: groupLayerCount,
+                shouldShowMergeOption: groupLayerCount >= 2
             });
             
-            return !!existingGroup;
+            // 只有当组中有2个或更多图层时才显示合并选项
+            // 这意味着：
+            // - 第一个图层：没有组，不显示选项
+            // - 第二个图层：组有1个图层，不显示选项
+            // - 第三个图层：组有2个图层，显示选项
+            return groupLayerCount >= 2;
         });
 
-        // 计算属性：当前视图未分组的图层
+        // 计算属性：当前视图未分组的图层（包含只有一个图层的组中的图层）
         const currentViewUngroupedLayers = Vue.computed(() => {
-            return currentViewLayers.value.filter(layer => !layer.groupId);
+            return currentViewLayers.value.filter(layer => {
+                // 如果图层没有分组，直接显示为未分组
+                if (!layer.groupId) return true;
+                
+                // 如果图层有分组，检查该组是否只有一个图层
+                const groupLayers = layers.value.filter(l => l.groupId === layer.groupId);
+                return groupLayers.length === 1;
+            });
         });
 
         // 兼容性：保持原有的ungroupedLayers计算属性
