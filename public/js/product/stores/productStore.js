@@ -176,6 +176,28 @@ const useProductStore = Pinia.defineStore('product', () => {
         return `${month}/${day}/${year}`;
     });
 
+    // Button visibility getters
+    const showAddToCartButton = Vue.computed(() => {
+        // 默认显示，可以根据业务逻辑调整
+        return productData.value && !loading.value;
+    });
+
+    const showCustomizeButton = Vue.computed(() => {
+        // 默认显示，可以根据业务逻辑调整
+        return productData.value && !loading.value;
+    });
+
+    // Checkbox visibility getters
+    const showBuySampleCheckbox = Vue.computed(() => {
+        // 默认显示，可以根据业务逻辑调整
+        return productData.value && !loading.value;
+    });
+
+    const showBlankProductCheckbox = Vue.computed(() => {
+        // 默认显示，可以根据业务逻辑调整
+        return productData.value && !loading.value;
+    });
+
     // Actions (methods)
     const setProductId = (id) => {
         productId.value = id;
@@ -639,6 +661,10 @@ const useProductStore = Pinia.defineStore('product', () => {
         getDiscountText,
         discountedPrice,
         estimatedShipDate,
+        showAddToCartButton,
+        showCustomizeButton,
+        showBuySampleCheckbox,
+        showBlankProductCheckbox,
 
         // Actions
         setProductId,

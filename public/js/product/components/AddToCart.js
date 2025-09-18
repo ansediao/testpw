@@ -38,6 +38,7 @@ const AddToCart = {
     template: `
             <div class="button-group">
                 <button 
+                    v-show="store.showAddToCartButton"
                     @click="addToCart"
                     :disabled="!store.canAddToCart"
                     :class="['cart-btn', { 'loading': store.loading }]"
@@ -46,6 +47,7 @@ const AddToCart = {
                 </button>
                 
                 <button 
+                    v-show="store.showCustomizeButton"
                     @click="customizeNow"
                     class="customize-btn"
                 >

@@ -16,10 +16,10 @@ const CheckboxOptions = {
     name: 'CheckboxOptions',
     template: `
         <div class="pw-checkbox-options">
-            <label>
+            <label v-show="store.showBuySampleCheckbox">
                 <input type="checkbox" v-model="store.buySampleChecked"> Buy Sample
             </label>
-            <label>
+            <label v-show="store.showBlankProductCheckbox">
                 <input type="checkbox" v-model="store.blankProductChecked"> Blank Product
             </label>
         </div>
