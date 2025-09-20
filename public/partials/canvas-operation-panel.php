@@ -919,14 +919,60 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="background:#fff; border-radius:8px; max-width:400px; width:90vw; padding:1rem; position:relative;">
                 <button id="close-gradient-color-modal" style="position:absolute; right:0.5rem; top:0.5rem; background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
                 <h3 style="margin-top:0;">选择渐变色</h3>
-                <div style="margin-bottom:1rem;">
-                    <label for="gradientColor1" style="display:block; margin-bottom:0.5rem;">颜色 1:</label>
-                    <input type="color" id="gradientColor1" value="#ff0000" style="width:100%; height:50px;" />
+                <div class="gradient-colors-container" style="display:flex; gap:1rem; margin-bottom:1rem;">
+                    <div style="flex:1;">
+                        <label style="display:block; margin-bottom:0.5rem;">颜色 1:</label>
+                        <div class="color-options" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                            <div class="color-option" data-color="#ff0000" style="width:40px; height:40px; background:#ff0000; border:2px solid #ddd; border-radius:4px; cursor:pointer; transition:border-color 0.2s;"></div>
+                            <div class="color-option" data-color="#00ff00" style="width:40px; height:40px; background:#00ff00; border:2px solid #ddd; border-radius:4px; cursor:pointer; transition:border-color 0.2s;"></div>
+                            <div class="color-option" data-color="#0000ff" style="width:40px; height:40px; background:#0000ff; border:2px solid #ddd; border-radius:4px; cursor:pointer; transition:border-color 0.2s;"></div>
+                        </div>
+                        <input type="hidden" id="gradientColor1" value="#ff0000" />
+                    </div>
+                    <div style="flex:1;">
+                        <label style="display:block; margin-bottom:0.5rem;">颜色 2:</label>
+                        <div class="color-options" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                            <div class="color-option" data-color="#ffff00" style="width:40px; height:40px; background:#ffff00; border:2px solid #ddd; border-radius:4px; cursor:pointer; transition:border-color 0.2s;"></div>
+                            <div class="color-option" data-color="#ff00ff" style="width:40px; height:40px; background:#ff00ff; border:2px solid #ddd; border-radius:4px; cursor:pointer; transition:border-color 0.2s;"></div>
+                            <div class="color-option" data-color="#00ffff" style="width:40px; height:40px; background:#00ffff; border:2px solid #ddd; border-radius:4px; cursor:pointer; transition:border-color 0.2s;"></div>
+                        </div>
+                        <input type="hidden" id="gradientColor2" value="#ffff00" />
+                    </div>
                 </div>
-                <div style="margin-bottom:1rem;">
-                    <label for="gradientColor2" style="display:block; margin-bottom:0.5rem;">颜色 2:</label>
-                    <input type="color" id="gradientColor2" value="#0000ff" style="width:100%; height:50px;" />
-                </div>
+                <style>
+                    .color-option {
+                        position: relative;
+                    }
+                    .color-option:hover {
+                        border-color: #007cba !important;
+                        transform: scale(1.05);
+                    }
+                    .color-option.selected {
+                        border-color: #007cba !important;
+                        border-width: 3px !important;
+                    }
+                    .color-option.selected::after {
+                        content: '✓';
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        color: white;
+                        font-weight: bold;
+                        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                        font-size: 14px;
+                    }
+                    @media (max-width: 480px) {
+                        .gradient-colors-container {
+                            flex-direction: column !important;
+                            gap: 0.5rem !important;
+                        }
+                        .color-option {
+                            width: 35px !important;
+                            height: 35px !important;
+                        }
+                    }
+                </style>
                 <div style="margin-bottom:1rem;">
                     <label for="gradientDirection" style="display:block; margin-bottom:0.5rem;">方向:</label>
                     <select id="gradientDirection" style="width:100%; padding:0.5rem;">
@@ -951,15 +997,96 @@ document.addEventListener('DOMContentLoaded', function() {
                 const gradientDirection = document.getElementById('gradientDirection');
 
                 if (gradientColorBtn && gradientColorModal && closeGradientColorModal && applyGradientColorBtn && gradientColor1 && gradientColor2 && gradientDirection) {
+                    // 标记是否已经初始化过颜色选择事件
+                    let colorSelectionInitialized = false;
+                    
+                    // 清除所有颜色选中状态
+                    function clearAllColorSelections() {
+                        // 清除所有颜色选项的选中状态
+                        const allColorOptions = document.querySelectorAll('.gradient-colors-container .color-option');
+                        allColorOptions.forEach(option => {
+                            option.classList.remove('selected');
+                        });
+                        
+                        // 重置隐藏输入框的值
+                        gradientColor1.value = '';
+                        gradientColor2.value = '';
+                    }
+                    
+                    // 初始化默认选中的颜色
+                    function initializeColorSelection() {
+                        // 先清除所有选中状态
+                        clearAllColorSelections();
+                        // 为颜色1设置默认选中
+                        const firstColor1Option = document.querySelector('.gradient-colors-container > div:first-child .color-option[data-color="#ff0000"]');
+                        if (firstColor1Option) {
+                            firstColor1Option.classList.add('selected');
+                        }
+                        
+                        // 为颜色2设置默认选中
+                        const firstColor2Option = document.querySelector('.gradient-colors-container > div:last-child .color-option[data-color="#ffff00"]');
+                        if (firstColor2Option) {
+                            firstColor2Option.classList.add('selected');
+                        }
+                        
+                        // 设置隐藏输入框的默认值
+                        gradientColor1.value = '#ff0000';
+                        gradientColor2.value = '#ffff00';
+                    }
+                    
+                    // 处理颜色选择事件（只初始化一次）
+                    function handleColorSelection() {
+                        if (colorSelectionInitialized) {
+                            return; // 如果已经初始化过，直接返回
+                        }
+                        
+                        const colorOptions = document.querySelectorAll('.color-option');
+                        colorOptions.forEach(option => {
+                            option.addEventListener('click', function() {
+                                const color = this.getAttribute('data-color');
+                                const container = this.closest('.gradient-colors-container > div');
+                                
+                                // 移除同一组中其他选项的选中状态
+                                const siblingOptions = container.querySelectorAll('.color-option');
+                                siblingOptions.forEach(sibling => {
+                                    sibling.classList.remove('selected');
+                                });
+                                
+                                // 添加当前选项的选中状态
+                                this.classList.add('selected');
+                                
+                                // 更新对应的隐藏输入框值
+                                const hiddenInput = container.querySelector('input[type="hidden"]');
+                                if (hiddenInput) {
+                                    hiddenInput.value = color;
+                                }
+                            });
+                        });
+                        
+                        colorSelectionInitialized = true; // 标记为已初始化
+                    }
+                    
                     gradientColorBtn.addEventListener('click', function(e) {
                         e.preventDefault();
                         gradientColorModal.style.display = 'flex';
+                        // 初始化颜色选择事件（只执行一次）
+                        handleColorSelection();
+                        // 初始化默认选中状态
+                        initializeColorSelection();
                     });
                     closeGradientColorModal.addEventListener('click', function() {
+                        // 关闭弹窗前清除所有颜色选中状态
+                        clearAllColorSelections();
+                        // 重置初始化标记，确保下次打开时重新初始化
+                        colorSelectionInitialized = false;
                         gradientColorModal.style.display = 'none';
                     });
                     gradientColorModal.addEventListener('click', function(e) {
                         if (e.target === gradientColorModal) {
+                            // 关闭弹窗前清除所有颜色选中状态
+                            clearAllColorSelections();
+                            // 重置初始化标记，确保下次打开时重新初始化
+                            colorSelectionInitialized = false;
                             gradientColorModal.style.display = 'none';
                         }
                     });
