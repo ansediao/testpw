@@ -121,6 +121,9 @@ class Pw_CDN_Loader {
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/CustomColorsButton.css?v=' . time(); ?>">
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../css/pw-gradient-modal.css?v=' . time(); ?>">
 
+            <!-- 引入公共渐变色组件 -->
+            <?php include_once plugin_dir_path(__FILE__) . '../partials/pwca-gradient-modal.php'; ?>
+            
             <!-- 引入产品页面主脚本 -->
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/main.js?v=' . time(); ?>"></script>
             <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>

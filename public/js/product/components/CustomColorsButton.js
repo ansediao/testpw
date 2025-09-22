@@ -25,92 +25,7 @@ window.CustomColorsButton = {
                 </button>
             </div>
             
-            <!-- 渐变颜色设置弹窗 -->
-            <div id="pw-gradient-modal" class="modal micromodal-slide" aria-hidden="true">
-                <div class="modal__overlay" tabindex="-1" data-micromodal-close>
-                    <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-gradient-modal-title">
-                        <header>
-                            <h2 class="modal__title" id="pw-gradient-modal-title">Set Gradient</h2>
-                            <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
-                        </header>
-                        <main class="modal__content">
-                            <div class="gradient-section">
-                                <!-- 颜色组容器 - 水平布局 -->
-                                <div class="color-groups-container">
-                                    <div class="color-group">
-                                        <label>Base Color</label>
-                                        <div class="color-swatches">
-                                            <div
-                                                class="color-swatch"
-                                                style="background-color: #4CAF50;"
-                                                :class="{ 'active': baseColor === '#4CAF50' }"
-                                                @click="selectBaseColor('#4CAF50')">
-                                            </div>
-                                            <div
-                                                class="color-swatch"
-                                                style="background-color: #E91E63;"
-                                                :class="{ 'active': baseColor === '#E91E63' }"
-                                                @click="selectBaseColor('#E91E63')">
-                                            </div>
-                                            <div
-                                                class="color-swatch"
-                                                style="background-color: #000000;"
-                                                :class="{ 'active': baseColor === '#000000' }"
-                                                @click="selectBaseColor('#000000')">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="color-group">
-                                        <label>Gradient</label>
-                                        <div class="color-swatches">
-                                            <div
-                                                class="color-swatch"
-                                                style="background-color: #4CAF50;"
-                                                :class="{ 'active': gradientColor === '#4CAF50' }"
-                                                @click="selectGradientColor('#4CAF50')">
-                                            </div>
-                                            <div
-                                                class="color-swatch"
-                                                style="background-color: #E91E63;"
-                                                :class="{ 'active': gradientColor === '#E91E63' }"
-                                                @click="selectGradientColor('#E91E63')">
-                                            </div>
-                                            <div
-                                                class="color-swatch"
-                                                style="background-color: #000000;"
-                                                :class="{ 'active': gradientColor === '#000000' }"
-                                                @click="selectGradientColor('#000000')">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- 渐变滑块和预览 -->
-                                <div class="gradient-slider">
-                                    <input
-                                        type="range"
-                                        v-model="gradientPosition"
-                                        min="0"
-                                        max="100"
-                                        @input="updateGradient"
-                                        class="gradient-range">
-                                    <div class="slider-container">
-                                        <div class="slider-endpoint"></div>
-                                        <div class="gradient-preview" :style="{ background: gradientCSS }"></div>
-                                        <div class="slider-endpoint"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="modal__footer">
-                                <button class="btn btn-secondary" data-micromodal-close>Clear</button>
-                                <button class="btn btn-primary" @click="applyGradient">Add Color</button>
-                            </div>
-                        </main>
-                    </div>
-                </div>
-            </div>
+
             
             <!-- 自定义颜色弹窗 (保留原有) -->
             <div id="pw-custom-color-modal" class="modal micromodal-slide" aria-hidden="true">
@@ -133,15 +48,8 @@ window.CustomColorsButton = {
     setup() {
         const selectedButton = Vue.ref(null);
         const selectedColor = Vue.ref('#3498DB');
-        const baseColor = Vue.ref('#4CAF50');
-        const gradientColor = Vue.ref('#E91E63');
-        const gradientPosition = Vue.ref(50);
         const canvasStore = (typeof Pinia !== 'undefined' && Pinia.useCanvasStore) ? Pinia.useCanvasStore() : null;
         const productStore = (typeof window.useProductStore !== 'undefined') ? window.useProductStore() : null;
-        
-        const gradientCSS = Vue.computed(() => {
-            return `linear-gradient(to right, ${baseColor.value} ${gradientPosition.value}%, ${gradientColor.value} ${gradientPosition.value}%)`;
-        });
         
 
         
@@ -155,44 +63,15 @@ window.CustomColorsButton = {
             MicroModal.show('pw-custom-color-modal');
         };
         
-        // 打开渐变设置弹窗
+        // 打开渐变设置弹窗 - 使用公共组件
         const openGradientModal = () => {
-            MicroModal.show('pw-gradient-modal');
             selectedButton.value = 'gradient';
-        };
-        
-        // 关闭渐变设置弹窗
-        const closeGradientModal = () => {
-            MicroModal.close('pw-gradient-modal');
-        };
-        
-        // 更新渐变预览
-        const updateGradient = () => {
-            // 更新渐变预览
-        };
-        
-        // 选择基础颜色
-        const selectBaseColor = (color) => {
-            baseColor.value = color;
-        };
-        
-        // 选择渐变颜色
-        const selectGradientColor = (color) => {
-            gradientColor.value = color;
-        };
-        
-        // 应用渐变
-        const applyGradient = () => {
-            const gradientValue = `${baseColor.value},${gradientColor.value}`;
-            selectCustomColor('gradient', gradientValue);
-            
-            // 更新productStore状态，隐藏复选框和添加到购物车按钮
-            if (productStore && productStore.setGradientColorApplied) {
-                productStore.setGradientColorApplied(true);
-                console.log('Gradient color applied - hiding checkboxes and add to cart button');
+            // 使用公共组件的全局方法
+            if (typeof window.showGradientModal === 'function') {
+                window.showGradientModal();
+            } else {
+                console.error('公共渐变色组件未加载');
             }
-            
-            MicroModal.close('pw-gradient-modal');
         };
         
         // 处理颜色输入变化
@@ -315,21 +194,12 @@ window.CustomColorsButton = {
         return {
             selectedButton,
             selectedColor,
-            baseColor,
-            gradientColor,
-            gradientPosition,
-            gradientCSS,
             isButtonClickable,
             selectCustomColor,
             openColorModal,
             openGradientModal,
-            closeGradientModal,
             onColorInput,
-            confirmColorSelection,
-            updateGradient,
-            selectBaseColor,
-            selectGradientColor,
-            applyGradient
+            confirmColorSelection
         };
     }
 };
