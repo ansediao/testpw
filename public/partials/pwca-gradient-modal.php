@@ -226,6 +226,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const color2 = gradientColor2.value;
             const direction = gradientDirection.value;
             
+            // 更新产品页面的Pinia状态
+            if (typeof window.useProductStore !== 'undefined') {
+                try {
+                    const productStore = window.useProductStore();
+                    if (productStore && typeof productStore.setGradientColorApplied === 'function') {
+                        productStore.setGradientColorApplied(true);
+                        console.log('已更新产品页面渐变色应用状态为 true');
+                    }
+                } catch (error) {
+                    console.warn('无法更新产品页面渐变色状态:', error);
+                }
+            }
+            
             // 创建渐变矩形框住 base 图层有像素的部分
             function createGradientRectangle() {
                 if (window.useCanvasStore) {
