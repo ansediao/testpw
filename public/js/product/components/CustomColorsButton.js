@@ -63,6 +63,11 @@ window.CustomColorsButton = {
             MicroModal.show('pw-custom-color-modal');
         };
         
+        // 关闭自定义颜色弹窗
+        const closeColorModal = () => {
+            MicroModal.close('pw-custom-color-modal');
+        };
+        
         // 打开渐变设置弹窗 - 使用公共组件
         const openGradientModal = () => {
             selectedButton.value = 'gradient';
@@ -197,6 +202,7 @@ window.CustomColorsButton = {
             isButtonClickable,
             selectCustomColor,
             openColorModal,
+            closeColorModal,
             openGradientModal,
             onColorInput,
             confirmColorSelection
