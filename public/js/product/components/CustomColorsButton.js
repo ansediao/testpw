@@ -121,62 +121,35 @@ window.CustomColorsButton = {
         
         // 处理颜色选择的核心逻辑（模拟.pw-color-swatch的行为）
         const handleColorSelection = (colorValue, type) => {
-            // 检查是否存在Canvas系统
-            if (typeof window.CanvasManager !== 'undefined') {
-                // 切换到Canvas模式（参考product-image-canvas.js的switchToCanvasMode函数）
-                switchToCanvasMode(colorValue);
+            // 触发产品图片Canvas替换功能（参考ColorVariants组件的实现）
+            if (colorValue && window.ProductImageCanvas) {
+                window.ProductImageCanvas.switchToCanvas(colorValue);
             }
             
             // 更新Pinia store状态（如果存在）
-            if (canvasStore && canvasStore.setSelectedVariant) {
-                canvasStore.setSelectedVariant({
-                    color: colorValue,
+            if (productStore && productStore.setSelectedVariant) {
+                // 创建一个类似variant的对象
+                const customVariant = {
+                    id: 'custom-' + Date.now(),
+                    variant_color: colorValue,
                     type: type,
                     isCustom: true
-                });
+                };
+                productStore.setSelectedVariant(customVariant);
             }
             
-            // 触发Canvas替换事件
-            triggerCanvasReplacement(colorValue, type);
-        };
-        
-        // 切换到Canvas模式的函数（参考现有实现）
-        const switchToCanvasMode = (backgroundColor) => {
-            try {
-                // 获取当前活动的Canvas实例
-                const canvasManager = window.CanvasManager;
-                if (!canvasManager) {
-                    console.warn('CanvasManager not found');
-                    return;
-                }
-                
-                // 获取当前视图的Canvas
-                const currentViewId = document.querySelector('.view-item.active')?.dataset.viewId;
-                if (currentViewId) {
-                    const canvas = canvasManager.getCanvas(currentViewId);
-                    if (canvas) {
-                        // 设置背景色
-                        canvas.setBackgroundColor(backgroundColor, canvas.renderAll.bind(canvas));
-                        console.log(`Canvas background updated to: ${backgroundColor}`);
+            // 发送自定义事件，与ColorVariants保持一致
+            const customEvent = new CustomEvent('pw-color-variant-selected', {
+                detail: { 
+                    variant: {
+                        variant_color: colorValue,
+                        type: type,
+                        isCustom: true
                     }
-                }
-                
-            } catch (error) {
-                console.error('Error switching to canvas mode:', error);
-            }
-        };
-        
-        // 触发Canvas替换事件
-        const triggerCanvasReplacement = (colorValue, type) => {
-            const event = new CustomEvent('canvas-replacement-triggered', {
-                detail: {
-                    color: colorValue,
-                    type: type,
-                    source: 'custom-colors-button'
                 },
                 bubbles: true
             });
-            document.dispatchEvent(event);
+            document.dispatchEvent(customEvent);
         };
         
         // 组件挂载时的初始化
