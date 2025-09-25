@@ -444,13 +444,31 @@ if ($product_id > 0) {
                 // 监听 Sample Order 复选框变化，触发到货日期重新计算
                 const sampleCheckbox = document.querySelector('.sample-check input#sample');
                 if (sampleCheckbox) {
+                  // 初始化时同步复选框状态到store
+                  const canvasStore = window.useCanvasStore && window.useCanvasStore();
+                  if (canvasStore) {
+                    canvasStore.setIsSampleOrder(sampleCheckbox.checked);
+                  }
+                  
                   sampleCheckbox.addEventListener('change', () => {
                     // 触发 Pinia store 的响应式更新
-                    const canvasStore = window.useCanvasStore && window.useCanvasStore();
                     if (canvasStore) {
+                      // 更新 Sample Order 状态到 store
+                      canvasStore.setIsSampleOrder(sampleCheckbox.checked);
+                      
+                      // 如果勾选Sample Order，将数量设置为1
+                      if (sampleCheckbox.checked) {
+                        canvasStore.setQuantity(1);
+                      }
+                      
                       // 通过访问 getter 来触发重新计算
                       const arrivalDate = canvasStore.estimatedArrivalDate;
                       console.log('Sample Order 状态变化，重新计算到货日期:', arrivalDate);
+                      
+                      // 更新数量控件的禁用状态
+                      if (window.updateQuantityControlsState) {
+                        window.updateQuantityControlsState();
+                      }
                     }
                   });
                 }
@@ -478,30 +496,71 @@ if ($product_id > 0) {
               return;
             }
 
+            // 更新数量控件状态的函数
+            const updateQuantityControlsState = () => {
+              const isDisabled = canvasStore.isQuantityControlDisabled;
+              
+              // 禁用/启用按钮
+              minusBtn.disabled = isDisabled;
+              plusBtn.disabled = isDisabled;
+              
+              // 设置输入框只读状态
+              quantityInput.readOnly = isDisabled;
+              
+              // 添加视觉样式
+              if (isDisabled) {
+                minusBtn.style.opacity = '0.5';
+                plusBtn.style.opacity = '0.5';
+                quantityInput.style.opacity = '0.5';
+                quantityInput.style.cursor = 'not-allowed';
+              } else {
+                minusBtn.style.opacity = '1';
+                plusBtn.style.opacity = '1';
+                quantityInput.style.opacity = '1';
+                quantityInput.style.cursor = 'text';
+              }
+            };
+
             // 绑定减按钮
             minusBtn.addEventListener('click', () => {
-              canvasStore.setQuantity(canvasStore.getQuantity - 1);
+              if (!canvasStore.isQuantityControlDisabled) {
+                canvasStore.setQuantity(canvasStore.getQuantity - 1);
+              }
             });
 
             // 绑定加按钮
             plusBtn.addEventListener('click', () => {
-              canvasStore.setQuantity(canvasStore.getQuantity + 1);
+              if (!canvasStore.isQuantityControlDisabled) {
+                canvasStore.setQuantity(canvasStore.getQuantity + 1);
+              }
             });
 
             // 绑定输入框变化
             quantityInput.addEventListener('input', (e) => {
-              const value = parseInt(e.target.value) || 1;
-              canvasStore.setQuantity(value);
+              if (!canvasStore.isQuantityControlDisabled) {
+                const value = parseInt(e.target.value) || 1;
+                canvasStore.setQuantity(value);
+              }
             });
 
             // 初始同步
             quantityInput.value = canvasStore.getQuantity;
+            
+            // 初始化控件状态
+            updateQuantityControlsState();
 
-            // 订阅 store 变化更新 input
+            // 订阅 store 变化更新 input 和控件状态
             if (canvasStore.$subscribe) {
               canvasStore.$subscribe((mutation) => {
-                if (mutation.storeId === 'canvas' && mutation.type === 'direct' && mutation.path && mutation.path.includes('quantity')) {
-                  quantityInput.value = canvasStore.getQuantity;
+                if (mutation.storeId === 'canvas' && mutation.type === 'direct') {
+                  // 更新数量显示
+                  if (mutation.path && mutation.path.includes('quantity')) {
+                    quantityInput.value = canvasStore.getQuantity;
+                  }
+                  // 更新控件禁用状态
+                  if (mutation.path && mutation.path.includes('isSampleOrder')) {
+                    updateQuantityControlsState();
+                  }
                 }
               });
             }
@@ -516,6 +575,9 @@ if ($product_id > 0) {
               quantityInput.value = canvasStore.getQuantity;
               window.updateQuantityInputIfNeeded();
             };
+
+            // 暴露数量控件状态更新函数到全局
+            window.updateQuantityControlsState = updateQuantityControlsState;
           });
         </script>
       </div>

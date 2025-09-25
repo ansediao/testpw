@@ -16,6 +16,8 @@ export const useCanvasStore = defineStore('canvas', {
         // 数量
         quantity: 100,
 
+        // Sample Order 状态
+        isSampleOrder: false,
 
         // canvasStates：存储每个画板的状态（如对象、图层等），初始有3个画板
         canvasStates: { canvas1: null, canvas2: null, canvas3: null },
@@ -51,6 +53,12 @@ export const useCanvasStore = defineStore('canvas', {
     getters: {
         // 获取当前数量
         getQuantity: (state) => state.quantity,
+
+        // 获取Sample Order状态
+        getIsSampleOrder: (state) => state.isSampleOrder,
+
+        // 判断数量控件是否应该被禁用（Sample Order时禁用）
+        isQuantityControlDisabled: (state) => state.isSampleOrder,
 
         // 原始开关值
         moqItemsDesignRaw: (state) => state.productData && state.productData.customization_settings && state.productData.customization_settings.data
@@ -300,6 +308,16 @@ export const useCanvasStore = defineStore('canvas', {
         // 设置数量
         setQuantity(newValue) {
             this.quantity = Math.max(1, newValue);
+        },
+
+        // 设置Sample Order状态
+        setIsSampleOrder(value) {
+            this.isSampleOrder = Boolean(value);
+        },
+
+        // 切换Sample Order状态
+        toggleSampleOrder() {
+            this.isSampleOrder = !this.isSampleOrder;
         },
 
         // 切换当前激活的画板
