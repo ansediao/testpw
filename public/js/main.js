@@ -949,61 +949,137 @@ function controlMainWrapperDisplayArea(objectId) {
         return;
     
     const currentViewId = store.activeViewId;
-    const mainWrapper = document.getElementById(`mainWrapper-${currentViewId}`);
-    if (!mainWrapper) 
+    const mainCanvas = window.CanvasManager?.getCanvas(currentViewId);
+    if (!mainCanvas) 
         return;
     
-    // 如果没有选中任何元素，限制显示范围到打印区域
+    // 如果没有选中任何元素，使用mask图层的中心矩形区域进行裁剪
     if (!objectId) {
-        // 获取打印区域尺寸
-        let printAreaWidth = 100; // 默认值
-        let printAreaHeight = 120; // 默认值
-        let canvasWidth = 456; // 默认画布宽度
-        let canvasHeight = 456; // 默认画布高度
+        // 获取当前视图的mask画布
+        const maskCanvasElement = document.getElementById(`maskCanvas-${currentViewId}`);
+        if (!maskCanvasElement || !maskCanvasElement.__fabricCanvas) {
+            console.warn(`[MainWrapper] 未找到mask画布: maskCanvas-${currentViewId}`);
+            return;
+        }
         
-        // 从 Pinia printMethod store 获取打印区域尺寸
-        if (window.usePrintMethodStore) {
-            const printMethodStore = window.usePrintMethodStore();
-            const currentMethods = printMethodStore.currentViewPrintMethods;
-            
-            if (currentMethods && currentMethods.length > 0) {
-                const firstMethod = currentMethods[0];
-                if (firstMethod.print_method_area_width && firstMethod.print_method_area_height) {
-                    // 将尺寸乘以50转换为像素
-                    printAreaWidth = firstMethod.print_method_area_width * 50;
-                    printAreaHeight = firstMethod.print_method_area_height * 50;
+        const maskCanvas = maskCanvasElement.__fabricCanvas;
+        const maskObjects = maskCanvas.getObjects();
+        
+        // 查找名为 'printAreaMask' 的遮罩对象
+        const printAreaMask = maskObjects.find(obj => obj.name === 'printAreaMask');
+        if (!printAreaMask) {
+            console.warn(`[MainWrapper] 未找到打印区域遮罩对象`);
+            return;
+        }
+        
+        // 从mask路径中提取中心矩形区域的坐标
+        // mask路径格式: [[M, x, y], [L, x, y], ...]
+        const pathData = printAreaMask.path;
+        console.log(`[MainWrapper] 原始路径数据:`, pathData);
+        
+        // 打印每个路径命令的详细信息
+        pathData.forEach((cmd, index) => {
+            console.log(`[MainWrapper] 路径命令 ${index}:`, cmd);
+        });
+        
+        if (!pathData || pathData.length < 10) {
+            console.warn(`[MainWrapper] 无效的mask路径数据`);
+            return;
+        }
+        
+        // 解析路径数据，获取中心矩形的坐标
+        // 路径结构: 外部矩形 + Z + 内部矩形 + Z
+        // 查找第二个M命令（内部矩形的开始）
+        let centerRectCoords = null;
+        let secondMIndex = -1;
+        
+        // 找到第二个M命令的索引
+        let mCount = 0;
+        for (let i = 0; i < pathData.length; i++) {
+            if (pathData[i] && pathData[i][0] === 'M') {
+                mCount++;
+                console.log(`[MainWrapper] 找到第${mCount}个M命令，索引: ${i}, 坐标: [${pathData[i][1]}, ${pathData[i][2]}]`);
+                if (mCount === 2) {
+                    secondMIndex = i;
+                    break;
                 }
             }
         }
         
-        // 从视图数据获取画布尺寸
-        const views = store.views;
-        const currentView = views.find(v => v.id === currentViewId);
-        if (currentView && currentView.layers && currentView.layers.length > 0) {
-            const targetLayer = currentView.layers[0];
-            if (targetLayer && targetLayer.layer_data?.dimensions) {
-                canvasWidth = targetLayer.layer_data.dimensions.contentArea?.width || 
-                             targetLayer.layer_data.dimensions.layerSize?.width || canvasWidth;
-                canvasHeight = targetLayer.layer_data.dimensions.contentArea?.height || 
-                              targetLayer.layer_data.dimensions.layerSize?.height || canvasHeight;
+        if (secondMIndex !== -1) {
+            // 第二个M命令的坐标 (左上角)
+            const x1 = pathData[secondMIndex][1];
+            const y1 = pathData[secondMIndex][2];
+            
+            console.log(`[MainWrapper] 中心矩形起始坐标: (${x1}, ${y1})`);
+            
+            // 收集第二个M命令后的所有L命令坐标
+            let xCoords = [x1];
+            let yCoords = [y1];
+            
+            // 从第二个M命令后开始查找L命令
+            for (let i = secondMIndex + 1; i < pathData.length; i++) {
+                if (pathData[i] && pathData[i][0] === 'L') {
+                    const lx = pathData[i][1];
+                    const ly = pathData[i][2];
+                    xCoords.push(lx);
+                    yCoords.push(ly);
+                    console.log(`[MainWrapper] L命令坐标: (${lx}, ${ly})`);
+                } else if (pathData[i] && pathData[i][0] === 'Z') {
+                    // 遇到Z命令，矩形路径结束
+                    console.log(`[MainWrapper] 遇到Z命令，矩形路径结束`);
+                    break;
+                }
+            }
+            
+            if (xCoords.length >= 2 && yCoords.length >= 2) {
+                const minX = Math.min(...xCoords);
+                const maxX = Math.max(...xCoords);
+                const minY = Math.min(...yCoords);
+                const maxY = Math.max(...yCoords);
+                
+                centerRectCoords = {
+                    left: minX,
+                    top: minY,
+                    width: maxX - minX,
+                    height: maxY - minY
+                };
+                
+                console.log(`[MainWrapper] 计算的边界: minX=${minX}, maxX=${maxX}, minY=${minY}, maxY=${maxY}`);
+                console.log(`[MainWrapper] 计算的矩形尺寸: width=${centerRectCoords.width}, height=${centerRectCoords.height}`);
             }
         }
         
-        // 计算打印区域的位置（居中）
-        const printAreaLeft = (canvasWidth - printAreaWidth) / 2;
-        const printAreaTop = (canvasHeight - printAreaHeight) / 2;
-        const printAreaRight = printAreaLeft + printAreaWidth;
-        const printAreaBottom = printAreaTop + printAreaHeight;
+        if (!centerRectCoords || isNaN(centerRectCoords.width) || isNaN(centerRectCoords.height) || centerRectCoords.width <= 0 || centerRectCoords.height <= 0) {
+            console.warn(`[MainWrapper] 无法解析中心矩形坐标或坐标无效:`, centerRectCoords);
+            return;
+        }
         
-        // 使用 clip-path 限制显示范围到打印区域
-        const clipPath = `polygon(${printAreaLeft}px ${printAreaTop}px, ${printAreaRight}px ${printAreaTop}px, ${printAreaRight}px ${printAreaBottom}px, ${printAreaLeft}px ${printAreaBottom}px)`;
-        mainWrapper.style.clipPath = clipPath;
+        // 创建Fabric.js矩形作为clipPath
+        const clipRect = new fabric.Rect({
+            left: centerRectCoords.left,
+            top: centerRectCoords.top,
+            width: centerRectCoords.width,
+            height: centerRectCoords.height,
+            fill: 'transparent',
+            stroke: 'transparent',
+            selectable: false,
+            evented: false,
+            excludeFromExport: true
+        });
         
-        console.log(`[MainWrapper] 限制显示范围到打印区域: ${printAreaWidth}x${printAreaHeight}px, 位置: (${printAreaLeft}, ${printAreaTop})`);
+        // 应用clipPath到主画布
+        mainCanvas.clipPath = clipRect;
+        mainCanvas.renderAll();
+        
+        console.log(`[MainWrapper] 使用Fabric.js clipPath限制显示范围: ${centerRectCoords.width}x${centerRectCoords.height}px, 位置: (${centerRectCoords.left}, ${centerRectCoords.top})`);
     } else {
-        // 有选中元素时，移除显示范围限制
-        mainWrapper.style.clipPath = 'none';
-        console.log(`[MainWrapper] 移除显示范围限制, 选中对象ID: ${objectId}`);
+        // 有选中元素时，移除clipPath限制
+        if (mainCanvas.clipPath) {
+            mainCanvas.clipPath = null;
+            mainCanvas.renderAll();
+        }
+        console.log(`[MainWrapper] 移除Fabric.js clipPath限制, 选中对象ID: ${objectId}`);
     }
 }
 

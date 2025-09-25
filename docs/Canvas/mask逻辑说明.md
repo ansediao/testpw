@@ -59,6 +59,11 @@ const printAreaMask = new fabric.Path(maskPath, {
 - 当选中的图层属于分组时：显示遮罩 (`display: block`)
 - 当选中的图层不属于分组时：隐藏遮罩 (`display: none`)
 
+**与clipPath的协调**:
+- 分组遮罩控制主要影响maskCanvas的显示/隐藏
+- clipPath功能独立运行，不受分组状态影响
+- 两个功能可以同时工作，提供不同层次的视觉限制
+
 ### 2. 图层面板控制
 **位置**: `public/js/design/components/layers.js:1173-1185`
 
@@ -69,6 +74,96 @@ const printAreaMask = new fabric.Path(maskPath, {
 - 图层取消选择时 (line 1100)
 - 分组分配时 (line 1437)
 - 图层操作时 (line 1482, 1781)
+
+### 3. Fabric.js clipPath 功能
+**位置**: `public/js/main.js:2982-3050`
+
+**函数**: `controlMainWrapperDisplayArea()`
+
+**功能概述**:
+使用Fabric.js的clipPath功能替代CSS clip-path，实现更精确的画布内容裁剪控制。
+
+**实现原理**:
+1. 从maskCanvas获取printAreaMask对象
+2. 解析mask路径数据，提取中心矩形区域坐标
+3. 创建Fabric.js矩形对象作为clipPath
+4. 应用到mainCanvas实现裁剪效果
+
+**核心代码逻辑**:
+```javascript
+// 获取当前视图的maskCanvas
+const maskCanvas = window.CanvasManager.getCanvas(`maskCanvas-${viewId}`);
+if (!maskCanvas) return;
+
+// 查找printAreaMask对象
+const printAreaMask = maskCanvas.getObjects().find(obj => obj.name === 'printAreaMask');
+if (!printAreaMask || !printAreaMask.path) return;
+
+// 解析路径数据，提取中心矩形坐标
+const pathData = printAreaMask.path;
+let secondMIndex = -1;
+let mCount = 0;
+
+// 查找第二个'M'命令（内部矩形起点）
+for (let i = 0; i < pathData.length; i++) {
+    if (pathData[i][0] === 'M') {
+        mCount++;
+        if (mCount === 2) {
+            secondMIndex = i;
+            break;
+        }
+    }
+}
+
+if (secondMIndex === -1) return;
+
+// 收集内部矩形的所有坐标点
+const coordinates = [];
+coordinates.push([pathData[secondMIndex][1], pathData[secondMIndex][2]]);
+
+for (let i = secondMIndex + 1; i < pathData.length; i++) {
+    if (pathData[i][0] === 'L') {
+        coordinates.push([pathData[i][1], pathData[i][2]]);
+    } else if (pathData[i][0] === 'Z') {
+        break;
+    }
+}
+
+// 计算边界坐标
+const xCoords = coordinates.map(coord => coord[0]);
+const yCoords = coordinates.map(coord => coord[1]);
+const left = Math.min(...xCoords);
+const top = Math.min(...yCoords);
+const right = Math.max(...xCoords);
+const bottom = Math.max(...yCoords);
+const width = right - left;
+const height = bottom - top;
+
+// 创建并应用clipPath
+if (width > 0 && height > 0) {
+    const clipRect = new fabric.Rect({
+        left: left,
+        top: top,
+        width: width,
+        height: height,
+        absolutePositioned: true
+    });
+    
+    mainCanvas.clipPath = clipRect;
+    mainCanvas.renderAll();
+}
+```
+
+**触发条件**:
+- 图层选择状态变化
+- 无选中对象时：应用clipPath限制显示范围
+- 有选中对象时：移除clipPath限制
+
+**技术优势**:
+- **精确性**: 直接使用mask数据，避免坐标转换误差
+- **一致性**: 与mask显示效果完全一致
+- **性能**: Fabric.js原生支持，渲染效率更高
+- **灵活性**: 支持复杂路径和动态调整
 
 ## 图像合成逻辑
 
@@ -141,13 +236,80 @@ const maskCanvas = document.getElementById(`maskCanvas-${viewId}`);
 console.log('遮罩Canvas实例:', maskCanvas.__fabricCanvas);
 ```
 
-### 2. 常见问题
+### 2. clipPath功能测试
+```javascript
+// 检查clipPath状态
+const viewId = window.useCanvasStore().activeViewId;
+const mainCanvas = window.CanvasManager.getCanvas(`mainCanvas-${viewId}`);
+console.log('当前clipPath:', mainCanvas.clipPath);
+
+// 手动触发clipPath控制
+window.controlMainWrapperDisplayArea();
+
+// 检查mask路径数据解析
+const maskCanvas = window.CanvasManager.getCanvas(`maskCanvas-${viewId}`);
+const printAreaMask = maskCanvas.getObjects().find(obj => obj.name === 'printAreaMask');
+console.log('Mask路径数据:', printAreaMask.path);
+
+// 测试路径解析逻辑
+const pathData = printAreaMask.path;
+let secondMIndex = -1;
+let mCount = 0;
+for (let i = 0; i < pathData.length; i++) {
+    if (pathData[i][0] === 'M') {
+        mCount++;
+        if (mCount === 2) {
+            secondMIndex = i;
+            break;
+        }
+    }
+}
+console.log('第二个M命令索引:', secondMIndex);
+console.log('内部矩形起点:', pathData[secondMIndex]);
+
+// 手动移除clipPath
+mainCanvas.clipPath = null;
+mainCanvas.renderAll();
+console.log('已移除clipPath');
+
+// 手动应用clipPath（示例）
+const clipRect = new fabric.Rect({
+    left: 100,
+    top: 100,
+    width: 200,
+    height: 200,
+    absolutePositioned: true
+});
+mainCanvas.clipPath = clipRect;
+mainCanvas.renderAll();
+console.log('已应用测试clipPath');
+```
+
+### 3. 常见问题
+
+**遮罩相关问题**:
 - 遮罩不显示：检查分组状态和DOM元素存在性
 - 遮罩位置错误：检查打印区域尺寸获取
 - 合成效果异常：检查Canvas图层顺序和遮罩内容
 
+**clipPath相关问题**:
+- clipPath不生效：检查mainCanvas实例是否存在，maskCanvas是否正确初始化
+- 裁剪区域计算错误：验证mask路径数据解析逻辑，确认第二个'M'命令位置
+- 坐标解析返回NaN：检查路径数据格式，确认L命令坐标数据完整性
+- clipPath尺寸为0：验证计算出的width和height值，检查坐标边界计算
+- 裁剪效果与预期不符：对比mask显示区域与clipPath区域，检查absolutePositioned设置
+
+**调试步骤**:
+1. 确认CanvasManager正确加载：`window.CanvasManager`
+2. 检查Canvas实例存在：`window.CanvasManager.getCanvas('canvasId')`
+3. 验证mask对象：`maskCanvas.getObjects().find(obj => obj.name === 'printAreaMask')`
+4. 查看路径数据：`printAreaMask.path`
+5. 测试解析逻辑：运行路径解析代码片段
+6. 验证clipPath应用：`mainCanvas.clipPath`
+
 ## 相关文件
 - `public/partials/canvas-design_area.php` - 遮罩初始化和DOM结构
-- `public/js/main.js` - 遮罩控制和图像合成逻辑
+- `public/js/main.js` - 遮罩控制、clipPath实现和图像合成逻辑
 - `public/js/design/components/layers.js` - 图层面板遮罩控制
 - `public/js/stores/canvas-store.js` - 状态管理支持
+- `public/js/canvas-manager.js` - Canvas实例管理，支持clipPath功能
