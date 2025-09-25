@@ -261,10 +261,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                 window.clearAllGradientRects();
                             }
                             
-                            // 获取当前激活的画布
-                            const activeCanvas = window.CanvasManager.getActiveCanvas();
-                            if (!activeCanvas) {
-                                console.warn('无法获取当前激活的画布');
+                            // 获取当前激活视图的baseCanvas（渐变色应该应用在baseCanvas上）
+            const baseCanvasId = `baseCanvas-${activeViewId}`;
+            
+            // 优先从 CanvasManager 获取 baseCanvas 实例
+            const baseCanvas = window.CanvasManager.getCanvas(baseCanvasId) || 
+                              (document.getElementById(baseCanvasId) && document.getElementById(baseCanvasId).__fabricCanvas);
+                            
+                            if (!baseCanvas) {
+                                console.warn('无法获取baseCanvas，渐变色应该应用在baseCanvas上');
                                 return;
                             }
                             
@@ -333,19 +338,19 @@ document.addEventListener('DOMContentLoaded', function() {
                             });
                             
                             // 添加新的渐变覆盖层
-                            activeCanvas.add(overlayRect);
+                            baseCanvas.add(overlayRect);
                             
                             // 确保Base图层在渐变覆盖层之前（作为裁剪模板）
-                            activeCanvas.sendToBack(baseLayerObject);
-                            activeCanvas.bringForward(overlayRect);
+                            baseCanvas.sendToBack(baseLayerObject);
+                            baseCanvas.bringForward(overlayRect);
                             
                             // 如果有 Overlay Layer，确保它在最上层
-                            const overlayLayerObject = activeCanvas.getObjects().find(obj => obj.name === 'Overlay Layer');
+                            const overlayLayerObject = baseCanvas.getObjects().find(obj => obj.name === 'Overlay Layer');
                             if (overlayLayerObject) {
-                                activeCanvas.bringToFront(overlayLayerObject);
+                                baseCanvas.bringToFront(overlayLayerObject);
                             }
                             
-                            activeCanvas.renderAll();
+                            baseCanvas.renderAll();
                             
                             console.log(`已应用渐变色: ${color1} 到 ${color2}, 方向: ${direction}`);
                             
