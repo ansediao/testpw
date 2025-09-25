@@ -1160,8 +1160,9 @@ if ($first_image_url) {
                     // 查找并移除所有渐变矩形对象
                     const objectsToRemove = [];
                     activeCanvas.getObjects().forEach(obj => {
-                        // 检查对象是否是渐变矩形（通过ID前缀识别）
-                        if (obj.id && obj.id.startsWith('gradient-rect-')) {
+                        // 检查对象是否是渐变矩形（通过ID前缀或名称识别）
+                        if ((obj.id && obj.id.startsWith('gradient-rect-')) || 
+                            (obj.name && obj.name === 'Base Gradient Overlay')) {
                             objectsToRemove.push(obj);
                         }
                     });

@@ -239,8 +239,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            // 创建渐变矩形框住 base 图层有像素的部分
-            function createGradientRectangle() {
+            // 如果在产品页面，先切换到Canvas模式显示画布
+            if (typeof window.ProductImageCanvas !== 'undefined' && window.ProductImageCanvas.switchToCanvas) {
+                // 使用第一个颜色作为背景色来初始化画布
+                window.ProductImageCanvas.switchToCanvas(color1);
+                console.log('已切换到Canvas模式，背景色:', color1);
+            }
+            
+            // 应用渐变色到Base图层（使用剪切方案）
+            function applyGradientToBaseLayer() {
+                // 检查是否在设计页面环境（有useCanvasStore）
                 if (window.useCanvasStore) {
                     const store = window.useCanvasStore();
                     const activeViewId = store.activeViewId;
@@ -253,14 +261,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 window.clearAllGradientRects();
                             }
                             
-                            // 获取 base 图层有像素部分的边界
-                            const bounds = window.getBaseLayerPixelBounds(currentView.base_layer);
-                            
-                            if (!bounds) {
-                                console.warn('无法获取 base 图层的像素边界');
-                                return;
-                            }
-                            
                             // 获取当前激活的画布
                             const activeCanvas = window.CanvasManager.getActiveCanvas();
                             if (!activeCanvas) {
@@ -268,146 +268,86 @@ document.addEventListener('DOMContentLoaded', function() {
                                 return;
                             }
                             
-                            // 创建渐变对象
-                            let gradient;
+                            const baseLayerObject = currentView.base_layer;
+                            
+                            // 获取Base图层的图像元素
+                            const imageElement = baseLayerObject.getElement();
+                            if (!imageElement) {
+                                console.warn('无法获取Base图层的图像元素');
+                                return;
+                            }
+                            
+                            // 创建渐变对象，使用像素单位
+                            const imageWidth = imageElement.width || imageElement.naturalWidth;
+                            const imageHeight = imageElement.height || imageElement.naturalHeight;
+                            
+                            let gradientCoords;
                             
                             // 根据方向设置渐变坐标
                             switch (direction) {
                                 case 'to right':
-                                    gradient = new fabric.Gradient({
-                                        type: 'linear',
-                                        coords: {
-                                            x1: 0,
-                                            y1: 0,
-                                            x2: bounds.width,
-                                            y2: 0
-                                        },
-                                        colorStops: [
-                                            { offset: 0, color: color1 },
-                                            { offset: 1, color: color2 }
-                                        ]
-                                    });
-                                    break;
-                                case 'to left':
-                                    gradient = new fabric.Gradient({
-                                        type: 'linear',
-                                        coords: {
-                                            x1: bounds.width,
-                                            y1: 0,
-                                            x2: 0,
-                                            y2: 0
-                                        },
-                                        colorStops: [
-                                            { offset: 0, color: color1 },
-                                            { offset: 1, color: color2 }
-                                        ]
-                                    });
+                                    gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: 0 };
                                     break;
                                 case 'to bottom':
-                                    gradient = new fabric.Gradient({
-                                        type: 'linear',
-                                        coords: {
-                                            x1: 0,
-                                            y1: 0,
-                                            x2: 0,
-                                            y2: bounds.height
-                                        },
-                                        colorStops: [
-                                            { offset: 0, color: color1 },
-                                            { offset: 1, color: color2 }
-                                        ]
-                                    });
-                                    break;
-                                case 'to top':
-                                    gradient = new fabric.Gradient({
-                                        type: 'linear',
-                                        coords: {
-                                            x1: 0,
-                                            y1: bounds.height,
-                                            x2: 0,
-                                            y2: 0
-                                        },
-                                        colorStops: [
-                                            { offset: 0, color: color1 },
-                                            { offset: 1, color: color2 }
-                                        ]
-                                    });
+                                    gradientCoords = { x1: 0, y1: 0, x2: 0, y2: imageHeight };
                                     break;
                                 case 'to bottom right':
-                                    gradient = new fabric.Gradient({
-                                        type: 'linear',
-                                        coords: {
-                                            x1: 0,
-                                            y1: 0,
-                                            x2: bounds.width,
-                                            y2: bounds.height
-                                        },
-                                        colorStops: [
-                                            { offset: 0, color: color1 },
-                                            { offset: 1, color: color2 }
-                                        ]
-                                    });
+                                    gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: imageHeight };
                                     break;
                                 case 'to bottom left':
-                                    gradient = new fabric.Gradient({
-                                        type: 'linear',
-                                        coords: {
-                                            x1: bounds.width,
-                                            y1: 0,
-                                            x2: 0,
-                                            y2: bounds.height
-                                        },
-                                        colorStops: [
-                                            { offset: 0, color: color1 },
-                                            { offset: 1, color: color2 }
-                                        ]
-                                    });
+                                    gradientCoords = { x1: imageWidth, y1: 0, x2: 0, y2: imageHeight };
                                     break;
                                 default:
                                     // 默认从左到右
-                                    gradient = new fabric.Gradient({
-                                        type: 'linear',
-                                        coords: {
-                                            x1: 0,
-                                            y1: 0,
-                                            x2: bounds.width,
-                                            y2: 0
-                                        },
-                                        colorStops: [
-                                            { offset: 0, color: color1 },
-                                            { offset: 1, color: color2 }
-                                        ]
-                                    });
+                                    gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: 0 };
                             }
                             
-                            // 创建矩形对象
-                            const gradientRect = new fabric.Rect({
-                                left: bounds.left,
-                                top: bounds.top,
-                                width: bounds.width,
-                                height: bounds.height,
+                            const gradient = new fabric.Gradient({
+                                type: 'linear',
+                                gradientUnits: 'pixels',
+                                coords: gradientCoords,
+                                colorStops: [
+                                    { offset: 0, color: color1 },
+                                    { offset: 1, color: color2 }
+                                ]
+                            });
+                            
+                            // 创建一个矩形作为渐变覆盖层，使用裁剪功能
+                            const overlayRect = new fabric.Rect({
+                                left: baseLayerObject.left,
+                                top: baseLayerObject.top,
+                                width: imageWidth,
+                                height: imageHeight,
+                                originX: baseLayerObject.originX,
+                                originY: baseLayerObject.originY,
+                                scaleX: baseLayerObject.scaleX,
+                                scaleY: baseLayerObject.scaleY,
+                                angle: baseLayerObject.angle,
                                 fill: gradient,
                                 selectable: false,
                                 evented: false,
-                                hasControls: false,
-                                hasBorders: false,
-                                lockMovementX: true,
-                                lockMovementY: true,
-                                lockRotation: true,
-                                lockScalingX: true,
-                                lockScalingY: true,
-                                hoverCursor: 'default',
-                                moveCursor: 'default',
+                                opacity: baseLayerObject.opacity,
+                                globalCompositeOperation: 'source-in', // 关键：只在Base图层非透明区域显示
+                                name: 'Base Gradient Overlay',
                                 id: 'gradient-rect-' + Date.now()
                             });
                             
-                            // 添加到画布
-                            activeCanvas.add(gradientRect);
-                            // 不设置为选中状态，因为不允许选中
+                            // 添加新的渐变覆盖层
+                            activeCanvas.add(overlayRect);
+                            
+                            // 确保Base图层在渐变覆盖层之前（作为裁剪模板）
+                            activeCanvas.sendToBack(baseLayerObject);
+                            activeCanvas.bringForward(overlayRect);
+                            
+                            // 如果有 Overlay Layer，确保它在最上层
+                            const overlayLayerObject = activeCanvas.getObjects().find(obj => obj.name === 'Overlay Layer');
+                            if (overlayLayerObject) {
+                                activeCanvas.bringToFront(overlayLayerObject);
+                            }
+                            
                             activeCanvas.renderAll();
                             
-                            console.log(`已创建渐变矩形: ${color1} 到 ${color2}, 方向: ${direction}`);
-                            console.log('矩形位置和尺寸:', bounds);
+                            console.log(`已应用渐变色: ${color1} 到 ${color2}, 方向: ${direction}`);
                             
                         } else {
                             console.warn('当前视图没有 base_layer 或视图不存在');
@@ -415,12 +355,111 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         console.warn('没有激活的视图或 store 不可用');
                     }
+                } else if (typeof window.ProductImageCanvas !== 'undefined' && window.CanvasManager) {
+                    // 产品页面环境：使用ProductImageCanvas的画布
+                    console.log('在产品页面环境中应用渐变色');
+                    
+                    const productCanvas = window.CanvasManager.getCanvas('product-view');
+                    if (productCanvas) {
+                        // 查找Base图层对象
+                        const baseLayerObject = productCanvas.getObjects().find(obj => 
+                            obj.name === 'Base Layer' || obj.type === 'image'
+                        );
+                        
+                        if (baseLayerObject) {
+                            // 先清除旧的渐变覆盖层
+                            const existingOverlay = productCanvas.getObjects().find(obj => obj.name === 'Base Gradient Overlay');
+                            if (existingOverlay) {
+                                productCanvas.remove(existingOverlay);
+                            }
+                            
+                            // 获取Base图层的图像元素
+                            const imageElement = baseLayerObject.getElement();
+                            if (imageElement) {
+                                const imageWidth = imageElement.width || imageElement.naturalWidth;
+                                const imageHeight = imageElement.height || imageElement.naturalHeight;
+                                
+                                let gradientCoords;
+                                
+                                // 根据方向设置渐变坐标
+                                switch (direction) {
+                                    case 'to right':
+                                        gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: 0 };
+                                        break;
+                                    case 'to bottom':
+                                        gradientCoords = { x1: 0, y1: 0, x2: 0, y2: imageHeight };
+                                        break;
+                                    case 'to bottom right':
+                                        gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: imageHeight };
+                                        break;
+                                    case 'to bottom left':
+                                        gradientCoords = { x1: imageWidth, y1: 0, x2: 0, y2: imageHeight };
+                                        break;
+                                    default:
+                                        gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: 0 };
+                                }
+                                
+                                const gradient = new fabric.Gradient({
+                                    type: 'linear',
+                                    gradientUnits: 'pixels',
+                                    coords: gradientCoords,
+                                    colorStops: [
+                                        { offset: 0, color: color1 },
+                                        { offset: 1, color: color2 }
+                                    ]
+                                });
+                                
+                                // 创建渐变覆盖层
+                                const overlayRect = new fabric.Rect({
+                                    left: baseLayerObject.left,
+                                    top: baseLayerObject.top,
+                                    width: imageWidth,
+                                    height: imageHeight,
+                                    originX: baseLayerObject.originX,
+                                    originY: baseLayerObject.originY,
+                                    scaleX: baseLayerObject.scaleX,
+                                    scaleY: baseLayerObject.scaleY,
+                                    angle: baseLayerObject.angle,
+                                    fill: gradient,
+                                    selectable: false,
+                                    evented: false,
+                                    opacity: baseLayerObject.opacity,
+                                    globalCompositeOperation: 'source-in',
+                                    name: 'Base Gradient Overlay',
+                                    id: 'gradient-rect-' + Date.now()
+                                });
+                                
+                                // 添加渐变覆盖层
+                                productCanvas.add(overlayRect);
+                                
+                                // 确保图层顺序正确
+                                productCanvas.sendToBack(baseLayerObject);
+                                productCanvas.bringForward(overlayRect);
+                                
+                                // 如果有Overlay Layer，确保它在最上层
+                                const overlayLayerObject = productCanvas.getObjects().find(obj => obj.name === 'Overlay Layer');
+                                if (overlayLayerObject) {
+                                    productCanvas.bringToFront(overlayLayerObject);
+                                }
+                                
+                                productCanvas.renderAll();
+                                
+                                console.log(`产品页面已应用渐变色: ${color1} 到 ${color2}, 方向: ${direction}`);
+                            } else {
+                                console.warn('无法获取Base图层的图像元素');
+                            }
+                        } else {
+                            console.warn('在产品画布中未找到Base图层');
+                        }
+                    } else {
+                        console.warn('无法获取产品画布实例');
+                    }
                 } else {
-                    console.warn('useCanvasStore 不可用');
+                    console.warn('useCanvasStore 和 ProductImageCanvas 都不可用');
                 }
             }
             
-            createGradientRectangle();
+            applyGradientToBaseLayer();
             
             // 更新颜色样本中的选中状态
             const colorSwatches = document.querySelectorAll('.color-swatch');
