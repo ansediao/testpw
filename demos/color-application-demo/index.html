@@ -1,0 +1,389 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base图层上色功能演示</title>
+    <!-- 引入 Tailwind CSS 用于样式设计 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Fabric.js 库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-4">
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Base图层上色功能演示</h1>
+            <p class="text-gray-600">演示Base图层像素边界检测和纯色上色功能</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- 左侧：控制面板 -->
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">控制面板</h2>
+                
+                <!-- Base图层信息 -->
+                <div class="mb-6">
+                    <h3 class="font-semibold mb-2 text-gray-700">Base图层信息</h3>
+                    <div class="bg-gray-50 p-3 rounded-lg text-sm">
+                        <p>名称: <span id="baseLayerName" class="font-medium">Base Layer</span></p>
+                        <p>尺寸: <span id="baseLayerSize" class="font-medium">800x600</span></p>
+                    </div>
+                </div>
+                
+                <!-- 颜色选择 -->
+                <div class="mb-6">
+                    <h3 class="font-semibold mb-2 text-gray-700">颜色选择</h3>
+                    <div class="grid grid-cols-4 gap-2 mb-3">
+                        <div class="w-12 h-12 rounded-lg bg-red-500 border-2 border-gray-300 cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-200 relative" data-color="#ef4444"></div>
+                        <div class="w-12 h-12 rounded-lg bg-blue-500 border-2 border-gray-300 cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-200 relative" data-color="#3b82f6"></div>
+                        <div class="w-12 h-12 rounded-lg bg-green-500 border-2 border-gray-300 cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-200 relative" data-color="#10b981"></div>
+                        <div class="w-12 h-12 rounded-lg bg-yellow-500 border-2 border-gray-300 cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-200 relative" data-color="#f59e0b"></div>
+                        <div class="w-12 h-12 rounded-lg bg-purple-500 border-2 border-gray-300 cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-200 relative" data-color="#8b5cf6"></div>
+                        <div class="w-12 h-12 rounded-lg bg-pink-500 border-2 border-gray-300 cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-200 relative" data-color="#ec4899"></div>
+                        <div class="w-12 h-12 rounded-lg bg-gray-800 border-2 border-gray-300 cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-200 relative" data-color="#1f2937"></div>
+                        <div class="w-12 h-12 rounded-lg bg-white border-2 border-gray-300 cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-200 relative" data-color="#ffffff"></div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="customColor" class="text-sm text-gray-600">自定义颜色:</label>
+                        <input type="color" id="customColor" class="w-10 h-10 rounded cursor-pointer">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧：主画布 -->
+            <div class="lg:col-span-3 bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Base图层</h2>
+                <p class="text-gray-600 mb-4">显示Base图层，可应用颜色并查看效果</p>
+                <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                    <canvas id="baseCanvas" width="800" height="600"></canvas>
+                </div>
+            </div>
+        </main>
+        <!-- 上色原理说明模块 -->
+<section class="mt-12 w-full bg-white py-10 px-6 rounded-xl shadow-lg">
+    <div class="max-w-7xl mx-auto">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">上色原理说明</h2>
+        <div class="prose max-w-none text-gray-600">
+            <p>本演示展示了如何使用 Fabric.js 对图像图层进行纯色覆盖处理，其核心原理如下：</p>
+            
+            <ul class="list-disc pl-5 space-y-2">
+                <li><strong>图像数据读取：</strong>通过创建临时画布并绘制原始图像，获取其 ImageData 数据。</li>
+                <li><strong>像素遍历与判断：</strong>遍历每个像素点（每4个值为一组：R, G, B, A），判断其是否为非透明区域（alpha > 10）。</li>
+                <li><strong>颜色替换：</strong>对于所有非透明像素，将其 RGB 值替换为选定的颜色值，保持 Alpha 通道不变以保留原图透明度信息。</li>
+                <li><strong>重新渲染：</strong>将修改后的图像数据转换为 Data URL，并用 Fabric.js 创建新的图像对象替换原有图层。</li>
+                <li><strong>叠加图层保护：</strong>每次重新上色后，确保 Overlay Layer 保持在最上层，不影响 Base Layer 的视觉效果。</li>
+            </ul>
+
+            <p class="mt-4"><strong>技术要点：</strong>该方法利用了 HTML5 Canvas 的 <code>getImageData</code> 和 <code>putImageData</code> API 来操作像素级别数据，从而实现动态变色功能。</p>
+        </div>
+    </div>
+</section>
+    </div>
+
+    <script>
+        // --- 来自你的 API 的数据 ---
+        const apiResponse = {
+            "layer_config": {
+                "layers": [
+                    {
+                        "created_at": "2025-08-08 09:27:52", "custom_view_id": 1, "deleted_at": null, "id": 2,
+                        "layer_data": {
+                            "content": {"backgroundColor": "#ffffff", "fontColor": "string", "fontFamily": "string", "imageURL": "https://pwfiles.939666.xyz/t-shirt/color.png", "opacity": 100, "text": "string"},
+                            "controls": {"deletable": false, "exportable": true, "movable": false, "rotatable": false, "scalable": false, "visibility": true},
+                            "dimensions": {"contentArea": {"height": 600, "width": 800}, "layerSize": {"height": 600, "width": 800}, "physicalSize": {"height": 15, "width": 20}},
+                            "position": {"anchorPoint": "top-left", "coordinates": {"unit": "px", "x": 0, "y": 0}, "rotation": 0, "zIndex": {"locked": true, "value": 1}}
+                        },
+                        "name": "Base Layer", "sort_order": 1, "status": 1, "type": "image", "updated_at": "2025-08-08 09:27:52"
+                    },
+                    {
+                        "created_at": "2025-08-08 09:27:52", "custom_view_id": 1, "deleted_at": null, "id": 3,
+                        "layer_data": {
+                            "content": {"backgroundColor": "#ffffff", "fontColor": "string", "fontFamily": "string", "imageURL": "https://pwfiles.939666.xyz/t-shirt/details.png", "opacity": 100, "text": "string"},
+                            "controls": {"deletable": false, "exportable": true, "movable": false, "rotatable": false, "scalable": false, "visibility": true},
+                            "dimensions": {"contentArea": {"height": 600, "width": 800}, "layerSize": {"height": 600, "width": 800}, "physicalSize": {"height": 15, "width": 20}},
+                            "position": {"anchorPoint": "top-left", "coordinates": {"unit": "px", "x": 0, "y": 0}, "rotation": 0, "zIndex": {"locked": true, "value": 2}}
+                        },
+                        "name": "Overlay Layer", "sort_order": 2, "status": 1, "type": "image", "updated_at": "2025-08-08 09:27:52"
+                    }
+                ]
+            }
+        };
+
+        /**
+         * 将 API 中的 anchorPoint 字符串转换为 Fabric.js 的 originX 和 originY。
+         * @param {string} anchorPoint - 例如 "top-left", "center"。
+         * @returns {{originX: string, originY: string}} Fabric.js 的原点对象。
+         */
+        function getOriginFromAnchorPoint(anchorPoint) {
+            const [y, x] = anchorPoint.split('-');
+            const originMap = {
+                top: 'top',
+                center: 'center',
+                bottom: 'bottom',
+                left: 'left',
+                right: 'right',
+            };
+            // 如果 anchorPoint 是 "center"，则 x 将是 undefined
+            return {
+                originX: originMap[x || 'center'],
+                originY: originMap[y]
+            };
+        }
+
+        /**
+         * 辅助函数，用于从图层数据对象创建一个 Fabric.js 对象。
+         * 它返回一个 Promise，该 Promise 会解析为 Fabric 对象。
+         * @param {object} layer - 来自 API 的单个图层对象。
+         * @returns {Promise<fabric.Object|null>} 一个 Promise，如果图层无法创建，则解析为 fabric 对象或 null。
+         */
+        function createFabricObjectFromLayer(layer) {
+            return new Promise((resolve, reject) => {
+                const data = layer.layer_data;
+                const controls = data.controls;
+                const position = data.position;
+
+                switch (layer.type) {
+                    case 'image':
+                        if (!data.content.imageURL) {
+                            console.warn(`因缺少 imageURL，正在跳过图片图层 "${layer.name}"。`);
+                            resolve(null);
+                            return;
+                        }
+
+                        fabric.Image.fromURL(data.content.imageURL, (img) => {
+                            const origins = getOriginFromAnchorPoint(position.anchorPoint || 'top-left');
+                            
+                            // 获取画布尺寸
+                            const canvasWidth = data.dimensions.contentArea.width;
+                            const canvasHeight = data.dimensions.contentArea.height;
+                            
+                            // 如果图片比画布大，需要缩放
+                            let scaleX = 1;
+                            let scaleY = 1;
+                            
+                            if (img.width > canvasWidth) {
+                                scaleX = canvasWidth / img.width;
+                            }
+                            
+                            if (img.height > canvasHeight) {
+                                scaleY = canvasHeight / img.height;
+                            }
+                            
+                            // 取较小的缩放比例，确保图片完全在画布内
+                            const scale = Math.min(scaleX, scaleY);
+                            
+                            // 计算缩放后的尺寸
+                            const scaledWidth = img.width * scale;
+                            const scaledHeight = img.height * scale;
+                            
+                            // 计算居中位置
+                            const centerX = (canvasWidth - scaledWidth) / 2;
+                            const centerY = (canvasHeight - scaledHeight) / 2;
+
+                            img.set({
+                                left: centerX,
+                                top: centerY,
+                                angle: position.rotation,
+                                originX: origins.originX,
+                                originY: origins.originY,
+                                scaleX: scale,
+                                scaleY: scale,
+                                opacity: data.content.opacity / 100,
+                                selectable: controls.movable,
+                                evented: controls.movable,
+                                lockRotation: !controls.rotatable,
+                                lockScalingX: !controls.scalable,
+                                lockScalingY: !controls.scalable,
+                                hasControls: controls.movable && controls.scalable,
+                                hasBorders: controls.movable,
+                                name: layer.name
+                            });
+                            resolve(img);
+                        }, { crossOrigin: 'anonymous' });
+                        break;
+                    
+                    default:
+                        console.warn(`未知的图层类型: "${layer.type}" (图层名: "${layer.name}")。`);
+                        resolve(null);
+                        break;
+                }
+            });
+        }
+
+        // 全局变量
+        let baseCanvas = null;
+        let baseLayerImage = null;
+        let currentColor = null;
+        let originalBaseLayerImageData = null; // 保存原始Base图层的图像数据
+        let overlayLayerObject = null; // 保存Overlay图层对象
+
+        /**
+         * 应用颜色到Base图层
+         * @param {string} color - 颜色值
+         */
+        function applyColorToBaseLayer(color) {
+            if (!baseLayerImage) {
+                console.warn('Base图层未准备好');
+                return;
+            }
+
+            // 获取Base图层对象
+            const baseLayerObject = baseCanvas.getObjects().find(obj => obj.name === 'Base Layer');
+            if (!baseLayerObject) {
+                console.warn('Base图层对象未找到');
+                return;
+            }
+
+            // 创建临时画布来应用颜色
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = baseLayerImage.width;
+            tempCanvas.height = baseLayerImage.height;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            // 如果是第一次应用颜色，保存原始图像数据
+            if (!originalBaseLayerImageData) {
+                tempCtx.drawImage(baseLayerImage, 0, 0);
+                originalBaseLayerImageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            } else {
+                // 恢复原始图像数据
+                tempCtx.putImageData(originalBaseLayerImageData, 0, 0);
+            }
+
+            // 获取图像数据
+            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            const data = imageData.data;
+
+            // 解析颜色值
+            const r = parseInt(color.substr(1, 2), 16);
+            const g = parseInt(color.substr(3, 2), 16);
+            const b = parseInt(color.substr(5, 2), 16);
+
+            // 修改非透明像素的颜色
+            for (let i = 0; i < data.length; i += 4) {
+                const alpha = data[i + 3];
+                if (alpha > 10) { // 非透明像素阈值
+                    data[i] = r;     // 红色通道
+                    data[i + 1] = g; // 绿色通道
+                    data[i + 2] = b; // 蓝色通道
+                    // 保持 alpha 通道不变
+                }
+            }
+
+            // 将修改后的图像数据放回画布
+            tempCtx.putImageData(imageData, 0, 0);
+
+            // 创建新的图像对象
+            fabric.Image.fromURL(tempCanvas.toDataURL(), function(fabricImg) {
+                // 保持原始位置、缩放和旋转
+                fabricImg.set({
+                    left: baseLayerObject.left,
+                    top: baseLayerObject.top,
+                    angle: baseLayerObject.angle,
+                    originX: baseLayerObject.originX,
+                    originY: baseLayerObject.originY,
+                    scaleX: baseLayerObject.scaleX,
+                    scaleY: baseLayerObject.scaleY,
+                    opacity: baseLayerObject.opacity,
+                    selectable: baseLayerObject.selectable,
+                    evented: baseLayerObject.evented,
+                    lockRotation: baseLayerObject.lockRotation,
+                    lockScalingX: baseLayerObject.lockScalingX,
+                    lockScalingY: baseLayerObject.lockScalingY,
+                    hasControls: baseLayerObject.hasControls,
+                    hasBorders: baseLayerObject.hasBorders,
+                    name: 'Base Layer'
+                });
+
+                // 移除旧的Base图层对象
+                baseCanvas.remove(baseLayerObject);
+
+                // 添加新的Base图层对象
+                baseCanvas.add(fabricImg);
+                
+                // 如果有Overlay图层，确保它在最上面
+                if (overlayLayerObject) {
+                    baseCanvas.bringToFront(overlayLayerObject);
+                }
+                
+                baseCanvas.renderAll();
+
+                // 更新状态信息
+                currentColor = color;
+            });
+        }
+
+        // --- 脚本执行 ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 初始化画布
+            baseCanvas = new fabric.Canvas('baseCanvas', {
+                width: 800,
+                height: 600,
+            });
+
+            // 按排序顺序渲染所有图层
+            const sortedLayers = [...apiResponse.layer_config.layers].sort((a, b) => a.sort_order - b.sort_order);
+            
+            for (const layer of sortedLayers) {
+                const fabricObject = await createFabricObjectFromLayer(layer);
+                if (fabricObject) {
+                    baseCanvas.add(fabricObject);
+                    
+                    // 保存Base图层图像引用
+                    if (layer.name === 'Base Layer') {
+                        baseLayerImage = fabricObject._element;
+                        document.getElementById('baseLayerName').textContent = layer.name;
+                        document.getElementById('baseLayerSize').textContent =
+                            `${layer.layer_data.dimensions.layerSize.width}x${layer.layer_data.dimensions.layerSize.height}`;
+                    }
+                    
+                    // 保存Overlay图层对象引用
+                    if (layer.name === 'Overlay Layer') {
+                        overlayLayerObject = fabricObject;
+                    }
+                }
+            }
+
+            // 确保Overlay图层在最上面
+            if (overlayLayerObject) {
+                baseCanvas.bringToFront(overlayLayerObject);
+            }
+
+            baseCanvas.renderAll();
+
+            // 颜色选择事件
+            document.querySelectorAll('div[data-color]').forEach(option => {
+                option.addEventListener('click', function() {
+                    // 移除其他选中状态
+                    document.querySelectorAll('div[data-color]').forEach(opt => {
+                        opt.classList.remove('border-3', 'border-blue-500');
+                    });
+                    
+                    // 添加当前选中状态
+                    this.classList.add('border-3', 'border-blue-500');
+                    
+                    // 获取颜色值
+                    const color = this.getAttribute('data-color');
+                    
+                    // 同步自定义颜色选择器
+                    document.getElementById('customColor').value = color;
+                    
+                    // 应用颜色
+                    applyColorToBaseLayer(color);
+                });
+            });
+
+            // 自定义颜色选择事件（实时上色）
+            document.getElementById('customColor').addEventListener('input', function() {
+                // 移除其他选中状态
+                document.querySelectorAll('div[data-color]').forEach(opt => {
+                    opt.classList.remove('border-3', 'border-blue-500');
+                });
+                
+                // 应用颜色
+                applyColorToBaseLayer(this.value);
+            });
+        });
+    </script>
+</body>
+</html>
