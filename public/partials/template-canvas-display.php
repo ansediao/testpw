@@ -799,6 +799,16 @@ if ($product_id > 0) {
             alert('未指定产品，无法加入购物车');
             return;
           }
+
+          // 获取数量信息
+          const quantityInput = document.querySelector('.product-card__input');
+          const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+          
+          if (quantity <= 0) {
+            alert('请输入有效的数量');
+            return;
+          }
+
           // 检查是否存在预览容器
           const previewContainer = document.querySelector('.preview-canvas-container');
           // 根据是否存在预览容器选择不同的捕获函数
@@ -813,18 +823,13 @@ if ($product_id > 0) {
               try {
                 const response = JSON.parse(xhr.responseText);
                 if (response.success) {
-                  // 显示成功消息
-                  const cartMessage = document.getElementById('cartMessage');
-                  if (cartMessage) {
-                    cartMessage.textContent = '已成功加入购物车！';
-                    cartMessage.style.display = 'block';
-                    // 3秒后隐藏消息
-                    setTimeout(function() {
-                      cartMessage.style.display = 'none';
-                    }, 3000);
+                  // 成功后跳转到购物车页面
+                  const cartUrl = '<?php echo wc_get_cart_url(); ?>';
+                  if (cartUrl) {
+                    window.location.href = cartUrl;
                   } else {
-                    console.log('未找到购物车消息元素，使用 alert 显示成功消息');
-                    alert('已成功加入购物车！');
+                    // 如果无法获取购物车URL，使用默认路径
+                    window.location.href = '/cart/';
                   }
                 } else {
                   console.error('加入购物车失败: ', response.data);
@@ -832,16 +837,17 @@ if ($product_id > 0) {
                 }
               } catch (e) {
                 console.error('处理响应时出错: ', e);
-                alert('已成功加入购物车，但处理响应时出错');
+                alert('加入购物车时出错，请重试');
               }
             } else {
               console.error('请求失败，状态码: ', xhr.status);
-              alert('已成功加入购物车，但请求状态异常');
+              alert('网络请求失败，请重试');
             }
           };
           // 准备数据
           const data = 'action=add_customized_product_to_cart' +
             '&product_id=' + encodeURIComponent(productId) +
+            '&quantity=' + encodeURIComponent(quantity) +
             '&custom_image=' + encodeURIComponent(customImage) +
             '&color=' + encodeURIComponent(currentColor) +
             '&security=' + encodeURIComponent('<?php echo wp_create_nonce("custom-product-nonce"); ?>');
