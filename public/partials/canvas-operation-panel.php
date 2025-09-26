@@ -686,8 +686,50 @@ document.addEventListener('DOMContentLoaded', function() {
                                         };
                                     }
                                     
-                                    // 存储到 store
+                                    // 存储到 Canvas store
                                     store.setSelectedColorByView(activeViewId, colorData);
+                                    
+                                    // ===== 新增：参考产品页面逻辑，更新 selectedVariant 到 Product Store =====
+                                    if (window.useProductStore && completeVariantData) {
+                                        try {
+                                            const productStore = window.useProductStore();
+                                            // 参考 ColorVariants.js 中的 selectVariant 方法
+                                            productStore.setSelectedVariant(completeVariantData);
+                                            
+                                            // 发送自定义事件，与产品页面保持一致
+                                            const event = new CustomEvent('pw-color-variant-selected', {
+                                                detail: { variant: completeVariantData }
+                                            });
+                                            document.dispatchEvent(event);
+                                            
+                                            console.log(`设计页面颜色选择：已更新 selectedVariant 到 Product Store:`, completeVariantData);
+                                        } catch (error) {
+                                            console.warn('更新 Product Store selectedVariant 失败:', error);
+                                        }
+                                    } else if (window.useProductStore && !completeVariantData) {
+                                        // 如果没有完整的变体数据，创建一个基本的变体对象
+                                        try {
+                                            const productStore = window.useProductStore();
+                                            const basicVariant = {
+                                                id: variantId || 'design-' + Date.now(),
+                                                variant_color: selectedColor,
+                                                variant_name: selectedSwatch.getAttribute('data-variant-name') || '自定义颜色',
+                                                type: 'design-selected',
+                                                isDesignSelected: true
+                                            };
+                                            productStore.setSelectedVariant(basicVariant);
+                                            
+                                            // 发送自定义事件
+                                            const event = new CustomEvent('pw-color-variant-selected', {
+                                                detail: { variant: basicVariant }
+                                            });
+                                            document.dispatchEvent(event);
+                                            
+                                            console.log(`设计页面颜色选择：已创建并更新基本 selectedVariant:`, basicVariant);
+                                        } catch (error) {
+                                            console.warn('创建基本 selectedVariant 失败:', error);
+                                        }
+                                    }
                                     
                                     console.log(`完整颜色数据已存储到视图 ${activeViewId}:`, colorData);
                                 } else {
