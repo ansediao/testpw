@@ -432,3 +432,149 @@ function add_pwca_shipping_method($methods)
     $methods['pwca_shipping_method'] = 'WC_Pwca_Shipping_Method';
     return $methods;
 }
+
+// 添加计算运费按钮和刷新订单区域功能
+add_action('woocommerce_review_order_before_shipping', 'pwca_add_calculate_shipping_button');
+function pwca_add_calculate_shipping_button()
+{
+    if (is_checkout() && !defined('DOING_AJAX')) {
+        echo '<div class="pwca-calculate-shipping-container" style="margin-bottom: 15px;">';
+        echo '<button type="button" class="button pwca-calculate-shipping-btn" id="pwca-calculate-shipping">' . __('Calculate Shipping', 'woocommerce') . '</button>';
+        echo '</div>';
+        
+        // 添加JavaScript处理按钮点击事件
+        wc_enqueue_js('
+            jQuery(document).ready(function($) {
+                // 确保只有一个按钮存在
+                if ($("#pwca-calculate-shipping").length > 1) {
+                    $("#pwca-calculate-shipping:not(:first)").remove();
+                }
+                
+                // 计算运费按钮点击事件
+                $(document).on("click", "#pwca-calculate-shipping", function() {
+                    var button = $(this);
+                    
+                    // 防止重复点击
+                    if (button.prop("disabled")) {
+                        return;
+                    }
+                    
+                    // 添加加载状态
+                    button.prop("disabled", true).addClass("loading").text("' . __('Calculating...', 'woocommerce') . '");
+                    
+                    // 触发 WooCommerce 更新结账页面
+                    $("body").trigger("update_checkout");
+                    
+                    // 监听更新完成事件（只绑定一次）
+                    $(document.body).off("updated_checkout.pwca").on("updated_checkout.pwca", function() {
+                        // 移除加载状态
+                        button.prop("disabled", false).removeClass("loading").text("' . __('Calculate Shipping', 'woocommerce') . '");
+                        
+                        // 显示成功消息
+                        if (!$(".pwca-shipping-calculated").length) {
+                            button.after("<span class=\"pwca-shipping-calculated\" style=\"color: #4caf50; margin-left: 10px;\">✓ ' . __('Shipping calculated', 'woocommerce') . '</span>");
+                            setTimeout(function() {
+                                $(".pwca-shipping-calculated").fadeOut(500, function() {
+                                    $(this).remove();
+                                });
+                            }, 3000);
+                        }
+                    });
+                });
+                
+                // 监听 checkout 更新事件，确保按钮状态正确
+                $(document.body).on("update_checkout", function() {
+                    console.log("WooCommerce checkout update triggered");
+                });
+                
+                $(document.body).on("updated_checkout", function() {
+                    console.log("WooCommerce checkout update completed");
+                });
+            });
+        ');
+    }
+}
+
+// 添加自定义CSS样式
+add_action('wp_head', 'pwca_calculate_shipping_styles');
+function pwca_calculate_shipping_styles()
+{
+    if (is_checkout()) {
+        echo '<style>
+            .pwca-calculate-shipping-container {
+                text-align: right;
+                padding: 10px 0;
+                border-bottom: 1px solid #e0e0e0;
+            }
+            
+            .pwca-calculate-shipping-btn {
+                background: #007cba;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.3s ease;
+            }
+            
+            .pwca-calculate-shipping-btn:hover {
+                background: #005a87;
+            }
+            
+            .pwca-calculate-shipping-btn:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+            }
+            
+            .pwca-calculate-shipping-btn.loading {
+                position: relative;
+                padding-right: 30px;
+            }
+            
+            .pwca-calculate-shipping-btn.loading:after {
+                content: "";
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                width: 12px;
+                height: 12px;
+                margin-top: -6px;
+                border: 2px solid #ffffff;
+                border-top: 2px solid transparent;
+                border-radius: 50%;
+                animation: pwca-spin 1s linear infinite;
+            }
+            
+            @keyframes pwca-spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+        <script>
+        jQuery(document).ready(function($) {
+            // 确保页面上只有一个计算运费按钮
+            function ensureSingleCalculateButton() {
+                var buttons = $(".pwca-calculate-shipping-container");
+                if (buttons.length > 1) {
+                    buttons.not(":first").remove();
+                    console.log("PW Canvas: Removed duplicate calculate shipping buttons");
+                }
+            }
+            
+            // 初始清理
+            ensureSingleCalculateButton();
+            
+            // 监听 WooCommerce 更新事件
+            $(document.body).on("updated_checkout", function() {
+                setTimeout(ensureSingleCalculateButton, 100);
+            });
+            
+            // 监听 AJAX 完成事件
+            $(document).ajaxComplete(function() {
+                setTimeout(ensureSingleCalculateButton, 100);
+            });
+        });
+        </script>';
+    }
+}
