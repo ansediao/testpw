@@ -39,8 +39,8 @@ if (! defined('WPINC')) {
 define('PW_ADMIN_VERSION', '1.0.1');
 
 // 定义插件根目录URL常量
-define( 'MY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'MY_PLUGIN_ICONS_URL', MY_PLUGIN_URL . 'assets/images/icons/' );
+define('MY_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('MY_PLUGIN_ICONS_URL', MY_PLUGIN_URL . 'assets/images/icons/');
 
 
 
@@ -91,13 +91,14 @@ function run_pw_admin()
 run_pw_admin();
 
 // 注册Action Scheduler hooks
-function pw_admin_register_action_scheduler_hooks() {
+function pw_admin_register_action_scheduler_hooks()
+{
     // 处理单个产品导入
     add_action('import_single_product', 'import_single_product');
-    
+
     // 处理组合产品组导入
     add_action('import_composite_product_group', 'import_composite_product_group');
-    
+
     // 处理容器规则
     add_action('process_container_rules', 'process_container_rules');
 }
@@ -195,12 +196,12 @@ add_action('pre_get_posts', function ($query) {
     if (!is_admin() || !$query->is_main_query()) {
         return;
     }
-    
+
     // 确保是产品列表页面
     if ($query->get('post_type') !== 'product') {
         return;
     }
-    
+
     // 获取所有父产品的子产品ID列表
     global $wpdb;
     $child_product_ids = $wpdb->get_col(
@@ -209,7 +210,7 @@ add_action('pre_get_posts', function ($query) {
          WHERE meta_key = '_children' 
          AND meta_value != ''"
     );
-    
+
     // 将序列化的数组转换为单个ID数组
     $all_child_ids = array();
     foreach ($child_product_ids as $serialized_ids) {
@@ -218,10 +219,10 @@ add_action('pre_get_posts', function ($query) {
             $all_child_ids = array_merge($all_child_ids, $ids);
         }
     }
-    
+
     // 去重并确保都是数字
     $all_child_ids = array_unique(array_filter(array_map('intval', $all_child_ids)));
-    
+
     // 如果有子产品ID，则排除它们
     if (!empty($all_child_ids)) {
         $query->set('post__not_in', $all_child_ids);
@@ -244,7 +245,7 @@ add_action('manage_product_posts_custom_column', function ($column, $post_id) {
             echo '<div class="cross-sells-tooltip">▲ ' . count($child_product_ids) . ' sub-products
                 <div class="tooltip">' . implode(
                 '<br>',
-                array_map(function($post_id) {
+                array_map(function ($post_id) {
                     return '<i class="iconfont icon-xiaji"></i> ' . get_the_title($post_id);
                 }, $child_product_ids)
             ) . '</div>
@@ -306,4 +307,128 @@ function add_type_attribute_to_my_script($tag, $handle, $src)
     }
 
     return $tag;
+}
+
+add_action('woocommerce_shipping_init', 'pwca_shipping_method_init');
+function pwca_shipping_method_init()
+{
+    class WC_Pwca_Shipping_Method extends WC_Shipping_Method
+    {
+        public function __construct($instance_id = 0)
+        {
+            $this->id = 'pwca_shipping_method';
+            $this->instance_id = absint($instance_id);
+            $this->method_title = __('PW Shipping', 'woocommerce');
+            $this->method_description = __('PW shipping method with API integration', 'woocommerce');
+            $this->supports = array(
+                'shipping-zones',
+                'instance-settings',
+                'instance-settings-modal',
+            );
+            $this->init();
+        }
+
+        public function init()
+        {
+            $this->init_form_fields();
+            $this->init_settings();
+            $this->title = $this->get_option('title', __('PW Shipping', 'woocommerce'));
+            add_action('woocommerce_update_options_shipping_' . $this->id, array($this, 'process_admin_options'));
+        }
+
+        public function init_form_fields()
+        {
+            $this->instance_form_fields = array(
+                'title' => array(
+                    'title' => __('Shipping Title', 'woocommerce'),
+                    'type' => 'text',
+                    'description' => __('The title shown to customers during checkout.', 'woocommerce'),
+                    'default' => __('PW Shipping', 'woocommerce'),
+                ),
+            );
+        }
+
+        public function calculate_shipping($package = array())
+        {
+            $rate = $this->get_shipping_rate($package);
+            if ($rate) {
+                $this->add_rate($rate);
+            }
+        }
+
+        private function get_shipping_rate($package)
+        {
+            $weight = 0;
+            $country_code = $package['destination']['country'];
+            foreach ($package['contents'] as $item) {
+                $product = $item['data'];
+                // $weight += $product->get_weight() * $item['quantity'];
+                $weight += $item['quantity'];
+            }
+
+            // 调用 API 获取运费
+            $shipping_rate = $this->fetch_shipping_rate($country_code, $weight, 'PK1792');
+
+            if ($shipping_rate && isset($shipping_rate['totalFee'])) {
+                return array(
+                    'id' => $this->id . '_' . $this->instance_id,
+                    'label' => $this->title,
+                    'cost' => $shipping_rate['totalFee'],
+                    'taxes' => '',
+                    'calc_tax' => 'per_order',
+                );
+            }
+            return false;
+        }
+
+        private function fetch_shipping_rate($country_code, $weight, $shipping_method)
+        {
+            $api_url = 'https://dev.promowares.com/api/v1/shipping/calculate';
+            $token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NDE4MTYxMjgsInRlYW0iOiIxIiwidXNlcl9pZCI6MX0.60D-NUbUBa_n3KXyNrhnoN964IjwIFJtGUVDCSnKYFM';
+
+            $args = array(
+                'headers' => array(
+                    'Authorization' => $token,
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                    'Accept-Encoding' => 'gzip, deflate, br',
+                    'User-Agent' => 'PostmanRuntime-ApipostRuntime/1.1.0',
+                    'Connection' => 'keep-alive',
+                ),
+                'body' => json_encode(array(
+                    'country_code' => $country_code,
+                    'weight' => strval($weight),
+                    'shipping_method' => $shipping_method,
+                )),
+                'method' => 'POST',
+                'timeout' => 30,
+            );
+
+            $response = wp_remote_post($api_url, $args);
+            error_log('Shipping Args: ' . print_r($args, true));
+            if (is_wp_error($response)) {
+                error_log('Shipping API Error: ' . $response->get_error_message());
+                return false;
+            }
+
+            $body = wp_remote_retrieve_body($response);
+            error_log('Shipping API Response: ' . print_r($body, true));
+            $data = json_decode($body, true);
+            error_log('Decoded API Data: ' . print_r($data, true));
+
+            if ($data && $data['code'] === 200 && !empty($data['data']['raw_response']['data'])) {
+                // 返回第一个匹配的运费数据
+                return $data['data']['raw_response']['data'][0];
+            }
+
+            return false;
+        }
+    }
+}
+
+add_filter('woocommerce_shipping_methods', 'add_pwca_shipping_method');
+function add_pwca_shipping_method($methods)
+{
+    $methods['pwca_shipping_method'] = 'WC_Pwca_Shipping_Method';
+    return $methods;
 }
