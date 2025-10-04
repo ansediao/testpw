@@ -1003,107 +1003,142 @@ class Pw_Admin_Promowares_Api
     {
         error_log("[PW Canvas] Starting get_enhanced_template_data for product_id: {$product_id}");
         
-        // Step 1: Get product template
-        error_log("[PW Canvas] Step 1: Fetching product template for product_id: {$product_id}");
-        $product_template_response = $this->call_promowares_api("custom-templates/product/{$product_id}", $token);
-        
-        if (is_wp_error($product_template_response)) {
-            error_log("[PW Canvas] Error fetching product template: " . $product_template_response->get_error_message());
-            return $product_template_response;
-        }
-        
-        error_log("[PW Canvas] Product template fetched successfully");
+        // Step 1: Get customization data (template, views, layers) from aggregated endpoint
+        error_log("[PW Canvas] Step 1: Fetching customization data for product_id: {$product_id}");
+        $response = $this->call_promowares_api("products/{$product_id}/customization", $token);
 
-        // Extract template ID from response
-        if (!isset($product_template_response['data']['id'])) {
-            error_log("[PW Canvas] Product template ID not found in response");
-            return new WP_Error('template_id_missing', 'Product template ID not found in response');
+        if (is_wp_error($response)) {
+            error_log("[PW Canvas] Error fetching customization data: " . $response->get_error_message());
+            return $response;
         }
 
-        $product_template_id = $product_template_response['data']['id'];
+        if (!isset($response['data']) || !is_array($response['data'])) {
+            error_log("[PW Canvas] Customization data missing for product_id: {$product_id}");
+            return new WP_Error('customization_data_missing', 'Customization data not found in response');
+        }
+
+        $customization_data = $response['data'];
+
+        if (!isset($customization_data['custom_template']['id'])) {
+            error_log("[PW Canvas] Custom template ID not found in customization data");
+            return new WP_Error('custom_template_id_missing', 'Custom template ID not found in customization data');
+        }
+
+        $product_template_id = $customization_data['custom_template']['id'];
         error_log("[PW Canvas] Extracted product_template_id: {$product_template_id}");
-        
-        // Initialize final data structure with original template data
-        $final_data = $product_template_response;
+
+        // Initialize final data structure to preserve expected format
+        $final_data = is_array($response) ? $response : array();
+
+        if (!isset($final_data['data']) || !is_array($final_data['data'])) {
+            $final_data['data'] = array();
+        }
+
         $final_data['productTemplateId'] = $product_template_id;
-
-        // Step 2: Get custom views for the template
-        error_log("[PW Canvas] Step 2: Fetching custom views for template_id: {$product_template_id}");
-        $views_response = $this->call_promowares_api("custom-views/template/{$product_template_id}", $token);
-        
-        if (is_wp_error($views_response)) {
-            // If views request fails, return original template data with empty views
-            error_log("[PW Canvas] Error fetching custom views: " . $views_response->get_error_message());
-            $final_data['views'] = array();
-            $final_data['views_error'] = $views_response->get_error_message();
-            return $final_data;
-        }
-
-        $view_data_array = isset($views_response['data']) ? $views_response['data'] : array();
-        error_log("[PW Canvas] Found " . count($view_data_array) . " custom views");
-        
-        if (empty($view_data_array)) {
-            error_log("[PW Canvas] No custom views found, returning template data with empty views");
-            $final_data['views'] = array();
-            return $final_data;
-        }
-
-        // Initialize views array with basic view data
         $final_data['views'] = array();
-        foreach ($view_data_array as $index => $view) {
-            $final_data['views'][] = array(
-                // 第一个 为 main_view  剩下的  为 `sub_view_${index}`
-                'id' => $index === 0 ? 'main_view' : 'sub_view_' . $index,
-                'view_id' => $view['id'],
-                'view_type' => $view['view_type'], // 视图类型：main/sub  
-                'view_flow' => $view['view_flow'],// 视图类型 Flat Flow  或 4-Grid Flow
-                'view_name'=> $view['view_name'],
-                'single_printing_method_only'=> $view['single_printing_method_only'],
+
+        // Attach custom template data unchanged
+        $final_data['data']['custom_template'] = $customization_data['custom_template'];
+
+        foreach ($customization_data as $key => $value) {
+            if ($key === 'custom_template' || $key === 'custom_views') {
+                continue;
+            }
+            $final_data['data'][$key] = $value;
+        }
+
+        $custom_views = isset($customization_data['custom_views']) && is_array($customization_data['custom_views'])
+            ? $customization_data['custom_views']
+            : array();
+
+        $main_custom_view = null;
+        $sub_custom_views = array();
+        $sub_view_index = 1;
+
+        $view_position = 0;
+
+        foreach ($custom_views as $view) {
+            $view_layers = isset($view['layers']) && is_array($view['layers']) ? $view['layers'] : array();
+
+            // Ensure layer_config exists and includes layers for downstream compatibility
+            $layer_config = array();
+            if (isset($view['layer_config']) && is_array($view['layer_config'])) {
+                $layer_config = $view['layer_config'];
+            }
+            $layer_config['layers'] = $view_layers;
+
+            $is_main_view = isset($view['view_type']) && $view['view_type'] === 'main';
+
+            if ($is_main_view && $main_custom_view !== null) {
+                // Only allow one main view; subsequent "main" views fall back to sub views
+                $is_main_view = false;
+            }
+
+            if (!$is_main_view && $view_position === 0 && $main_custom_view === null) {
+                // Fallback: treat the first view as main if type not provided
+                $is_main_view = true;
+            }
+
+            $view_payload = array(
+                'id' => $is_main_view ? 'main_view' : 'sub_view_' . $sub_view_index,
+                'view_id' => isset($view['id']) ? $view['id'] : null,
+                'view_type' => isset($view['view_type']) ? $view['view_type'] : null,
+                'view_flow' => isset($view['view_flow']) ? $view['view_flow'] : null,
+                'view_name' => isset($view['view_name']) ? $view['view_name'] : '',
+                'single_printing_method_only' => isset($view['single_printing_method_only']) ? $view['single_printing_method_only'] : null,
                 'printing_method_list_id' => isset($view['printing_method_list_id']) ? $view['printing_method_list_id'] : null,
-                'layers' => array(), // Initialize empty layers array
+                'layers' => $view_layers,
                 'data' => array(
-                    'layer_config' => array(
-                        'layers' => array()
-                    )
-                )
+                    'layer_config' => $layer_config,
+                ),
             );
 
-        }
-
-        // Step 3: Get layers for each view concurrently (simulate Promise.all behavior)
-        error_log("[PW Canvas] Step 3: Fetching layers for each view");
-        $layer_requests = array();
-        foreach ($view_data_array as $index => $view) {
-            $view_id = $view['id'];
-            error_log("[PW Canvas] Fetching layers for view_id: {$view_id}");
-            $layer_endpoint = "layers?custom_view_id={$view_id}";
-            $layer_response = $this->call_promowares_api($layer_endpoint, $token);
-            
-            if (!is_wp_error($layer_response) && isset($layer_response['data'])) {
-                $layer_data_array = $layer_response['data'];
-                error_log("[PW Canvas] Found " . count($layer_data_array) . " layers for view_id: {$view_id}");
-                
-                // Populate layers data for this view
-                if (!empty($layer_data_array)) {
-                    $final_data['views'][$index]['layers'] = array();
-                    $final_data['views'][$index]['data']['layer_config']['layers'] = array();
-                    
-                    foreach ($layer_data_array as $layer) {
-                        $layer_item = $layer;
-                        
-                        // Add to both layers array and data structure
-                        $final_data['views'][$index]['layers'][] = $layer_item;
-                        $final_data['views'][$index]['data']['layer_config']['layers'][] = $layer_item;
-                    }
-                }
-            } else {
-                if (is_wp_error($layer_response)) {
-                    error_log("[PW Canvas] Error fetching layers for view_id {$view_id}: " . $layer_response->get_error_message());
-                } else {
-                    error_log("[PW Canvas] No layer data found for view_id: {$view_id}");
+            // Preserve additional view meta data if available
+            $preserved_keys = array('preview_images', 'mockup_images', 'printing_methods', 'printing_method_list');
+            foreach ($preserved_keys as $key) {
+                if (isset($view[$key])) {
+                    $view_payload[$key] = $view[$key];
                 }
             }
+
+            $final_data['views'][] = $view_payload;
+
+            // Prepare data structure for custom_view
+            $view_for_custom_view = $view;
+            $view_for_custom_view['layer_config'] = $layer_config;
+
+            if ($is_main_view) {
+                $main_custom_view = $view_for_custom_view;
+            } else {
+                $sub_custom_views[] = $view_for_custom_view;
+                $sub_view_index++;
+            }
+
+            $view_position++;
         }
+
+        // Ensure a main view is always present in custom_view data
+        if ($main_custom_view === null && !empty($sub_custom_views)) {
+            $main_custom_view = array_shift($sub_custom_views);
+            $main_custom_view['view_type'] = isset($main_custom_view['view_type']) ? $main_custom_view['view_type'] : 'main';
+
+            // Update views array to reflect reassigned main view id if necessary
+            foreach ($final_data['views'] as &$view_reference) {
+                if (
+                    isset($view_reference['view_id'], $main_custom_view['id']) &&
+                    strval($view_reference['view_id']) === strval($main_custom_view['id'])
+                ) {
+                    $view_reference['id'] = 'main_view';
+                    $view_reference['view_type'] = isset($view_reference['view_type']) ? $view_reference['view_type'] : 'main';
+                }
+            }
+            unset($view_reference);
+        }
+
+        $final_data['data']['custom_view'] = array(
+            'main_custom_view' => $main_custom_view,
+            'sub_custom_view' => $sub_custom_views,
+        );
 
         error_log("[PW Canvas] get_enhanced_template_data completed successfully for product_id: {$product_id}");
         return $final_data;
