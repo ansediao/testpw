@@ -190,7 +190,28 @@ if ($product_id > 0) {
                   const canvasStore = window.useCanvasStore && window.useCanvasStore();
                   if (!canvasStore) return;
 
-                  // 获取当前 MOQ 值
+                  // 检查 Sample Order 复选框是否被勾选
+                  const sampleCheckbox = document.querySelector('.sample-check input#sample');
+                  const isSampleOrderChecked = !!(sampleCheckbox && sampleCheckbox.checked);
+                  
+                  let minQuantity = 1; // 默认最小值
+                  
+                  if (!isSampleOrderChecked) {
+                    // 如果 Sample Order 没有被勾选，使用 getCalculatedMoq 作为最小值
+                    try {
+                      const calculatedMoq = canvasStore.getCalculatedMoq;
+                      if (Number.isFinite(calculatedMoq) && calculatedMoq > 0) {
+                        minQuantity = calculatedMoq;
+                      }
+                    } catch (e) {
+                      console.warn('[Canvas] 获取 getCalculatedMoq 失败:', e);
+                    }
+                  }
+                  
+                  // 设置输入框的 min 属性
+                  quantityInput.setAttribute('min', minQuantity);
+
+                  // 获取当前 MOQ 值（保持原有逻辑）
                   const moqDesignText = document.getElementById('moqDesignLine')?.textContent || '0Pcs / Design';
                   const moqColorText = document.getElementById('moqColorLine')?.textContent || '0Pcs / Color';
                   
@@ -200,10 +221,13 @@ if ($product_id > 0) {
                   const maxMoq = Math.max(moqDesignValue, moqColorValue);
                   const currentQuantity = canvasStore.getQuantity;
                   
-                  // 如果当前数量小于最大 MOQ，则更新为最大 MOQ
-                  if (currentQuantity < maxMoq && maxMoq > 0) {
-                    canvasStore.setQuantity(maxMoq);
-                    console.log(`[Canvas] 数量已更新为最小 MOQ: ${maxMoq}`);
+                  // 确定最终的最小值（取计算出的最小值和原有MOQ逻辑的最大值）
+                  const finalMinQuantity = Math.max(minQuantity, maxMoq);
+                  
+                  // 如果当前数量小于最终最小值，则更新数量
+                  if (currentQuantity < finalMinQuantity && finalMinQuantity > 0) {
+                    canvasStore.setQuantity(finalMinQuantity);
+                    console.log(`[Canvas] 数量已更新为最小值: ${finalMinQuantity} (Sample Order: ${isSampleOrderChecked ? '已勾选' : '未勾选'})`);
                   }
 
                   // 同步到 input
