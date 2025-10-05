@@ -548,14 +548,36 @@ if ($product_id > 0) {
             // 绑定减按钮
             minusBtn.addEventListener('click', () => {
               if (!canvasStore.isQuantityControlDisabled) {
-                canvasStore.setQuantity(canvasStore.getQuantity - 1);
+                // 检查 Sample Order 是否勾选
+                const sampleCheckbox = document.querySelector('.sample-check input#sample');
+                const isSampleOrder = sampleCheckbox && sampleCheckbox.checked;
+                
+                if (isSampleOrder) {
+                  // Sample Order 勾选时，步进值为 1
+                  canvasStore.setQuantity(canvasStore.getQuantity - 1);
+                } else {
+                  // Sample Order 未勾选时，使用批数量作为步进值
+                  const batchQuantity = canvasStore.getBatchQuantity || 1;
+                  canvasStore.setQuantity(canvasStore.getQuantity - batchQuantity);
+                }
               }
             });
 
             // 绑定加按钮
             plusBtn.addEventListener('click', () => {
               if (!canvasStore.isQuantityControlDisabled) {
-                canvasStore.setQuantity(canvasStore.getQuantity + 1);
+                // 检查 Sample Order 是否勾选
+                const sampleCheckbox = document.querySelector('.sample-check input#sample');
+                const isSampleOrder = sampleCheckbox && sampleCheckbox.checked;
+                
+                if (isSampleOrder) {
+                  // Sample Order 勾选时，步进值为 1
+                  canvasStore.setQuantity(canvasStore.getQuantity + 1);
+                } else {
+                  // Sample Order 未勾选时，使用批数量作为步进值
+                  const batchQuantity = canvasStore.getBatchQuantity || 1;
+                  canvasStore.setQuantity(canvasStore.getQuantity + batchQuantity);
+                }
               }
             });
 

@@ -364,6 +364,38 @@ export const useCanvasStore = defineStore('canvas', {
             // 3. 返回两个值中的最大值，如果都为0则返回1作为默认值
             const finalMoq = Math.max(maxColorMoq, maxPrintMethodMoq);
             return finalMoq > 0 ? finalMoq : 1;
+        },
+        
+        // ===== 新增：计算批数量 =====
+        // 根据产品数据中的 sell_in_batch 设置返回批数量
+        getBatchQuantity: (state) => {
+            // 检查 productData 是否存在
+            if (!state.productData) {
+                return 1;
+            }
+            
+            // 检查 productData.product 是否存在
+            const product = state.productData.product.data;
+            if (!product) {
+                return 1;
+            }
+            
+            // 检查 sell_in_batch 是否为 true
+            if (product.sell_in_batch === true) {
+                // 如果按批次销售，返回 batch_quantity
+                if (product.sell_in_batch_info && product.sell_in_batch_info.batch_quantity) {
+                    const batchQty = Number(product.sell_in_batch_info.batch_quantity);
+                    return Number.isFinite(batchQty) && batchQty > 0 ? batchQty : 1;
+                }
+                // 兼容旧的数据结构，直接从 product 中获取 batch_quantity
+                if (product.batch_quantity) {
+                    const batchQty = Number(product.batch_quantity);
+                    return Number.isFinite(batchQty) && batchQty > 0 ? batchQty : 1;
+                }
+            }
+            
+            // 默认返回 1
+            return 1;
         }
     },
     // 5. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
