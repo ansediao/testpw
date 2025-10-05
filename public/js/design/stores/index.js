@@ -301,6 +301,69 @@ export const useCanvasStore = defineStore('canvas', {
             const day = String(arrivalDate.getDate()).padStart(2, '0');
             
             return `${year}-${month}-${day}`;
+        },
+        
+        // ===== 新增：计算起订量（MOQ） =====
+        // 计算最终的起订量，取颜色MOQ和印刷方式MOQ的最大值
+        getCalculatedMoq: (state) => {
+            let maxColorMoq = 0;
+            let maxPrintMethodMoq = 0;
+            
+            // 1. 从 selectedColorsByView 中获取颜色相关的 MOQ
+            const colorsMap = state.selectedColorsByView || {};
+            for (const viewId in colorsMap) {
+                if (!Object.prototype.hasOwnProperty.call(colorsMap, viewId)) continue;
+                const colorData = colorsMap[viewId];
+                if (!colorData || !colorData.moq_setting) continue;
+                
+                // 处理嵌套的 _custom.value 结构
+                let moqSetting = colorData.moq_setting;
+                if (moqSetting._custom && moqSetting._custom.value) {
+                    moqSetting = moqSetting._custom.value;
+                }
+                
+                // 检查 enable 状态（兼容多种布尔表示）
+                const moqEnabled = moqSetting.enable === true || moqSetting.enable === 1 || 
+                                 moqSetting.enable === '1' || moqSetting.enable === 'true';
+                if (!moqEnabled) continue;
+                
+                const qty = Number(moqSetting.minimum_order_quantity);
+                if (Number.isFinite(qty) && qty > maxColorMoq) {
+                    maxColorMoq = qty;
+                }
+            }
+            
+            // 2. 从 usedPrintMethodsByView 中获取印刷方式相关的 MOQ
+            const printMethodStore = window.usePrintMethodStore && window.usePrintMethodStore();
+            if (printMethodStore && printMethodStore.usedPrintMethodsByView) {
+                const usedPrintMethodsByView = printMethodStore.usedPrintMethodsByView || {};
+                
+                for (const viewId in usedPrintMethodsByView) {
+                    if (!Object.prototype.hasOwnProperty.call(usedPrintMethodsByView, viewId)) continue;
+                    const methodsMap = usedPrintMethodsByView[viewId] || {};
+                    
+                    for (const methodId in methodsMap) {
+                        if (!Object.prototype.hasOwnProperty.call(methodsMap, methodId)) continue;
+                        const method = methodsMap[methodId];
+                        if (!method || !method.apiData) continue;
+                        
+                        const api = method.apiData;
+                        // 检查 moq_enabled 状态（兼容多种布尔表示）
+                        const moqEnabled = api.moq_enabled === true || api.moq_enabled === 1 || 
+                                         api.moq_enabled === '1' || api.moq_enabled === 'true';
+                        if (!moqEnabled) continue;
+                        
+                        const qty = Number(api.moq_quantity);
+                        if (Number.isFinite(qty) && qty > maxPrintMethodMoq) {
+                            maxPrintMethodMoq = qty;
+                        }
+                    }
+                }
+            }
+            
+            // 3. 返回两个值中的最大值，如果都为0则返回1作为默认值
+            const finalMoq = Math.max(maxColorMoq, maxPrintMethodMoq);
+            return finalMoq > 0 ? finalMoq : 1;
         }
     },
     // 5. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
