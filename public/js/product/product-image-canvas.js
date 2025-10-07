@@ -484,7 +484,12 @@
             canvasContainer = null;
         }
 
+        // 恢复原始图片显示
+        showOriginalImage();
+
         isCanvasMode = false;
+        
+        console.log('Canvas已销毁，原始图片已恢复显示');
     }
 
     // 公开API

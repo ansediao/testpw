@@ -9,7 +9,7 @@ window.CustomColorsButton = {
                 <button
                     class="pw-custom-color-btn pw-gradient-btn"
                     :class="{ 'selected': selectedButton === 'gradient' }"
-                    @click="openGradientModal"
+                    @click="handleGradientClick"
                     :disabled="!isButtonClickable"
                 >
                     <span class="btn-text">Gradient</span>
@@ -25,7 +25,20 @@ window.CustomColorsButton = {
                 </button>
             </div>
             
-
+            <!-- 状态显示区域 -->
+            <div class="pw-custom-colors-status" v-if="showCustomColorStatus || showGradientStatus">
+                <!-- Custom Colors 状态显示 -->
+                <div v-if="showCustomColorStatus" class="custom-color-status">
+                    已选择: {{ appliedCustomColor }} <br>
+                    <a href="#" @click.prevent="resetCustomColor" class="reset-link">重新选择</a>
+                </div>
+                
+                <!-- Gradient 状态显示 -->
+                <div v-if="showGradientStatus" class="gradient-status">
+                    <span class="gradient-text">渐变色</span>
+                    <button @click="resetGradient" class="gradient-close-btn" title="移除渐变色">×</button>
+                </div>
+            </div>
             
             <!-- 自定义颜色弹窗 (保留原有) -->
             <div id="pw-custom-color-modal" class="modal micromodal-slide" aria-hidden="true">
@@ -51,7 +64,12 @@ window.CustomColorsButton = {
         const canvasStore = (typeof Pinia !== 'undefined' && Pinia.useCanvasStore) ? Pinia.useCanvasStore() : null;
         const productStore = (typeof window.useProductStore !== 'undefined') ? window.useProductStore() : null;
         
-
+        // 新增状态管理
+        const showCustomColorStatus = Vue.ref(false);
+        const showGradientStatus = Vue.ref(false);
+        const appliedCustomColor = Vue.ref('');
+        const gradientTextObject = Vue.ref(null); // 存储画布上的渐变文字对象
+        const gradientTextOverlay = Vue.ref(null); // 存储原始图片上的文字覆盖层
         
         // 计算按钮是否可点击（参考ColorVariants组件逻辑）
         const isButtonClickable = Vue.computed(() => {
@@ -68,15 +86,36 @@ window.CustomColorsButton = {
             MicroModal.close('pw-custom-color-modal');
         };
         
-        // 打开渐变设置弹窗 - 使用公共组件
-        const openGradientModal = () => {
+        // 处理Gradient按钮点击 - 销毁Canvas，恢复原始图片，在原始图片上添加文字
+        const handleGradientClick = () => {
+            console.log('Gradient按钮被点击，开始处理...');
+            
             selectedButton.value = 'gradient';
-            // 使用公共组件的全局方法
-            if (typeof window.showGradientModal === 'function') {
-                window.showGradientModal();
-            } else {
-                console.error('公共渐变色组件未加载');
+            
+            // 首先销毁Canvas并恢复原始图片（类似resetCustomColor的逻辑）
+            if (window.ProductImageCanvas) {
+                try {
+                    // 调用destroy方法销毁Canvas（已包含showOriginalImage调用）
+                    if (typeof window.ProductImageCanvas.destroy === 'function') {
+                        window.ProductImageCanvas.destroy();
+                        console.log('Canvas实例已销毁，原始图片已恢复');
+                    }
+                } catch (error) {
+                    console.error('销毁Canvas时出错:', error);
+                }
             }
+            
+            // 确保原始图片容器重新显示
+            ensureOriginalImageVisible();
+            
+            // 在原始图片上添加文字覆盖层
+            addTextOverlayToOriginalImage();
+            
+            // 更新状态
+            showGradientStatus.value = true;
+            showCustomColorStatus.value = false; // 隐藏Custom Colors状态
+            
+            console.log('Gradient处理完成');
         };
         
         // 处理颜色输入变化
@@ -84,11 +123,336 @@ window.CustomColorsButton = {
             selectedColor.value = event.target.value;
         };
         
+        // 添加文字到画布
+        const addTextToCanvas = () => {
+            try {
+                // 获取产品画布实例
+                let canvas = null;
+                
+                // 尝试获取产品页面的画布实例
+                if (window.ProductImageCanvas && window.ProductImageCanvas.getCurrentCanvas) {
+                    canvas = window.ProductImageCanvas.getCurrentCanvas();
+                } else if (window.CanvasManager) {
+                    // 备用方案：通过CanvasManager获取
+                    canvas = window.CanvasManager.getCanvas('product-view') || 
+                            window.CanvasManager.getCanvas('baseCanvas-view1');
+                }
+                
+                if (canvas) {
+                    // 创建文字对象
+                    const text = new fabric.Text('123456', {
+                        left: 100,
+                        top: 100,
+                        fontFamily: 'Arial',
+                        fontSize: 24,
+                        fill: '#000000',
+                        id: 'gradient-text-' + Date.now(),
+                        selectable: false,
+                        evented: false
+                    });
+                    
+                    // 添加到画布
+                    canvas.add(text);
+                    canvas.renderAll();
+                    
+                    // 保存文字对象引用
+                    gradientTextObject.value = text;
+                    
+                    console.log('文字已添加到画布');
+                } else {
+                    console.warn('无法获取画布实例');
+                }
+            } catch (error) {
+                console.error('添加文字到画布失败:', error);
+            }
+        };
+        
+        // 从画布移除文字
+        const removeTextFromCanvas = () => {
+            try {
+                if (gradientTextObject.value) {
+                    // 获取画布实例
+                    let canvas = null;
+                    
+                    if (window.ProductImageCanvas && window.ProductImageCanvas.getCurrentCanvas) {
+                        canvas = window.ProductImageCanvas.getCurrentCanvas();
+                    } else if (window.CanvasManager) {
+                        canvas = window.CanvasManager.getCanvas('product-view') || 
+                                window.CanvasManager.getCanvas('baseCanvas-view1');
+                    }
+                    
+                    if (canvas) {
+                        canvas.remove(gradientTextObject.value);
+                        canvas.renderAll();
+                        gradientTextObject.value = null;
+                        console.log('文字已从画布移除');
+                    }
+                }
+            } catch (error) {
+                console.error('从画布移除文字失败:', error);
+            }
+        };
+        
+        // 重置Custom Colors状态
+        const resetCustomColor = () => {
+            console.log('正在还原到原始产品图片...');
+            
+            // 销毁Canvas实例并还原到原始图片
+            if (window.ProductImageCanvas) {
+                try {
+                    // 调用destroy方法销毁Canvas（已包含showOriginalImage调用）
+                    if (typeof window.ProductImageCanvas.destroy === 'function') {
+                        window.ProductImageCanvas.destroy();
+                        console.log('Canvas实例已销毁');
+                    }
+                    
+                } catch (error) {
+                    console.error('销毁Canvas时出错:', error);
+                }
+            }
+            
+            // 额外确保原始图片容器重新显示（使用与ProductImageCanvas相同的选择器）
+            const selectors = [
+                '.woocommerce-product-gallery__wrapper',
+                '.woocommerce-product-gallery',
+                '.product-images',
+                '.single-product-main-image',
+                '.product-gallery',
+                '.wp-post-image',
+                '.attachment-woocommerce_single',
+                '.product-image-main',
+                '.pw-product-image-container',
+                '.product-image-container',
+                '[class*="product-image"]',
+                '[class*="main-image"]'
+            ];
+            
+            let originalImageContainer = null;
+            for (const selector of selectors) {
+                const container = document.querySelector(selector);
+                if (container) {
+                    originalImageContainer = container;
+                    break;
+                }
+            }
+            
+            // 如果没找到标准容器，尝试查找包含产品图片的父容器
+            if (!originalImageContainer) {
+                const productImage = document.querySelector('img[class*="wp-post-image"], img[class*="attachment-woocommerce"]');
+                if (productImage) {
+                    originalImageContainer = productImage.closest('div, figure, section');
+                }
+            }
+            
+            if (originalImageContainer) {
+                originalImageContainer.style.display = '';
+                console.log('原始图片容器已重新显示:', originalImageContainer.className);
+            } else {
+                console.warn('未找到原始图片容器，可能需要刷新页面');
+            }
+            
+            // 确保移除Canvas容器（如果存在）
+            const canvasContainer = document.querySelector('.pw-product-canvas-container');
+            if (canvasContainer) {
+                canvasContainer.remove();
+                console.log('Canvas容器已移除');
+            }
+            
+            // 清除产品状态管理中的自定义颜色状态
+            if (productStore) {
+                productStore.selectedVariant = null;
+                productStore.customColor = null;
+                productStore.gradientApplied = false;
+                console.log('产品状态已清除');
+            }
+            
+            // 重置组件内部状态
+            showCustomColorStatus.value = false;
+            showGradientStatus.value = false;
+            appliedCustomColor.value = '';
+            selectedButton.value = null;
+            
+            // 发送重置事件
+            document.dispatchEvent(new CustomEvent('pw-custom-color-reset', {
+                detail: { 
+                    type: 'custom-color',
+                    reset: true,
+                    action: 'restore-original'
+                }
+            }));
+            
+            // 触发原始图片恢复事件
+            document.dispatchEvent(new CustomEvent('pw-original-image-restored', {
+                detail: { 
+                    source: 'custom-color-reset',
+                    timestamp: Date.now()
+                }
+            }));
+            
+            console.log('已成功还原到原始产品图片');
+        };
+        
+        // 确保原始图片容器可见
+        const ensureOriginalImageVisible = () => {
+            const selectors = [
+                '.woocommerce-product-gallery__wrapper',
+                '.woocommerce-product-gallery',
+                '.product-images',
+                '.single-product-main-image',
+                '.product-gallery',
+                '.product-image-main',
+                '.product-image-wrapper',
+                '.product-main-image',
+                '.woocommerce-product-gallery__image'
+            ];
+            
+            let originalImageContainer = null;
+            
+            for (const selector of selectors) {
+                originalImageContainer = document.querySelector(selector);
+                if (originalImageContainer) {
+                    console.log(`找到原始图片容器: ${selector}`);
+                    break;
+                }
+            }
+            
+            // 如果没找到，尝试通过图片元素找到父容器
+            if (!originalImageContainer) {
+                const productImage = document.querySelector('img[class*="wp-post-image"], img[class*="attachment-woocommerce"]');
+                if (productImage) {
+                    originalImageContainer = productImage.closest('div, figure, section');
+                }
+            }
+            
+            if (originalImageContainer) {
+                originalImageContainer.style.display = '';
+                console.log('原始图片容器已确保可见:', originalImageContainer.className);
+            } else {
+                console.warn('未找到原始图片容器');
+            }
+        };
+        
+        // 在原始图片上添加文字覆盖层
+        const addTextOverlayToOriginalImage = () => {
+            try {
+                // 首先移除已存在的文字覆盖层
+                removeTextOverlayFromOriginalImage();
+                
+                // 找到原始图片容器
+                const selectors = [
+                    '.woocommerce-product-gallery__wrapper',
+                    '.woocommerce-product-gallery',
+                    '.product-images',
+                    '.single-product-main-image',
+                    '.product-gallery',
+                    '.product-image-main',
+                    '.product-image-wrapper',
+                    '.product-main-image',
+                    '.woocommerce-product-gallery__image'
+                ];
+                
+                let imageContainer = null;
+                
+                for (const selector of selectors) {
+                    imageContainer = document.querySelector(selector);
+                    if (imageContainer) {
+                        console.log(`找到图片容器用于添加文字覆盖层: ${selector}`);
+                        break;
+                    }
+                }
+                
+                if (!imageContainer) {
+                    const productImage = document.querySelector('img[class*="wp-post-image"], img[class*="attachment-woocommerce"]');
+                    if (productImage) {
+                        imageContainer = productImage.closest('div, figure, section');
+                    }
+                }
+                
+                if (imageContainer) {
+                    // 确保容器有相对定位
+                    const computedStyle = window.getComputedStyle(imageContainer);
+                    if (computedStyle.position === 'static') {
+                        imageContainer.style.position = 'relative';
+                    }
+                    
+                    // 创建遮罩覆盖层
+                    const textOverlay = document.createElement('div');
+                    textOverlay.className = 'pw-gradient-text-overlay';
+                    textOverlay.textContent = '在定制页面完成设计';
+                    textOverlay.style.cssText = `
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(128, 128, 128, 0.7);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 24px;
+                        font-weight: bold;
+                        color: white;
+                        border: 2px solid white;
+                        box-sizing: border-box;
+                        text-align: center;
+                        z-index: 1000;
+                        pointer-events: none;
+                        user-select: none;
+                    `;
+                    
+                    // 添加到容器
+                    imageContainer.appendChild(textOverlay);
+                    
+                    // 保存引用
+                    gradientTextOverlay.value = textOverlay;
+                    
+                    console.log('文字覆盖层已添加到原始图片上');
+                } else {
+                    console.error('未找到合适的图片容器来添加文字覆盖层');
+                }
+            } catch (error) {
+                console.error('添加文字覆盖层失败:', error);
+            }
+        };
+        
+        // 从原始图片移除文字覆盖层
+        const removeTextOverlayFromOriginalImage = () => {
+            try {
+                if (gradientTextOverlay.value) {
+                    gradientTextOverlay.value.remove();
+                    gradientTextOverlay.value = null;
+                    console.log('文字覆盖层已从原始图片移除');
+                }
+                
+                // 额外清理：移除所有可能存在的文字覆盖层
+                const existingOverlays = document.querySelectorAll('.pw-gradient-text-overlay');
+                existingOverlays.forEach(overlay => {
+                    overlay.remove();
+                    console.log('清理了残留的文字覆盖层');
+                });
+            } catch (error) {
+                console.error('移除文字覆盖层失败:', error);
+            }
+        };
+        
+        // 重置Gradient状态
+        const resetGradient = () => {
+            showGradientStatus.value = false;
+            selectedButton.value = null;
+            removeTextFromCanvas();
+            removeTextOverlayFromOriginalImage(); // 添加移除文字覆盖层
+            console.log('Gradient状态已重置');
+        };
+        
 
         
         // 确认颜色选择
         const confirmColorSelection = () => {
             selectCustomColor('custom', selectedColor.value);
+            // 显示Custom Colors状态
+            appliedCustomColor.value = selectedColor.value;
+            showCustomColorStatus.value = true;
+            showGradientStatus.value = false; // 隐藏渐变状态
             closeColorModal();
         };
         
@@ -160,6 +524,11 @@ window.CustomColorsButton = {
             document.addEventListener('pw-color-variant-selected', (event) => {
                 // 如果其他颜色被选中，清除当前选中状态
                 selectedButton.value = null;
+                showCustomColorStatus.value = false;
+                showGradientStatus.value = false;
+                
+                // 移除画布上的文字
+                removeTextFromCanvas();
                 
                 // 重置渐变颜色应用状态，重新显示复选框和按钮
                 if (productStore && productStore.setGradientColorApplied) {
@@ -176,9 +545,16 @@ window.CustomColorsButton = {
             selectCustomColor,
             openColorModal,
             closeColorModal,
-            openGradientModal,
+            handleGradientClick,
             onColorInput,
-            confirmColorSelection
+            confirmColorSelection,
+            showCustomColorStatus,
+            showGradientStatus,
+            appliedCustomColor,
+            resetCustomColor,
+            resetGradient,
+            addTextToCanvas,
+            removeTextFromCanvas
         };
     }
 };
