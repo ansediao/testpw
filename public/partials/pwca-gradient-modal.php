@@ -186,8 +186,41 @@ document.addEventListener('DOMContentLoaded', function() {
             gradientColorModal.style.display = 'flex';
             // 初始化颜色选择事件（只执行一次）
             handleColorSelection();
-            // 初始化默认选中状态
-            initializeColorSelection();
+            
+            // 检查是否有上次选择的渐变色，如果有则恢复
+            if (typeof window.lastGradientColors !== 'undefined' && window.lastGradientColors) {
+                // 恢复颜色1
+                if (window.lastGradientColors.color1) {
+                    const color1Option = document.querySelector(`.gradient-colors-container > div:first-child .color-option[data-color="${window.lastGradientColors.color1}"]`);
+                    if (color1Option) {
+                        // 清除其他选中状态
+                        const color1Options = document.querySelectorAll('.gradient-colors-container > div:first-child .color-option');
+                        color1Options.forEach(opt => opt.classList.remove('selected'));
+                        color1Option.classList.add('selected');
+                        gradientColor1.value = window.lastGradientColors.color1;
+                    }
+                }
+                
+                // 恢复颜色2
+                if (window.lastGradientColors.color2) {
+                    const color2Option = document.querySelector(`.gradient-colors-container > div:last-child .color-option[data-color="${window.lastGradientColors.color2}"]`);
+                    if (color2Option) {
+                        // 清除其他选中状态
+                        const color2Options = document.querySelectorAll('.gradient-colors-container > div:last-child .color-option');
+                        color2Options.forEach(opt => opt.classList.remove('selected'));
+                        color2Option.classList.add('selected');
+                        gradientColor2.value = window.lastGradientColors.color2;
+                    }
+                }
+                
+                // 恢复方向
+                if (window.lastGradientColors.direction) {
+                    gradientDirection.value = window.lastGradientColors.direction;
+                }
+            } else {
+                // 如果没有上次选择的颜色，使用默认选中状态
+                initializeColorSelection();
+            }
         };
         
         // 隐藏弹窗的公共方法
@@ -225,6 +258,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const color1 = gradientColor1.value;
             const color2 = gradientColor2.value;
             const direction = gradientDirection.value;
+            
+            // 保存当前选择的渐变色到全局变量，供下次打开时使用
+            if (typeof window.lastGradientColors === 'undefined') {
+                window.lastGradientColors = {};
+            }
+            window.lastGradientColors = {
+                color1: color1,
+                color2: color2,
+                direction: direction
+            };
             
             // 更新产品页面的Pinia状态
             if (typeof window.useProductStore !== 'undefined') {
@@ -265,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const baseCanvasId = `baseCanvas-${activeViewId}`;
             
             // 优先从 CanvasManager 获取 baseCanvas 实例
-            const baseCanvas = window.CanvasManager.getCanvas(baseCanvasId) || 
+            const baseCanvas = window.CanvasManager.getCanvas(baseCanvasId) ||
                               (document.getElementById(baseCanvasId) && document.getElementById(baseCanvasId).__fabricCanvas);
                             
                             if (!baseCanvas) {
@@ -367,7 +410,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const productCanvas = window.CanvasManager.getCanvas('product-view');
                     if (productCanvas) {
                         // 查找Base图层对象
-                        const baseLayerObject = productCanvas.getObjects().find(obj => 
+                        const baseLayerObject = productCanvas.getObjects().find(obj =>
                             obj.name === 'Base Layer' || obj.type === 'image'
                         );
                         
@@ -465,6 +508,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             applyGradientToBaseLayer();
+            
+            // 更新颜色状态显示
+            const colorStatusDisplay = document.getElementById('colorStatusDisplay');
+            if (colorStatusDisplay) {
+                colorStatusDisplay.textContent = `渐变色: ${color1}`;
+            }
             
             // 更新颜色样本中的选中状态
             const colorSwatches = document.querySelectorAll('.color-swatch');

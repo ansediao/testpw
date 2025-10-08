@@ -957,6 +957,10 @@ document.addEventListener('DOMContentLoaded', function() {
             <button class="btn btn-custom">Gradient</button>
             <button class="btn btn-custom">Custom Colors</button>
         </div>
+        
+        <div class="color-status-display" id="colorStatusDisplay" style="margin-top: 10px; font-size: 14px; color: #666; min-height: 20px;">
+            <!-- 颜色状态将在这里显示 -->
+        </div>
 
         <?php include_once plugin_dir_path(__FILE__) . 'pwca-gradient-modal.php'; ?>
 
@@ -970,12 +974,22 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                // 获取颜色状态显示元素
+                const colorStatusDisplay = document.getElementById('colorStatusDisplay');
+                
                 // 获取第二个按钮（自定义颜色）
                 const customColorBtn = document.querySelector('.action-buttons .btn:nth-child(2)');
                 const customColorModal = document.getElementById('custom-color-modal');
                 const closeCustomColorModal = document.getElementById('close-custom-color-modal');
                 const applyCustomColorBtn = document.getElementById('applyCustomColor');
                 const customColorPicker = document.getElementById('customColorPicker');
+
+                // 保存上次选择的渐变色
+                let lastGradientColors = {
+                    color1: '#ff0000',
+                    color2: '#ffff00',
+                    direction: 'to right'
+                };
 
                 if (customColorBtn && customColorModal && closeCustomColorModal && applyCustomColorBtn && customColorPicker) {
                     customColorBtn.addEventListener('click', function(e) {
@@ -1064,10 +1078,325 @@ document.addEventListener('DOMContentLoaded', function() {
                             }, 5000);
                         }
                         
+                        // 更新颜色状态显示
+                        if (colorStatusDisplay) {
+                            colorStatusDisplay.textContent = `纯色: ${color}`;
+                        }
+                        
                         // 更新颜色样本中的选中状态
                         const colorSwatches = document.querySelectorAll('.color-swatch');
                         colorSwatches.forEach(s => s.classList.remove('selected'));
                         customColorModal.style.display = 'none';
+                    });
+                }
+                
+                // 重写渐变色模态框的显示函数，以恢复上次选择的颜色
+                if (typeof window.showGradientModal === 'function') {
+                    const originalShowGradientModal = window.showGradientModal;
+                    window.showGradientModal = function() {
+                        // 调用原始函数
+                        originalShowGradientModal();
+                        
+                        // 恢复上次选择的颜色
+                        setTimeout(() => {
+                            // 恢复颜色1
+                            const color1Option = document.querySelector(`.gradient-colors-container > div:first-child .color-option[data-color="${lastGradientColors.color1}"]`);
+                            if (color1Option) {
+                                // 清除其他选中状态
+                                const color1Options = document.querySelectorAll('.gradient-colors-container > div:first-child .color-option');
+                                color1Options.forEach(opt => opt.classList.remove('selected'));
+                                color1Option.classList.add('selected');
+                                document.getElementById('gradientColor1').value = lastGradientColors.color1;
+                            }
+                            
+                            // 恢复颜色2
+                            const color2Option = document.querySelector(`.gradient-colors-container > div:last-child .color-option[data-color="${lastGradientColors.color2}"]`);
+                            if (color2Option) {
+                                // 清除其他选中状态
+                                const color2Options = document.querySelectorAll('.gradient-colors-container > div:last-child .color-option');
+                                color2Options.forEach(opt => opt.classList.remove('selected'));
+                                color2Option.classList.add('selected');
+                                document.getElementById('gradientColor2').value = lastGradientColors.color2;
+                            }
+                            
+                            // 恢复方向
+                            const gradientDirection = document.getElementById('gradientDirection');
+                            if (gradientDirection) {
+                                gradientDirection.value = lastGradientColors.direction;
+                            }
+                        }, 100);
+                    };
+                }
+                
+                // 重写应用渐变色按钮的事件，保存选择的颜色并更新状态显示
+                const applyGradientColorBtn = document.getElementById('applyGradientColor');
+                if (applyGradientColorBtn) {
+                    // 移除原有的事件监听器
+                    const newApplyGradientBtn = applyGradientColorBtn.cloneNode(true);
+                    applyGradientColorBtn.parentNode.replaceChild(newApplyGradientBtn, applyGradientColorBtn);
+                    
+                    // 添加新的事件监听器
+                    newApplyGradientBtn.addEventListener('click', function() {
+                        const color1 = document.getElementById('gradientColor1').value;
+                        const color2 = document.getElementById('gradientColor2').value;
+                        const direction = document.getElementById('gradientDirection').value;
+                        
+                        // 保存当前选择的渐变色
+                        lastGradientColors = {
+                            color1: color1,
+                            color2: color2,
+                            direction: direction
+                        };
+                        
+                        // 更新产品页面的Pinia状态
+                        if (typeof window.useProductStore !== 'undefined') {
+                            try {
+                                const productStore = window.useProductStore();
+                                if (productStore && typeof productStore.setGradientColorApplied === 'function') {
+                                    productStore.setGradientColorApplied(true);
+                                    console.log('已更新产品页面渐变色应用状态为 true');
+                                }
+                            } catch (error) {
+                                console.warn('无法更新产品页面渐变色状态:', error);
+                            }
+                        }
+                        
+                        // 如果在产品页面，先切换到Canvas模式显示画布
+                        if (typeof window.ProductImageCanvas !== 'undefined' && window.ProductImageCanvas.switchToCanvas) {
+                            // 使用第一个颜色作为背景色来初始化画布
+                            window.ProductImageCanvas.switchToCanvas(color1);
+                            console.log('已切换到Canvas模式，背景色:', color1);
+                        }
+                        
+                        // 应用渐变色到Base图层（使用剪切方案）
+                        function applyGradientToBaseLayer() {
+                            // 检查是否在设计页面环境（有useCanvasStore）
+                            if (window.useCanvasStore) {
+                                const store = window.useCanvasStore();
+                                const activeViewId = store.activeViewId;
+                                
+                                if (activeViewId && store.views) {
+                                    const currentView = store.views.find(v => v.id === activeViewId);
+                                    if (currentView && currentView.base_layer) {
+                                        // 先清除所有旧的渐变色对象
+                                        if (window.clearAllGradientRects) {
+                                            window.clearAllGradientRects();
+                                        }
+                                        
+                                        // 获取当前激活视图的baseCanvas（渐变色应该应用在baseCanvas上）
+                        const baseCanvasId = `baseCanvas-${activeViewId}`;
+                        
+                        // 优先从 CanvasManager 获取 baseCanvas 实例
+                        const baseCanvas = window.CanvasManager.getCanvas(baseCanvasId) ||
+                                          (document.getElementById(baseCanvasId) && document.getElementById(baseCanvasId).__fabricCanvas);
+                                        
+                                        if (!baseCanvas) {
+                                            console.warn('无法获取baseCanvas，渐变色应该应用在baseCanvas上');
+                                            return;
+                                        }
+                                        
+                                        const baseLayerObject = currentView.base_layer;
+                                        
+                                        // 获取Base图层的图像元素
+                                        const imageElement = baseLayerObject.getElement();
+                                        if (!imageElement) {
+                                            console.warn('无法获取Base图层的图像元素');
+                                            return;
+                                        }
+                                        
+                                        // 创建渐变对象，使用像素单位
+                                        const imageWidth = imageElement.width || imageElement.naturalWidth;
+                                        const imageHeight = imageElement.height || imageElement.naturalHeight;
+                                        
+                                        let gradientCoords;
+                                        
+                                        // 根据方向设置渐变坐标
+                                        switch (direction) {
+                                            case 'to right':
+                                                gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: 0 };
+                                                break;
+                                            case 'to bottom':
+                                                gradientCoords = { x1: 0, y1: 0, x2: 0, y2: imageHeight };
+                                                break;
+                                            case 'to bottom right':
+                                                gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: imageHeight };
+                                                break;
+                                            case 'to bottom left':
+                                                gradientCoords = { x1: imageWidth, y1: 0, x2: 0, y2: imageHeight };
+                                                break;
+                                            default:
+                                                // 默认从左到右
+                                                gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: 0 };
+                                        }
+                                        
+                                        const gradient = new fabric.Gradient({
+                                            type: 'linear',
+                                            gradientUnits: 'pixels',
+                                            coords: gradientCoords,
+                                            colorStops: [
+                                                { offset: 0, color: color1 },
+                                                { offset: 1, color: color2 }
+                                            ]
+                                        });
+                                        
+                                        // 创建一个矩形作为渐变覆盖层，使用裁剪功能
+                                        const overlayRect = new fabric.Rect({
+                                            left: baseLayerObject.left,
+                                            top: baseLayerObject.top,
+                                            width: imageWidth,
+                                            height: imageHeight,
+                                            originX: baseLayerObject.originX,
+                                            originY: baseLayerObject.originY,
+                                            scaleX: baseLayerObject.scaleX,
+                                            scaleY: baseLayerObject.scaleY,
+                                            angle: baseLayerObject.angle,
+                                            fill: gradient,
+                                            selectable: false,
+                                            evented: false,
+                                            opacity: baseLayerObject.opacity,
+                                            globalCompositeOperation: 'source-in', // 关键：只在Base图层非透明区域显示
+                                            name: 'Base Gradient Overlay',
+                                            id: 'gradient-rect-' + Date.now()
+                                        });
+                                        
+                                        // 添加新的渐变覆盖层
+                                        baseCanvas.add(overlayRect);
+                                        
+                                        // 确保Base图层在渐变覆盖层之前（作为裁剪模板）
+                                        baseCanvas.sendToBack(baseLayerObject);
+                                        baseCanvas.bringForward(overlayRect);
+                                        
+                                        // 如果有 Overlay Layer，确保它在最上层
+                                        const overlayLayerObject = baseCanvas.getObjects().find(obj => obj.name === 'Overlay Layer');
+                                        if (overlayLayerObject) {
+                                            baseCanvas.bringToFront(overlayLayerObject);
+                                        }
+                                        
+                                        baseCanvas.renderAll();
+                                        
+                                        console.log(`已应用渐变色: ${color1} 到 ${color2}, 方向: ${direction}`);
+                                        
+                                    } else {
+                                        console.warn('当前视图没有 base_layer 或视图不存在');
+                                    }
+                                } else {
+                                    console.warn('没有激活的视图或 store 不可用');
+                                }
+                            } else if (typeof window.ProductImageCanvas !== 'undefined' && window.CanvasManager) {
+                                // 产品页面环境：使用ProductImageCanvas的画布
+                                console.log('在产品页面环境中应用渐变色');
+                                
+                                const productCanvas = window.CanvasManager.getCanvas('product-view');
+                                if (productCanvas) {
+                                    // 查找Base图层对象
+                                    const baseLayerObject = productCanvas.getObjects().find(obj =>
+                                        obj.name === 'Base Layer' || obj.type === 'image'
+                                    );
+                                    
+                                    if (baseLayerObject) {
+                                        // 先清除旧的渐变覆盖层
+                                        const existingOverlay = productCanvas.getObjects().find(obj => obj.name === 'Base Gradient Overlay');
+                                        if (existingOverlay) {
+                                            productCanvas.remove(existingOverlay);
+                                        }
+                                        
+                                        // 获取Base图层的图像元素
+                                        const imageElement = baseLayerObject.getElement();
+                                        if (imageElement) {
+                                            const imageWidth = imageElement.width || imageElement.naturalWidth;
+                                            const imageHeight = imageElement.height || imageElement.naturalHeight;
+                                            
+                                            let gradientCoords;
+                                            
+                                            // 根据方向设置渐变坐标
+                                            switch (direction) {
+                                                case 'to right':
+                                                    gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: 0 };
+                                                    break;
+                                                case 'to bottom':
+                                                    gradientCoords = { x1: 0, y1: 0, x2: 0, y2: imageHeight };
+                                                    break;
+                                                case 'to bottom right':
+                                                    gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: imageHeight };
+                                                    break;
+                                                case 'to bottom left':
+                                                    gradientCoords = { x1: imageWidth, y1: 0, x2: 0, y2: imageHeight };
+                                                    break;
+                                                default:
+                                                    gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: 0 };
+                                            }
+                                            
+                                            const gradient = new fabric.Gradient({
+                                                type: 'linear',
+                                                gradientUnits: 'pixels',
+                                                coords: gradientCoords,
+                                                colorStops: [
+                                                    { offset: 0, color: color1 },
+                                                    { offset: 1, color: color2 }
+                                                ]
+                                            });
+                                            
+                                            // 创建渐变覆盖层
+                                            const overlayRect = new fabric.Rect({
+                                                left: baseLayerObject.left,
+                                                top: baseLayerObject.top,
+                                                width: imageWidth,
+                                                height: imageHeight,
+                                                originX: baseLayerObject.originX,
+                                                originY: baseLayerObject.originY,
+                                                scaleX: baseLayerObject.scaleX,
+                                                scaleY: baseLayerObject.scaleY,
+                                                angle: baseLayerObject.angle,
+                                                fill: gradient,
+                                                selectable: false,
+                                                evented: false,
+                                                opacity: baseLayerObject.opacity,
+                                                globalCompositeOperation: 'source-in',
+                                                name: 'Base Gradient Overlay',
+                                                id: 'gradient-rect-' + Date.now()
+                                            });
+                                            
+                                            // 添加渐变覆盖层
+                                            productCanvas.add(overlayRect);
+                                            
+                                            // 确保图层顺序正确
+                                            productCanvas.sendToBack(baseLayerObject);
+                                            productCanvas.bringForward(overlayRect);
+                                            
+                                            // 如果有Overlay Layer，确保它在最上层
+                                            const overlayLayerObject = productCanvas.getObjects().find(obj => obj.name === 'Overlay Layer');
+                                            if (overlayLayerObject) {
+                                                productCanvas.bringToFront(overlayLayerObject);
+                                            }
+                                            
+                                            productCanvas.renderAll();
+                                            
+                                            console.log(`产品页面已应用渐变色: ${color1} 到 ${color2}, 方向: ${direction}`);
+                                        } else {
+                                            console.warn('无法获取Base图层的图像元素');
+                                        }
+                                    } else {
+                                        console.warn('在产品画布中未找到Base图层');
+                                    }
+                                } else {
+                                    console.warn('无法获取产品画布实例');
+                                }
+                            } else {
+                                console.warn('useCanvasStore 和 ProductImageCanvas 都不可用');
+                            }
+                        }
+                        
+                        applyGradientToBaseLayer();
+                        
+                        // 更新颜色状态显示
+                        if (colorStatusDisplay) {
+                            colorStatusDisplay.textContent = `渐变色: ${color1}`;
+                        }
+                        
+                        // 更新颜色样本中的选中状态
+                        const colorSwatches = document.querySelectorAll('.color-swatch');
+                        colorSwatches.forEach(s => s.classList.remove('selected'));
+                        window.hideGradientModal();
                     });
                 }
             });
