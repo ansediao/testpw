@@ -522,11 +522,11 @@ class Pw_Admin_Promowares_Api
             ), 401);
         }
 
-        // 检查缓存数据
-        // $cached_data = $this->get_cached_product_data($product_id);
-        // if ($cached_data !== false) {
-        //     return new WP_REST_Response($cached_data, 200);
-        // }
+        // 检查缓存数据（启用缓存检查，通过 updated_at 判断）
+        $cached_data = $this->get_cached_product_data($product_id);
+        if ($cached_data !== false) {
+            return new WP_REST_Response($cached_data, 200);
+        }
 
         $aggregated_data = array();
 
@@ -624,8 +624,21 @@ class Pw_Admin_Promowares_Api
         // 6. Generate business logic fields
         $aggregated_data['computed'] = $this->compute_business_logic($aggregated_data);
 
-        // 保存缓存数据
-        $this->save_cached_product_data($product_id, $aggregated_data);
+        // 保存缓存数据（排除模拟数据，模拟数据不缓存）
+        $cache_data = $aggregated_data;
+        if (isset($cache_data['mock_data'])) {
+            unset($cache_data['mock_data']);
+        }
+        if (isset($cache_data['has_mock_data'])) {
+            $cache_data['has_mock_data'] = false; // 缓存中标记为无模拟数据
+        }
+        if (isset($cache_data['mock_data_error'])) {
+            unset($cache_data['mock_data_error']);
+        }
+        // 重新计算业务逻辑字段（排除模拟数据）
+        $cache_data['computed'] = $this->compute_business_logic($cache_data);
+        
+        $this->save_cached_product_data($product_id, $cache_data);
 
         return new WP_REST_Response($aggregated_data, 200);
     }
@@ -832,15 +845,15 @@ class Pw_Admin_Promowares_Api
     }
 
     /**
- * Get cached product data from product meta.
+     * Get cached product data from product meta.
      *
      * @since    1.0.0
      * @param    int    $product_id    The Promowares product ID.
-     * @return   array|false           The cached data or false if not found/expired.
+     * @return   array|false           The cached data or false if not found/invalid.
      */
     private function get_cached_product_data($product_id)
     {
-        // 查找对应的 WooCommerce品
+        // 查找对应的 WooCommerce 产品
         $woo_products = get_posts(array(
             'post_type' => 'product',
             'meta_query' => array(
@@ -863,14 +876,14 @@ class Pw_Admin_Promowares_Api
         $cached_data = get_post_meta($woo_product_id, '_pw_aggregated_data_cache', true);
         $cache_timestamp = get_post_meta($woo_product_id, '_pw_aggregated_data_cache_time', true);
 
-        // 检查缓存是否存在且未过期（30分钟 = 1800秒）
+        // 检查缓存是否存在
         if (empty($cached_data) || empty($cache_timestamp)) {
             return false;
         }
 
-        $cache_expiry = 30 * 60; // 30分钟
-        if ((time() - intval($cache_timestamp)) > $cache_expiry) {
-            // 缓存已过期，删除旧缓存
+        // 检查远程数据是否有更新（移除本地过期时间逻辑）
+        if (!$this->check_remote_data_freshness($product_id, intval($cache_timestamp))) {
+            // 远程数据已更新，删除旧缓存
             delete_post_meta($woo_product_id, '_pw_aggregated_data_cache');
             delete_post_meta($woo_product_id, '_pw_aggregated_data_cache_time');
             return false;
@@ -918,7 +931,7 @@ class Pw_Admin_Promowares_Api
         $encoded_data = wp_json_encode($aggregated_data);
         $current_time = time();
 
-        // 保存缓存数据和时间戳
+        // 保存缓存数据和时间戳（用于与远程 updated_at 比较）
         $data_saved = update_post_meta($woo_product_id, '_pw_aggregated_data_cache', $encoded_data);
         $time_saved = update_post_meta($woo_product_id, '_pw_aggregated_data_cache_time', $current_time);
 
@@ -984,6 +997,166 @@ class Pw_Admin_Promowares_Api
         );
 
         return max($cache_deleted, $time_deleted);
+    }
+
+    /**
+     * Check if remote product data has been updated since cache timestamp.
+     *
+     * @since    1.0.0
+     * @param    int    $product_id        The Promowares product ID.
+     * @param    int    $cache_timestamp   The local cache timestamp.
+     * @return   bool                      True if cache is still valid, false if needs update.
+     */
+    private function check_remote_data_freshness($product_id, $cache_timestamp)
+    {
+        try {
+            $response = wp_remote_get(
+                $this->api_base_url . "products/{$product_id}/updated-at",
+                array(
+                    'headers' => array(
+                        'Authorization' => $this->hardcoded_token,
+                        'Accept' => 'application/json',
+                        'User-Agent' => 'PW-Canvas-Plugin/1.0.0'
+                    ),
+                    'timeout' => 5
+                )
+            );
+            
+            if (is_wp_error($response)) {
+                error_log('[PW Cache] Failed to check remote data freshness: ' . $response->get_error_message());
+                return true; // 网络错误时保持缓存有效
+            }
+            
+            $response_code = wp_remote_retrieve_response_code($response);
+            if ($response_code !== 200) {
+                error_log("[PW Cache] Remote freshness check returned status: {$response_code}");
+                return true; // API错误时保持缓存有效
+            }
+            
+            $body = wp_remote_retrieve_body($response);
+            $data = json_decode($body, true);
+            
+            if (isset($data['data']['updated_at'])) {
+                $remote_updated_at = strtotime($data['data']['updated_at']);
+                $is_fresh = $remote_updated_at <= $cache_timestamp;
+                error_log("[PW Cache] Product {$product_id} cache freshness check: " . ($is_fresh ? 'FRESH' : 'STALE'));
+                return $is_fresh;
+            }
+            
+            error_log("[PW Cache] No updated_at field in response for product {$product_id}");
+            return true; // 无法获取更新时间时保持缓存有效
+            
+        } catch (Exception $e) {
+            error_log('[PW Cache] Exception in freshness check: ' . $e->getMessage());
+            return true;
+        }
+    }
+
+    /**
+     * Check if remote print methods data has been updated since cache timestamp.
+     *
+     * @since    1.0.0
+     * @param    array  $method_ids       Array of printing method IDs.
+     * @param    int    $cache_timestamp  The local cache timestamp.
+     * @return   bool                     True if cache is still valid, false if needs update.
+     */
+    private function check_print_methods_freshness($method_ids, $cache_timestamp)
+    {
+        try {
+            $ids_string = implode(',', $method_ids);
+            $response = wp_remote_get(
+                $this->api_base_url . "print-methods/updated-at?ids={$ids_string}",
+                array(
+                    'headers' => array(
+                        'Authorization' => $this->hardcoded_token,
+                        'Accept' => 'application/json',
+                        'User-Agent' => 'PW-Canvas-Plugin/1.0.0'
+                    ),
+                    'timeout' => 5
+                )
+            );
+            
+            if (is_wp_error($response)) {
+                error_log('[PW Cache] Failed to check print methods freshness: ' . $response->get_error_message());
+                return true; // 网络错误时保持缓存有效
+            }
+            
+            $response_code = wp_remote_retrieve_response_code($response);
+            if ($response_code !== 200) {
+                error_log("[PW Cache] Print methods freshness check returned status: {$response_code}");
+                return true; // API错误时保持缓存有效
+            }
+            
+            $body = wp_remote_retrieve_body($response);
+            $data = json_decode($body, true);
+            
+            if (isset($data['data']['updated_at'])) {
+                $remote_updated_at = strtotime($data['data']['updated_at']);
+                $is_fresh = $remote_updated_at <= $cache_timestamp;
+                error_log("[PW Cache] Print methods cache freshness check: " . ($is_fresh ? 'FRESH' : 'STALE'));
+                return $is_fresh;
+            }
+            
+            error_log("[PW Cache] No updated_at field in print methods response");
+            return true; // 无法获取更新时间时保持缓存有效
+            
+        } catch (Exception $e) {
+            error_log('[PW Cache] Exception in print methods freshness check: ' . $e->getMessage());
+            return true;
+        }
+    }
+
+    /**
+     * Check if remote custom colors data has been updated since cache timestamp.
+     *
+     * @since    1.0.0
+     * @param    int    $color_list_id    The color list ID.
+     * @param    int    $cache_timestamp  The local cache timestamp.
+     * @return   bool                     True if cache is still valid, false if needs update.
+     */
+    private function check_custom_colors_freshness($color_list_id, $cache_timestamp)
+    {
+        try {
+            $response = wp_remote_get(
+                $this->api_base_url . "custom-colors/{$color_list_id}/updated-at",
+                array(
+                    'headers' => array(
+                        'Authorization' => $this->hardcoded_token,
+                        'Accept' => 'application/json',
+                        'User-Agent' => 'PW-Canvas-Plugin/1.0.0'
+                    ),
+                    'timeout' => 5
+                )
+            );
+            
+            if (is_wp_error($response)) {
+                error_log('[PW Cache] Failed to check custom colors freshness: ' . $response->get_error_message());
+                return true; // 网络错误时保持缓存有效
+            }
+            
+            $response_code = wp_remote_retrieve_response_code($response);
+            if ($response_code !== 200) {
+                error_log("[PW Cache] Custom colors freshness check returned status: {$response_code}");
+                return true; // API错误时保持缓存有效
+            }
+            
+            $body = wp_remote_retrieve_body($response);
+            $data = json_decode($body, true);
+            
+            if (isset($data['data']['updated_at'])) {
+                $remote_updated_at = strtotime($data['data']['updated_at']);
+                $is_fresh = $remote_updated_at <= $cache_timestamp;
+                error_log("[PW Cache] Custom colors {$color_list_id} cache freshness check: " . ($is_fresh ? 'FRESH' : 'STALE'));
+                return $is_fresh;
+            }
+            
+            error_log("[PW Cache] No updated_at field in custom colors response");
+            return true; // 无法获取更新时间时保持缓存有效
+            
+        } catch (Exception $e) {
+            error_log('[PW Cache] Exception in custom colors freshness check: ' . $e->getMessage());
+            return true;
+        }
     }
 
     /**
@@ -1162,8 +1335,28 @@ class Pw_Admin_Promowares_Api
             ), 401);
         }
 
-        // Convert IDs array to comma-separated string for API call
+        // Convert IDs array to comma-separated string for cache key and API call
         $ids_string = implode(',', $printing_method_ids);
+        $cache_key = 'pw_print_methods_' . md5($ids_string);
+        
+        // 检查缓存数据（使用 option 存储）
+        $cached_data = get_option($cache_key . '_data');
+        $cache_timestamp = get_option($cache_key . '_time');
+        
+        if ($cached_data !== false && $cache_timestamp !== false) {
+            // 检查远程数据是否有更新
+            if ($this->check_print_methods_freshness($printing_method_ids, intval($cache_timestamp))) {
+                // 缓存仍然有效，返回缓存数据
+                $decoded_data = json_decode($cached_data, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    return new WP_REST_Response($decoded_data, 200);
+                }
+            } else {
+                // 远程数据已更新，删除旧缓存
+                delete_option($cache_key . '_data');
+                delete_option($cache_key . '_time');
+            }
+        }
         
         // Call the API with all IDs at once using query parameter
         $api_response = $this->call_promowares_api("print-methods?ids={$ids_string}", $token);
@@ -1183,6 +1376,12 @@ class Pw_Admin_Promowares_Api
             'requested_ids' => $printing_method_ids,
             'has_errors' => false
         );
+
+        // 保存缓存数据（使用 option 存储）
+        $encoded_data = wp_json_encode($response_data);
+        $current_time = time();
+        update_option($cache_key . '_data', $encoded_data);
+        update_option($cache_key . '_time', $current_time);
 
         return new WP_REST_Response($response_data, 200);
     }
@@ -1211,6 +1410,28 @@ class Pw_Admin_Promowares_Api
             ), 400);
         }
 
+        // 生成缓存键（使用 option 存储）
+        $cache_key = 'pw_custom_colors_' . $color_list_id;
+        
+        // 检查缓存数据
+        $cached_data = get_option($cache_key . '_data');
+        $cache_timestamp = get_option($cache_key . '_time');
+        
+        if ($cached_data !== false && $cache_timestamp !== false) {
+            // 检查远程数据是否有更新
+            if ($this->check_custom_colors_freshness($color_list_id, intval($cache_timestamp))) {
+                // 缓存仍然有效，返回缓存数据
+                $decoded_data = json_decode($cached_data, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    return new WP_REST_Response($decoded_data, 200);
+                }
+            } else {
+                // 远程数据已更新，删除旧缓存
+                delete_option($cache_key . '_data');
+                delete_option($cache_key . '_time');
+            }
+        }
+
         // Call the custom-colors API endpoint
         $api_response = $this->call_promowares_api("custom-colors/{$color_list_id}", $token);
         
@@ -1227,6 +1448,12 @@ class Pw_Admin_Promowares_Api
             'data' => $api_response,
             'color_list_id' => $color_list_id
         );
+
+        // 保存缓存数据（使用 option 存储）
+        $encoded_data = wp_json_encode($response_data);
+        $current_time = time();
+        update_option($cache_key . '_data', $encoded_data);
+        update_option($cache_key . '_time', $current_time);
 
         return new WP_REST_Response($response_data, 200);
     }
