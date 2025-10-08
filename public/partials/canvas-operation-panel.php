@@ -958,7 +958,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <button class="btn btn-custom">Custom Colors</button>
         </div>
         
-        <div class="color-status-display" id="colorStatusDisplay" style="margin-top: 10px; font-size: 14px; color: #666; min-height: 20px;">
+        <div class="color-status-display" id="colorStatusDisplay" style="margin-top: 10px; font-size: 14px; color: #666; min-height: 20px; display: none;">
             <!-- 颜色状态将在这里显示 -->
         </div>
 
@@ -976,6 +976,92 @@ document.addEventListener('DOMContentLoaded', function() {
             document.addEventListener('DOMContentLoaded', function() {
                 // 获取颜色状态显示元素
                 const colorStatusDisplay = document.getElementById('colorStatusDisplay');
+                
+                // 清除所有颜色效果的函数
+                function clearAllColorEffects() {
+                    // 清除所有渐变色对象
+                    if (window.clearAllGradientRects) {
+                        window.clearAllGradientRects();
+                    }
+                    
+                    // 清除所有色调滤镜并重置base_layer
+                    if (window.useCanvasStore) {
+                        const store = window.useCanvasStore();
+                        if (store.views && store.views.length > 0) {
+                            store.views.forEach(view => {
+                                if (view.base_layer) {
+                                    // 完全清除所有滤镜
+                                    view.base_layer.filters = [];
+                                    
+                                    // 重置base_layer的原始图像
+                                    if (view.base_layer._element && view.base_layer._originalElement) {
+                                        // 恢复原始图像元素
+                                        view.base_layer.setElement(view.base_layer._originalElement);
+                                    } else if (view.base_layer._element) {
+                                        // 如果没有原始元素备份，尝试重新加载图像
+                                        const originalSrc = view.base_layer._element.src;
+                                        if (originalSrc) {
+                                            const img = new Image();
+                                            img.crossOrigin = 'anonymous';
+                                            img.onload = () => {
+                                                view.base_layer.setElement(img);
+                                                view.base_layer._originalElement = img; // 保存为原始元素备份
+                                                
+                                                // 应用滤镜更改
+                                                view.base_layer.applyFilters();
+                                                
+                                                // 重新渲染画布
+                                                if (window.CanvasManager) {
+                                                    const canvas = window.CanvasManager.getCanvas(view.id);
+                                                    if (canvas) {
+                                                        canvas.renderAll();
+                                                    }
+                                                    
+                                                    const baseCanvasId = `baseCanvas-${view.id}`;
+                                                    const baseCanvas = window.CanvasManager.getCanvas(baseCanvasId) ||
+                                                                      (document.getElementById(baseCanvasId) && document.getElementById(baseCanvasId).__fabricCanvas);
+                                                    if (baseCanvas) {
+                                                        baseCanvas.renderAll();
+                                                    }
+                                                }
+                                            };
+                                            img.src = originalSrc;
+                                        }
+                                    }
+                                    
+                                    // 应用滤镜更改
+                                    view.base_layer.applyFilters();
+                                    
+                                    // 获取对应视图的画布并重新渲染
+                                    if (window.CanvasManager) {
+                                        const canvas = window.CanvasManager.getCanvas(view.id);
+                                        if (canvas) {
+                                            canvas.renderAll();
+                                            
+                                            // 如果是baseCanvas，也需要重新渲染
+                                            const baseCanvasId = `baseCanvas-${view.id}`;
+                                            const baseCanvas = window.CanvasManager.getCanvas(baseCanvasId) ||
+                                                              (document.getElementById(baseCanvasId) && document.getElementById(baseCanvasId).__fabricCanvas);
+                                            if (baseCanvas) {
+                                                baseCanvas.renderAll();
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    
+                    // 隐藏颜色状态显示
+                    if (colorStatusDisplay) {
+                        colorStatusDisplay.style.display = 'none';
+                    }
+                    
+                    console.log('已清除所有颜色效果并重置画布');
+                }
+                
+                // 将清除函数暴露到全局，供链接使用
+                window.clearAllColorEffects = clearAllColorEffects;
                 
                 // 获取第二个按钮（自定义颜色）
                 const customColorBtn = document.querySelector('.action-buttons .btn:nth-child(2)');
@@ -1021,6 +1107,17 @@ document.addEventListener('DOMContentLoaded', function() {
                                 if (activeViewId && store.views) {
                                     const currentView = store.views.find(v => v.id === activeViewId);
                                     if (currentView && currentView.base_layer) {
+                                        // 保存原始图像元素（如果尚未保存）
+                                        if (!currentView.base_layer._originalElement && currentView.base_layer._element) {
+                                            const originalImg = new Image();
+                                            originalImg.crossOrigin = 'anonymous';
+                                            originalImg.src = currentView.base_layer._element.src;
+                                            originalImg.onload = () => {
+                                                currentView.base_layer._originalElement = originalImg;
+                                                console.log('已保存原始图像元素用于重置');
+                                            };
+                                        }
+                                        
                                         // 应用色调滤镜到 base_layer
                                         const tintFunction = typeof applyTintFilter === 'function' ? applyTintFilter : window.applyTintFilter;
                                         tintFunction(currentView.base_layer, color, 1);
@@ -1080,7 +1177,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         // 更新颜色状态显示
                         if (colorStatusDisplay) {
-                            colorStatusDisplay.textContent = `纯色: ${color}`;
+                            colorStatusDisplay.innerHTML = `纯色: ${color} <a href="#" id="clearColorLink" style="margin-left: 10px; color: #007cba; text-decoration: none;">切换颜色</a>`;
+                            colorStatusDisplay.style.display = 'block';
+                            
+                            // 添加清除颜色链接的事件监听器
+                            const clearColorLink = document.getElementById('clearColorLink');
+                            if (clearColorLink) {
+                                clearColorLink.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    clearAllColorEffects();
+                                });
+                            }
                         }
                         
                         // 更新颜色样本中的选中状态
@@ -1390,7 +1497,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         // 更新颜色状态显示
                         if (colorStatusDisplay) {
-                            colorStatusDisplay.textContent = `渐变色: ${color1}`;
+                            colorStatusDisplay.innerHTML = `渐变色: ${color1} <a href="#" id="clearColorLink" style="margin-left: 10px; color: #007cba; text-decoration: none;">切换颜色</a>`;
+                            colorStatusDisplay.style.display = 'block';
+                            
+                            // 添加清除颜色链接的事件监听器
+                            const clearColorLink = document.getElementById('clearColorLink');
+                            if (clearColorLink) {
+                                clearColorLink.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    clearAllColorEffects();
+                                });
+                            }
                         }
                         
                         // 更新颜色样本中的选中状态
