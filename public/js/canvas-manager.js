@@ -74,6 +74,14 @@ class CanvasManager {
     }
 
     /**
+     * 获取当前激活的视图 ID
+     * @returns {string|null} 当前激活的视图 ID
+     */
+    getCurrentViewId() {
+        return this._activeCanvasId;
+    }
+
+    /**
      * 销毁 Canvas 实例
      * @param {string} viewId - 视图 ID
      */

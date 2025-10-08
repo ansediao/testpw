@@ -786,6 +786,11 @@ if ($first_image_url) {
             window.initializeCanvasEventListeners(canvas);
         }
 
+        // 添加打印区域验证监听器
+        if (window.PrintAreaValidator) {
+            window.PrintAreaValidator.addPrintAreaValidationListeners(canvas, view.id);
+        }
+
         // 将 Canvas 实例与 DOM 元素关联
         const canvasElement = document.getElementById(canvasId);
         if (canvasElement) {

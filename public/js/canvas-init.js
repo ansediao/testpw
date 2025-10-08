@@ -58,6 +58,11 @@
                 if (view.id === canvasStore.activeViewId) {
                     window.CanvasManager.setActiveCanvas(view.id);
                 }
+
+                // 添加打印区域验证监听器
+                if (window.PrintAreaValidator) {
+                    window.PrintAreaValidator.addPrintAreaValidationListeners(canvas, view.id);
+                }
                 
                 // 模拟API数据加载完成，结束初始化状态
                 // 在实际项目中，这里应该在API数据真正加载完成后调用
@@ -109,6 +114,12 @@
         // 设置 Canvas 样式
         setupCanvasStyles(colorCanvas, colorCanvasInstance);
         setupCanvasStyles(shadowCanvas, shadowCanvasInstance);
+
+        // 添加打印区域验证监听器（传统模式）
+        if (window.PrintAreaValidator) {
+            window.PrintAreaValidator.addPrintAreaValidationListeners(colorCanvasInstance, 'traditional-color');
+            window.PrintAreaValidator.addPrintAreaValidationListeners(shadowCanvasInstance, 'traditional-shadow');
+        }
 
         // 加载图片
         loadTraditionalImages(colorCanvasInstance, shadowCanvasInstance);
