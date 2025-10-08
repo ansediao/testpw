@@ -126,6 +126,11 @@ class Pw_Admin_Public
             // 渐变模态样式
             wp_enqueue_style('pw-gradient-modal', plugin_dir_url(__FILE__) . 'css/pw-gradient-modal.css', array(), $this->version, 'all');
         }
+
+        // 添加自定义结账页面样式
+        if (is_page('custom-checkout') || is_checkout()) {
+            wp_enqueue_style('pwca-custom-checkout', plugin_dir_url(__FILE__) . 'css/pwca-custom-checkout.css', array(), $this->version, 'all');
+        }
     }
 
     /**

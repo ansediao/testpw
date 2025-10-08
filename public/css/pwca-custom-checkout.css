@@ -1,0 +1,39 @@
+@charset "UTF-8";
+/**
+ * 自定义结账页面样式
+ * 用于 /custom-checkout/ 页面
+ * 遵循项目 SCSS 规范和命名约定
+ */
+/**
+ * SCSS 变量集中定义文件
+ * 定义新变量前请先检查是否已存在相同或相似变量
+ * 每个变量必须包含使用说明注释
+ */
+/**
+ * SCSS 混合器集中定义文件
+ * 用于复用常见样式模式
+ */
+.checkout.woocommerce-checkout {
+  display: grid;
+  grid-template-columns: 65% 35%;
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "customer heading" "customer order";
+  gap: 20px;
+}
+.checkout.woocommerce-checkout #customer_details {
+  grid-area: customer;
+  align-self: start;
+}
+.checkout.woocommerce-checkout #customer_details > div {
+  float: unset;
+  width: 100%;
+}
+.checkout.woocommerce-checkout #order_review_heading {
+  grid-area: heading;
+  display: none;
+}
+.checkout.woocommerce-checkout #order_review {
+  grid-area: order;
+  align-self: start;
+  background-color: #ccc;
+}/*# sourceMappingURL=pwca-custom-checkout.css.map */

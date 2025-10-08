@@ -117,8 +117,8 @@
   border-color: #3b82f6;
 }
 .pwca-print-method-modal__btn--primary:hover {
-  background: #0b63f3;
-  border-color: #0b63f3;
+  background: rgb(11.1512195122, 99.1219512195, 242.8487804878);
+  border-color: rgb(11.1512195122, 99.1219512195, 242.8487804878);
 }
 
 .pwca-print-methods {

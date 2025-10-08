@@ -438,6 +438,9 @@ add_action('woocommerce_review_order_before_shipping', 'pwca_add_calculate_shipp
 function pwca_add_calculate_shipping_button()
 {
     if (is_checkout() && !defined('DOING_AJAX')) {
+        // 添加标题
+        echo '<div class="pwca-calculate-shipping-title" style="margin-bottom: 10px;">' . __('YOUR ORDER', 'woocommerce') . '</div>';
+
         echo '<div class="pwca-calculate-shipping-container" style="margin-bottom: 15px;">';
         echo '<button type="button" class="button pwca-calculate-shipping-btn" id="pwca-calculate-shipping">' . __('Calculate Shipping', 'woocommerce') . '</button>';
         echo '</div>';
@@ -502,7 +505,7 @@ function pwca_calculate_shipping_styles()
     if (is_checkout()) {
         echo '<style>
             .pwca-calculate-shipping-container {
-                text-align: right;
+               
                 padding: 10px 0;
                 border-bottom: 1px solid #e0e0e0;
             }
