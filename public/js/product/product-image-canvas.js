@@ -387,7 +387,8 @@
                     originX: 'center',
                     originY: 'center',
                     selectable: false,
-                    evented: false
+                    evented: false,
+                    name: 'Base Layer'
                 });
 
                 // 缩放图片以适应Canvas
@@ -396,9 +397,12 @@
 
                 canvas.add(img);
                 canvas.sendToBack(img);
+                
+                // 创建或更新渐变覆盖层（Gradient Overlay），使用 source-in 进行裁剪
+                createOrUpdateGradientOverlay(backgroundColor);
 
-                // 加载顶层图片（Overlay Layer）并应用颜色
-                loadTopLayerImage(backgroundColor, overlayImageUrl);
+                // 加载顶层图片（Overlay Layer），始终保持可见，不进行颜色滤镜
+                loadTopLayerImage(undefined, overlayImageUrl);
             }, { crossOrigin: 'anonymous' });
         } catch (error) {
             console.error('初始化Canvas失败:', error);
@@ -427,20 +431,13 @@
                 originX: 'center',
                 originY: 'center',
                 selectable: false,
-                evented: false
+                evented: false,
+                name: 'Overlay Layer'
             });
 
             // 缩放图片以适应Canvas
             const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.8;
             img.scale(scale);
-
-            // 应用颜色滤镜
-            img.filters.push(new fabric.Image.filters.BlendColor({
-                color: color,
-                mode: 'multiply',
-                alpha: 0.8
-            }));
-            img.applyFilters();
 
             canvas.add(img);
             canvas.bringToFront(img);
@@ -455,19 +452,68 @@
      */
     function updateCanvasBackgroundColor(color, imageUrl) {
         const canvas = window.CanvasManager.getCanvas(VIEW_ID);
-        if (canvas) {
-            // 移除现有的顶层图片
-            const objects = canvas.getObjects();
-            for (let i = objects.length - 1; i >= 0; i--) {
-                if (objects[i].type === 'image' && objects[i] !== objects[0]) {
-                    canvas.remove(objects[i]);
-                }
-            }
+        if (!canvas) return;
 
-            // 重新加载顶层图片并应用新颜色
-            loadTopLayerImage(color, imageUrl);
-            // Canvas颜色已更新
+        // 仅更新渐变覆盖层的颜色；保持 Base 和 Overlay Layer 不变
+        createOrUpdateGradientOverlay(color);
+    }
+
+    /**
+     * 创建或更新渐变覆盖层，确保图层顺序为：Base（底）-> Gradient Overlay（中）-> Overlay Layer（顶）
+     * 使用 source-in 使覆盖层仅在 Base 非透明像素区域内显示
+     * @param {string} color - 单色或渐变的起始颜色（本函数用于自定义颜色单色场景）
+     */
+    function createOrUpdateGradientOverlay(color) {
+        const canvas = window.CanvasManager.getCanvas(VIEW_ID);
+        if (!canvas) return;
+
+        // 查找 Base Layer
+        const baseLayerObject = canvas.getObjects().find(obj => obj.name === 'Base Layer' || obj.type === 'image');
+        if (!baseLayerObject) {
+            console.warn('未找到 Base Layer，无法创建/更新渐变覆盖层');
+            return;
         }
+
+        // 计算覆盖层的尺寸与位置，匹配 Base Layer 的变换
+        const imageElement = baseLayerObject.getElement ? baseLayerObject.getElement() : null;
+        const imageWidth = imageElement ? (imageElement.width || imageElement.naturalWidth || baseLayerObject.width) : baseLayerObject.width;
+        const imageHeight = imageElement ? (imageElement.height || imageElement.naturalHeight || baseLayerObject.height) : baseLayerObject.height;
+
+        // 若已存在旧的渐变覆盖层，更新其填充颜色
+        let overlayRect = canvas.getObjects().find(obj => obj.name === 'Base Gradient Overlay');
+        const fillColor = color || '#ffffff';
+
+        if (!overlayRect) {
+            overlayRect = new fabric.Rect({
+                left: baseLayerObject.left,
+                top: baseLayerObject.top,
+                originX: baseLayerObject.originX || 'center',
+                originY: baseLayerObject.originY || 'center',
+                width: imageWidth,
+                height: imageHeight,
+                angle: baseLayerObject.angle || 0,
+                scaleX: baseLayerObject.scaleX || 1,
+                scaleY: baseLayerObject.scaleY || 1,
+                selectable: false,
+                evented: false,
+                name: 'Base Gradient Overlay',
+                globalCompositeOperation: 'source-in',
+                fill: fillColor
+            });
+            canvas.add(overlayRect);
+        } else {
+            overlayRect.set({ fill: fillColor });
+        }
+
+        // 确保图层顺序：Base 在底层，Gradient Overlay 在中层，Overlay Layer 在顶层
+        canvas.sendToBack(baseLayerObject);
+        canvas.bringForward(overlayRect);
+        const overlayLayerObject = canvas.getObjects().find(obj => obj.name === 'Overlay Layer');
+        if (overlayLayerObject) {
+            canvas.bringToFront(overlayLayerObject);
+        }
+
+        canvas.renderAll();
     }
 
     /**
@@ -497,7 +543,10 @@
         init: initProductImageCanvas,
         switchToCanvas: switchToCanvasMode,
         updateBackgroundColor: updateCanvasBackgroundColor,
-        destroy: destroyCanvas
+        destroy: destroyCanvas,
+        getCurrentCanvas: function() {
+            return window.CanvasManager && window.CanvasManager.getCanvas(VIEW_ID);
+        }
     };
 
     // 自动初始化

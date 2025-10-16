@@ -21,7 +21,7 @@ const ColorVariants = {
                 <div v-else-if="!store.variants || store.variants.length === 0" class="pw-loading-variants">该产品暂无颜色变体</div>
                 <div v-else class="pw-variants-container">
                     <div 
-                        v-for="(variant, index) in store.variants" 
+                        v-for="(variant, index) in store.variants.filter(v => v.variant_color)" 
                         :key="variant.id"
                         class="pw-color-variant-item"
                         :class="{ 
