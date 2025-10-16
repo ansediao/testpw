@@ -158,6 +158,9 @@ class Pw_CDN_Loader {
             return;
         }
 
+        // 获取缓存的产品聚合数据
+        $cached_data = $this->get_cached_product_data_by_pw_id($pw_id);
+
         ?>
         <script>
         // 为 Vue/Pinia 提供产品基础信息
@@ -167,7 +170,58 @@ class Pw_CDN_Loader {
             restApiUrl: '<?php echo rest_url('pw/v1/product-data/'); ?>',
             nonce: '<?php echo wp_create_nonce('wp_rest'); ?>'
         };
+        
+        // 直接注入缓存的产品聚合数据，避免API调用延迟
+        <?php if ($cached_data): ?>
+        window.pwProductData = <?php echo wp_json_encode($cached_data); ?>;
+        console.log('Product data loaded from cache:', window.pwProductData);
+        <?php else: ?>
+        window.pwProductData = null;
+        console.log('No cached product data found, will use API call');
+        <?php endif; ?>
         </script>
         <?php
+    }
+
+    /**
+     * Get cached product data by pw_id
+     * 
+     * @param string $pw_id The Promowares product ID
+     * @return array|false The cached data or false if not found
+     */
+    private function get_cached_product_data_by_pw_id($pw_id) {
+        // 查找对应的 WooCommerce 产品
+        $woo_products = get_posts(array(
+            'post_type' => 'product',
+            'meta_query' => array(
+                array(
+                    'key' => 'pw_id',
+                    'value' => $pw_id,
+                    'compare' => '='
+                )
+            ),
+            'posts_per_page' => 1
+        ));
+
+        if (empty($woo_products)) {
+            return false;
+        }
+
+        $woo_product_id = $woo_products[0]->ID;
+        
+        // 获取缓存数据
+        $cached_data = get_post_meta($woo_product_id, '_pw_aggregated_data_cache', true);
+        
+        if (empty($cached_data)) {
+            return false;
+        }
+
+        // 解码并返回数据
+        $decoded_data = json_decode($cached_data, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return $decoded_data;
+        }
+
+        return false;
     }
 }

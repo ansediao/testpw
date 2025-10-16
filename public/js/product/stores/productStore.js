@@ -395,6 +395,127 @@ const useProductStore = Pinia.defineStore('product', () => {
         accessoriesPrice.value = parseFloat(price) || 0;
     };
 
+    // 处理产品数据的核心逻辑
+    const processProductData = (apiData) => {
+        // 处理 WooCommerce 产品数据
+        if (apiData.has_woocommerce_product && apiData.woocommerce) {
+            const wooData = apiData.woocommerce;
+            setProductData({
+                id: wooData.id,
+                name: wooData.name,
+                price: parseFloat(wooData.price) || 0,
+                price_html: wooData.price_html,
+                description: wooData.description || '',
+                sku: wooData.sku || '',
+                stock_status: wooData.stock_status,
+                in_stock: wooData.in_stock,
+                permalink: wooData.permalink,
+                apiData: apiData // 存储完整的 API 数据
+            });
+        }
+
+        // 处理 MOQ 设置数据
+        if (apiData.has_product_data && apiData.product && apiData.product.data) {
+            const productApiData = apiData.product.data;
+
+            // 构建 MOQ 设置对象
+            const moqSettingsData = {};
+
+            // 处理批量销售设置
+            if (productApiData.sell_in_batch !== undefined) {
+                moqSettingsData.sell_in_batch = productApiData.sell_in_batch;
+            }
+
+            // 处理批量销售信息
+            if (productApiData.sell_in_batch_info) {
+                if (productApiData.sell_in_batch_info.batch_quantity !== undefined) {
+                    moqSettingsData.batch_quantity = productApiData.sell_in_batch_info.batch_quantity;
+                }
+                if (productApiData.sell_in_batch_info.moq_quantity !== undefined) {
+                    moqSettingsData.minimum_order_quantity = productApiData.sell_in_batch_info.moq_quantity;
+                }
+            }
+
+            // 兼容旧的 moq_setting 结构
+            if (productApiData.moq_setting) {
+                Object.assign(moqSettingsData, productApiData.moq_setting);
+            }
+
+            // 设置 MOQ 配置
+            if (Object.keys(moqSettingsData).length > 0) {
+                setMoqSettings(moqSettingsData);
+            }
+
+            // 提取数量折扣数据
+            if (productApiData.quantity_discount) {
+                setQuantityDiscounts(productApiData.quantity_discount);
+            }
+
+            // 处理数量折扣启用状态
+            if (productApiData.quantityDiscountEnabled !== undefined) {
+                setQuantityDiscountEnabled(productApiData.quantityDiscountEnabled);
+            }
+
+            // 处理颜色样品服务状态
+            if (productApiData.colorSampleService !== undefined) {
+                setColorSampleService(productApiData.colorSampleService);
+            }
+
+            // 处理 RTS Date 显示状态
+            if (productApiData.rts_date !== undefined) {
+                setRtsDate(productApiData.rts_date);
+            }
+
+            // 处理发货时间相关数据 - 从 shipping_info 中获取
+            if (productApiData.shipping_info) {
+                const shippingInfo = productApiData.shipping_info;
+
+                if (shippingInfo.rts_date_starts_from !== undefined) {
+                    setRtsDateStartsFrom(shippingInfo.rts_date_starts_from);
+                }
+
+                if (shippingInfo.rts_for_bulk_order !== undefined) {
+                    setRtsForBulkOrder(shippingInfo.rts_for_bulk_order);
+                }
+
+                if (shippingInfo.rts_for_sample_order !== undefined) {
+                    setRtsForSampleOrder(shippingInfo.rts_for_sample_order);
+                }
+            }
+
+            // 处理复选框状态
+            if (productApiData.buySampleChecked !== undefined) {
+                setBuySampleChecked(productApiData.buySampleChecked);
+            }
+            if (productApiData.blankProductChecked !== undefined) {
+                setBlankProductChecked(productApiData.blankProductChecked);
+            }
+
+            // 处理配件数据
+            if (productApiData.accessories && Array.isArray(productApiData.accessories)) {
+                // 将配件数据存储到产品数据中
+                if (productData.value) {
+                    productData.value.accessories = productApiData.accessories.map(accessory => ({
+                        id: accessory.id,
+                        testname: accessory.testname || accessory.name || 'Unknown Accessory',
+                        product_image: accessory.product_image || accessory.image || '',
+                        price: parseFloat(accessory.price) || 0
+                    }));
+                }
+            }
+        }
+
+        // 处理颜色变体数据
+        if (apiData.has_variants && apiData.variants && apiData.variants.data) {
+            setVariants(apiData.variants.data);
+
+            // 默认选择第一个变体
+            // if (apiData.variants.data.length > 0) {
+            //     setSelectedVariant(apiData.variants.data[0]);
+            // }
+        }
+    };
+
     // 添加请求状态跟踪
     const isDataFetched = Vue.ref(false);
     const fetchPromise = Vue.ref(null);
@@ -418,130 +539,29 @@ const useProductStore = Pinia.defineStore('product', () => {
             setError(null);
 
             try {
-                // 使用统一的 API 模块获取数据
+                // 优先使用直接注入的缓存数据，避免API调用延迟
+                if (window.pwProductData) {
+                    console.log('Using cached product data from window.pwProductData');
+                    const apiData = window.pwProductData;
+                    
+                    // 处理数据并更新状态
+                    processProductData(apiData);
+                    
+                    // 标记数据已获取
+                    isDataFetched.value = true;
+                    return productData.value;
+                }
+
+                // 如果没有缓存数据，回退到API调用
+                console.log('No cached data found, falling back to API call');
                 if (typeof window.productDataAPI === 'undefined') {
                     throw new Error('ProductDataAPI not loaded');
                 }
 
                 const apiData = await window.productDataAPI.fetchCurrentProductData();
 
-                // 处理 WooCommerce 产品数据
-                if (apiData.has_woocommerce_product && apiData.woocommerce) {
-                    const wooData = apiData.woocommerce;
-                    setProductData({
-                        id: wooData.id,
-                        name: wooData.name,
-                        price: parseFloat(wooData.price) || 0,
-                        price_html: wooData.price_html,
-                        description: wooData.description || '',
-                        sku: wooData.sku || '',
-                        stock_status: wooData.stock_status,
-                        in_stock: wooData.in_stock,
-                        permalink: wooData.permalink,
-                        apiData: apiData // 存储完整的 API 数据
-                    });
-                }
-
-                // 处理 MOQ 设置数据
-                if (apiData.has_product_data && apiData.product && apiData.product.data) {
-                    const productApiData = apiData.product.data;
-
-                    // 构建 MOQ 设置对象
-                    const moqSettingsData = {};
-
-                    // 处理批量销售设置
-                    if (productApiData.sell_in_batch !== undefined) {
-                        moqSettingsData.sell_in_batch = productApiData.sell_in_batch;
-                    }
-
-                    // 处理批量销售信息
-                    if (productApiData.sell_in_batch_info) {
-                        if (productApiData.sell_in_batch_info.batch_quantity !== undefined) {
-                            moqSettingsData.batch_quantity = productApiData.sell_in_batch_info.batch_quantity;
-                        }
-                        if (productApiData.sell_in_batch_info.moq_quantity !== undefined) {
-                            moqSettingsData.minimum_order_quantity = productApiData.sell_in_batch_info.moq_quantity;
-                        }
-                    }
-
-                    // 兼容旧的 moq_setting 结构
-                    if (productApiData.moq_setting) {
-                        Object.assign(moqSettingsData, productApiData.moq_setting);
-                    }
-
-                    // 设置 MOQ 配置
-                    if (Object.keys(moqSettingsData).length > 0) {
-                        setMoqSettings(moqSettingsData);
-                    }
-
-                    // 提取数量折扣数据
-                    if (productApiData.quantity_discount) {
-                        setQuantityDiscounts(productApiData.quantity_discount);
-                    }
-
-                    // 处理数量折扣启用状态
-                    if (productApiData.quantityDiscountEnabled !== undefined) {
-                        setQuantityDiscountEnabled(productApiData.quantityDiscountEnabled);
-                    }
-
-                    // 处理颜色样品服务状态
-                    if (productApiData.colorSampleService !== undefined) {
-                        setColorSampleService(productApiData.colorSampleService);
-                    }
-
-                    // 处理 RTS Date 显示状态
-                    if (productApiData.rts_date !== undefined) {
-                        setRtsDate(productApiData.rts_date);
-                    }
-
-                    // 处理发货时间相关数据 - 从 shipping_info 中获取
-                    if (productApiData.shipping_info) {
-                        const shippingInfo = productApiData.shipping_info;
-
-                        if (shippingInfo.rts_date_starts_from !== undefined) {
-                            setRtsDateStartsFrom(shippingInfo.rts_date_starts_from);
-                        }
-
-                        if (shippingInfo.rts_for_bulk_order !== undefined) {
-                            setRtsForBulkOrder(shippingInfo.rts_for_bulk_order);
-                        }
-
-                        if (shippingInfo.rts_for_sample_order !== undefined) {
-                            setRtsForSampleOrder(shippingInfo.rts_for_sample_order);
-                        }
-                    }
-
-                    // 处理复选框状态
-                    if (productApiData.buySampleChecked !== undefined) {
-                        setBuySampleChecked(productApiData.buySampleChecked);
-                    }
-                    if (productApiData.blankProductChecked !== undefined) {
-                        setBlankProductChecked(productApiData.blankProductChecked);
-                    }
-
-                    // 处理配件数据
-                    if (productApiData.accessories && Array.isArray(productApiData.accessories)) {
-                        // 将配件数据存储到产品数据中
-                        if (productData.value) {
-                            productData.value.accessories = productApiData.accessories.map(accessory => ({
-                                id: accessory.id,
-                                testname: accessory.testname || accessory.name || 'Unknown Accessory',
-                                product_image: accessory.product_image || accessory.image || '',
-                                price: parseFloat(accessory.price) || 0
-                            }));
-                        }
-                    }
-                }
-
-                // 处理颜色变体数据
-                if (apiData.has_variants && apiData.variants && apiData.variants.data) {
-                    setVariants(apiData.variants.data);
-
-                    // 默认选择第一个变体
-                    // if (apiData.variants.data.length > 0) {
-                    //     setSelectedVariant(apiData.variants.data[0]);
-                    // }
-                }
+                // 处理数据并更新状态
+                processProductData(apiData);
 
                 // 标记数据已获取
                 isDataFetched.value = true;
