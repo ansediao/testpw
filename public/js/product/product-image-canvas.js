@@ -15,6 +15,51 @@
     const VIEW_ID = 'product-view';
 
     /**
+     * 获取产品主图的实际显示尺寸（像素）
+     * 优先读取主图 <img> 的显示尺寸，其次读取容器尺寸。
+     * 返回 { width, height }，若无法获取则回退到 {400, 400}
+     */
+    function getDisplayedMainImageSize() {
+        try {
+            if (!originalImageContainer) {
+                return { width: 400, height: 400 };
+            }
+
+            // 优先查找容器内的图片元素
+            const imgEl = originalImageContainer.querySelector('img');
+            if (imgEl) {
+                const rect = imgEl.getBoundingClientRect();
+                // 如果高度为0，基于宽度和原始宽高比计算
+                let w = Math.round(rect.width);
+                let h = Math.round(rect.height);
+
+                if (!h || h === 0) {
+                    const nw = imgEl.naturalWidth || w || 400;
+                    const nh = imgEl.naturalHeight || 400;
+                    if (nw > 0 && nh > 0) {
+                        h = Math.round((w || 400) * (nh / nw));
+                    }
+                }
+
+                // 最终容错
+                return {
+                    width: w > 0 ? w : 400,
+                    height: h > 0 ? h : 400
+                };
+            }
+
+            // 回退：使用容器尺寸
+            const containerRect = originalImageContainer.getBoundingClientRect();
+            const width = Math.round(containerRect.width) || 400;
+            const height = Math.round(containerRect.height) || 400;
+            return { width, height };
+        } catch (e) {
+            console.warn('获取主图显示尺寸失败，使用默认 400x400', e);
+            return { width: 400, height: 400 };
+        }
+    }
+
+    /**
      * 初始化产品图片Canvas功能
      */
     function initProductImageCanvas() {
@@ -302,12 +347,15 @@
             return; // 已存在
         }
 
+        // 读取主图的显示尺寸，确保画布与主图视觉一致
+        const { width: displayWidth, height: displayHeight } = getDisplayedMainImageSize();
+
         // 创建Canvas容器
         canvasContainer = document.createElement('div');
         canvasContainer.className = 'pw-product-canvas-container';
         canvasContainer.style.cssText = `
-            width: 100%;
-            height: 400px;
+            width: ${displayWidth}px;
+            height: ${displayHeight}px;
             position: relative;
             background: #f5f5f5;
             border: 1px solid #ddd;
@@ -318,8 +366,8 @@
         // 创建Canvas元素
         const canvasElement = document.createElement('canvas');
         canvasElement.id = CANVAS_ID;
-        canvasElement.width = 400;
-        canvasElement.height = 400;
+        canvasElement.width = displayWidth;
+        canvasElement.height = displayHeight;
 
         canvasContainer.appendChild(canvasElement);
 
@@ -369,10 +417,15 @@
         }
 
         try {
-            // 使用Canvas管理器创建Fabric Canvas实例
+            // 与主图显示尺寸保持一致
+            const canvasEl = document.getElementById(CANVAS_ID);
+            const initWidth = (canvasEl && canvasEl.width) ? canvasEl.width : 400;
+            const initHeight = (canvasEl && canvasEl.height) ? canvasEl.height : 400;
+
+            // 使用Canvas管理器创建Fabric Canvas实例（动态尺寸）
             const canvas = window.CanvasManager.createCanvas(CANVAS_ID, VIEW_ID, {
-                width: 400,
-                height: 400,
+                width: initWidth,
+                height: initHeight,
                 backgroundColor: 'transparent'
             });
             
@@ -391,8 +444,8 @@
                     name: 'Base Layer'
                 });
 
-                // 缩放图片以适应Canvas
-                const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.8;
+                // 缩放图片以适应Canvas（不额外缩小）
+                const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
                 img.scale(scale);
 
                 canvas.add(img);
@@ -435,8 +488,8 @@
                 name: 'Overlay Layer'
             });
 
-            // 缩放图片以适应Canvas
-            const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.8;
+            // 缩放图片以适应Canvas（不额外缩小）
+            const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
             img.scale(scale);
 
             canvas.add(img);
