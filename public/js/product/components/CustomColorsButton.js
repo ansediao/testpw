@@ -19,7 +19,7 @@ window.CustomColorsButton = {
                     class="pw-custom-color-btn pw-custom-colors-btn"
                     :class="{ 'selected': selectedButton === 'custom' }"
                     @click="openColorModal"
-                    :disabled="!isButtonClickable"
+                    :disabled="isCustomColorsDisabled || !isButtonClickable"
                 >
                     <span class="btn-text">Custom Colors</span>
                 </button>
@@ -70,6 +70,10 @@ window.CustomColorsButton = {
         const appliedCustomColor = Vue.ref('');
         const gradientTextObject = Vue.ref(null); // 存储画布上的渐变文字对象
         const gradientTextOverlay = Vue.ref(null); // 存储原始图片上的文字覆盖层
+        // 当渐变状态显示时，禁用 Custom Colors 按钮
+        const isCustomColorsDisabled = Vue.computed(() => {
+            return !!showGradientStatus.value;
+        });
         
         // 计算按钮是否可点击（参考ColorVariants组件逻辑）
         const isButtonClickable = Vue.computed(() => {
@@ -542,6 +546,7 @@ window.CustomColorsButton = {
             selectedButton,
             selectedColor,
             isButtonClickable,
+            isCustomColorsDisabled,
             selectCustomColor,
             openColorModal,
             closeColorModal,

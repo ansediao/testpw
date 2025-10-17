@@ -72,6 +72,17 @@ background: #18afe2;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
+/* 禁用态（灰色只读） */
+.pw-custom-color-btn:disabled,
+.pw-custom-colors-btn:disabled {
+    background: #e9ecef;
+    color: #999;
+    border-color: #d6d6d6;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.65;
+}
+
 /* 状态显示区域样式 */
 .pw-custom-colors-status {
     margin-top: 10px;
