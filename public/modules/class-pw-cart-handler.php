@@ -69,9 +69,51 @@ class Pw_Cart_Handler {
             wp_send_json_error('无效的产品ID');
         }
 
-        // 验证产品是否为 WooCommerce 产品且可购买
+        // 验证产品是否为 WooCommerce 产品
         $product = wc_get_product($product_id);
-        if (!$product || !$product->is_purchasable()) {
+        if (!$product) {
+            wp_send_json_error('产品不存在');
+        }
+
+        // 当产品类型为 grouped 时，改为将其一个子产品加入购物车
+        if ($product->is_type('grouped')) {
+            // 获取 grouped 子产品列表（存于 _children 元字段）
+            $children = get_post_meta($product_id, '_children', true);
+            if (empty($children) || !is_array($children)) {
+                wp_send_json_error('组合产品没有可购买的子产品');
+            }
+
+            // 优先选择标记为空白件的子产品（pw_blank_item = 1）
+            $target_child_id = null;
+            foreach ($children as $child_id) {
+                $blank_item = get_post_meta($child_id, 'pw_blank_item', true);
+                if ($blank_item === '1' || $blank_item === 1 || $blank_item === true) {
+                    $target_child_id = (int)$child_id;
+                    break;
+                }
+            }
+
+            // 若未找到空白件，则回退到第一个子产品
+            if (!$target_child_id) {
+                $target_child_id = (int)reset($children);
+            }
+
+            // 使用子产品进行后续可购买与库存校验
+            $child_product = wc_get_product($target_child_id);
+            if (!$child_product || !$child_product->is_purchasable()) {
+                wp_send_json_error('组合子产品不可购买');
+            }
+            if (!$child_product->is_in_stock()) {
+                wp_send_json_error('组合子产品缺货');
+            }
+
+            // 将后续加入购物车的目标产品替换为子产品
+            $product_id = $target_child_id;
+            $product = $child_product;
+        }
+
+        // 非 grouped 产品：常规可购买校验
+        if (!$product->is_purchasable()) {
             wp_send_json_error('产品不可购买');
         }
 
