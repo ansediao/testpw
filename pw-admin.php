@@ -16,7 +16,7 @@
  * Plugin Name:       PW Canvas
  * Plugin URI:        https://www.pw.com
  * Description:       PW Canvas
- * Version:           1.0.0
+ * Version:           1.0.1
  * Author:            PW
  * Author URI:        https://www.pw.com/
  * License:           GPL-2.0+
@@ -384,7 +384,12 @@ function pwca_shipping_method_init()
         private function fetch_shipping_rate($country_code, $weight, $shipping_method)
         {
             $api_url = 'https://dev.promowares.com/api/v1/shipping/calculate';
-            $token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NDE4MTYxMjgsInRlYW0iOiIxIiwidXNlcl9pZCI6MX0.60D-NUbUBa_n3KXyNrhnoN964IjwIFJtGUVDCSnKYFM';
+            // 从设置中读取 API Token，避免硬编码
+            $token = get_option('pw_api_token', '');
+            if (empty($token)) {
+                error_log('PW Shipping: API token (pw_api_token) is not configured.');
+                return false;
+            }
 
             $args = array(
                 'headers' => array(
@@ -392,7 +397,7 @@ function pwca_shipping_method_init()
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
                     'Accept-Encoding' => 'gzip, deflate, br',
-                    'User-Agent' => 'PostmanRuntime-ApipostRuntime/1.1.0',
+                    'User-Agent' => 'PW-Canvas-Plugin/1.0.0',
                     'Connection' => 'keep-alive',
                 ),
                 'body' => json_encode(array(

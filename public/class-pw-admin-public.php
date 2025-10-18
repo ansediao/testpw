@@ -164,7 +164,7 @@ class Pw_Admin_Public
                         var container = $(this);
                         var imageUrl = container.data("image-url");
                         if (imageUrl) {
-                            container(\'<img src="\' + imageUrl + \'" alt="定制设计" style="max-width: 100px; height: auto; display: block; border: 1px solid #ddd; padding: 5px; background: #fff;">\');
+                            container.append(\'<img src="\' + imageUrl + \'" alt="定制设计" style="max-width: 100px; height: auto; display: block; border: 1px solid #ddd; padding: 5px; background: #fff;">\');
                         }
                     });
                 }
