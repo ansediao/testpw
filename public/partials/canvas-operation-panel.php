@@ -577,14 +577,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 生成默认颜色
                 function generateDefaultColors(container, selectedColor = null) {
                     const defaultColors = [
-                        { color: '#000000', name: '黑色' },
-                        { color: '#ef4444', name: '红色' },
-                        { color: '#14b8a6', name: '青色' },
-                        { color: '#ec4899', name: '粉色' },
-                        { color: '#ffffff', name: '白色' },
-                        { color: '#22d3ee', name: '天蓝色' },
-                        { color: '#2563eb', name: '蓝色' },
-                        { color: '#fde047', name: '黄色' }
+                        // { color: '#000000', name: '黑色' },
+                        // { color: '#ef4444', name: '红色' },
+                        // { color: '#14b8a6', name: '青色' },
+                        // { color: '#ec4899', name: '粉色' },
+                        // { color: '#ffffff', name: '白色' },
+                        // { color: '#22d3ee', name: '天蓝色' },
+                        // { color: '#2563eb', name: '蓝色' },
+                        // { color: '#fde047', name: '黄色' }
                     ];
 
                     container.innerHTML = '';
