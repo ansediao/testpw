@@ -1983,6 +1983,52 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                         img.onload = () => layerResolve({img, layerName});
                         img.onerror = () => layerResolve(null);
                         img.src = dataURL;
+                    } else if (layerName === 'baseCanvas') {
+                        // 对于baseCanvas，需要动态应用当前选中的颜色
+                        try {
+                            const dataURL = canvasElement.toDataURL('image/png');
+                            const img = new Image();
+                            img.onload = () => {
+                                // 获取明确选中的颜色
+                                const explicitColor = getExplicitSelectedColor();
+                                console.log('captureMultiLayerCanvasWithMask - baseCanvas 颜色检测结果:', explicitColor);
+                                
+                                // 如果有明确选中的颜色，则应用颜色
+                                if (explicitColor) {
+                                    console.log('应用颜色到 baseCanvas:', explicitColor);
+                                    // 创建临时画布来应用颜色
+                                    const tempCanvas = document.createElement('canvas');
+                                    tempCanvas.width = canvasElement.width;
+                                    tempCanvas.height = canvasElement.height;
+                                    const tempCtx = tempCanvas.getContext('2d');
+                                    
+                                    // 先绘制原图
+                                    tempCtx.drawImage(img, 0, 0);
+                                    
+                                    // 应用颜色（使用 source-in 混合模式）
+                                    tempCtx.globalCompositeOperation = 'source-in';
+                                    tempCtx.fillStyle = explicitColor;
+                                    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                                    
+                                    // 重置混合模式
+                                    tempCtx.globalCompositeOperation = 'source-over';
+                                    
+                                    // 创建新的图片对象返回应用了颜色的结果
+                                    const coloredImg = new Image();
+                                    coloredImg.onload = () => layerResolve({img: coloredImg, layerName});
+                                    coloredImg.onerror = () => layerResolve({img, layerName}); // 如果失败，返回原图
+                                    coloredImg.src = tempCanvas.toDataURL('image/png');
+                                } else {
+                                    // 没有颜色或是默认颜色，直接返回原图
+                                    layerResolve({img, layerName});
+                                }
+                            };
+                            img.onerror = () => layerResolve(null);
+                            img.src = dataURL;
+                        } catch (error) {
+                            console.warn(`Failed to capture ${layerName}:`, error);
+                            layerResolve(null);
+                        }
                     } else { // 其他Canvas直接使用toDataURL
                         try {
                             const dataURL = canvasElement.toDataURL('image/png');
@@ -2473,6 +2519,47 @@ function getCurrentSelectedColor() { // 首先尝试从颜色选择器获取
 }
 
 /**
+ * 检查是否有明确选中的颜色（不包括默认状态）
+ * @returns {string|null} 返回选中的颜色，如果没有明确选中则返回null
+ */
+function getExplicitSelectedColor() {
+    console.log('=== getExplicitSelectedColor 调试信息 ===');
+    
+    // 首先尝试从颜色选择器获取
+    const selectedSwatch = document.querySelector('.color-swatch.selected');
+    if (selectedSwatch) {
+        const color = selectedSwatch.getAttribute('data-color');
+        if (color) {
+            console.log('从颜色样本获取到颜色:', color);
+            return color;
+        }
+    }
+
+    // 尝试从全局变量获取（只有当值不是默认值时）
+    if (window.currentColor && window.currentColor !== '#000000') {
+        console.log('从 window.currentColor 获取到颜色:', window.currentColor);
+        return window.currentColor;
+    }
+
+    // 尝试从自定义颜色选择器获取（只有当值不是默认值时）
+    const customColorPicker = document.getElementById('customColorPicker');
+    if (customColorPicker && customColorPicker.value && customColorPicker.value !== '#000000') {
+        console.log('从 customColorPicker 获取到颜色:', customColorPicker.value);
+        return customColorPicker.value;
+    }
+
+    // 调试信息：显示所有检查的值
+    console.log('颜色检测结果:');
+    console.log('- selectedSwatch:', selectedSwatch);
+    console.log('- window.currentColor:', window.currentColor);
+    console.log('- customColorPicker.value:', customColorPicker ? customColorPicker.value : 'picker not found');
+    console.log('- 最终结果: 没有明确选中的颜色');
+    
+    // 没有明确选中的颜色
+    return null;
+}
+
+/**
  * 生成4格图的合成图片（按图层叠加顺序）
  * @param {Object} options - 生成选项
  * @returns {Promise<string>} 图片数据URL
@@ -2504,8 +2591,14 @@ async function generateCompositeImageForGrid(options) {
 
         // 2. 绘制Base Layer（如果存在）并应用当前选中的颜色
         if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) {
-            const currentColor = getCurrentSelectedColor();
-            await drawLayerImageForGridWithColor(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight, currentColor);
+            const explicitColor = getExplicitSelectedColor();
+            if (explicitColor) {
+                // 有明确选中的颜色，应用颜色
+                await drawLayerImageForGridWithColor(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight, explicitColor);
+            } else {
+                // 没有明确选中的颜色，使用原始图片
+                await drawLayerImageForGrid(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
+            }
         }
 
         // 3. 绘制Overlay Layer作为底层（如果存在）

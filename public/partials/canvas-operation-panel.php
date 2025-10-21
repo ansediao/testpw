@@ -641,6 +641,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // 处理颜色样本点击的逻辑
                 function handleColorSwatchClick(color) {
+                    // 更新全局颜色变量，确保与 Custom Colors 保持一致
+                    window.currentColor = color;
+                    console.log('颜色样本点击，更新 window.currentColor:', color);
+                    
                     // 先清除所有渐变色对象
                     if (window.clearAllGradientRects) {
                         window.clearAllGradientRects();
@@ -984,6 +988,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.clearAllGradientRects();
                     }
                     
+                    // 重置全局颜色变量
+                    window.currentColor = '#000000';
+                    console.log('已重置 window.currentColor 为默认值:', window.currentColor);
+                    
+                    // 清除所有颜色样本的选中状态
+                    const colorSwatches = document.querySelectorAll('.color-swatch');
+                    colorSwatches.forEach(s => s.classList.remove('selected'));
+                    
                     // 清除所有色调滤镜并重置base_layer
                     if (window.useCanvasStore) {
                         const store = window.useCanvasStore();
@@ -1093,6 +1105,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     applyCustomColorBtn.addEventListener('click', function() {
                         const color = customColorPicker.value;
                         
+                        // 更新全局颜色变量，确保 getExplicitSelectedColor 能检测到
+                        window.currentColor = color;
+                        console.log('自定义颜色已应用，更新 window.currentColor:', color);
+                        
                         // 先清除所有渐变色对象
                         if (window.clearAllGradientRects) {
                             window.clearAllGradientRects();
@@ -1190,9 +1206,22 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         }
                         
-                        // 更新颜色样本中的选中状态
+                        // 更新颜色样本中的选中状态 - 不清除选中状态，而是创建虚拟选中状态
                         const colorSwatches = document.querySelectorAll('.color-swatch');
                         colorSwatches.forEach(s => s.classList.remove('selected'));
+                        
+                        // 创建或更新虚拟的自定义颜色样本，让 getExplicitSelectedColor 能检测到
+                        let customColorSwatch = document.querySelector('.color-swatch[data-custom-color="true"]');
+                        if (!customColorSwatch) {
+                            customColorSwatch = document.createElement('div');
+                            customColorSwatch.className = 'color-swatch';
+                            customColorSwatch.setAttribute('data-custom-color', 'true');
+                            customColorSwatch.style.display = 'none'; // 隐藏，仅用于检测
+                            document.body.appendChild(customColorSwatch);
+                        }
+                        customColorSwatch.setAttribute('data-color', color);
+                        customColorSwatch.classList.add('selected');
+                        console.log('已创建虚拟自定义颜色样本，颜色:', color);
                         customColorModal.style.display = 'none';
                     });
                 }
