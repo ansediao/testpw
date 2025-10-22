@@ -2380,6 +2380,7 @@ async function generate4GridImagesForView(view) {
     const backgroundLayer = view.layers.find(layer => layer.name === 'Background Layer');
     const baseLayer = view.layers.find(layer => layer.name === 'Base Layer');
     const overlayLayer = view.layers.find(layer => layer.name === 'Overlay Layer');
+    const mappingLayer = view.layers.find(layer => layer.name === 'Mapping Layer');
 
     // 获取画布尺寸（从Background Layer或默认值）
     let canvasWidth = 400;
@@ -2472,6 +2473,7 @@ async function generate4GridImagesForView(view) {
                 backgroundLayer,
                 baseLayer,
                 overlayLayer,
+                mappingLayer,
                 activeCanvas,
                 cropConfig: config.cropConfig
             });
@@ -2571,6 +2573,7 @@ async function generateCompositeImageForGrid(options) {
         backgroundLayer,
         baseLayer,
         overlayLayer,
+        mappingLayer,
         activeCanvas,
         cropConfig
     } = options;
