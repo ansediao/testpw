@@ -506,6 +506,11 @@ function pwca_fetch_shipping_options_from_api($country_code, $weight, $shipping_
         'shipping_method' => $shipping_method,
     );
 
+    // 详细的请求日志
+    error_log('PWCA API Request - URL: ' . $api_url);
+    error_log('PWCA API Request - Data: ' . json_encode($request_data));
+    error_log('PWCA API Request - Country: ' . $country_code . ', Weight: ' . $weight);
+
     $args = array(
         'headers' => array(
             'Authorization' => $token,
@@ -521,27 +526,48 @@ function pwca_fetch_shipping_options_from_api($country_code, $weight, $shipping_
     
     if (is_wp_error($response)) {
         error_log('PWCA Shipping API WP Error: ' . $response->get_error_message());
-        return pwca_get_fallback_shipping_options($country_code, $weight);
+        return pwca_get_fallback_shipping_options($country_code, $weight, true);
     }
 
     $response_code = wp_remote_retrieve_response_code($response);
     $body = wp_remote_retrieve_body($response);
+    
+    // 详细的响应日志
+    error_log('PWCA API Response - Code: ' . $response_code);
+    error_log('PWCA API Response - Body: ' . $body);
+    
     $data = json_decode($body, true);
+    
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        error_log('PWCA API JSON Decode Error: ' . json_last_error_msg());
+        return pwca_get_fallback_shipping_options($country_code, $weight, true);
+    }
+    
+    error_log('PWCA API Parsed Data: ' . print_r($data, true));
     
     // 检查API响应是否成功
     if ($response_code === 200 && $data && isset($data['code']) && $data['code'] === 200) {
         if (isset($data['data']['raw_response']['data']) && !empty($data['data']['raw_response']['data'])) {
+            error_log('PWCA API Success - Using real API data');
             return $data;
+        } else {
+            error_log('PWCA API Error - Missing or empty data in response structure');
+            error_log('PWCA API Data Structure: ' . print_r($data, true));
+        }
+    } else {
+        error_log('PWCA API Error - Invalid response code or data structure');
+        if ($data && isset($data['message'])) {
+            error_log('PWCA API Error Message: ' . $data['message']);
         }
     }
     
     // API失败或返回错误，使用备用数据
     error_log('PWCA Shipping API failed (Code: ' . $response_code . '), using fallback data');
-    return pwca_get_fallback_shipping_options($country_code, $weight);
+    return pwca_get_fallback_shipping_options($country_code, $weight, true);
 }
 
 // 备用运费选项函数
-function pwca_get_fallback_shipping_options($country_code, $weight)
+function pwca_get_fallback_shipping_options($country_code, $weight, $api_failed = false)
 {
     // 根据重量调整价格
     $weight_multiplier = max(1, ceil($weight / 1)); // 每1kg为一个计费单位
@@ -578,15 +604,22 @@ function pwca_get_fallback_shipping_options($country_code, $weight)
         }
     }
     
+    $message = $api_failed 
+        ? 'API unavailable - using backup shipping rates' 
+        : 'Success (using fallback data)';
+    
+    error_log('PWCA Fallback Data Generated: ' . ($api_failed ? 'API Failed' : 'Normal Fallback'));
+    
     return array(
         'code' => 200,
-        'message' => 'Success (using fallback data)',
+        'message' => $message,
         'data' => array(
             'raw_response' => array(
                 'data' => $base_rates
             )
         ),
-        'fallback' => true
+        'fallback' => true,
+        'api_failed' => $api_failed
     );
 }
 
@@ -636,20 +669,33 @@ function pwca_handle_get_shipping_options()
     }
 
     // 调用API获取运费选项
+    error_log('PWCA AJAX - Calling API with Country: ' . $country_code . ', Weight: ' . $weight);
     $shipping_options = pwca_fetch_shipping_options_from_api($country_code, $weight, 'PK1792');
 
     if ($shipping_options && isset($shipping_options['code']) && $shipping_options['code'] === 200) {
         // 检查是否使用了备用数据
-        $message = isset($shipping_options['fallback']) && $shipping_options['fallback'] 
-            ? 'Shipping options loaded (using backup service due to API unavailability)'
-            : 'Shipping options loaded successfully';
+        $is_fallback = isset($shipping_options['fallback']) && $shipping_options['fallback'];
+        $api_failed = isset($shipping_options['api_failed']) && $shipping_options['api_failed'];
+        
+        if ($api_failed) {
+            $message = 'Warning: Shipping API is currently unavailable. Showing estimated rates.';
+            error_log('PWCA AJAX - Using fallback data due to API failure');
+        } else if ($is_fallback) {
+            $message = 'Shipping options loaded (using backup service)';
+            error_log('PWCA AJAX - Using fallback data (normal)');
+        } else {
+            $message = 'Shipping options loaded successfully from API';
+            error_log('PWCA AJAX - Using real API data');
+        }
             
         wp_send_json_success(array(
             'data' => $shipping_options,
             'message' => $message,
-            'fallback' => isset($shipping_options['fallback']) ? $shipping_options['fallback'] : false
+            'fallback' => $is_fallback,
+            'api_failed' => $api_failed
         ));
     } else {
+        error_log('PWCA AJAX - Complete failure, no shipping options available');
         wp_send_json_error('Unable to calculate shipping costs. Please try again later.');
     }
 }
@@ -745,16 +791,25 @@ function pwca_add_calculate_shipping_button()
                             button.prop("disabled", false).removeClass("loading").text("' . __('Calculate Shipping', 'woocommerce') . '");
                             
                             if (response.success) {
+                                // 清除之前的通知
+                                $(".woocommerce-info, .woocommerce-error").remove();
+                                
                                 // 检查响应数据结构
                                 var shippingData = response.data.data || response.data;
                                 if (shippingData && shippingData.data && shippingData.data.raw_response && shippingData.data.raw_response.data) {
                                     // 显示用户友好的消息
-                                    if (response.data.fallback) {
-                                        var notice = "<div class=\"woocommerce-info\">" + response.data.message + "</div>";
+                                    if (response.data.api_failed) {
+                                        var notice = "<div class=\"woocommerce-error\" style=\"margin-bottom: 15px; padding: 10px; border-left: 4px solid #dc3232; background: #ffeaea;\">" + response.data.message + "</div>";
+                                        $("#pwca-shipping-options").before(notice);
+                                    } else if (response.data.fallback) {
+                                        var notice = "<div class=\"woocommerce-info\" style=\"margin-bottom: 15px; padding: 10px; border-left: 4px solid #00a0d2; background: #e5f5fa;\">" + response.data.message + "</div>";
+                                        $("#pwca-shipping-options").before(notice);
+                                    } else {
+                                        var notice = "<div class=\"woocommerce-message\" style=\"margin-bottom: 15px; padding: 10px; border-left: 4px solid #46b450; background: #ecf7ed;\">" + response.data.message + "</div>";
                                         $("#pwca-shipping-options").before(notice);
                                     }
                                     
-                                    displayShippingOptions(shippingData.data.raw_response.data);
+                                    displayShippingOptions(shippingData.data.raw_response.data, response.data.api_failed);
                                 } else {
                                     alert("' . __('Unable to load shipping options. Please try again.', 'woocommerce') . '");
                                 }
@@ -771,8 +826,9 @@ function pwca_add_calculate_shipping_button()
                 });
                 
                 // 显示运费选项表格
-                function displayShippingOptions(options) {
-                    var html = "<h4>' . __('Shipping Options', 'woocommerce') . '</h4>";
+                function displayShippingOptions(options, isApiFailed) {
+                    var titleSuffix = isApiFailed ? " (Estimated Rates)" : "";
+                    var html = "<h4>' . __('Shipping Options', 'woocommerce') . '" + titleSuffix + "</h4>";
                     html += "<table class=\"pwca-shipping-table\">";
                     html += "<thead><tr>";
                     html += "<th>' . __('Select', 'woocommerce') . '</th>";
@@ -790,6 +846,11 @@ function pwca_add_calculate_shipping_button()
                         var cost = option.totalFee || option.cost || 0;
                         var deliveryTime = option.effectiveness || option.delivery_time || "Unknown";
                         
+                        // 如果是备用数据，添加标识
+                        if (isApiFailed) {
+                            serviceName += " (Est.)";
+                        }
+                        
                         // 确保delivery_time格式正确
                         if (typeof deliveryTime === "string" && deliveryTime.indexOf("day") === -1) {
                             deliveryTime = deliveryTime + " ' . __('days', 'woocommerce') . '";
@@ -805,6 +866,10 @@ function pwca_add_calculate_shipping_button()
                     
                     html += "</tbody></table>";
                     
+                    if (isApiFailed) {
+                        html += "<p style=\"font-size: 12px; color: #666; margin-top: 10px;\"><em>* Rates shown are estimates. Actual shipping costs may vary.</em></p>";
+                    }
+                    
                     $("#pwca-shipping-options").html(html).show();
                     
                     // 默认选中第一个选项并更新运费
@@ -812,6 +877,9 @@ function pwca_add_calculate_shipping_button()
                         var firstOption = options[0];
                         var firstCost = firstOption.totalFee || firstOption.cost || 0;
                         var firstName = firstOption.serviceCnName || firstOption.name || "Unknown Service";
+                        if (isApiFailed) {
+                            firstName += " (Est.)";
+                        }
                         updateShippingCost(firstCost, firstName);
                     }
                 }
@@ -822,6 +890,30 @@ function pwca_add_calculate_shipping_button()
                     var service = $(this).data("service");
                     updateShippingCost(cost, service);
                 });
+                
+                // 更新运费显示文字的函数
+                function updateShippingDisplayText(service, cost) {
+                    // 查找运费显示的 td 元素
+                    $(".shipping td").each(function() {
+                        var $td = $(this);
+                        // 检查是否包含运费信息
+                        if ($td.text().includes("Shipping") || $td.text().includes("$")) {
+                            // 构建新的显示文字
+                            var newText = "Shipping Options: " + service + ": $" + parseFloat(cost).toFixed(2);
+                            $td.html(newText);
+                            console.log("Updated shipping display text to:", newText);
+                        }
+                    });
+                    
+                    // 也更新可能的其他运费显示位置
+                    $(".woocommerce-shipping-totals td").each(function() {
+                        var $td = $(this);
+                        if ($td.text().includes("Shipping") || $td.text().includes("$")) {
+                            var newText = "Shipping Options: " + service + ": $" + parseFloat(cost).toFixed(2);
+                            $td.html(newText);
+                        }
+                    });
+                }
                 
                 // 更新运费
                 function updateShippingCost(cost, service) {
@@ -844,12 +936,17 @@ function pwca_add_calculate_shipping_button()
                             if (response.success) {
                                 console.log("PWCA Shipping updated:", response.data);
                                 
+                                // 立即更新运费显示文字
+                                updateShippingDisplayText(service, cost);
+                                
                                 // 强制触发多个更新事件确保运费正确显示
                                 $("body").trigger("update_checkout");
                                 
                                 // 延迟再次触发，确保更新完成
                                 setTimeout(function() {
                                     $("body").trigger("update_checkout");
+                                    // 再次确保显示文字正确
+                                    updateShippingDisplayText(service, cost);
                                 }, 500);
                                 
                                 // 显示成功消息
