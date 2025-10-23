@@ -2680,7 +2680,7 @@ async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
                 originalWidth: targetWidth,
                 originalHeight: targetHeight
             };
-
+            
             ctx.drawImage(img, x, y, targetWidth, targetHeight);
             resolve();
         };
@@ -2861,7 +2861,7 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
 
             // 获取杯子边界信息
             const cupBoundary = window.cupBoundary;
-
+            
             if (! cupBoundary) {
                 console.warn('Cup boundary not found, using original drawing method');
                 // 如果没有边界信息，使用原来的绘制方式
@@ -2933,15 +2933,22 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
 function drawCanvasWithinBoundaryForWindow(ctx, sourceCanvas, cupBoundary) { // 计算源画布的缩放比例以适应杯子边界
     const scaleX = cupBoundary.width / sourceCanvas.width;
     const scaleY = cupBoundary.height / sourceCanvas.height;
-    const scale = Math.min(scaleX, scaleY) * 0.95; // 稍微缩小一点确保不超出边界
+    
+    // ===== 修复：优先保证高度充分利用，宽度可以超出边界（会被裁剪） =====
+    // 使用较大的缩放比例，优先保证高度填满杯子边界
+    const scale = Math.max(scaleX, scaleY) * 0.95; // 改为使用Math.max，优先保证高度
+    
+    // 确保缩放后不会太小，至少保证高度利用率达到90%以上
+    const adjustedScale = Math.max(scale, 0.9);
+    
+    const scaledWidth = sourceCanvas.width * adjustedScale;
+    const scaledHeight = sourceCanvas.height * adjustedScale;
 
-    const scaledWidth = sourceCanvas.width * scale;
-    const scaledHeight = sourceCanvas.height * scale;
 
-    // 在杯子边界内居中绘制
+    // 在杯子边界内居中绘制（如果宽度超出边界，会被裁剪）
     const x = cupBoundary.x + (cupBoundary.width - scaledWidth) / 2;
     const y = cupBoundary.y + (cupBoundary.height - scaledHeight) / 2;
-
+    
     ctx.drawImage(sourceCanvas, x, y, scaledWidth, scaledHeight);
 }
 
