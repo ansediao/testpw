@@ -362,38 +362,39 @@ function pwca_shipping_method_init()
             $selected_cost = WC()->session->get('pwca_selected_shipping_cost');
             $selected_service = WC()->session->get('pwca_selected_shipping_service');
             
-            if ($selected_cost && $selected_service) {
+            // 添加调试日志
+            error_log('PWCA Shipping Debug - Selected Cost: ' . $selected_cost . ', Service: ' . $selected_service);
+            
+            if ($selected_cost !== null && $selected_cost !== false && $selected_service) {
+                // 确保运费为数字类型
+                $cost = floatval($selected_cost);
+                
                 return array(
                     'id' => $this->id . '_' . $this->instance_id,
-                    'label' => $selected_service,
-                    'cost' => $selected_cost,
+                    'label' => 'Shipping Options: ' . $selected_service,
+                    'cost' => $cost,
                     'taxes' => '',
                     'calc_tax' => 'per_order',
+                    'meta_data' => array(
+                        'pwca_shipping_service' => $selected_service,
+                        'pwca_shipping_cost' => $cost
+                    )
                 );
             }
 
-            // 如果没有选择的运费，使用默认逻辑
-            $weight = 0;
-            $country_code = $package['destination']['country'];
-            foreach ($package['contents'] as $item) {
-                $product = $item['data'];
-                // $weight += $product->get_weight() * $item['quantity'];
-                $weight += $item['quantity'];
-            }
-
-            // 调用 API 获取运费
-            $shipping_rate = $this->fetch_shipping_rate($country_code, $weight, 'PK1792');
-
-            if ($shipping_rate && isset($shipping_rate['totalFee'])) {
-                return array(
-                    'id' => $this->id . '_' . $this->instance_id,
-                    'label' => $this->title,
-                    'cost' => $shipping_rate['totalFee'],
-                    'taxes' => '',
-                    'calc_tax' => 'per_order',
-                );
-            }
-            return false;
+            // 如果没有选择的运费，返回默认的占位符运费
+            // 这样可以确保在用户选择运费之前，checkout 页面也能正常显示
+            return array(
+                'id' => $this->id . '_' . $this->instance_id,
+                'label' => 'Shipping Options: Please calculate shipping',
+                'cost' => 0,
+                'taxes' => '',
+                'calc_tax' => 'per_order',
+                'meta_data' => array(
+                    'pwca_shipping_service' => 'Not selected',
+                    'pwca_shipping_cost' => 0
+                )
+            );
         }
 
         private function fetch_shipping_rate($country_code, $weight, $shipping_method)
@@ -453,6 +454,44 @@ function add_pwca_shipping_method($methods)
 {
     $methods['pwca_shipping_method'] = 'WC_Pwca_Shipping_Method';
     return $methods;
+}
+
+// 确保 PWCA shipping method 在所有 shipping zones 中可用
+add_action('woocommerce_shipping_zone_method_added', 'pwca_ensure_shipping_method_available', 10, 3);
+function pwca_ensure_shipping_method_available($instance_id, $method_id, $zone_id) {
+    if ($method_id === 'pwca_shipping_method') {
+        error_log('PWCA Shipping method added to zone: ' . $zone_id);
+    }
+}
+
+// 在插件激活时自动添加 shipping method 到默认 zone
+add_action('woocommerce_init', 'pwca_auto_add_shipping_method');
+function pwca_auto_add_shipping_method() {
+    // 检查是否已经添加过
+    $added = get_option('pwca_shipping_method_added', false);
+    if (!$added) {
+        // 获取所有 shipping zones
+        $zones = WC_Shipping_Zones::get_zones();
+        
+        // 如果没有 zones，创建一个默认的
+        if (empty($zones)) {
+            $zone = new WC_Shipping_Zone();
+            $zone->set_zone_name('Default Zone');
+            $zone->save();
+            $zone_id = $zone->get_id();
+        } else {
+            // 使用第一个 zone
+            $zone_id = array_keys($zones)[0];
+        }
+        
+        // 添加我们的 shipping method 到 zone
+        $zone = WC_Shipping_Zones::get_zone($zone_id);
+        if ($zone) {
+            $zone->add_shipping_method('pwca_shipping_method');
+            update_option('pwca_shipping_method_added', true);
+            error_log('PWCA Shipping method auto-added to zone: ' . $zone_id);
+        }
+    }
 }
 
 // 独立的API调用函数，用于获取所有运费选项
@@ -632,10 +671,23 @@ function pwca_handle_update_shipping_cost()
     // 将选中的运费存储到session中
     WC()->session->set('pwca_selected_shipping_cost', $selected_cost);
     WC()->session->set('pwca_selected_shipping_service', $service_name);
+    
+    // 强制清除 WooCommerce shipping packages 缓存
+    WC()->shipping()->reset_shipping();
+    
+    // 清除购物车缓存，强制重新计算
+    if (WC()->cart) {
+        WC()->cart->calculate_shipping();
+        WC()->cart->calculate_totals();
+    }
 
     wp_send_json_success(array(
         'cost' => $selected_cost,
-        'service' => $service_name
+        'service' => $service_name,
+        'debug' => array(
+            'session_cost' => WC()->session->get('pwca_selected_shipping_cost'),
+            'session_service' => WC()->session->get('pwca_selected_shipping_service')
+        )
     ));
 }
 
@@ -773,6 +825,9 @@ function pwca_add_calculate_shipping_button()
                 
                 // 更新运费
                 function updateShippingCost(cost, service) {
+                    // 显示加载状态
+                    $("#pwca-shipping-options").append("<div class=\"pwca-shipping-updating\">Updating shipping cost...</div>");
+                    
                     $.ajax({
                         url: pwca_ajax.ajax_url,
                         type: "POST",
@@ -783,10 +838,35 @@ function pwca_add_calculate_shipping_button()
                             service_name: service
                         },
                         success: function(response) {
+                            // 移除加载状态
+                            $(".pwca-shipping-updating").remove();
+                            
                             if (response.success) {
-                                // 触发WooCommerce更新结账页面以反映新的运费
+                                console.log("PWCA Shipping updated:", response.data);
+                                
+                                // 强制触发多个更新事件确保运费正确显示
                                 $("body").trigger("update_checkout");
+                                
+                                // 延迟再次触发，确保更新完成
+                                setTimeout(function() {
+                                    $("body").trigger("update_checkout");
+                                }, 500);
+                                
+                                // 显示成功消息
+                                var successMsg = "<div class=\"woocommerce-message\">Shipping cost updated: $" + parseFloat(cost).toFixed(2) + " for " + service + "</div>";
+                                $("#pwca-shipping-options").before(successMsg);
+                                
+                                // 3秒后移除成功消息
+                                setTimeout(function() {
+                                    $(".woocommerce-message").fadeOut();
+                                }, 3000);
+                            } else {
+                                alert("Failed to update shipping cost");
                             }
+                        },
+                        error: function() {
+                            $(".pwca-shipping-updating").remove();
+                            alert("Error updating shipping cost");
                         }
                     });
                 }
@@ -896,6 +976,67 @@ function pwca_calculate_shipping_styles()
                 font-weight: 600;
                 color: #007cba;
             }
+            
+            /* 运费更新状态样式 */
+            .pwca-shipping-updating {
+                background: #f0f8ff;
+                border: 1px solid #007cba;
+                padding: 8px 12px;
+                margin: 10px 0;
+                border-radius: 4px;
+                color: #007cba;
+                font-size: 14px;
+                text-align: center;
+            }
+            
+            /* 成功消息样式 */
+            .woocommerce-message {
+                background: #d4edda;
+                border: 1px solid #c3e6cb;
+                color: #155724;
+                padding: 10px 15px;
+                margin: 10px 0;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+            
+            /* 隐藏 WooCommerce 默认的运费选择器 */
+            .woocommerce-checkout #shipping_method {
+                display: none !important;
+            }
+            
+            .woocommerce-checkout .shipping-calculator-form {
+                display: none !important;
+            }
+            
+            /* 隐藏运费选择的单选按钮和标签 */
+            .woocommerce-checkout .woocommerce-shipping-methods {
+                display: none !important;
+            }
+            
+            .woocommerce-checkout .woocommerce-shipping-methods li {
+                display: none !important;
+            }
+            
+            /* 只显示运费金额，不显示选择器 */
+            .woocommerce-checkout .shipping td {
+                position: relative;
+            }
+            
+            .woocommerce-checkout .shipping .woocommerce-shipping-methods {
+                display: none !important;
+            }
+            
+            /* 确保运费标签正确显示 */
+            .woocommerce-checkout .shipping th,
+            .woocommerce-checkout .shipping td {
+                text-align: left;
+            }
+            
+            /* 隐藏运费计算器按钮（如果存在） */
+            .woocommerce-checkout .shipping-calculator-button {
+                display: none !important;
+            }
         </style>
         <script>
         jQuery(document).ready(function($) {
@@ -920,7 +1061,132 @@ function pwca_calculate_shipping_styles()
             $(document).ajaxComplete(function() {
                 setTimeout(ensureSingleCalculateButton, 100);
             });
+            
+            // 隐藏 WooCommerce 默认运费选择器的函数
+            function hideWooCommerceShippingSelector() {
+                // 隐藏运费选择的单选按钮
+                $(".woocommerce-shipping-methods").hide();
+                $(".woocommerce-shipping-methods li").hide();
+                $("#shipping_method").hide();
+                $(".shipping-calculator-form").hide();
+                $(".shipping-calculator-button").hide();
+                
+                // 确保运费金额仍然显示
+                $(".shipping td").each(function() {
+                    var $td = $(this);
+                    var $methods = $td.find(".woocommerce-shipping-methods");
+                    if ($methods.length > 0) {
+                        // 获取选中的运费信息
+                        var $selectedMethod = $methods.find("input:checked").parent();
+                        if ($selectedMethod.length > 0) {
+                            var shippingText = $selectedMethod.text().trim();
+                            // 只显示运费文本，不显示选择器
+                            $td.html($selectedMethod.text().trim());
+                        }
+                    }
+                });
+                
+                console.log("PW Canvas: Hidden WooCommerce shipping selector");
+            }
+            
+            // 页面加载时隐藏选择器
+            hideWooCommerceShippingSelector();
+            
+            // 监听 checkout 更新事件
+            $(document.body).on("updated_checkout", function() {
+                setTimeout(hideWooCommerceShippingSelector, 200);
+            });
+            
+            // 监听 AJAX 完成事件
+            $(document).ajaxComplete(function(event, xhr, settings) {
+                // 检查是否是 checkout 相关的 AJAX 请求
+                if (settings.url && (settings.url.indexOf("update_order_review") > -1 || settings.url.indexOf("checkout") > -1)) {
+                    setTimeout(hideWooCommerceShippingSelector, 200);
+                }
+            });
         });
         </script>';
     }
+}
+
+// 添加 WooCommerce hooks 确保运费正确更新
+add_action('woocommerce_checkout_update_order_review', 'pwca_force_shipping_recalculation');
+function pwca_force_shipping_recalculation($post_data) {
+    // 解析 POST 数据
+    parse_str($post_data, $data);
+    
+    // 检查是否有选中的运费
+    $selected_cost = WC()->session->get('pwca_selected_shipping_cost');
+    $selected_service = WC()->session->get('pwca_selected_shipping_service');
+    
+    if ($selected_cost !== null && $selected_cost !== false) {
+        // 强制重新计算运费
+        WC()->shipping()->reset_shipping();
+        if (WC()->cart) {
+            WC()->cart->calculate_shipping();
+        }
+    }
+}
+
+// 确保在 checkout 页面加载时显示正确的运费
+add_action('woocommerce_checkout_init', 'pwca_init_checkout_shipping');
+function pwca_init_checkout_shipping() {
+    // 检查是否有选中的运费
+    $selected_cost = WC()->session->get('pwca_selected_shipping_cost');
+    $selected_service = WC()->session->get('pwca_selected_shipping_service');
+    
+    if ($selected_cost !== null && $selected_cost !== false) {
+        // 强制重新计算运费以确保显示正确
+        WC()->shipping()->reset_shipping();
+        if (WC()->cart) {
+            WC()->cart->calculate_shipping();
+            WC()->cart->calculate_totals();
+        }
+    }
+}
+
+// 确保运费方法只显示一个选项（不显示选择器）
+add_filter('woocommerce_package_rates', 'pwca_filter_shipping_methods', 10, 2);
+function pwca_filter_shipping_methods($rates, $package) {
+    // 检查是否有我们的运费方法
+    $pwca_rates = array();
+    foreach ($rates as $rate_id => $rate) {
+        if (strpos($rate_id, 'pwca_shipping_method') !== false) {
+            $pwca_rates[$rate_id] = $rate;
+        }
+    }
+    
+    // 如果有我们的运费方法，只返回我们的方法
+    if (!empty($pwca_rates)) {
+        return $pwca_rates;
+    }
+    
+    // 否则返回原始的运费方法
+    return $rates;
+}
+
+// 添加 AJAX 处理来清除运费选择
+add_action('wp_ajax_pwca_clear_shipping_selection', 'pwca_handle_clear_shipping_selection');
+add_action('wp_ajax_nopriv_pwca_clear_shipping_selection', 'pwca_handle_clear_shipping_selection');
+function pwca_handle_clear_shipping_selection() {
+    // 验证nonce
+    if (!wp_verify_nonce($_POST['nonce'], 'pwca_shipping_nonce')) {
+        wp_send_json_error('Security check failed');
+        return;
+    }
+    
+    // 清除 session 中的运费数据
+    WC()->session->set('pwca_selected_shipping_cost', null);
+    WC()->session->set('pwca_selected_shipping_service', null);
+    
+    // 强制重新计算
+    WC()->shipping()->reset_shipping();
+    if (WC()->cart) {
+        WC()->cart->calculate_shipping();
+        WC()->cart->calculate_totals();
+    }
+    
+    wp_send_json_success(array(
+        'message' => 'Shipping selection cleared'
+    ));
 }
