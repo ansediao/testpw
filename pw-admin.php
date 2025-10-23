@@ -434,7 +434,7 @@ function add_pwca_shipping_method($methods)
 }
 
 // 添加计算运费按钮和刷新订单区域功能
-add_action('woocommerce_review_order_before_shipping', 'pwca_add_calculate_shipping_button');
+add_action('woocommerce_after_order_notes', 'pwca_add_calculate_shipping_button');
 function pwca_add_calculate_shipping_button()
 {
     if (is_checkout() && !defined('DOING_AJAX')) {
