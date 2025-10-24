@@ -857,68 +857,237 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 }
-    // ===== 新增：全局方法 - 应用颜色到所有视图 =====
-    window.applyColorToAllViews = function(color) {
-        if (!window.useCanvasStore) {
-            console.warn('useCanvasStore 不可用');
+// ===== 新增：工具函数 =====
+window.isFourGridView = window.isFourGridView || function(view) {
+    return view && view.view_flow === '4-Grid Flow';
+};
+
+const isFourGridView = window.isFourGridView;
+
+window.applyColorToView = function(view, color, tintFunction) {
+    if (!view) {
+        console.warn('无法应用颜色：视图数据无效');
+        return;
+    }
+
+    if (isFourGridView(view)) {
+        console.log(`跳过四格视图 ${view.name || view.id} 的纯色应用`);
+        return;
+    }
+
+    if (!view.base_layer) {
+        console.warn(`视图 ${view.name || view.id} 没有 base_layer`);
+        return;
+    }
+
+    const effectiveTint = tintFunction || (typeof applyTintFilter === 'function' ? applyTintFilter : window.applyTintFilter);
+    if (typeof effectiveTint !== 'function') {
+        console.warn('applyTintFilter 函数不可用');
+        return;
+    }
+
+    effectiveTint(view.base_layer, color, 1);
+
+    if (view.base_layer.applyFilters) {
+        view.base_layer.applyFilters();
+    }
+
+    const canvas = (view.base_layer.canvas) || (window.CanvasManager ? window.CanvasManager.getCanvas(view.id) : null);
+    if (canvas) {
+        if (view.base_layer.canvas && view.base_layer.canvas !== canvas) {
+            view.base_layer.canvas.renderAll();
+        }
+        canvas.renderAll();
+        requestAnimationFrame(() => {
+            canvas.renderAll();
+        });
+        console.log(`已将颜色 ${color} 应用到视图 ${view.name || view.id}`);
+    } else {
+        console.warn(`视图 ${view.name || view.id} 的 canvas 未找到`);
+    }
+};
+
+// ===== 新增：全局方法 - 应用颜色到所有视图 =====
+window.applyColorToAllViews = function(color) {
+    if (!window.useCanvasStore) {
+        console.warn('useCanvasStore 不可用');
+        return;
+    }
+
+    const store = window.useCanvasStore();
+    if (!store.views || store.views.length === 0) {
+        console.warn('没有视图数据');
+        return;
+    }
+
+    const tintFunction = typeof applyTintFilter === 'function' ? applyTintFilter : window.applyTintFilter;
+    if (typeof tintFunction !== 'function') {
+        console.warn('applyTintFilter 函数不可用');
+        return;
+    }
+
+    store.views.forEach(view => {
+        if (isFourGridView(view)) {
+            console.log(`跳过四格视图 ${view.name || view.id} 的纯色同步`);
             return;
         }
-        
-        const store = window.useCanvasStore();
-        if (!store.views || store.views.length === 0) {
-            console.warn('没有视图数据');
-            return;
+        window.applyColorToView(view, color, tintFunction);
+    });
+
+    if (typeof window.__pwcaUpdatePriceDisplay === 'function') {
+        window.__pwcaUpdatePriceDisplay();
+    }
+
+    console.log(`全局颜色 ${color} 已应用到所有 ${store.views.length} 个视图`);
+};
+
+const getGradientCoords = (direction, width, height) => {
+    switch (direction) {
+        case 'to right':
+            return { x1: 0, y1: 0, x2: width, y2: 0 };
+        case 'to bottom':
+            return { x1: 0, y1: 0, x2: 0, y2: height };
+        case 'to bottom right':
+            return { x1: 0, y1: 0, x2: width, y2: height };
+        case 'to bottom left':
+            return { x1: width, y1: 0, x2: 0, y2: height };
+        default:
+            return { x1: 0, y1: 0, x2: width, y2: 0 };
+    }
+};
+
+window.applyGradientToView = function(view, startColor, endColor, direction) {
+    if (!view) {
+        console.warn('无法应用渐变：视图数据无效');
+        return;
+    }
+
+    if (isFourGridView(view)) {
+        console.log(`跳过四格视图 ${view.name || view.id} 的渐变应用`);
+        return;
+    }
+
+    if (typeof fabric === 'undefined') {
+        console.warn('fabric 未加载，无法应用渐变');
+        return;
+    }
+
+    const baseLayerObject = view.base_layer;
+    if (!baseLayerObject) {
+        console.warn(`视图 ${view.name || view.id} 没有 base_layer`);
+        return;
+    }
+
+    const baseCanvasId = `baseCanvas-${view.id}`;
+    let baseCanvas = null;
+
+    if (window.CanvasManager && typeof window.CanvasManager.getCanvas === 'function') {
+        baseCanvas = window.CanvasManager.getCanvas(baseCanvasId) || window.CanvasManager.getCanvas(view.id);
+    }
+
+    if (!baseCanvas) {
+        const baseCanvasElement = document.getElementById(baseCanvasId);
+        if (baseCanvasElement && baseCanvasElement.__fabricCanvas) {
+            baseCanvas = baseCanvasElement.__fabricCanvas;
         }
-        
-        // 确保 applyTintFilter 函数可用
-        const tintFunction = typeof applyTintFilter === 'function' ? applyTintFilter : window.applyTintFilter;
-        if (typeof tintFunction !== 'function') {
-            console.warn('applyTintFilter 函数不可用');
-            return;
-        }
-        
-        // 遍历所有视图并应用颜色
-        store.views.forEach(view => {
-            if (view.base_layer) {
-                // 应用 tint 滤镜到 base_layer
-                tintFunction(view.base_layer, color, 1);
-                
-                // 强制重新应用滤镜
-                if (view.base_layer.applyFilters) {
-                    view.base_layer.applyFilters();
-                }
-                
-                // 通过 CanvasManager 获取并渲染对应 canvas
-                if (window.CanvasManager) {
-                    const canvas = window.CanvasManager.getCanvas(view.id);
-                    if (canvas) {
-                        // 强制重新渲染 base_layer 对象
-                        if (view.base_layer.canvas) {
-                            view.base_layer.canvas.renderAll();
-                        }
-                        // 强制整个画布重新渲染
-                        canvas.renderAll();
-                        // 使用 requestAnimationFrame 优化渲染
-                        requestAnimationFrame(() => {
-                            canvas.renderAll();
-                        });
-                        console.log(`已将颜色 ${color} 应用到视图 ${view.name} (ID: ${view.id})`);
-                    } else {
-                        console.warn(`视图 ${view.name} 的 canvas 未找到`);
-                    }
-                }
-            } else {
-                console.warn(`视图 ${view.name} 没有 base_layer`);
+    }
+
+    if (!baseCanvas && baseLayerObject.canvas) {
+        baseCanvas = baseLayerObject.canvas;
+    }
+
+    if (!baseCanvas) {
+        console.warn(`无法获取视图 ${view.name || view.id} 的 baseCanvas`);
+        return;
+    }
+
+    const element = typeof baseLayerObject.getElement === 'function'
+        ? baseLayerObject.getElement()
+        : (baseLayerObject._originalElement || baseLayerObject._element || null);
+
+    if (!element) {
+        console.warn('无法获取Base图层的图像元素');
+        return;
+    }
+
+    const fallbackWidth = typeof baseLayerObject.getScaledWidth === 'function'
+        ? baseLayerObject.getScaledWidth()
+        : baseLayerObject.width;
+    const fallbackHeight = typeof baseLayerObject.getScaledHeight === 'function'
+        ? baseLayerObject.getScaledHeight()
+        : baseLayerObject.height;
+
+    const imageWidth = element.width || element.naturalWidth || fallbackWidth;
+    const imageHeight = element.height || element.naturalHeight || fallbackHeight;
+
+    if (!imageWidth || !imageHeight) {
+        console.warn('无法确定渐变覆盖层的尺寸');
+        return;
+    }
+
+    const overlaysToRemove = [];
+    if (typeof baseCanvas.getObjects === 'function') {
+        baseCanvas.getObjects().forEach(obj => {
+            if ((obj.id && obj.id.startsWith('gradient-rect-')) || (obj.name && obj.name === 'Base Gradient Overlay')) {
+                overlaysToRemove.push(obj);
             }
         });
-        
-        // 更新价格显示（如果有相关 getter）
-        if (typeof window.__pwcaUpdatePriceDisplay === 'function') {
-            window.__pwcaUpdatePriceDisplay();
-        }
-        
-        console.log(`全局颜色 ${color} 已应用到所有 ${store.views.length} 个视图`);
-    };
+    }
+
+    overlaysToRemove.forEach(obj => baseCanvas.remove(obj));
+
+    const gradientCoords = getGradientCoords(direction, imageWidth, imageHeight);
+
+    const gradient = new fabric.Gradient({
+        type: 'linear',
+        gradientUnits: 'pixels',
+        coords: gradientCoords,
+        colorStops: [
+            { offset: 0, color: startColor },
+            { offset: 1, color: endColor }
+        ]
+    });
+
+    const overlayRect = new fabric.Rect({
+        left: baseLayerObject.left,
+        top: baseLayerObject.top,
+        width: imageWidth,
+        height: imageHeight,
+        originX: baseLayerObject.originX,
+        originY: baseLayerObject.originY,
+        scaleX: baseLayerObject.scaleX,
+        scaleY: baseLayerObject.scaleY,
+        angle: baseLayerObject.angle,
+        fill: gradient,
+        selectable: false,
+        evented: false,
+        opacity: baseLayerObject.opacity,
+        globalCompositeOperation: 'source-in',
+        name: 'Base Gradient Overlay',
+        id: `gradient-rect-${view.id}-${Date.now()}`
+    });
+
+    baseCanvas.add(overlayRect);
+    if (typeof baseCanvas.sendToBack === 'function') {
+        baseCanvas.sendToBack(baseLayerObject);
+    }
+    if (typeof baseCanvas.bringForward === 'function') {
+        baseCanvas.bringForward(overlayRect);
+    }
+
+    const overlayLayerObject = typeof baseCanvas.getObjects === 'function'
+        ? baseCanvas.getObjects().find(obj => obj.name === 'Overlay Layer')
+        : null;
+    if (overlayLayerObject && typeof baseCanvas.bringToFront === 'function') {
+        baseCanvas.bringToFront(overlayLayerObject);
+    }
+
+    if (typeof baseCanvas.renderAll === 'function') {
+        baseCanvas.renderAll();
+    }
+
+    console.log(`已为视图 ${view.name || view.id} 应用渐变色: ${startColor} 到 ${endColor}, 方向: ${direction}`);
+};
 
                 // 监听 canvasStore 数据变化
                 function waitForCanvasData() {
@@ -1159,8 +1328,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 });
                                             }
                                         }
-                                        
+
                                         console.log(`已将颜色 ${color} 应用到当前视图的 base_layer`);
+
+                                        if (store.views && store.views.length > 0 && store.activeViewId === store.views[0].id) {
+                                            if (typeof window.applyColorToAllViews === 'function') {
+                                                window.applyColorToAllViews(color);
+                                            } else {
+                                                console.warn('applyColorToAllViews 函数不可用，无法同步其他视图的纯色');
+                                            }
+                                        }
                                     } else {
                                         console.warn('当前视图没有 base_layer 或视图不存在');
                                     }
@@ -1306,112 +1483,39 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         // 应用渐变色到Base图层（使用剪切方案）
                         function applyGradientToBaseLayer() {
-                            // 检查是否在设计页面环境（有useCanvasStore）
                             if (window.useCanvasStore) {
                                 const store = window.useCanvasStore();
                                 const activeViewId = store.activeViewId;
-                                
+
                                 if (activeViewId && store.views) {
                                     const currentView = store.views.find(v => v.id === activeViewId);
                                     if (currentView && currentView.base_layer) {
-                                        // 先清除所有旧的渐变色对象
                                         if (window.clearAllGradientRects) {
                                             window.clearAllGradientRects();
                                         }
-                                        
-                                        // 获取当前激活视图的baseCanvas（渐变色应该应用在baseCanvas上）
-                        const baseCanvasId = `baseCanvas-${activeViewId}`;
-                        
-                        // 优先从 CanvasManager 获取 baseCanvas 实例
-                        const baseCanvas = window.CanvasManager.getCanvas(baseCanvasId) ||
-                                          (document.getElementById(baseCanvasId) && document.getElementById(baseCanvasId).__fabricCanvas);
-                                        
-                                        if (!baseCanvas) {
-                                            console.warn('无法获取baseCanvas，渐变色应该应用在baseCanvas上');
-                                            return;
+
+                                        if (typeof window.applyGradientToView === 'function') {
+                                            if (!isFourGridView(currentView)) {
+                                                window.applyGradientToView(currentView, color1, color2, direction);
+                                            } else {
+                                                console.log(`跳过四格视图 ${currentView.name || currentView.id} 的渐变应用`);
+                                            }
+
+                                            const isMainView = store.views.length > 0 && store.views[0].id === activeViewId;
+                                            if (isMainView) {
+                                                store.views.forEach(view => {
+                                                    if (view.id !== currentView.id) {
+                                                        if (isFourGridView(view)) {
+                                                            console.log(`跳过四格视图 ${view.name || view.id} 的渐变同步`);
+                                                            return;
+                                                        }
+                                                        window.applyGradientToView(view, color1, color2, direction);
+                                                    }
+                                                });
+                                            }
+                                        } else {
+                                            console.warn('applyGradientToView 函数不可用');
                                         }
-                                        
-                                        const baseLayerObject = currentView.base_layer;
-                                        
-                                        // 获取Base图层的图像元素
-                                        const imageElement = baseLayerObject.getElement();
-                                        if (!imageElement) {
-                                            console.warn('无法获取Base图层的图像元素');
-                                            return;
-                                        }
-                                        
-                                        // 创建渐变对象，使用像素单位
-                                        const imageWidth = imageElement.width || imageElement.naturalWidth;
-                                        const imageHeight = imageElement.height || imageElement.naturalHeight;
-                                        
-                                        let gradientCoords;
-                                        
-                                        // 根据方向设置渐变坐标
-                                        switch (direction) {
-                                            case 'to right':
-                                                gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: 0 };
-                                                break;
-                                            case 'to bottom':
-                                                gradientCoords = { x1: 0, y1: 0, x2: 0, y2: imageHeight };
-                                                break;
-                                            case 'to bottom right':
-                                                gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: imageHeight };
-                                                break;
-                                            case 'to bottom left':
-                                                gradientCoords = { x1: imageWidth, y1: 0, x2: 0, y2: imageHeight };
-                                                break;
-                                            default:
-                                                // 默认从左到右
-                                                gradientCoords = { x1: 0, y1: 0, x2: imageWidth, y2: 0 };
-                                        }
-                                        
-                                        const gradient = new fabric.Gradient({
-                                            type: 'linear',
-                                            gradientUnits: 'pixels',
-                                            coords: gradientCoords,
-                                            colorStops: [
-                                                { offset: 0, color: color1 },
-                                                { offset: 1, color: color2 }
-                                            ]
-                                        });
-                                        
-                                        // 创建一个矩形作为渐变覆盖层，使用裁剪功能
-                                        const overlayRect = new fabric.Rect({
-                                            left: baseLayerObject.left,
-                                            top: baseLayerObject.top,
-                                            width: imageWidth,
-                                            height: imageHeight,
-                                            originX: baseLayerObject.originX,
-                                            originY: baseLayerObject.originY,
-                                            scaleX: baseLayerObject.scaleX,
-                                            scaleY: baseLayerObject.scaleY,
-                                            angle: baseLayerObject.angle,
-                                            fill: gradient,
-                                            selectable: false,
-                                            evented: false,
-                                            opacity: baseLayerObject.opacity,
-                                            globalCompositeOperation: 'source-in', // 关键：只在Base图层非透明区域显示
-                                            name: 'Base Gradient Overlay',
-                                            id: 'gradient-rect-' + Date.now()
-                                        });
-                                        
-                                        // 添加新的渐变覆盖层
-                                        baseCanvas.add(overlayRect);
-                                        
-                                        // 确保Base图层在渐变覆盖层之前（作为裁剪模板）
-                                        baseCanvas.sendToBack(baseLayerObject);
-                                        baseCanvas.bringForward(overlayRect);
-                                        
-                                        // 如果有 Overlay Layer，确保它在最上层
-                                        const overlayLayerObject = baseCanvas.getObjects().find(obj => obj.name === 'Overlay Layer');
-                                        if (overlayLayerObject) {
-                                            baseCanvas.bringToFront(overlayLayerObject);
-                                        }
-                                        
-                                        baseCanvas.renderAll();
-                                        
-                                        console.log(`已应用渐变色: ${color1} 到 ${color2}, 方向: ${direction}`);
-                                        
                                     } else {
                                         console.warn('当前视图没有 base_layer 或视图不存在');
                                     }
