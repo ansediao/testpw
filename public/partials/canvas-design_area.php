@@ -140,6 +140,62 @@ if ($first_image_url) {
     }
 
     /**
+     * 判断给定的 URL 是否指向图片资源（支持常见图片格式及 data URI）。
+     * @param {string} url - 需要检测的地址。
+     * @returns {boolean} 是否为有效的图片资源。
+     */
+    function isValidImageSource(url) {
+        if (!url || typeof url !== 'string') {
+            return false;
+        }
+        const normalizedUrl = url.trim();
+        if (normalizedUrl.startsWith('data:image/')) {
+            return true; // data URI 直接认定为图片
+        }
+        return /\.(png|jpe?g|gif|bmp|webp|svg)(\?.*)?$/i.test(normalizedUrl);
+    }
+
+    /**
+     * 基于 Mapping Layer 的位置信息生成一个裁剪矩形，用于限制主画布内容范围。
+     * @param {object} layer - Mapping Layer 图层数据。
+     * @returns {fabric.Rect|null} 返回裁剪矩形对象，若数据不完整则返回 null。
+     */
+    function createClipRectFromMappingLayer(layer) {
+        if (!layer || !layer.layer_data) {
+            return null;
+        }
+
+        const data = layer.layer_data;
+        const size = data.dimensions?.layerSize;
+        const position = data.position;
+
+        if (!size || !position || !size.width || !size.height || !position.coordinates) {
+            console.warn('Mapping Layer 缺少裁剪所需的尺寸或位置信息，跳过裁剪。');
+            return null;
+        }
+
+        const origins = getOriginFromAnchorPoint(position.anchorPoint || 'top-left');
+        const convertedCoords = convertCoordinatesForOrigin(
+            position.coordinates.x,
+            position.coordinates.y,
+            size.width,
+            size.height,
+            origins.originX,
+            origins.originY
+        );
+
+        return new fabric.Rect({
+            left: convertedCoords.x,
+            top: convertedCoords.y,
+            width: size.width,
+            height: size.height,
+            originX: origins.originX,
+            originY: origins.originY,
+            absolutePositioned: true
+        });
+    }
+
+    /**
      * 辅助函数，用于从图层数据对象创建一个 Fabric.js 对象。
      * @param {object} layer - 来自 API 的单个图层对象。
      * @returns {Promise<fabric.Object|null>} 一个 Promise，如果图层无法创建，则解析为 fabric 对象或 null。
@@ -154,6 +210,12 @@ if ($first_image_url) {
                 case 'image':
                     if (!data.content.imageURL) {
                         console.warn(`因缺少 imageURL，正在跳过图片图层 "${layer.name}"。`);
+                        resolve(null);
+                        return;
+                    }
+
+                    if (layer.name === 'Mapping Layer' && !isValidImageSource(data.content.imageURL)) {
+                        console.warn('Mapping Layer 的 imageURL 不是有效的图片资源，已跳过该图层。');
                         resolve(null);
                         return;
                     }
@@ -696,16 +758,18 @@ if ($first_image_url) {
         const canvasHeight = targetLayer.layer_data.dimensions.contentArea.height || targetLayer.layer_data.dimensions.layerSize.height;
 
         // 定义所有需要初始化的canvas
+        const mappingLayer = layers.find(layer => layer.name === 'Mapping Layer');
+        const hasValidMappingLayer = mappingLayer && mappingLayer.layer_data?.content?.imageURL && isValidImageSource(mappingLayer.layer_data.content.imageURL);
+
         let allCanvasIds = [
             `baseCanvas-${view.id}`,
             `mainCanvas-${view.id}`,
             `overlayCanvas-${view.id}`
         ];
-        if (productViewFlow === '4-Grid Flow') {
+        if (productViewFlow === '4-Grid Flow' && !hasValidMappingLayer) {
             allCanvasIds = [
                 `baseCanvas-${view.id}`,
                 `mainCanvas-${view.id}`
-
             ];
         }
 
@@ -740,6 +804,14 @@ if ($first_image_url) {
                     canvasId: `baseCanvas-${view.id}`
                 }
             ];
+
+            if (hasValidMappingLayer) {
+                canvasConfigs.push({
+                    layerName: 'Mapping Layer',
+                    canvasId: `overlayCanvas-${view.id}`,
+                    isMappingLayer: true
+                });
+            }
         }
 
         // 渲染对应图层到canvas
@@ -750,10 +822,29 @@ if ($first_image_url) {
                 if (canvas) {
                     const sortedLayers = [...targetLayers].sort((a, b) => a.sort_order - b.sort_order);
                     for (const layer of sortedLayers) {
-                        await renderLayerToSpecificCanvas(canvas, layer, store, view);
+                        await renderLayerToSpecificCanvas(canvas, layer, store, view, config);
                     }
                     canvas.renderAll();
                     console.log(`画布 #${config.canvasId} 上的图层已成功渲染。 ✅`);
+                }
+            }
+        }
+
+        if (productViewFlow === '4-Grid Flow') {
+            const mainCanvasElement = document.getElementById(`mainCanvas-${view.id}`);
+            const mainCanvas = mainCanvasElement ? mainCanvasElement.__fabricCanvas : null;
+            if (mainCanvas) {
+                if (hasValidMappingLayer) {
+                    const clipRect = createClipRectFromMappingLayer(mappingLayer);
+                    if (clipRect) {
+                        mainCanvas.clipPath = clipRect;
+                        mainCanvas.__mappingClipRect = clipRect;
+                        mainCanvas.requestRenderAll();
+                    }
+                } else if (mainCanvas.__mappingClipRect) {
+                    mainCanvas.clipPath = null;
+                    mainCanvas.__mappingClipRect = null;
+                    mainCanvas.requestRenderAll();
                 }
             }
         }
@@ -835,7 +926,7 @@ if ($first_image_url) {
      * @param {object} view - 当前视图对象
      * @returns {Promise<fabric.Object|null>} 返回创建的 fabric 对象
      */
-    async function renderLayerToSpecificCanvas(canvas, layer, store, view) {
+    async function renderLayerToSpecificCanvas(canvas, layer, store, view, config = {}) {
         if (!canvas || !layer) {
             console.error("渲染单个图层需要有效的画布实例和图层数据。");
             return null;
@@ -865,7 +956,20 @@ if ($first_image_url) {
             }
 
             if (fabricObject) {
+                if (config.isMappingLayer) {
+                    fabricObject.set({
+                        selectable: false,
+                        evented: false,
+                        hasControls: false,
+                        hasBorders: false,
+                        hoverCursor: 'default',
+                        excludeFromExport: true
+                    });
+                }
                 canvas.add(fabricObject);
+                if (config.isMappingLayer) {
+                    canvas.bringToFront(fabricObject);
+                }
                 console.log(`该图层 "${layer.name}" 已被添加到画布 ${canvas.getElement().id}。`);
                 return fabricObject;
             }
