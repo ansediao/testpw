@@ -182,10 +182,11 @@ if ($first_image_url) {
                             origins.originX,
                             origins.originY
                         );
-                       
+
 
                         img.set({
-
+                            left: convertedCoords.x,
+                            top: convertedCoords.y,
                             angle: position.rotation,
                             originX: origins.originX,
                             originY: origins.originY,
@@ -758,12 +759,163 @@ if ($first_image_url) {
             }
         }
 
+        if (productViewFlow === '4-Grid Flow') {
+            await handleFourGridContentArea(view);
+        } else {
+            clearContentAreaClip(view.id);
+        }
+
         // 所有图层渲染完成后，触发自动缩放调整
         setTimeout(() => {
             if (typeof window.triggerAutoZoomAdjustment === 'function') {
                 window.triggerAutoZoomAdjustment();
             }
         }, 200); // 延迟200ms确保DOM更新完成
+    }
+
+    /**
+     * 判断给定的 URL 是否指向图片资源（含 dataURL）。
+     * @param {string} url - 待检测的 URL 字符串。
+     * @returns {boolean} 如果可能是图片则返回 true。
+     */
+    function isValidImageURL(url) {
+        if (typeof url !== 'string') {
+            return false;
+        }
+        const trimmedUrl = url.trim();
+        if (!trimmedUrl) {
+            return false;
+        }
+
+        if (trimmedUrl.startsWith('data:image/')) {
+            return true;
+        }
+
+        const lowerUrl = trimmedUrl.split('?')[0].toLowerCase();
+        const imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'];
+        return imageExtensions.some(ext => lowerUrl.endsWith(ext));
+    }
+
+    /**
+     * 清除指定视图主画布上的内容区域裁剪限制。
+     * @param {number|string} viewId - 视图 ID。
+     */
+    function clearContentAreaClip(viewId) {
+        const mainCanvasElement = document.getElementById(`mainCanvas-${viewId}`);
+        if (!mainCanvasElement || !mainCanvasElement.__fabricCanvas) {
+            return;
+        }
+
+        const mainCanvas = mainCanvasElement.__fabricCanvas;
+        if (mainCanvas.clipPath) {
+            mainCanvas.clipPath = null;
+        }
+        if (mainCanvas.__contentAreaClipRect) {
+            mainCanvas.__contentAreaClipRect = null;
+        }
+
+        if (typeof mainCanvas.requestRenderAll === 'function') {
+            mainCanvas.requestRenderAll();
+        } else if (typeof mainCanvas.renderAll === 'function') {
+            mainCanvas.renderAll();
+        }
+    }
+
+    /**
+     * 根据参考对象为目标画布应用内容区域裁剪。
+     * @param {fabric.Canvas} canvas - 需要应用裁剪的画布。
+     * @param {fabric.Object} referenceObject - 参考的内容区域图层对象。
+     */
+    function applyContentAreaClip(canvas, referenceObject) {
+        if (!canvas || !referenceObject || typeof fabric === 'undefined') {
+            return;
+        }
+
+        const bounds = referenceObject.getBoundingRect(true, true);
+        const clipRect = new fabric.Rect({
+            left: bounds.left,
+            top: bounds.top,
+            width: bounds.width,
+            height: bounds.height,
+            originX: 'left',
+            originY: 'top',
+            absolutePositioned: true,
+            selectable: false,
+            evented: false
+        });
+
+        canvas.clipPath = clipRect;
+        canvas.__contentAreaClipRect = clipRect;
+
+        if (typeof canvas.requestRenderAll === 'function') {
+            canvas.requestRenderAll();
+        } else if (typeof canvas.renderAll === 'function') {
+            canvas.renderAll();
+        }
+    }
+
+    /**
+     * 为 4-Grid Flow 视图处理内容区域图层（渲染与裁剪逻辑）。
+     * @param {Object} view - 当前视图对象。
+     */
+    async function handleFourGridContentArea(view) {
+        const viewLayers = view?.data?.layer_config?.layers;
+        if (!Array.isArray(viewLayers) || viewLayers.length === 0) {
+            return;
+        }
+
+        const baseCanvasElement = document.getElementById(`baseCanvas-${view.id}`);
+        const mainCanvasElement = document.getElementById(`mainCanvas-${view.id}`);
+        if (!baseCanvasElement || !baseCanvasElement.__fabricCanvas || !mainCanvasElement || !mainCanvasElement.__fabricCanvas) {
+            console.warn('未能获取到 4-Grid Flow 视图的 baseCanvas 或 mainCanvas。');
+            return;
+        }
+
+        const baseCanvas = baseCanvasElement.__fabricCanvas;
+        const mainCanvas = mainCanvasElement.__fabricCanvas;
+
+        // 先移除旧的内容区域图层，避免重复叠加。
+        const existingContentArea = baseCanvas.getObjects().filter(obj => obj && obj.name === 'Content Area Layer');
+        if (existingContentArea.length > 0) {
+            existingContentArea.forEach(obj => baseCanvas.remove(obj));
+            baseCanvas.renderAll();
+        }
+
+        const contentAreaLayer = viewLayers.find(layer => layer.name === 'Content Area Layer');
+        if (!contentAreaLayer) {
+            clearContentAreaClip(view.id);
+            return;
+        }
+
+        const imageURL = contentAreaLayer?.layer_data?.content?.imageURL;
+        if (!isValidImageURL(imageURL)) {
+            console.warn('Content Area Layer 不包含可用的图片资源，将跳过渲染与裁剪。');
+            clearContentAreaClip(view.id);
+            return;
+        }
+
+        try {
+            const contentAreaObject = await createFabricObjectFromLayer(baseCanvas, contentAreaLayer);
+            if (!contentAreaObject) {
+                clearContentAreaClip(view.id);
+                return;
+            }
+
+            contentAreaObject.set({
+                selectable: false,
+                evented: false,
+                name: 'Content Area Layer'
+            });
+
+            baseCanvas.add(contentAreaObject);
+            baseCanvas.bringToFront(contentAreaObject);
+            baseCanvas.renderAll();
+
+            applyContentAreaClip(mainCanvas, contentAreaObject);
+        } catch (error) {
+            console.error('渲染 Content Area Layer 时发生错误:', error);
+            clearContentAreaClip(view.id);
+        }
     }
 
     /**
