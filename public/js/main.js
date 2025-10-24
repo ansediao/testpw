@@ -1984,42 +1984,54 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                         img.onerror = () => layerResolve(null);
                         img.src = dataURL;
                     } else if (layerName === 'baseCanvas') {
-                        // 对于baseCanvas，需要动态应用当前选中的颜色
+                        // 对于 baseCanvas，需要根据当前的着色方式决定是否应用额外的纯色覆盖
                         try {
                             const dataURL = canvasElement.toDataURL('image/png');
                             const img = new Image();
                             img.onload = () => {
-                                // 获取明确选中的颜色
                                 const explicitColor = getExplicitSelectedColor();
-                                console.log('captureMultiLayerCanvasWithMask - baseCanvas 颜色检测结果:', explicitColor);
-                                
-                                // 如果有明确选中的颜色，则应用颜色
-                                if (explicitColor) {
-                                    console.log('应用颜色到 baseCanvas:', explicitColor);
-                                    // 创建临时画布来应用颜色
+
+                                const fabricCanvas = canvasElement.__fabricCanvas || canvasElement.fabric || canvasElement.__canvas || null;
+                                let hasGradientOverlay = false;
+                                let hasTintFilter = false;
+
+                                if (fabricCanvas && typeof fabricCanvas.getObjects === 'function') {
+                                    const objects = fabricCanvas.getObjects();
+                                    hasGradientOverlay = objects.some(obj => obj && ((obj.name && obj.name === 'Base Gradient Overlay') || (obj.id && typeof obj.id === 'string' && obj.id.startsWith('gradient-rect-'))));
+
+                                    const baseLayerObject = objects.find(obj => obj && obj.name === 'Base Layer');
+                                    if (baseLayerObject && Array.isArray(baseLayerObject.filters)) {
+                                        hasTintFilter = baseLayerObject.filters.some(filter => !!filter);
+                                    }
+                                }
+
+                                const shouldApplyFlatColor = explicitColor && !hasGradientOverlay && !hasTintFilter;
+
+                                console.log('captureMultiLayerCanvasWithMask - baseCanvas 着色检测:', {
+                                    explicitColor,
+                                    hasGradientOverlay,
+                                    hasTintFilter,
+                                    shouldApplyFlatColor
+                                });
+
+                                if (shouldApplyFlatColor) {
+                                    // 仅在画布尚未通过滤镜或渐变着色时，才应用纯色覆盖
                                     const tempCanvas = document.createElement('canvas');
                                     tempCanvas.width = canvasElement.width;
                                     tempCanvas.height = canvasElement.height;
                                     const tempCtx = tempCanvas.getContext('2d');
-                                    
-                                    // 先绘制原图
+
                                     tempCtx.drawImage(img, 0, 0);
-                                    
-                                    // 应用颜色（使用 source-in 混合模式）
                                     tempCtx.globalCompositeOperation = 'source-in';
                                     tempCtx.fillStyle = explicitColor;
                                     tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                                    
-                                    // 重置混合模式
                                     tempCtx.globalCompositeOperation = 'source-over';
-                                    
-                                    // 创建新的图片对象返回应用了颜色的结果
+
                                     const coloredImg = new Image();
                                     coloredImg.onload = () => layerResolve({img: coloredImg, layerName});
-                                    coloredImg.onerror = () => layerResolve({img, layerName}); // 如果失败，返回原图
+                                    coloredImg.onerror = () => layerResolve({img, layerName});
                                     coloredImg.src = tempCanvas.toDataURL('image/png');
                                 } else {
-                                    // 没有颜色或是默认颜色，直接返回原图
                                     layerResolve({img, layerName});
                                 }
                             };
