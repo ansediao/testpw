@@ -1149,73 +1149,90 @@ if ($first_image_url) {
 
     // 清除所有渐变色对象的函数
     function clearAllGradientRects() {
+        let totalRemoved = 0;
+        const processedCanvases = new Set();
+
+        const removeGradientObjects = (canvas, canvasId) => {
+            if (!canvas || typeof canvas.getObjects !== 'function') {
+                return 0;
+            }
+
+            if (processedCanvases.has(canvas)) {
+                return 0;
+            }
+
+            const gradientObjects = canvas.getObjects().filter(obj => {
+                return (obj.id && obj.id.startsWith('gradient-rect-')) ||
+                    (obj.name && obj.name === 'Base Gradient Overlay');
+            });
+
+            if (gradientObjects.length === 0) {
+                processedCanvases.add(canvas);
+                return 0;
+            }
+
+            gradientObjects.forEach(obj => canvas.remove(obj));
+
+            if (typeof canvas.requestRenderAll === 'function') {
+                canvas.requestRenderAll();
+            } else if (typeof canvas.renderAll === 'function') {
+                canvas.renderAll();
+            }
+
+            processedCanvases.add(canvas);
+            console.log(`已从 ${canvasId || '未知画布'} 清除 ${gradientObjects.length} 个渐变色对象`);
+            return gradientObjects.length;
+        };
+
+        const resolveCanvasInstance = (canvasId, fallbackId, view) => {
+            let canvas = null;
+
+            if (window.CanvasManager && typeof window.CanvasManager.getCanvas === 'function') {
+                canvas = window.CanvasManager.getCanvas(canvasId);
+                if (!canvas && fallbackId) {
+                    canvas = window.CanvasManager.getCanvas(fallbackId);
+                }
+            }
+
+            if (!canvas && canvasId) {
+                const element = document.getElementById(canvasId);
+                if (element) {
+                    canvas = element.__fabricCanvas || element.fabric || element.__canvas || null;
+                }
+            }
+
+            if (!canvas && view && view.base_layer && view.base_layer.canvas) {
+                canvas = view.base_layer.canvas;
+            }
+
+            return canvas;
+        };
+
         try {
             if (window.useCanvasStore) {
                 const store = window.useCanvasStore();
-                const activeViewId = store.activeViewId;
-                
-                if (activeViewId && store.views) {
-                    // 获取当前激活视图的baseCanvas（渐变色实际应用的画布）
-                    let baseCanvas = null;
-                    
-                    // 优先从CanvasManager获取baseCanvas
-                    if (window.CanvasManager && window.CanvasManager.getCanvas) {
-                        baseCanvas = window.CanvasManager.getCanvas(`baseCanvas-${activeViewId}`);
-                    }
-                    
-                    // 如果CanvasManager中没有，则从DOM获取
-                    if (!baseCanvas) {
-                        const baseCanvasElement = document.getElementById(`baseCanvas-${activeViewId}`);
-                        if (baseCanvasElement && baseCanvasElement.__fabricCanvas) {
-                            baseCanvas = baseCanvasElement.__fabricCanvas;
-                        }
-                    }
-                    
-                    if (!baseCanvas) {
-                        console.warn('无法获取baseCanvas，尝试使用activeCanvas作为备选');
-                        baseCanvas = window.CanvasManager.getActiveCanvas();
-                    }
-                    
-                    if (!baseCanvas) {
-                        console.warn('无法获取任何画布');
-                        return 0;
-                    }
-                    
-                    // 查找并移除所有渐变矩形对象
-                    const objectsToRemove = [];
-                    baseCanvas.getObjects().forEach(obj => {
-                        // 检查对象是否是渐变矩形（通过ID前缀或名称识别）
-                        if ((obj.id && obj.id.startsWith('gradient-rect-')) || 
-                            (obj.name && obj.name === 'Base Gradient Overlay')) {
-                            objectsToRemove.push(obj);
-                        }
+                if (store && Array.isArray(store.views)) {
+                    store.views.forEach(view => {
+                        const baseCanvasId = `baseCanvas-${view.id}`;
+                        const fallbackCanvasId = view.id;
+                        const canvas = resolveCanvasInstance(baseCanvasId, fallbackCanvasId, view);
+                        const removed = removeGradientObjects(canvas, baseCanvasId);
+                        totalRemoved += removed;
                     });
-                    
-                    // 移除找到的渐变矩形对象
-                    objectsToRemove.forEach(obj => {
-                        baseCanvas.remove(obj);
-                    });
-                    
-                    // 重新渲染画布
-                    baseCanvas.renderAll();
-                    
-                    if (objectsToRemove.length > 0) {
-                        console.log(`已从baseCanvas清除 ${objectsToRemove.length} 个渐变色对象`);
-                    }
-                    
-                    return objectsToRemove.length;
-                } else {
-                    console.warn('没有激活的视图或 store 不可用');
-                    return 0;
                 }
             } else {
-                console.warn('useCanvasStore 不可用');
-                return 0;
+                console.warn('useCanvasStore 不可用，跳过设计视图画布清理');
             }
+
+            const productCanvas = resolveCanvasInstance('product-view');
+            const productRemoved = removeGradientObjects(productCanvas, 'product-view');
+            totalRemoved += productRemoved;
         } catch (error) {
             console.error('清除渐变色对象时发生错误:', error);
-            return 0;
         }
+
+        console.log(`clearAllGradientRects 总共清除了 ${totalRemoved} 个渐变覆盖对象`);
+        return totalRemoved;
     }
 
     // 将函数暴露到全局作用域
