@@ -1920,6 +1920,68 @@ async function captureViewForPDF(viewId) {
 }
 
 /**
+ * 分析 baseCanvas 当前的着色方式
+ * @param {HTMLCanvasElement} canvasElement - baseCanvas DOM 元素
+ * @returns {{explicitColor: string|null, hasGradientOverlay: boolean, hasTintFilter: boolean, shouldApplyFlatColor: boolean}}
+ */
+function analyzeBaseCanvasColoring(canvasElement) {
+    const result = {
+        explicitColor: getExplicitSelectedColor(),
+        hasGradientOverlay: false,
+        hasTintFilter: false,
+        shouldApplyFlatColor: false
+    };
+
+    if (canvasElement) {
+        const fabricCanvas = canvasElement.__fabricCanvas || canvasElement.fabric || canvasElement.__canvas || null;
+        if (fabricCanvas && typeof fabricCanvas.getObjects === 'function') {
+            const objects = fabricCanvas.getObjects();
+
+            result.hasGradientOverlay = objects.some(obj => obj && ((obj.name && obj.name === 'Base Gradient Overlay') || (obj.id && typeof obj.id === 'string' && obj.id.startsWith('gradient-rect-'))));
+
+            const baseLayerObject = objects.find(obj => {
+                if (!obj) {
+                    return false;
+                }
+
+                if (obj.name && obj.name === 'Overlay Layer') {
+                    return false;
+                }
+
+                if (obj.name && obj.name === 'Base Layer') {
+                    return true;
+                }
+
+                if (obj.id && obj.id === 'base-layer') {
+                    return true;
+                }
+
+                if (obj.type === 'image' && obj.name && obj.name.toLowerCase().includes('base')) {
+                    return true;
+                }
+
+                if (obj.type === 'image' && (!obj.name || obj.name === '')) {
+                    return true;
+                }
+
+                return false;
+            });
+            if (baseLayerObject && Array.isArray(baseLayerObject.filters)) {
+                result.hasTintFilter = baseLayerObject.filters.some(filter => !!filter);
+            }
+        }
+    }
+
+    if (result.hasGradientOverlay) {
+        // 渐变模式下忽略显式纯色
+        result.explicitColor = null;
+    }
+
+    result.shouldApplyFlatColor = !!result.explicitColor && !result.hasGradientOverlay && !result.hasTintFilter;
+    return result;
+}
+
+/**
  * 捕获多层Canvas并应用遮罩效果
  * @param {Object} canvasLayers - 包含所有Canvas图层的对象
  * @param {Object} view - 视图对象
@@ -1984,42 +2046,33 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                         img.onerror = () => layerResolve(null);
                         img.src = dataURL;
                     } else if (layerName === 'baseCanvas') {
-                        // 对于baseCanvas，需要动态应用当前选中的颜色
+                        // 对于 baseCanvas，需要根据当前的着色方式决定是否应用额外的纯色覆盖
                         try {
                             const dataURL = canvasElement.toDataURL('image/png');
                             const img = new Image();
                             img.onload = () => {
-                                // 获取明确选中的颜色
-                                const explicitColor = getExplicitSelectedColor();
-                                console.log('captureMultiLayerCanvasWithMask - baseCanvas 颜色检测结果:', explicitColor);
-                                
-                                // 如果有明确选中的颜色，则应用颜色
-                                if (explicitColor) {
-                                    console.log('应用颜色到 baseCanvas:', explicitColor);
-                                    // 创建临时画布来应用颜色
+                                const colorAnalysis = analyzeBaseCanvasColoring(canvasElement);
+
+                                console.log('captureMultiLayerCanvasWithMask - baseCanvas 着色检测:', colorAnalysis);
+
+                                if (colorAnalysis.shouldApplyFlatColor) {
+                                    // 仅在画布尚未通过滤镜或渐变着色时，才应用纯色覆盖
                                     const tempCanvas = document.createElement('canvas');
                                     tempCanvas.width = canvasElement.width;
                                     tempCanvas.height = canvasElement.height;
                                     const tempCtx = tempCanvas.getContext('2d');
-                                    
-                                    // 先绘制原图
+
                                     tempCtx.drawImage(img, 0, 0);
-                                    
-                                    // 应用颜色（使用 source-in 混合模式）
                                     tempCtx.globalCompositeOperation = 'source-in';
-                                    tempCtx.fillStyle = explicitColor;
+                                    tempCtx.fillStyle = colorAnalysis.explicitColor;
                                     tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                                    
-                                    // 重置混合模式
                                     tempCtx.globalCompositeOperation = 'source-over';
-                                    
-                                    // 创建新的图片对象返回应用了颜色的结果
+
                                     const coloredImg = new Image();
                                     coloredImg.onload = () => layerResolve({img: coloredImg, layerName});
-                                    coloredImg.onerror = () => layerResolve({img, layerName}); // 如果失败，返回原图
+                                    coloredImg.onerror = () => layerResolve({img, layerName});
                                     coloredImg.src = tempCanvas.toDataURL('image/png');
                                 } else {
-                                    // 没有颜色或是默认颜色，直接返回原图
                                     layerResolve({img, layerName});
                                 }
                             };
@@ -2475,7 +2528,8 @@ async function generate4GridImagesForView(view) {
                 overlayLayer,
                 mappingLayer,
                 activeCanvas,
-                cropConfig: config.cropConfig
+                cropConfig: config.cropConfig,
+                viewId: view.id
             });
             gridImages.push(imageData);
         } catch (error) {
@@ -2575,7 +2629,8 @@ async function generateCompositeImageForGrid(options) {
         overlayLayer,
         mappingLayer,
         activeCanvas,
-        cropConfig
+        cropConfig,
+        viewId
     } = options;
 
     // 创建临时画布
@@ -2587,19 +2642,34 @@ async function generateCompositeImageForGrid(options) {
     // 清空画布
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
+    const baseCanvasElement = viewId ? document.getElementById(`baseCanvas-${viewId}`) : null;
+    const baseCanvasColoring = analyzeBaseCanvasColoring(baseCanvasElement);
+
     try { // 1. 绘制Background Layer（如果存在）
         if (backgroundLayer && backgroundLayer.layer_data && backgroundLayer.layer_data.content && backgroundLayer.layer_data.content.imageURL) {
             await drawLayerImageForGrid(ctx, backgroundLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
         }
 
         // 2. 绘制Base Layer（如果存在）并应用当前选中的颜色
-        if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) {
-            const explicitColor = getExplicitSelectedColor();
-            if (explicitColor) {
-                // 有明确选中的颜色，应用颜色
-                await drawLayerImageForGridWithColor(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight, explicitColor);
+        let baseSourceUrl = null;
+        if (baseCanvasElement) {
+            try {
+                baseSourceUrl = baseCanvasElement.toDataURL('image/png');
+            } catch (error) {
+                console.warn('generateCompositeImageForGrid: 无法从 baseCanvas 导出图像，使用回退逻辑。', error);
+            }
+        }
+
+        if (baseSourceUrl) {
+            if (baseCanvasColoring.shouldApplyFlatColor && baseCanvasColoring.explicitColor) {
+                await drawLayerImageForGridWithColor(ctx, baseSourceUrl, canvasWidth, canvasHeight, baseCanvasColoring.explicitColor);
             } else {
-                // 没有明确选中的颜色，使用原始图片
+                await drawLayerImageForGrid(ctx, baseSourceUrl, canvasWidth, canvasHeight);
+            }
+        } else if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) {
+            if (baseCanvasColoring.shouldApplyFlatColor && baseCanvasColoring.explicitColor) {
+                await drawLayerImageForGridWithColor(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight, baseCanvasColoring.explicitColor);
+            } else {
                 await drawLayerImageForGrid(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
             }
         }
