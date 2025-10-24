@@ -858,7 +858,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
 // ===== 新增：工具函数 =====
-const isFourGridView = view => view && view.view_flow === '4-Grid Flow';
+window.isFourGridView = window.isFourGridView || function(view) {
+    return view && view.view_flow === '4-Grid Flow';
+};
+
+const isFourGridView = window.isFourGridView;
 
 window.applyColorToView = function(view, color, tintFunction) {
     if (!view) {
