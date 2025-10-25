@@ -224,14 +224,14 @@
   color: #64748b;
 }
 .modal__container .modal__footer .btn.btn-secondary:hover {
-  background-color: rgb(212.3, 224.5, 236.7);
+  background-color: #d4e1ed;
 }
 .modal__container .modal__footer .btn.btn-primary {
   background-color: #3b82f6;
   color: white;
 }
 .modal__container .modal__footer .btn.btn-primary:hover {
-  background-color: rgb(11.1512195122, 99.1219512195, 242.8487804878);
+  background-color: #0b63f3;
 }
 
 #pw-custom-color-modal .modal__content {
@@ -256,7 +256,7 @@
   font-size: 14px;
 }
 #pw-custom-color-modal .modal__content .btn-inquiry:hover {
-  background-color: rgb(11.1512195122, 99.1219512195, 242.8487804878);
+  background-color: #0b63f3;
 }
 
 .modal__overlay {
@@ -460,14 +460,14 @@
   color: #64748b;
 }
 .modal__container .modal__footer .btn.btn-secondary:hover {
-  background-color: rgb(212.3, 224.5, 236.7);
+  background-color: #d4e1ed;
 }
 .modal__container .modal__footer .btn.btn-primary {
   background-color: #3b82f6;
   color: white;
 }
 .modal__container .modal__footer .btn.btn-primary:hover {
-  background-color: rgb(11.1512195122, 99.1219512195, 242.8487804878);
+  background-color: #0b63f3;
 }
 
 #pw-custom-color-modal .modal__content {
@@ -492,5 +492,5 @@
   font-size: 1rem;
 }
 #pw-custom-color-modal .modal__content .btn-inquiry:hover {
-  background-color: rgb(11.1512195122, 99.1219512195, 242.8487804878);
+  background-color: #0b63f3;
 }/*# sourceMappingURL=pw-gradient-modal.css.map */

@@ -19,6 +19,7 @@ require_once plugin_dir_path(__FILE__) . 'modules/class-pw-auxiliary-functions.p
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-template-handler.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cart-admin-actions.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-canvas-inquiry.php';
+require_once plugin_dir_path(__FILE__) . 'modules/class-pwca-cart-quantity-handler.php';
 // Load partial components
 require_once plugin_dir_path(__FILE__) . 'partials/pw-product-cart-handler.php';
 
@@ -98,6 +99,7 @@ class Pw_Admin_Public
         new Pw_Template_Handler();
         new Pw_Cart_Admin_Actions();
         new Pw_Canvas_Inquiry();
+        new Pwca_Cart_Quantity_Handler();
 
         // 之前php 实现的 产品页模块
         // new Pw_Product_Customization();
