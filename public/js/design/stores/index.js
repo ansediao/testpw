@@ -10,15 +10,6 @@ const { createPinia, defineStore } = window.Pinia;
 export const useCanvasStore = defineStore('canvas', {
     // 3. state 定义所有需要全局管理的数据
     state: () => ({
-        // 预期到货日期
-        estimatedArrivalDate: '2025-01-15',
-
-        // 数量
-        quantity: 100,
-
-        // Sample Order 状态
-        isSampleOrder: false,
-
         // canvasStates：存储每个画板的状态（如对象、图层等），初始有3个画板
         canvasStates: { canvas1: null, canvas2: null, canvas3: null },
         // activeCanvasId：当前激活的画板 id，默认是 canvas1
@@ -51,15 +42,6 @@ export const useCanvasStore = defineStore('canvas', {
     }),
     // 4. getters 定义依赖状态的计算逻辑（所有依赖 Store 状态的计算放在这里）
     getters: {
-        // 获取当前数量
-        getQuantity: (state) => state.quantity,
-
-        // 获取Sample Order状态
-        getIsSampleOrder: (state) => state.isSampleOrder,
-
-        // 判断数量控件是否应该被禁用（Sample Order时禁用）
-        isQuantityControlDisabled: (state) => state.isSampleOrder,
-
         // 原始开关值
         moqItemsDesignRaw: (state) => state.productData && state.productData.customization_settings && state.productData.customization_settings.data
             ? state.productData.customization_settings.data.moq_items_design
@@ -120,44 +102,6 @@ export const useCanvasStore = defineStore('canvas', {
             return state.selectedColorsByView[vid] || null;
         },
         
-        // 获取"所有视图中"且 moq_setting.enable 为真时，对应 moq_setting.minimum_order_quantity 的最大值
-        // 若无符合条件的记录，则返回 0
-        getMaxUsedColorMoqQuantity: (state) => {
-            let max = 0;
-            const colorsMap = state.selectedColorsByView || {};
-            for (const viewId in colorsMap) {
-                if (!Object.prototype.hasOwnProperty.call(colorsMap, viewId)) continue;
-                const colorData = colorsMap[viewId];
-                if (!colorData || !colorData.moq_setting) continue;
-                const moqSetting = colorData.moq_setting;
-                // 兼容多种布尔表示: true/1/'1'/'true'
-                const moqEnabled = moqSetting.enable === true || moqSetting.enable === 1 || moqSetting.enable === '1' || moqSetting.enable === 'true';
-                if (!moqEnabled) continue;
-                const qty = Number(moqSetting.minimum_order_quantity);
-                if (Number.isFinite(qty) && qty > max) {
-                    max = qty;
-                }
-            }
-            return max;
-        },
-        
-        // ===== 新增：获取所有视图中price的最大值 =====
-        // 从selectedColorsByView获取所有视图的price最大值
-        getMaxPriceFromSelectedColors: (state) => {
-            let maxPrice = 0;
-            const colorsMap = state.selectedColorsByView || {};
-            for (const viewId in colorsMap) {
-                if (!Object.prototype.hasOwnProperty.call(colorsMap, viewId)) continue;
-                const colorData = colorsMap[viewId];
-                if (!colorData) continue;
-                const price = Number(colorData.price);
-                if (Number.isFinite(price) && price > maxPrice) {
-                    maxPrice = price;
-                }
-            }
-            return maxPrice;
-        },
-        
         // ===== 新增：计算各视图 rts_for_bulk_order 最大值相加 =====
         // 获取所有视图中 rts_for_bulk_order 的最大值相加
         getTotalMaxRtsForBulkOrder: (state) => {
@@ -173,35 +117,6 @@ export const useCanvasStore = defineStore('canvas', {
                 }
             }
             return total;
-        },
-        
-        // ===== 新增：计算预期发货日期 =====
-        // 基于今天的日期加上颜色选择后的最大 RTS 值和印刷方式的最大 process_time
-        estimatedDeliveryDate() {
-            const currentDate = new Date();
-            
-            // 获取颜色选择后的最大 RTS 值（这里使用 bulk order 的值作为默认）
-            const maxRtsValue = this.getTotalMaxRtsForBulkOrder;
-            
-            // 获取印刷方式的最大 process_time
-            const maxProcessTime = this.getMaxProcessTimeFromPrintMethods;
-            
-            // 计算总的处理时间：RTS 值 + 印刷方式处理时间
-            const totalProcessingDays = maxRtsValue + maxProcessTime;
-            
-            // 如果总处理时间为 0，使用默认的 0天
-            const daysToAdd = totalProcessingDays > 0 ? totalProcessingDays : 0;
-            
-            // 计算目标日期
-            const deliveryDate = new Date(currentDate);
-            deliveryDate.setDate(currentDate.getDate() + daysToAdd);
-            
-            // 格式化日期为 YYYY-MM-DD 格式
-            const year = deliveryDate.getFullYear();
-            const month = String(deliveryDate.getMonth() + 1).padStart(2, '0');
-            const day = String(deliveryDate.getDate()).padStart(2, '0');
-            
-            return `${year}-${month}-${day}`;
         },
         
         // ===== 新增：计算各视图 rts_for_sample_order 最大值相加 =====
@@ -221,200 +136,9 @@ export const useCanvasStore = defineStore('canvas', {
             return total;
         },
         
-        // ===== 新增：计算各视图印刷方式的最大 process_time =====
-        // 获取所有视图中印刷方式的最大 process_time
-        getMaxProcessTimeFromPrintMethods: (state) => {
-            const printMethodStore = window.usePrintMethodStore && window.usePrintMethodStore();
-            if (!printMethodStore) return 0;
-            
-            let maxProcessTime = 0;
-            const usedPrintMethodsByView = printMethodStore.usedPrintMethodsByView || {};
-            
-            for (const viewId in usedPrintMethodsByView) {
-                if (!Object.prototype.hasOwnProperty.call(usedPrintMethodsByView, viewId)) continue;
-                const methodsMap = usedPrintMethodsByView[viewId] || {};
-                
-                for (const methodId in methodsMap) {
-                    if (!Object.prototype.hasOwnProperty.call(methodsMap, methodId)) continue;
-                    const method = methodsMap[methodId];
-                    
-                    if (method && method.apiData && method.apiData.process_time) {
-                        const processTime = Number(method.apiData.process_time);
-                        if (Number.isFinite(processTime) && processTime > maxProcessTime) {
-                            maxProcessTime = processTime;
-                        }
-                    }
-                }
-            }
-            
-            return maxProcessTime;
-        },
-        
-        // ===== 新增：计算预期到货日期 =====
-        // 基于 estimatedDeliveryDate 加上产品的 shipping_info 中的 RTS 值
-        estimatedArrivalDate() {
-            // 获取预期发货日期
-            const deliveryDateStr = this.estimatedDeliveryDate;
-            if (!deliveryDateStr) return '';
-            
-            // 解析发货日期
-            const deliveryDate = new Date(deliveryDateStr);
-            if (isNaN(deliveryDate.getTime())) return '';
-            
-            // 获取产品数据中的 shipping_info
-            if (!this.productData) return deliveryDateStr;
-            
-            const productData = this.productData;
-            let shippingDays = 5;
-            
-            // 检查是否勾选了 Sample Order 复选框
-            const sampleCheckbox = document.querySelector('.sample-check input#sample');
-            const isSampleOrder = sampleCheckbox && sampleCheckbox.checked;
-            
-            // 从 API 数据中获取 shipping_info
-            if (productData && productData.product && productData.product.data && productData.product.data.shipping_info) {
-                const shippingInfo = productData.product.data.shipping_info;
-                
-                if (isSampleOrder && shippingInfo.rts_for_sample_order) {
-                    shippingDays = Number(shippingInfo.rts_for_sample_order) || 0;
-                } else if (!isSampleOrder && shippingInfo.rts_for_bulk_order) {
-                    shippingDays = Number(shippingInfo.rts_for_bulk_order) || 0;
-                }
-            }
-            
-            // 如果没有从 API 数据获取到，使用默认值
-            if (shippingDays === 0) {
-                if (isSampleOrder) {
-                    shippingDays = 1; // 样品订单默认1天运输时间
-                } else {
-                    shippingDays = 2; // 批量订单默认2天运输时间
-                }
-            }
-            
-            // 计算到货日期
-            const arrivalDate = new Date(deliveryDate);
-            arrivalDate.setDate(deliveryDate.getDate() + shippingDays);
-            
-            // 格式化日期为 YYYY-MM-DD 格式
-            const year = arrivalDate.getFullYear();
-            const month = String(arrivalDate.getMonth() + 1).padStart(2, '0');
-            const day = String(arrivalDate.getDate()).padStart(2, '0');
-            
-            return `${year}-${month}-${day}`;
-        },
-        
-        // ===== 新增：计算起订量（MOQ） =====
-        // 计算最终的起订量，取颜色MOQ和印刷方式MOQ的最大值
-        getCalculatedMoq: (state) => {
-            let maxColorMoq = 0;
-            let maxPrintMethodMoq = 0;
-            
-            // 1. 从 selectedColorsByView 中获取颜色相关的 MOQ
-            const colorsMap = state.selectedColorsByView || {};
-            for (const viewId in colorsMap) {
-                if (!Object.prototype.hasOwnProperty.call(colorsMap, viewId)) continue;
-                const colorData = colorsMap[viewId];
-                if (!colorData || !colorData.moq_setting) continue;
-                
-                // 处理嵌套的 _custom.value 结构
-                let moqSetting = colorData.moq_setting;
-                if (moqSetting._custom && moqSetting._custom.value) {
-                    moqSetting = moqSetting._custom.value;
-                }
-                
-                // 检查 enable 状态（兼容多种布尔表示）
-                const moqEnabled = moqSetting.enable === true || moqSetting.enable === 1 || 
-                                 moqSetting.enable === '1' || moqSetting.enable === 'true';
-                if (!moqEnabled) continue;
-                
-                const qty = Number(moqSetting.minimum_order_quantity);
-                if (Number.isFinite(qty) && qty > maxColorMoq) {
-                    maxColorMoq = qty;
-                }
-            }
-            
-            // 2. 从 usedPrintMethodsByView 中获取印刷方式相关的 MOQ
-            const printMethodStore = window.usePrintMethodStore && window.usePrintMethodStore();
-            if (printMethodStore && printMethodStore.usedPrintMethodsByView) {
-                const usedPrintMethodsByView = printMethodStore.usedPrintMethodsByView || {};
-                
-                for (const viewId in usedPrintMethodsByView) {
-                    if (!Object.prototype.hasOwnProperty.call(usedPrintMethodsByView, viewId)) continue;
-                    const methodsMap = usedPrintMethodsByView[viewId] || {};
-                    
-                    for (const methodId in methodsMap) {
-                        if (!Object.prototype.hasOwnProperty.call(methodsMap, methodId)) continue;
-                        const method = methodsMap[methodId];
-                        if (!method || !method.apiData) continue;
-                        
-                        const api = method.apiData;
-                        // 检查 moq_enabled 状态（兼容多种布尔表示）
-                        const moqEnabled = api.moq_enabled === true || api.moq_enabled === 1 || 
-                                         api.moq_enabled === '1' || api.moq_enabled === 'true';
-                        if (!moqEnabled) continue;
-                        
-                        const qty = Number(api.moq_quantity);
-                        if (Number.isFinite(qty) && qty > maxPrintMethodMoq) {
-                            maxPrintMethodMoq = qty;
-                        }
-                    }
-                }
-            }
-            
-            // 3. 返回两个值中的最大值，如果都为0则返回1作为默认值
-            const finalMoq = Math.max(maxColorMoq, maxPrintMethodMoq);
-            return finalMoq > 0 ? finalMoq : 1;
-        },
-        
-        // ===== 新增：计算批数量 =====
-        // 根据产品数据中的 sell_in_batch 设置返回批数量
-        getBatchQuantity: (state) => {
-            // 检查 productData 是否存在
-            if (!state.productData) {
-                return 1;
-            }
-            
-            // 检查 productData.product 是否存在
-            const product = state.productData.product.data;
-            if (!product) {
-                return 1;
-            }
-            
-            // 检查 sell_in_batch 是否为 true
-            if (product.sell_in_batch === true) {
-                // 如果按批次销售，返回 batch_quantity
-                if (product.sell_in_batch_info && product.sell_in_batch_info.batch_quantity) {
-                    const batchQty = Number(product.sell_in_batch_info.batch_quantity);
-                    return Number.isFinite(batchQty) && batchQty > 0 ? batchQty : 1;
-                }
-                // 兼容旧的数据结构，直接从 product 中获取 batch_quantity
-                if (product.batch_quantity) {
-                    const batchQty = Number(product.batch_quantity);
-                    return Number.isFinite(batchQty) && batchQty > 0 ? batchQty : 1;
-                }
-            }
-            
-            // 默认返回 1
-            return 1;
-        }
     },
     // 5. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
     actions: {
-        // 设置数量
-        setQuantity(newValue) {
-            this.quantity = Math.max(1, newValue);
-        },
-
-        // 设置Sample Order状态
-        setIsSampleOrder(value) {
-            this.isSampleOrder = Boolean(value);
-        },
-
-        // 切换Sample Order状态
-        toggleSampleOrder() {
-            this.isSampleOrder = !this.isSampleOrder;
-        },
-
         // 切换当前激活的画板
         setActiveCanvasId(id) { this.activeCanvasId = id; },
         // 更新指定画板的状态（如对象、图层等）
@@ -569,12 +293,6 @@ export const useCanvasStore = defineStore('canvas', {
                 this.setLoadingProductData(false);
             }
         },
-        // 更新预期到货日期（发货日期现在是自动计算的）
-        updateEstimatedDates(deliveryDate, arrivalDate) {
-            // estimatedDeliveryDate 现在是计算属性，不需要手动设置
-            if (arrivalDate) this.estimatedArrivalDate = arrivalDate;
-        },
-
         // 从产品数据中提取视图信息
         extractViewsFromProductData(productData) {
             const views = [];
