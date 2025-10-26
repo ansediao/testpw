@@ -553,8 +553,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     // 生成颜色样本
                     normalVariants.forEach((variant, index) => {
                         const colorSwatch = document.createElement('div');
-                        // 如果有指定的选中颜色，则使用它；否则默认选中第一个
-                        const isSelected = selectedColor ? (variant.variant_color === selectedColor) : (index === 0);
+                        // 如果有指定的选中颜色，则使用它；否则默认不选中任何颜色
+                        const isSelected = selectedColor ? (variant.variant_color === selectedColor) : false;
                         colorSwatch.className = 'color-swatch' + (isSelected ? ' selected' : '');
                         colorSwatch.style.backgroundColor = variant.variant_color;
                         colorSwatch.setAttribute('data-color', variant.variant_color);
