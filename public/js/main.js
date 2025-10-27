@@ -2599,7 +2599,13 @@ async function generateCompositeImageForGrid(options) {
     // 清空画布
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    try { // 1. 绘制Background Layer（如果存在）
+    try {
+        // 预先记录 Base 图层的图片 URL，用于后续遮罩逻辑识别
+        if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) {
+            window.baseCupBoundaryImageUrl = baseLayer.layer_data.content.imageURL;
+        }
+
+        // 1. 绘制Background Layer（如果存在）
         if (backgroundLayer && backgroundLayer.layer_data && backgroundLayer.layer_data.content && backgroundLayer.layer_data.content.imageURL) {
             await drawLayerImageForGrid(ctx, backgroundLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
         }
@@ -2625,6 +2631,10 @@ async function generateCompositeImageForGrid(options) {
         if (activeCanvas) {
             await drawCroppedCanvasRegionWithWindowEffect(ctx, activeCanvas, cropConfig, canvasWidth, canvasHeight);
         }
+
+        
+        // 5.（移除）不再重复绘制 Base Layer 作为输出层
+
 
         return tempCanvas.toDataURL('image/png');
     } catch (error) {
@@ -2690,9 +2700,15 @@ async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
                 originalX: x,
                 originalY: y,
                 originalWidth: targetWidth,
-                originalHeight: targetHeight
+                originalHeight: targetHeight,
+                imageUrl: imageUrl
             };
-            
+
+            // 如果当前绘制的是 Base 图层，记录专用的 baseCupBoundary
+            if (window.baseCupBoundaryImageUrl && window.baseCupBoundaryImageUrl === imageUrl) {
+                window.baseCupBoundary = Object.assign({}, window.cupBoundary);
+            }
+
             ctx.drawImage(img, x, y, targetWidth, targetHeight);
             resolve();
         };
@@ -2769,8 +2785,14 @@ async function drawLayerImageForGridWithColor(ctx, imageUrl, width, height, colo
                 originalX: x,
                 originalY: y,
                 originalWidth: targetWidth,
-                originalHeight: targetHeight
+                originalHeight: targetHeight,
+                imageUrl: imageUrl
             };
+
+            // 如果当前绘制的是 Base 图层（应用了颜色），记录专用的 baseCupBoundary
+            if (window.baseCupBoundaryImageUrl && window.baseCupBoundaryImageUrl === imageUrl) {
+                window.baseCupBoundary = Object.assign({}, window.cupBoundary);
+            }
 
             // 将应用了颜色的图片绘制到目标画布
             ctx.drawImage(tempCanvas, x, y);
@@ -2884,17 +2906,14 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
             // 保存当前画布状态
             ctx.save();
 
-            // 创建杯子边界的裁剪路径
-            ctx.beginPath();
-            ctx.rect(cupBoundary.x, cupBoundary.y, cupBoundary.width, cupBoundary.height);
-            ctx.clip();
-
+            // 先根据裁剪配置生成临时源画布（裁剪结果）
+            let tempCanvas;
             if (cropConfig.extraCrop) { // 后视图特殊处理：右边1/4 + 左边1/4
-                const tempCanvas = document.createElement('canvas');
                 const rightCropWidth = sourceWidth * cropConfig.width;
                 const leftCropWidth = sourceWidth * cropConfig.extraCrop.width;
                 const totalCropWidth = rightCropWidth + leftCropWidth;
 
+                tempCanvas = document.createElement('canvas');
                 tempCanvas.width = totalCropWidth;
                 tempCanvas.height = sourceHeight;
                 const tempCtx = tempCanvas.getContext('2d');
@@ -2906,30 +2925,73 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
                 // 绘制左边1/4
                 const leftCropX = sourceWidth * cropConfig.extraCrop.x;
                 tempCtx.drawImage(img, leftCropX, 0, leftCropWidth, sourceHeight, rightCropWidth, 0, leftCropWidth, sourceHeight);
-
-                // 在杯子边界内绘制
-                drawCanvasWithinBoundaryForWindow(ctx, tempCanvas, cupBoundary);
             } else { // 普通裁剪
                 const cropX = sourceWidth * cropConfig.x;
                 const cropY = sourceHeight * cropConfig.y;
                 const cropWidth = sourceWidth * cropConfig.width;
                 const cropHeight = sourceHeight * cropConfig.height;
 
-                // 创建裁剪后的临时画布
-                const tempCanvas = document.createElement('canvas');
+                tempCanvas = document.createElement('canvas');
                 tempCanvas.width = cropWidth;
                 tempCanvas.height = cropHeight;
                 const tempCtx = tempCanvas.getContext('2d');
 
                 tempCtx.drawImage(img, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-
-                // 在杯子边界内绘制
-                drawCanvasWithinBoundaryForWindow(ctx, tempCanvas, cupBoundary);
             }
 
-            // 恢复画布状态
-            ctx.restore();
-            resolve();
+            // 创建离屏合成画布，用 baseLayer 非透明像素区域作为遮罩，应用 source-in
+            const compositeCanvas = document.createElement('canvas');
+            compositeCanvas.width = targetWidth;
+            compositeCanvas.height = targetHeight;
+            const compositeCtx = compositeCanvas.getContext('2d');
+
+            const maskImg = new Image();
+            maskImg.crossOrigin = 'anonymous';
+            maskImg.onload = () => {
+                // 绘制遮罩（baseLayer原图，保持与先前绘制一致的缩放与位置）
+                compositeCtx.drawImage(maskImg, cupBoundary.originalX, cupBoundary.originalY, cupBoundary.originalWidth, cupBoundary.originalHeight);
+
+                // 使用 source-in，将临时源画布裁剪到 baseLayer 的非透明像素区域
+                compositeCtx.globalCompositeOperation = 'source-in';
+
+                // 高度对齐为像素区域高度，宽度自适应等比缩放；顶部位置对齐
+                const desiredHeight = cupBoundary.height;
+                const scale = desiredHeight / tempCanvas.height;
+                const desiredWidth = tempCanvas.width * scale;
+
+                const drawY = cupBoundary.y; // 顶部对齐
+                const drawX = cupBoundary.x + (cupBoundary.width - desiredWidth) / 2; // 水平居中于像素区域
+
+                compositeCtx.drawImage(tempCanvas, drawX, drawY, desiredWidth, desiredHeight);
+
+                // 重置混合模式
+                compositeCtx.globalCompositeOperation = 'source-over';
+
+                // 将合成结果绘制到目标画布
+                ctx.drawImage(compositeCanvas, 0, 0);
+
+                // 恢复画布状态并完成
+                ctx.restore();
+                resolve();
+            };
+            maskImg.onerror = () => {
+                console.warn('Mask image failed to load, fallback to boundary drawing');
+                // 回退：在边界内绘制（不使用 source-in）
+                drawCanvasWithinBoundaryForWindow(ctx, tempCanvas, cupBoundary);
+                ctx.restore();
+                resolve();
+            };
+
+            // 优先使用记录的 base 图像 URL
+            const maskSrc = cupBoundary.imageUrl || window.baseCupBoundaryImageUrl;
+            if (maskSrc) {
+                maskImg.src = maskSrc;
+            } else {
+                // 无法获取遮罩图片，直接回退
+                drawCanvasWithinBoundaryForWindow(ctx, tempCanvas, cupBoundary);
+                ctx.restore();
+                resolve();
+            }
         };
 
         img.src = sourceDataURL;
