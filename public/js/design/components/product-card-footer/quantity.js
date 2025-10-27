@@ -6,7 +6,7 @@
 const { ref, computed, watch } = window.Vue;
 
 export function useQuantity(calculatedMoq, batchQuantity, getIsSampleOrder) {
-  const quantity = ref(100);
+  const quantity = ref(1);
 
   const setQuantity = (newValue) => {
     const numeric = parseInt(newValue, 10);
