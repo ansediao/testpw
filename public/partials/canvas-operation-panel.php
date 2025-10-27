@@ -926,19 +926,26 @@ window.applyColorToAllViews = function(color) {
         return;
     }
 
+    let hasFourGrid = false;
+
     store.views.forEach(view => {
         if (isFourGridView(view)) {
-            console.log(`跳过四格视图 ${view.name || view.id} 的纯色同步`);
+            hasFourGrid = true;
             return;
         }
         window.applyColorToView(view, color, tintFunction);
     });
 
+    if (hasFourGrid) {
+        window.currentColor = color;
+        console.log(`检测到四格视图，已将 window.currentColor 同步为 ${color}`);
+    }
+
     if (typeof window.__pwcaUpdatePriceDisplay === 'function') {
         window.__pwcaUpdatePriceDisplay();
     }
 
-    console.log(`全局颜色 ${color} 已应用到所有 ${store.views.length} 个视图`);
+    console.log(`全局颜色 ${color} 已应用到所有 ${store.views.length} 个视图（四格视图通过 window.currentColor）`);
 };
 
 const getGradientCoords = (direction, width, height) => {
@@ -1243,6 +1250,26 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                 
                 // 将清除函数暴露到全局，供链接使用
                 window.clearAllColorEffects = clearAllColorEffects;
+
+                // 新增：清除显式颜色选择状态（影响 getExplicitSelectedColor）
+                window.clearExplicitColorSelection = function() {
+                    try {
+                        const swatches = document.querySelectorAll('.color-swatch');
+                        swatches.forEach(s => s.classList.remove('selected'));
+                        const customSwatch = document.querySelector('.color-swatch[data-custom-color="true"]');
+                        if (customSwatch) {
+                            customSwatch.remove();
+                        }
+                        const picker = document.getElementById('customColorPicker');
+                        if (picker) {
+                            picker.value = '#000000';
+                        }
+                        window.currentColor = '#000000';
+                        console.log('已清除显式颜色选择状态，重置 window.currentColor 与选择样本');
+                    } catch (e) {
+                        console.warn('清除显式颜色选择状态时发生错误:', e);
+                    }
+                };
                 
                 // 获取第二个按钮（自定义颜色）
                 const customColorBtn = document.querySelector('.action-buttons .btn:nth-child(2)');
@@ -1274,6 +1301,11 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                     applyCustomColorBtn.addEventListener('click', function() {
                         const color = customColorPicker.value;
                         
+                        // 先清理显式选择状态，避免旧状态影响 getExplicitSelectedColor
+                        if (typeof window.clearExplicitColorSelection === 'function') {
+                            window.clearExplicitColorSelection();
+                        }
+                        
                         // 更新全局颜色变量，确保 getExplicitSelectedColor 能检测到
                         window.currentColor = color;
                         console.log('自定义颜色已应用，更新 window.currentColor:', color);
@@ -1292,6 +1324,15 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                                 if (activeViewId && store.views) {
                                     const currentView = store.views.find(v => v.id === activeViewId);
                                     if (currentView && currentView.base_layer) {
+                                        // 若为四格视图，跳过对 base_layer 的直接上色，仅通过 window.currentColor 同步
+                                        if (typeof isFourGridView === 'function' && isFourGridView(currentView)) {
+                                            console.log(`当前视图为四格视图，仅通过 window.currentColor 同步颜色 ${color}`);
+                                            if (typeof window.applyColorToAllViews === 'function') {
+                                                window.applyColorToAllViews(color);
+                                            }
+                                            return;
+                                        }
+
                                         // 保存原始图像元素（如果尚未保存）
                                         if (!currentView.base_layer._originalElement && currentView.base_layer._element) {
                                             const originalImg = new Image();
@@ -1331,12 +1372,11 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
 
                                         console.log(`已将颜色 ${color} 应用到当前视图的 base_layer`);
 
-                                        if (store.views && store.views.length > 0 && store.activeViewId === store.views[0].id) {
-                                            if (typeof window.applyColorToAllViews === 'function') {
-                                                window.applyColorToAllViews(color);
-                                            } else {
-                                                console.warn('applyColorToAllViews 函数不可用，无法同步其他视图的纯色');
-                                            }
+                                        // 无条件同步其他视图（四格视图通过 window.currentColor）
+                                        if (typeof window.applyColorToAllViews === 'function') {
+                                            window.applyColorToAllViews(color);
+                                        } else {
+                                            console.warn('applyColorToAllViews 函数不可用，无法同步其他视图的纯色');
                                         }
                                     } else {
                                         console.warn('当前视图没有 base_layer 或视图不存在');
@@ -1370,7 +1410,7 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                         
                         // 更新颜色状态显示
                         if (colorStatusDisplay) {
-                            colorStatusDisplay.innerHTML = `纯色: ${color} <a href="#" id="clearColorLink" style="margin-left: 10px; color: #007cba; text-decoration: none;">切换颜色</a>`;
+                            colorStatusDisplay.innerHTML = `纯色: ${color} <a href=\"#\" id=\"clearColorLink\" style=\"margin-left: 10px; color: #007cba; text-decoration: none;\">切换颜色</a>`;
                             colorStatusDisplay.style.display = 'block';
                             
                             // 添加清除颜色链接的事件监听器
@@ -1383,22 +1423,7 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                             }
                         }
                         
-                        // 更新颜色样本中的选中状态 - 不清除选中状态，而是创建虚拟选中状态
-                        const colorSwatches = document.querySelectorAll('.color-swatch');
-                        colorSwatches.forEach(s => s.classList.remove('selected'));
-                        
-                        // 创建或更新虚拟的自定义颜色样本，让 getExplicitSelectedColor 能检测到
-                        let customColorSwatch = document.querySelector('.color-swatch[data-custom-color="true"]');
-                        if (!customColorSwatch) {
-                            customColorSwatch = document.createElement('div');
-                            customColorSwatch.className = 'color-swatch';
-                            customColorSwatch.setAttribute('data-custom-color', 'true');
-                            customColorSwatch.style.display = 'none'; // 隐藏，仅用于检测
-                            document.body.appendChild(customColorSwatch);
-                        }
-                        customColorSwatch.setAttribute('data-color', color);
-                        customColorSwatch.classList.add('selected');
-                        console.log('已创建虚拟自定义颜色样本，颜色:', color);
+                        // 不再创建虚拟自定义颜色样本，保持显式选择状态清空，依赖 window.currentColor
                         customColorModal.style.display = 'none';
                     });
                 }
