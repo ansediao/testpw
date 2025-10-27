@@ -870,11 +870,6 @@ window.applyColorToView = function(view, color, tintFunction) {
         return;
     }
 
-    if (isFourGridView(view)) {
-        console.log(`跳过四格视图 ${view.name || view.id} 的纯色应用`);
-        return;
-    }
-
     if (!view.base_layer) {
         console.warn(`视图 ${view.name || view.id} 没有 base_layer`);
         return;
@@ -926,10 +921,27 @@ window.applyColorToAllViews = function(color) {
         return;
     }
 
+    const selectedColors = store.selectedColorsByView || {};
+    const activeViewId = store.activeViewId;
+    const baseColorData = activeViewId && selectedColors ? selectedColors[activeViewId] : null;
+
     store.views.forEach(view => {
-        if (isFourGridView(view)) {
-            console.log(`跳过四格视图 ${view.name || view.id} 的纯色同步`);
-            return;
+        if (typeof store.setSelectedColorByView === 'function') {
+            const colorData = baseColorData
+                ? { ...baseColorData }
+                : {
+                    color: color,
+                    selectedColor: color,
+                    variantId: null,
+                    variantName: '同步颜色',
+                    isCustomColor: true
+                };
+
+            colorData.color = color;
+            colorData.selectedColor = color;
+            colorData.syncedFromViewId = activeViewId || null;
+
+            store.setSelectedColorByView(view.id, colorData);
         }
         window.applyColorToView(view, color, tintFunction);
     });
@@ -1258,6 +1270,78 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                     direction: 'to right'
                 };
 
+                function syncCustomColorSelection(color) {
+                    let colorData = null;
+
+                    if (window.useCanvasStore) {
+                        try {
+                            const store = window.useCanvasStore();
+                            const activeViewId = store.activeViewId;
+
+                            if (!activeViewId) {
+                                console.warn('无法同步自定义颜色：未找到激活的视图');
+                            } else {
+                                colorData = {
+                                    variantId: null,
+                                    variantName: '自定义颜色',
+                                    color: color,
+                                    selectedColor: color,
+                                    isCustomColor: true
+                                };
+
+                                if (typeof store.setSelectedColorByView === 'function') {
+                                    store.setSelectedColorByView(activeViewId, { ...colorData });
+                                }
+                            }
+                        } catch (error) {
+                            console.warn('同步自定义颜色到 Canvas Store 失败:', error);
+                        }
+                    }
+
+                    if (window.useProductStore) {
+                        try {
+                            const productStore = window.useProductStore();
+                            const basicVariant = {
+                                id: window.__pwCustomColorVariantId || 'design-custom-color',
+                                variant_color: color,
+                                variant_name: '自定义颜色',
+                                type: 'design-selected',
+                                isDesignSelected: true,
+                                isCustomColor: true
+                            };
+
+                            window.__pwCustomColorVariantId = basicVariant.id;
+
+                            if (productStore && typeof productStore.setSelectedVariant === 'function') {
+                                productStore.setSelectedVariant(basicVariant);
+                            }
+
+                            const event = new CustomEvent('pw-color-variant-selected', {
+                                detail: { variant: basicVariant }
+                            });
+                            document.dispatchEvent(event);
+                        } catch (error) {
+                            console.warn('更新 Product Store 自定义颜色失败:', error);
+                        }
+                    }
+
+                    return colorData;
+                }
+
+                function triggerBulkOrderRtsRecalculation() {
+                    if (window.useCanvasStore) {
+                        try {
+                            const store = window.useCanvasStore();
+                            const totalRts = store.getTotalMaxRtsForBulkOrder;
+                            document.dispatchEvent(new CustomEvent('pw-bulk-order-rts-calculated', {
+                                detail: { totalRts }
+                            }));
+                        } catch (error) {
+                            console.warn('计算批量下单 RTS 失败:', error);
+                        }
+                    }
+                }
+
                 if (customColorBtn && customColorModal && closeCustomColorModal && applyCustomColorBtn && customColorPicker) {
                     customColorBtn.addEventListener('click', function(e) {
                         e.preventDefault();
@@ -1273,11 +1357,14 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                     });
                     applyCustomColorBtn.addEventListener('click', function() {
                         const color = customColorPicker.value;
-                        
+
                         // 更新全局颜色变量，确保 getExplicitSelectedColor 能检测到
                         window.currentColor = color;
                         console.log('自定义颜色已应用，更新 window.currentColor:', color);
-                        
+
+                        syncCustomColorSelection(color);
+                        triggerBulkOrderRtsRecalculation();
+
                         // 先清除所有渐变色对象
                         if (window.clearAllGradientRects) {
                             window.clearAllGradientRects();
