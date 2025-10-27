@@ -2650,39 +2650,59 @@ async function generateCompositeImageForGrid(options) {
  * @param {number} width - 画布宽度
  * @param {number} height - 画布高度
  */
+/**
+ * 将图层图片绘制到网格预览画布，同时扫描非透明像素获取边界信息。
+ * - 保持原始长宽比，将图片缩放到输出高度的 80% 并居中
+ * - 在临时画布上读取像素数据，计算非透明区域的最小包围盒
+ * - 将边界信息写入 `window.cupBoundary`，供后续 Canvas 逻辑使用
+ * - 若为 Base 图层，额外记录 `window.baseCupBoundary`
+ *
+ * @param {CanvasRenderingContext2D} ctx 目标 2D 画布上下文
+ * @param {string} imageUrl 要绘制的图片地址（需满足 CORS）
+ * @param {number} width 目标输出区域宽度
+ * @param {number} height 目标输出区域高度
+ * @returns {Promise<void>} 图片绘制完成后 resolve
+ */
 async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
+    // 使用 Promise 封装图片加载与绘制流程，便于异步串联
     return new Promise((resolve, reject) => {
         const img = new Image();
+        // 为避免跨域导致的 canvas 污染（tainted canvas），开启匿名跨域。
+        // 注意：图片服务器需要返回 `Access-Control-Allow-Origin` 头。
         img.crossOrigin = 'anonymous';
-        img.onload = () => { // 计算保持长宽比的尺寸，高度为输出图片高度的80%
+        img.onload = () => {
+            // 1) 保持长宽比进行缩放：目标高度取输出区域的 80%，为上下留白
             const targetHeight = height * 0.8;
-            const aspectRatio = img.width / img.height;
-            const targetWidth = targetHeight * aspectRatio;
+            const aspectRatio = img.width / img.height; // 原始宽高比
+            const targetWidth = targetHeight * aspectRatio; // 按比例得到目标宽度
 
-            // 计算居中位置
+            // 2) 计算居中位置（在给定的 width/height 区域中水平/垂直居中）
             const x = (width - targetWidth) / 2;
             const y = (height - targetHeight) / 2;
 
-            // 创建临时画布来检测非透明像素区域
+            // 3) 使用临时画布渲染缩放后的图片，以便读取像素数据进行边界扫描
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = targetWidth;
             tempCanvas.height = targetHeight;
             const tempCtx = tempCanvas.getContext('2d');
             tempCtx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
-            // 获取图像数据来检测边界
+            // 4) 读取像素数据：每个像素包含 RGBA 四个通道，索引 3 为 alpha(不透明度)
             const imageData = tempCtx.getImageData(0, 0, targetWidth, targetHeight);
             const data = imageData.data;
 
-            // 找到非透明像素的边界
+            // 5) 计算非透明像素的最小包围盒
+            // 初始化时令最小值为最大边界、最大值为 0，以便后续比较更新
             let minX = targetWidth,
                 maxX = 0,
                 minY = targetHeight,
                 maxY = 0;
             for (let y = 0; y < targetHeight; y++) {
                 for (let x = 0; x < targetWidth; x++) {
+                    // 计算当前像素的 alpha 通道值，范围 [0, 255]
                     const alpha = data[(y * targetWidth + x) * 4 + 3];
-                    if (alpha > 10) { // 非透明像素阈值
+                    // 使用阈值 10 过滤近似透明像素，避免边界过于贴近噪点
+                    if (alpha > 10) {
                         minX = Math.min(minX, x);
                         maxX = Math.max(maxX, x);
                         minY = Math.min(minY, y);
@@ -2691,7 +2711,12 @@ async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
                 }
             }
 
-            // 存储杯子边界信息到全局变量，供canvas绘制函数使用
+            // 6) 存储计算得到的边界信息到全局，供其他绘制/交互逻辑使用
+            // 说明：
+            // - x/y 为包围盒在输出区域中的绝对位置（居中偏移 + 局部边界）
+            // - width/height 为非透明区域的尺寸
+            // - originalX/originalY/originalWidth/originalHeight 记录缩放后图片的整体位置与尺寸
+            // - imageUrl 用于对齐与校验（如 Base 图层专用边界）
             window.cupBoundary = {
                 x: x + minX,
                 y: y + minY,
@@ -2704,15 +2729,19 @@ async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
                 imageUrl: imageUrl
             };
 
-            // 如果当前绘制的是 Base 图层，记录专用的 baseCupBoundary
+            // 若当前绘制的是 Base 图层（通过 imageUrl 标识），记录专用的 baseCupBoundary
             if (window.baseCupBoundaryImageUrl && window.baseCupBoundaryImageUrl === imageUrl) {
                 window.baseCupBoundary = Object.assign({}, window.cupBoundary);
             }
 
+            // 7) 将图片绘制到目标画布上（最终呈现到网格预览）
             ctx.drawImage(img, x, y, targetWidth, targetHeight);
+            // 绘制流程完成，通知上层继续
             resolve();
         };
+        // 图片加载失败时将错误传递出去，便于上层统一处理
         img.onerror = reject;
+        // 触发图片加载
         img.src = imageUrl;
     });
 }
