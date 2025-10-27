@@ -642,7 +642,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 function saveColorSelectionToStore(selectedColor, options = {}) {
-                    const { sourceSwatch = null, variantOverride = null } = options;
+                    const {
+                        sourceSwatch = null,
+                        variantOverride = null,
+                        skipProductStoreUpdate = false
+                    } = options;
 
                     if (!window.useCanvasStore) {
                         console.warn('CanvasStore 不可用');
@@ -703,7 +707,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     store.setSelectedColorByView(activeViewId, colorData);
 
-                    if (window.useProductStore) {
+                    if (!skipProductStoreUpdate && window.useProductStore) {
                         try {
                             const productStore = window.useProductStore();
                             if (completeVariantData) {
@@ -736,16 +740,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log(`颜色数据已存储到视图 ${activeViewId}:`, colorData);
                 }
 
+                window.saveColorSelectionToStore = saveColorSelectionToStore;
+
                 function initializeViewColorSelectionState() {
                     let attempts = 0;
-                    const maxAttempts = 10;
+                    const maxAttempts = 20;
+                    let synced = false;
 
-                    const trySync = () => {
+                    const attemptSync = () => {
+                        if (synced) {
+                            document.removeEventListener('canvasPiniaReady', attemptSync);
+                            return;
+                        }
+
                         attempts++;
 
                         if (!window.useCanvasStore) {
                             if (attempts < maxAttempts) {
-                                setTimeout(trySync, 200);
+                                setTimeout(attemptSync, 200);
+                            } else {
+                                document.removeEventListener('canvasPiniaReady', attemptSync);
                             }
                             return;
                         }
@@ -753,25 +767,128 @@ document.addEventListener('DOMContentLoaded', function() {
                         const store = window.useCanvasStore();
                         if (!store || !store.activeViewId) {
                             if (attempts < maxAttempts) {
-                                setTimeout(trySync, 200);
+                                setTimeout(attemptSync, 200);
+                            } else {
+                                document.removeEventListener('canvasPiniaReady', attemptSync);
                             }
                             return;
                         }
+
+                        const activeViewId = store.activeViewId;
+                        const existingEntry = store.selectedColorsByView && store.selectedColorsByView[activeViewId];
+                        if (existingEntry && existingEntry.selectedColor) {
+                            const storedColor = existingEntry.selectedColor;
+
+                            if (window.currentColor !== storedColor) {
+                                window.currentColor = storedColor;
+                                console.log('初始化：使用 store 中的颜色状态:', storedColor);
+                            }
+
+                            const storedSwatch = document.querySelector(`.color-swatch[data-color="${storedColor}"]`);
+                            if (storedSwatch) {
+                                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                                storedSwatch.classList.add('selected');
+                            }
+
+                            synced = true;
+                            document.removeEventListener('canvasPiniaReady', attemptSync);
+                            return;
+                        }
+
+                        let color = null;
+                        let variantOverride = null;
+                        let swatchForColor = null;
+                        let usedProductVariant = false;
 
                         const selectedSwatch = document.querySelector('.color-swatch.selected');
-                        if (!selectedSwatch) {
+                        if (selectedSwatch) {
+                            color = selectedSwatch.getAttribute('data-color');
+                            swatchForColor = selectedSwatch;
+
+                            const variantIdAttr = selectedSwatch.getAttribute('data-variant-id');
+                            const variantNameAttr = selectedSwatch.getAttribute('data-variant-name');
+                            if (variantIdAttr || variantNameAttr) {
+                                variantOverride = {
+                                    variantId: variantIdAttr || null,
+                                    variantName: variantNameAttr || null,
+                                    color
+                                };
+                            }
+                        }
+
+                        if (!color && window.useProductStore) {
+                            try {
+                                const productStore = window.useProductStore();
+                                const variantRef = productStore && productStore.selectedVariant;
+                                const variant = variantRef && Object.prototype.hasOwnProperty.call(variantRef, 'value')
+                                    ? variantRef.value
+                                    : variantRef;
+
+                                if (variant) {
+                                    const variantColor = variant.variant_color || variant.color_value || variant.color || null;
+                                    if (variantColor) {
+                                        color = variantColor;
+                                        usedProductVariant = true;
+                                        const variantId = variant.id || variant.variant_id || variant.variantId || null;
+                                        const variantName = variant.variant_name || variant.name || variant.color_name || null;
+
+                                        variantOverride = {
+                                            variantId,
+                                            variantName,
+                                            color: variantColor,
+                                            type: variant.type || variant.variant_type || 'product-selected',
+                                            completeVariantData: variant
+                                        };
+                                    }
+                                }
+                            } catch (error) {
+                                console.warn('初始化颜色：读取 productStore 失败:', error);
+                            }
+                        }
+
+                        if (!color && window.currentColor && window.currentColor !== '#000000') {
+                            color = window.currentColor;
+                        }
+
+                        if (!color) {
+                            const firstSwatch = document.querySelector('.color-swatch');
+                            if (firstSwatch) {
+                                color = firstSwatch.getAttribute('data-color');
+                                swatchForColor = firstSwatch;
+                            }
+                        }
+
+                        if (!color) {
                             if (attempts < maxAttempts) {
-                                setTimeout(trySync, 200);
+                                setTimeout(attemptSync, 200);
+                            } else {
+                                document.removeEventListener('canvasPiniaReady', attemptSync);
                             }
                             return;
                         }
 
-                        const color = selectedSwatch.getAttribute('data-color');
-                        if (!color) {
-                            if (attempts < maxAttempts) {
-                                setTimeout(trySync, 200);
+                        if (!swatchForColor) {
+                            const matchingSwatch = document.querySelector(`.color-swatch[data-color="${color}"]`);
+                            if (matchingSwatch) {
+                                swatchForColor = matchingSwatch;
                             }
-                            return;
+                        }
+
+                        if (swatchForColor) {
+                            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                            swatchForColor.classList.add('selected');
+
+                            if (!variantOverride) {
+                                const variantIdAttr = swatchForColor.getAttribute('data-variant-id');
+                                const variantNameAttr = swatchForColor.getAttribute('data-variant-name');
+                                if (variantIdAttr || variantNameAttr) {
+                                    variantOverride = {
+                                        variantId: variantIdAttr || null,
+                                        variantName: variantNameAttr || null,
+                                        color
+                                    };
+                                }
+                            }
                         }
 
                         if (window.currentColor !== color) {
@@ -779,13 +896,18 @@ document.addEventListener('DOMContentLoaded', function() {
                             console.log('初始化同步 window.currentColor:', color);
                         }
 
-                        const existing = store.selectedColorsByView && store.selectedColorsByView[store.activeViewId];
-                        if (!existing || existing.selectedColor !== color) {
-                            saveColorSelectionToStore(color, { sourceSwatch: selectedSwatch });
-                        }
+                        saveColorSelectionToStore(color, {
+                            sourceSwatch: swatchForColor,
+                            variantOverride,
+                            skipProductStoreUpdate: usedProductVariant
+                        });
+
+                        synced = true;
+                        document.removeEventListener('canvasPiniaReady', attemptSync);
                     };
 
-                    trySync();
+                    document.addEventListener('canvasPiniaReady', attemptSync);
+                    attemptSync();
                 }
 
                 initializeViewColorSelectionState();
