@@ -259,46 +259,57 @@ function validateAndRepositionObject(obj, viewId) {
         return { wasValid: true, wasMoved: false, overlapRatio: 1 };
     }
 
-    // 4格图视图不检测（跳过验证）
+    // 读取视图流类型
     const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
-    if (canvasStore && Array.isArray(canvasStore.views)) {
-        const viewObj = canvasStore.views.find(v => v && v.id === viewId);
-        const flow = (viewObj && (viewObj.view_flow || (viewObj.data && viewObj.data.view_flow))) || null;
-        if (flow === '4-Grid Flow') {
-            return { wasValid: true, wasMoved: false, overlapRatio: 1 };
-        }
-    }
+    const viewObj = canvasStore && Array.isArray(canvasStore.views) ? canvasStore.views.find(v => v && v.id === viewId) : null;
+    const flow = (viewObj && (viewObj.view_flow || (viewObj.data && viewObj.data.view_flow))) || null;
+    const isFourGrid = flow === '4-Grid Flow';
 
-    // 检查对象是否分配了打印方式
+    // 检查对象是否分配了打印方式（保持与其他视图一致）
     const hasPrintMethod = hasPrintMethodAssigned(obj);
-
     if (!hasPrintMethod) {
         return { wasValid: true, wasMoved: false, overlapRatio: 1 };
     }
 
-    // 获取打印区域边界（优先使用 maskCanvas 的 printAreaRect）
-    const printAreaBounds = getPrintAreaBounds(viewId);
-
-    if (!printAreaBounds) {
+    // 获取画布实例
+    const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+    if (!canvas) {
         return { wasValid: true, wasMoved: false, overlapRatio: 1 };
     }
 
-    // 检查对象是否在打印区域内（重叠比例 >= 10%）
-    const checkResult = isObjectInPrintArea(obj, printAreaBounds);
+    // 计算检测边界：4格图用整画布边界，其它视图用打印区域边界
+    let bounds = null;
+    if (isFourGrid) {
+        const w = typeof canvas.getWidth === 'function' ? canvas.getWidth() : canvas.width;
+        const h = typeof canvas.getHeight === 'function' ? canvas.getHeight() : canvas.height;
+        bounds = {
+            left: 0,
+            top: 0,
+            right: w,
+            bottom: h,
+            width: w,
+            height: h,
+            centerX: w / 2,
+            centerY: h / 2
+        };
+    } else {
+        bounds = getPrintAreaBounds(viewId);
+    }
+
+    if (!bounds) {
+        return { wasValid: true, wasMoved: false, overlapRatio: 1 };
+    }
+
+    // 检查对象是否在检测边界内（重叠比例 >= 10%）
+    const checkResult = isObjectInPrintArea(obj, bounds);
 
     if (checkResult.isValid) {
         return { wasValid: true, wasMoved: false, overlapRatio: checkResult.overlapRatio };
     }
 
-    // 如果对象不在打印区域内，移动到画布中心
-    const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
-
-    if (canvas) {
-        moveObjectToCanvasCenter(obj, canvas, printAreaBounds);
-        return { wasValid: false, wasMoved: true, overlapRatio: checkResult.overlapRatio };
-    }
-
-    return { wasValid: false, wasMoved: false, overlapRatio: checkResult.overlapRatio };
+    // 不满足重叠比例，回到中心（中心对齐方式与其它视图一致）
+    moveObjectToCanvasCenter(obj, canvas, bounds);
+    return { wasValid: false, wasMoved: true, overlapRatio: checkResult.overlapRatio };
 }
 
 /**
