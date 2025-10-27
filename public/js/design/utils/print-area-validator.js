@@ -78,34 +78,60 @@ function hasPrintMethodAssigned(obj) {
  * @returns {Object} 打印区域边界对象 { left, top, right, bottom, width, height, centerX, centerY }
  */
 function getPrintAreaBounds(viewId) {
+    // 优先从 maskCanvas 的 printAreaRect 获取边界
+    try {
+        const maskCanvasElement = document.getElementById(`maskCanvas-${viewId}`);
+        const maskCanvas = maskCanvasElement && maskCanvasElement.__fabricCanvas ? maskCanvasElement.__fabricCanvas : null;
+        if (maskCanvas) {
+            const rect = maskCanvas.getObjects().find(obj => obj && obj.name === 'printAreaRect');
+            if (rect) {
+                const scaleX = rect.scaleX || 1;
+                const scaleY = rect.scaleY || 1;
+                const left = rect.left;
+                const top = rect.top;
+                const right = left + rect.width * scaleX;
+                const bottom = top + rect.height * scaleY;
+                return {
+                    left,
+                    top,
+                    right,
+                    bottom,
+                    width: right - left,
+                    height: bottom - top,
+                    centerX: left + (right - left) / 2,
+                    centerY: top + (bottom - top) / 2
+                };
+            }
+        }
+    } catch (err) {
+        console.warn('[PrintAreaValidator] 读取 maskCanvas 的 printAreaRect 失败，回退到打印方式尺寸', err);
+    }
+
+    // 回退：从当前视图的打印方式数据计算边界
     const printMethodStore = window.usePrintMethodStore ? window.usePrintMethodStore() : null;
     if (!printMethodStore || !printMethodStore.currentViewPrintMethods || printMethodStore.currentViewPrintMethods.length === 0) {
         return null;
     }
-    
-    // 获取第一个打印方式的区域尺寸（默认使用第一个）
+
     const firstMethod = printMethodStore.currentViewPrintMethods[0];
     if (!firstMethod.print_method_area_width || !firstMethod.print_method_area_height) {
         return null;
     }
-    
-    // 获取当前画布
+
     const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
     if (!canvas) return null;
-    
+
     const canvasWidth = canvas.width;
     const canvasHeight = canvas.height;
-    
-    // 打印区域尺寸（乘以50转换为像素）
+
     const printAreaWidth = firstMethod.print_method_area_width * 50;
     const printAreaHeight = firstMethod.print_method_area_height * 50;
-    
-    // 计算打印区域中心位置
+
     const printAreaLeft = (canvasWidth - printAreaWidth) / 2;
     const printAreaTop = (canvasHeight - printAreaHeight) / 2;
     const printAreaRight = printAreaLeft + printAreaWidth;
     const printAreaBottom = printAreaTop + printAreaHeight;
-    
+
     return {
         left: printAreaLeft,
         top: printAreaTop,
@@ -190,25 +216,36 @@ function isObjectInPrintArea(obj, printAreaBounds) {
  * @param {Object} printAreaBounds - 打印区域边界
  */
 function moveObjectToCanvasCenter(obj, canvas, printAreaBounds) {
-    if (!obj || !canvas || !printAreaBounds) {
+    if (!obj || !canvas) {
         console.warn('[PrintAreaValidator] moveObjectToCanvasCenter 参数不完整，退出');
         return;
     }
-    
-    // 计算目标位置（打印区域中心）
-    const targetX = printAreaBounds.centerX;
-    const targetY = printAreaBounds.centerY;
-    
-    // 设置对象位置
-    obj.set({
-        left: targetX,
-        top: targetY
-    });
-    
-    // 重新渲染画布
+
+    const centerX = (typeof canvas.getWidth === 'function' ? canvas.getWidth() : canvas.width) / 2;
+    const centerY = (typeof canvas.getHeight === 'function' ? canvas.getHeight() : canvas.height) / 2;
+
+    // 优先使用 fabric 的 setPositionByOrigin 以确保“对象中心”与“画布中心”对齐
+    if (typeof fabric !== 'undefined' && fabric.Point && typeof obj.setPositionByOrigin === 'function') {
+        obj.setPositionByOrigin(new fabric.Point(centerX, centerY), 'center', 'center');
+    } else {
+        // 兼容降级：根据对象 originX/originY 计算中心对齐
+        const scaledW = typeof obj.getScaledWidth === 'function' ? obj.getScaledWidth() : (obj.width * (obj.scaleX || 1));
+        const scaledH = typeof obj.getScaledHeight === 'function' ? obj.getScaledHeight() : (obj.height * (obj.scaleY || 1));
+        const originX = obj.originX || 'left';
+        const originY = obj.originY || 'top';
+        let left = centerX;
+        let top = centerY;
+        if (originX === 'left') left -= scaledW / 2;
+        if (originX === 'right') left += scaledW / 2;
+        if (originY === 'top') top -= scaledH / 2;
+        if (originY === 'bottom') top += scaledH / 2;
+        obj.set({ left, top });
+    }
+
+    if (typeof obj.setCoords === 'function') obj.setCoords();
     canvas.renderAll();
-    
-    console.log(`[PrintAreaValidator] 对象已移动到画布中心: (${targetX}, ${targetY})`);
+
+    console.log(`[PrintAreaValidator] 对象已移动到画布中心: (${centerX}, ${centerY})`);
 }
 
 /**
@@ -221,36 +258,46 @@ function validateAndRepositionObject(obj, viewId) {
     if (!obj || !viewId) {
         return { wasValid: true, wasMoved: false, overlapRatio: 1 };
     }
-    
+
+    // 4格图视图不检测（跳过验证）
+    const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
+    if (canvasStore && Array.isArray(canvasStore.views)) {
+        const viewObj = canvasStore.views.find(v => v && v.id === viewId);
+        const flow = (viewObj && (viewObj.view_flow || (viewObj.data && viewObj.data.view_flow))) || null;
+        if (flow === '4-Grid Flow') {
+            return { wasValid: true, wasMoved: false, overlapRatio: 1 };
+        }
+    }
+
     // 检查对象是否分配了打印方式
     const hasPrintMethod = hasPrintMethodAssigned(obj);
-    
+
     if (!hasPrintMethod) {
         return { wasValid: true, wasMoved: false, overlapRatio: 1 };
     }
-    
-    // 获取打印区域边界
+
+    // 获取打印区域边界（优先使用 maskCanvas 的 printAreaRect）
     const printAreaBounds = getPrintAreaBounds(viewId);
-    
+
     if (!printAreaBounds) {
         return { wasValid: true, wasMoved: false, overlapRatio: 1 };
     }
-    
-    // 检查对象是否在打印区域内
+
+    // 检查对象是否在打印区域内（重叠比例 >= 10%）
     const checkResult = isObjectInPrintArea(obj, printAreaBounds);
-    
+
     if (checkResult.isValid) {
         return { wasValid: true, wasMoved: false, overlapRatio: checkResult.overlapRatio };
     }
-    
+
     // 如果对象不在打印区域内，移动到画布中心
     const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
-    
+
     if (canvas) {
         moveObjectToCanvasCenter(obj, canvas, printAreaBounds);
         return { wasValid: false, wasMoved: true, overlapRatio: checkResult.overlapRatio };
     }
-    
+
     return { wasValid: false, wasMoved: false, overlapRatio: checkResult.overlapRatio };
 }
 
