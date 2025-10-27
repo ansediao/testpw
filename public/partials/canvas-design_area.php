@@ -1105,7 +1105,26 @@ if ($first_image_url) {
             name: 'printAreaMask'
         });
 
-        // 添加遮罩到画布
+        // 在画布上创建与打印区域重合的矩形（默认可见）
+        const printAreaRect = new fabric.Rect({
+            left: (canvasWidth - printAreaWidth) / 2,
+            top: (canvasHeight - printAreaHeight) / 2,
+            width: printAreaWidth,
+            height: printAreaHeight,
+            fill: 'rgba(255, 0, 0,0.05 )',
+            stroke: false,
+            strokeWidth: 2,
+            selectable: false,
+            evented: false,
+            visible: true,
+            excludeFromExport: true,
+            name: 'printAreaRect',
+            hasControls: false,
+            hasBorders: false
+        });
+
+        // 先添加“打印区域矩形”，再添加遮罩
+        maskCanvas.add(printAreaRect);
         maskCanvas.add(printAreaMask);
         maskCanvas.renderAll();
 
