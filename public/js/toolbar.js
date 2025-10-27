@@ -320,7 +320,7 @@ function updateDynamicToolbar(obj) {
             rotationControl.innerHTML = `
             <label for="imageRotation" class="tab_control_title">Transform：</label>
             <br>
-            <input type="range" id="imageRotationRange" min="0" max="360" step="1" value="${obj.angle}">
+            <input type="range" id="imageRotationRange" min="-180" max="180" step="1" value="${obj.angle}">
             <input type="number" id="imageRotation" min="0" max="360" value="${obj.angle}">
           `;
             tempContainer.appendChild(rotationControl);
@@ -347,11 +347,18 @@ function updateDynamicToolbar(obj) {
 
             // 宽度控制
             const widthControl = document.createElement('div');
-            widthControl.className = 'toolbar-item';
+            widthControl.className = 'toolbar-item tab_control_imageWidthHeight';
             widthControl.innerHTML = `
+            <div class="tab_control_imageWidth">
             <label for="imageWidth" class="tab_control_title">Width：</label>
-            <br>    
+
             <input type="number" id="imageWidth" min="10" value="${Math.round(obj.width * obj.scaleX)}">
+            </div>
+            <div class="tab_control_imageHeight">
+            <label for="imageHeight" class="tab_control_title">Height：</label>
+       
+            <input type="number" id="imageHeight" min="10" value="${Math.round(obj.height * obj.scaleY)}">
+            </div>
           `;
             tempContainer.appendChild(widthControl);
 
@@ -364,15 +371,7 @@ function updateDynamicToolbar(obj) {
                 });
             }
 
-            // 高度控制
-            const heightControl = document.createElement('div');
-            heightControl.className = 'toolbar-item';
-            heightControl.innerHTML = `
-            <label for="imageHeight" class="tab_control_title">Height：</label>
-            <br>
-            <input type="number" id="imageHeight" min="10" value="${Math.round(obj.height * obj.scaleY)}">
-          `;
-            tempContainer.appendChild(heightControl);
+           
 
             // 添加高度事件监听
             const heightInput = document.getElementById('imageHeight');
@@ -390,6 +389,7 @@ function updateDynamicToolbar(obj) {
             <label for="imageHeight" class="tab_control_title">Flip：</label>
             <br>
             <button id="imageFlipX"><i class="iconfont icon-jingxiang"></i> Horizontally</button>
+            <button id="imageFlipY"><i class="iconfont icon-jingxiang1"></i> Vertically</button>
           `;
             tempContainer.appendChild(flipXControl);
 
@@ -402,13 +402,6 @@ function updateDynamicToolbar(obj) {
                 });
             }
 
-            // 纵向反转按钮
-            const flipYControl = document.createElement('div');
-            flipYControl.className = 'toolbar-item';
-            flipYControl.innerHTML = `
-            <button id="imageFlipY"><i class="iconfont icon-jingxiang1"></i> Vertically</button>
-          `;
-            tempContainer.appendChild(flipYControl);
 
             // 添加纵向反转事件监听
             const flipYButton = document.getElementById('imageFlipY');

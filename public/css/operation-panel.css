@@ -63,3 +63,27 @@
     color: #6b7280;
     transition: color 0.2s ease;
 }
+
+/* Image Width/Height control grid layout */
+.tab_control_imageWidthHeight {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px;
+    align-items: start;
+}
+
+.tab_control_imageWidthHeight .tab_control_imageWidth,
+.tab_control_imageWidthHeight .tab_control_imageHeight {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tab_control_imageWidthHeight .tab_control_title {
+    margin-bottom: 4px;
+}
+
+.tab_control_imageWidthHeight input[type="number"] {
+    width: 100%;
+    box-sizing: border-box;
+}
