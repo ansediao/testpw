@@ -1010,7 +1010,7 @@ if ($first_image_url) {
                         console.log(`Base Layer 对象已存入 Pinia store: views[${view.id}].base_layer`);
 
                         // 从pinia 中取出这个 图片对象 修改颜色
-                        applyTintFilter(store.views[viewIndex].base_layer, '#ff0000', 1);
+                        // applyTintFilter(store.views[viewIndex].base_layer, '#ff0000', 1);
                         // 重新渲染画布以显示滤镜效果
                     }
                 }
