@@ -20,9 +20,20 @@ export function usePriceCalculations(canvasStore, printStore) {
     return maxPrice;
   });
 
+  // 从 Canvas Store 读取 WooCommerce 原始价格，默认优先显示
+  const wooBasePrice = computed(() => {
+    const pd = canvasStore?.productData;
+    const price = pd && pd.woocommerce && pd.woocommerce.price;
+    const num = Number(price);
+    return Number.isFinite(num) && num > 0 ? num : 0;
+  });
+
   const basePrice = computed(() => {
+    const candidate = wooBasePrice.value;
+    if (candidate > 0) return candidate.toFixed(2);
+
     const maxPrice = maxPriceFromSelectedColors.value || 0;
-    return Number.isFinite(maxPrice) ? maxPrice.toFixed(1) : '0.0';
+    return Number.isFinite(maxPrice) && maxPrice > 0 ? maxPrice.toFixed(2) : '0.00';
   });
 
   const customizationPrice = computed(() => {
