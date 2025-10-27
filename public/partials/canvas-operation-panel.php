@@ -948,6 +948,57 @@ window.applyColorToAllViews = function(color) {
     console.log(`全局颜色 ${color} 已应用到所有 ${store.views.length} 个视图（四格视图通过 window.currentColor）`);
 };
 
+// 新增：视图切换自动应用当前纯色到新视图（遇到四格视图跳过）
+document.addEventListener('layerPanelViewSwitch', function(ev) {
+    try {
+        const viewId = ev && ev.detail ? ev.detail.viewId : null;
+        const color = window.currentColor;
+        if (!viewId) return;
+        if (!color || color === '#000000') {
+            // 没有显式颜色，不做同步
+            return;
+        }
+        if (!window.useCanvasStore) return;
+        const store = window.useCanvasStore();
+        let attempts = 0;
+
+        const tryApply = () => {
+            const view = store.views ? store.views.find(v => v.id === viewId) : null;
+            if (!view) return;
+
+            // 四格视图跳过直接着色，依赖 window.currentColor
+            if (typeof isFourGridView === 'function' && isFourGridView(view)) {
+                console.log(`视图 ${view.name || view.id} 为四格视图，切换时跳过直接着色`);
+                return;
+            }
+
+            if (!view.base_layer) {
+                // 等待 base_layer 准备好再应用色值
+                attempts++;
+                if (attempts < 30) {
+                    setTimeout(tryApply, 100);
+                } else {
+                    console.warn(`视图 ${view.name || view.id} 的 base_layer 未就绪，无法在切换时应用颜色`);
+                }
+                return;
+            }
+
+            const tintFunction = typeof applyTintFilter === 'function' ? applyTintFilter : window.applyTintFilter;
+            if (typeof tintFunction !== 'function') {
+                console.warn('applyTintFilter 函数不可用，无法在视图切换时应用颜色');
+                return;
+            }
+
+            window.applyColorToView(view, color, tintFunction);
+        };
+
+        // 有些视图切换后图层异步加载，延迟应用更稳妥
+        requestAnimationFrame(tryApply);
+    } catch (err) {
+        console.warn('视图切换颜色同步时出现错误:', err);
+    }
+});
+
 const getGradientCoords = (direction, width, height) => {
     switch (direction) {
         case 'to right':

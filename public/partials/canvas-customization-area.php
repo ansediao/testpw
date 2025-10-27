@@ -99,6 +99,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 
                 // 触发视图切换
                 switchToView(view);
+
+                // 同步通知视图切换事件（供颜色同步监听使用）
+                document.dispatchEvent(new CustomEvent('layerPanelViewSwitch', { detail: { viewId: view.id } }));
             });
             
             container.appendChild(button);
@@ -108,6 +111,9 @@ document.addEventListener("DOMContentLoaded", function() {
         if (views.length > 0) {
             store.setActiveViewId(views[0].id);
             switchToView(views[0]);
+
+            // 同步通知视图切换事件（供颜色同步监听使用）
+            document.dispatchEvent(new CustomEvent('layerPanelViewSwitch', { detail: { viewId: views[0].id } }));
         }
         
         // 监听图层面板的视图切换事件
