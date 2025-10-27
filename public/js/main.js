@@ -1955,6 +1955,12 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                 }
             }
 
+            const canvasStore = typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null;
+            const viewColorData = view && canvasStore && canvasStore.selectedColorsByView
+                ? canvasStore.selectedColorsByView[view.id]
+                : null;
+            const viewColor = viewColorData ? (viewColorData.selectedColor || viewColorData.color || null) : null;
+
             // 创建最终合成画布
             const finalCanvas = document.createElement('canvas');
             finalCanvas.width = fabricCanvas.width;
@@ -1989,7 +1995,7 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                             const dataURL = canvasElement.toDataURL('image/png');
                             const img = new Image();
                             img.onload = () => {
-                                const explicitColor = getExplicitSelectedColor();
+                                const explicitColor = viewColor || getExplicitSelectedColor();
 
                                 const fabricCanvas = canvasElement.__fabricCanvas || canvasElement.fabric || canvasElement.__canvas || null;
                                 let hasGradientOverlay = false;
@@ -2476,6 +2482,12 @@ async function generate4GridImagesForView(view) {
 
     const gridImages = [];
 
+    const canvasStore = typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null;
+    const viewColorData = view && canvasStore && canvasStore.selectedColorsByView
+        ? canvasStore.selectedColorsByView[view.id]
+        : null;
+    const viewColor = viewColorData ? (viewColorData.selectedColor || viewColorData.color || null) : null;
+
     // 为每个视图配置生成合成图片
     for (const config of viewConfigs) {
         try {
@@ -2487,7 +2499,8 @@ async function generate4GridImagesForView(view) {
                 overlayLayer,
                 mappingLayer,
                 activeCanvas,
-                cropConfig: config.cropConfig
+                cropConfig: config.cropConfig,
+                viewColor
             });
             gridImages.push(imageData);
         } catch (error) {
@@ -2587,7 +2600,8 @@ async function generateCompositeImageForGrid(options) {
         overlayLayer,
         mappingLayer,
         activeCanvas,
-        cropConfig
+        cropConfig,
+        viewColor
     } = options;
 
     // 创建临时画布
@@ -2606,7 +2620,7 @@ async function generateCompositeImageForGrid(options) {
 
         // 2. 绘制Base Layer（如果存在）并应用当前选中的颜色
         if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) {
-            const explicitColor = getExplicitSelectedColor();
+            const explicitColor = viewColor || getExplicitSelectedColor();
             if (explicitColor) {
                 // 有明确选中的颜色，应用颜色
                 await drawLayerImageForGridWithColor(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight, explicitColor);
