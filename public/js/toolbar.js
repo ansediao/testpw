@@ -79,6 +79,7 @@ function updateDynamicToolbar(obj) {
             rotationControl.innerHTML = `
             <label for="textRotation" class="tab_control_title">Rotate：</label>
             <br>
+            <input type="range" id="textRotationRange" min="-180" max="180" step="1" value="${obj.angle}">
             <input type="number" id="textRotation" min="0" max="360" value="${obj.angle}">
           `;
             textToolbarArea.appendChild(rotationControl);
@@ -169,7 +170,7 @@ function updateDynamicToolbar(obj) {
             <label for="textDistort" class="tab_control_title">Arc：</label>
             <br>
             <input type="range" id="textDistort" min="-100" max="100" value="0">
-            <span id="distortValue">0</span>
+            <input type="number" id="distortValue" min="-100" max="100" value="0">
           `;
             textToolbarArea.appendChild(distortControl);
         }
@@ -207,14 +208,26 @@ function updateDynamicToolbar(obj) {
             });
         }
 
-        // 旋转事件监听
-        const textRotationElement = document.getElementById('textRotation');
-        if (textRotationElement) {
-            textRotationElement.addEventListener('change', function () {
+        // 旋转事件监听（滑块与输入双向同步）
+        const textRotationInput = document.getElementById('textRotation');
+        const textRotationRange = document.getElementById('textRotationRange');
+        if (textRotationRange) {
+            textRotationRange.addEventListener('input', function () {
+                const val = parseInt(this.value, 10) || 0;
+                if (textRotationInput) textRotationInput.value = val;
                 if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
-                    canvas.getActiveObject().set('angle', parseInt(this.value, 10));
+                    canvas.getActiveObject().set('angle', val);
                     canvas.renderAll();
-                    console.log('Text rotation updated to:', this.value);
+                }
+            });
+        }
+        if (textRotationInput) {
+            textRotationInput.addEventListener('input', function () {
+                const val = parseInt(this.value, 10) || 0;
+                if (textRotationRange) textRotationRange.value = val;
+                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                    canvas.getActiveObject().set('angle', val);
+                    canvas.renderAll();
                 }
             });
         }
@@ -239,21 +252,19 @@ function updateDynamicToolbar(obj) {
             });
         }
 
-        // 弯曲事件监听
+        // 弯曲事件监听（滑块与输入双向同步）
         const distortInput = document.getElementById('textDistort');
         const distortValue = document.getElementById('distortValue');
         if (distortInput && distortValue) {
-            distortInput.addEventListener('input', function () {
-                const sliderValue = parseFloat(this.value);
-                distortValue.textContent = sliderValue;
+            const applyDistort = function(val) {
                 if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
                     const text = canvas.getActiveObject();
                     const textWidth = text.width;
                     const textHeight = text.height;
                     const k = 1; // 弯曲程度的缩放因子
-                    const cy = -k * sliderValue; // 负值向上弯曲
+                    const cy = -k * val; // 负值向上弯曲
                     // 调整弯曲顶点位置，使其基于文字顶部或底部
-                    const baseY = sliderValue >= 0 ? textHeight / 2 : -textHeight / 2;
+                    const baseY = val >= 0 ? textHeight / 2 : -textHeight / 2;
                     const newPathStr = 'M 0 ' + baseY + ' Q ' + (textWidth / 2) + ' ' + (baseY + cy) + ' ' + textWidth + ' ' + baseY;
                     const newPath = new fabric.Path(newPathStr);
                     // 设置路径填充为透明，防止黑块出现
@@ -267,6 +278,16 @@ function updateDynamicToolbar(obj) {
                     text.setCoords();
                     canvas.renderAll();
                 }
+            };
+            distortInput.addEventListener('input', function () {
+                const sliderValue = parseFloat(this.value) || 0;
+                distortValue.value = sliderValue;
+                applyDistort(sliderValue);
+            });
+            distortValue.addEventListener('input', function () {
+                const manualValue = parseFloat(this.value) || 0;
+                distortInput.value = manualValue;
+                applyDistort(manualValue);
             });
         }
     }
