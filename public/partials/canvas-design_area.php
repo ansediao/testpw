@@ -797,6 +797,60 @@ if ($first_image_url) {
     }
 
     /**
+     * 以跨域方式加载图片资源。
+     * @param {string} src - 图片地址。
+     * @returns {Promise<HTMLImageElement>} 图片元素。
+     */
+    function loadImageElement(src) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = src;
+        });
+    }
+
+    /**
+     * 根据图层数据提取内容区域的裁剪矩形信息。
+     * @param {Object} layer - 图层数据。
+     * @returns {{left:number,top:number,width:number,height:number}|null}
+     */
+    function extractClipRectFromLayer(layer) {
+        try {
+            const data = layer?.layer_data;
+            if (!data || !data.position || !data.dimensions) {
+                return null;
+            }
+
+            const dimensions = data.dimensions.contentArea || data.dimensions.layerSize;
+            if (!dimensions || !dimensions.width || !dimensions.height) {
+                return null;
+            }
+
+            const origins = getOriginFromAnchorPoint(data.position.anchorPoint || 'top-left');
+            const convertedCoords = convertCoordinatesForOrigin(
+                data.position.coordinates?.x || 0,
+                data.position.coordinates?.y || 0,
+                dimensions.width,
+                dimensions.height,
+                origins.originX,
+                origins.originY
+            );
+
+            return {
+                left: convertedCoords.x,
+                top: convertedCoords.y,
+                width: dimensions.width,
+                height: dimensions.height
+            };
+        } catch (error) {
+            console.warn('无法从图层中解析裁剪信息：', error);
+            return null;
+        }
+    }
+
+    /**
      * 清除指定视图主画布上的内容区域裁剪限制。
      * @param {number|string} viewId - 视图 ID。
      */
@@ -861,59 +915,59 @@ if ($first_image_url) {
     async function handleFourGridContentArea(view) {
         const viewLayers = view?.data?.layer_config?.layers;
         if (!Array.isArray(viewLayers) || viewLayers.length === 0) {
+            clearContentAreaClip(view.id);
             return;
         }
 
-        const baseCanvasElement = document.getElementById(`baseCanvas-${view.id}`);
         const mainCanvasElement = document.getElementById(`mainCanvas-${view.id}`);
-        if (!baseCanvasElement || !baseCanvasElement.__fabricCanvas || !mainCanvasElement || !mainCanvasElement.__fabricCanvas) {
-            console.warn('未能获取到 4-Grid Flow 视图的 baseCanvas 或 mainCanvas。');
+        if (!mainCanvasElement || !mainCanvasElement.__fabricCanvas) {
+            console.warn('未能获取到 4-Grid Flow 视图的 mainCanvas。');
             return;
         }
 
-        const baseCanvas = baseCanvasElement.__fabricCanvas;
+        const store = typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null;
+        const hasContentLayer = viewLayers.some(layer => layer && layer.name === 'Content Area Layer');
+        const cachedContent = store?.contentAreaImagesByView?.[view.id];
+
+        if (!hasContentLayer) {
+            if (store && typeof store.setContentAreaImage === 'function') {
+                store.setContentAreaImage(view.id, null);
+            }
+            clearContentAreaClip(view.id);
+            return;
+        }
+
+        if (!cachedContent || !cachedContent.dataURL) {
+            console.warn('未在 Pinia 中找到内容区域缓存 PNG，将跳过裁剪处理。');
+            clearContentAreaClip(view.id);
+            return;
+        }
+
+        const clipData = cachedContent.clipRect;
         const mainCanvas = mainCanvasElement.__fabricCanvas;
 
-        // 先移除旧的内容区域图层，避免重复叠加。
-        const existingContentArea = baseCanvas.getObjects().filter(obj => obj && obj.name === 'Content Area Layer');
-        if (existingContentArea.length > 0) {
-            existingContentArea.forEach(obj => baseCanvas.remove(obj));
-            baseCanvas.renderAll();
-        }
-
-        const contentAreaLayer = viewLayers.find(layer => layer.name === 'Content Area Layer');
-        if (!contentAreaLayer) {
-            clearContentAreaClip(view.id);
-            return;
-        }
-
-        const imageURL = contentAreaLayer?.layer_data?.content?.imageURL;
-        if (!isValidImageURL(imageURL)) {
-            console.warn('Content Area Layer 不包含可用的图片资源，将跳过渲染与裁剪。');
-            clearContentAreaClip(view.id);
-            return;
-        }
-
-        try {
-            const contentAreaObject = await createFabricObjectFromLayer(baseCanvas, contentAreaLayer);
-            if (!contentAreaObject) {
-                clearContentAreaClip(view.id);
-                return;
-            }
-
-            contentAreaObject.set({
+        if (clipData && typeof fabric !== 'undefined') {
+            const clipRect = new fabric.Rect({
+                left: clipData.left,
+                top: clipData.top,
+                width: clipData.width,
+                height: clipData.height,
+                originX: 'left',
+                originY: 'top',
+                absolutePositioned: true,
                 selectable: false,
-                evented: false,
-                name: 'Content Area Layer'
+                evented: false
             });
 
-            baseCanvas.add(contentAreaObject);
-            baseCanvas.bringToFront(contentAreaObject);
-            baseCanvas.renderAll();
-
-            applyContentAreaClip(mainCanvas, contentAreaObject);
-        } catch (error) {
-            console.error('渲染 Content Area Layer 时发生错误:', error);
+            mainCanvas.clipPath = clipRect;
+            mainCanvas.__contentAreaClipRect = clipRect;
+            if (typeof mainCanvas.requestRenderAll === 'function') {
+                mainCanvas.requestRenderAll();
+            } else if (typeof mainCanvas.renderAll === 'function') {
+                mainCanvas.renderAll();
+            }
+        } else {
+            console.warn('未能从缓存的内容区域图像中解析裁剪信息，将清除现有裁剪。');
             clearContentAreaClip(view.id);
         }
     }
@@ -990,6 +1044,86 @@ if ($first_image_url) {
     async function renderLayerToSpecificCanvas(canvas, layer, store, view) {
         if (!canvas || !layer) {
             console.error("渲染单个图层需要有效的画布实例和图层数据。");
+            return null;
+        }
+
+        if (layer.name === 'Content Area Layer') {
+            const viewId = view?.id;
+            const imageURL = layer?.layer_data?.content?.imageURL;
+
+            if (!isValidImageURL(imageURL)) {
+                if (store && typeof store.setContentAreaImage === 'function') {
+                    store.setContentAreaImage(viewId, null);
+                }
+                return null;
+            }
+
+            try {
+                const imageElement = await loadImageElement(imageURL);
+                const offscreenCanvas = document.createElement('canvas');
+                const width = imageElement.naturalWidth || imageElement.width;
+                const height = imageElement.naturalHeight || imageElement.height;
+
+                if (!width || !height) {
+                    throw new Error('Content Area PNG 尺寸异常。');
+                }
+
+                offscreenCanvas.width = width;
+                offscreenCanvas.height = height;
+                const offscreenCtx = offscreenCanvas.getContext('2d');
+
+                offscreenCtx.clearRect(0, 0, width, height);
+                offscreenCtx.drawImage(imageElement, 0, 0, width, height);
+
+                const imageData = offscreenCtx.getImageData(0, 0, width, height);
+                const data = imageData.data;
+                const totalPixels = width * height;
+                let opaquePixels = 0;
+                const alphaThreshold = 32;
+
+                for (let i = 0; i < data.length; i += 4) {
+                    if (data[i + 3] >= alphaThreshold) {
+                        opaquePixels++;
+                    }
+                }
+
+                const opaqueRatio = opaquePixels / Math.max(totalPixels, 1);
+                const isLineArt = opaqueRatio <= 0.2;
+
+                const colorData = store?.getSelectedColorByView ? store.getSelectedColorByView(viewId) : (store?.selectedColorsByView?.[viewId]);
+                const fallbackColor = '#FFFFFF';
+                const baseColor = colorData?.selectedColor || colorData?.color || fallbackColor;
+
+                if (isLineArt) {
+                    offscreenCtx.clearRect(0, 0, width, height);
+                    offscreenCtx.fillStyle = baseColor;
+                    offscreenCtx.fillRect(0, 0, width, height);
+                    offscreenCtx.globalCompositeOperation = 'source-in';
+                    offscreenCtx.drawImage(imageElement, 0, 0, width, height);
+                    offscreenCtx.globalCompositeOperation = 'source-over';
+                } else {
+                    offscreenCtx.clearRect(0, 0, width, height);
+                    offscreenCtx.drawImage(imageElement, 0, 0, width, height);
+                }
+
+                const clipRect = extractClipRectFromLayer(layer);
+                if (store && typeof store.setContentAreaImage === 'function') {
+                    store.setContentAreaImage(viewId, {
+                        dataURL: offscreenCanvas.toDataURL('image/png'),
+                        width,
+                        height,
+                        clipRect,
+                        fillColor: baseColor,
+                        isLineArt
+                    });
+                }
+            } catch (error) {
+                console.error('处理 Content Area Layer PNG 时发生错误：', error);
+                if (store && typeof store.setContentAreaImage === 'function') {
+                    store.setContentAreaImage(viewId, null);
+                }
+            }
+
             return null;
         }
 

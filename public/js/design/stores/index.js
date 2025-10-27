@@ -39,6 +39,9 @@ export const useCanvasStore = defineStore('canvas', {
         // ===== 新增：按视图记录用户选择的颜色（来源于 variants.data 的颜色） =====
         // 结构：{ [viewId]: 完整的变体对象 (包含API返回的所有字段) + selectedColor }
         selectedColorsByView: {},
+        // ===== 新增：缓存每个视图的内容区域PNG结果 =====
+        // 结构：{ [viewId]: { dataURL, width, height, clipRect } }
+        contentAreaImagesByView: {},
     }),
     // 4. getters 定义依赖状态的计算逻辑（所有依赖 Store 状态的计算放在这里）
     getters: {
@@ -271,6 +274,11 @@ export const useCanvasStore = defineStore('canvas', {
         // 清除所有视图的选中颜色
         clearAllSelectedColors() {
             this.selectedColorsByView = {};
+        },
+        // ===== 新增：缓存内容区域图像 =====
+        setContentAreaImage(viewId, imageData) {
+            if (!viewId) return;
+            this.contentAreaImagesByView[viewId] = imageData;
         },
         // 异步获取产品数据
         async fetchProductData(pwId) {

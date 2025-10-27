@@ -2406,26 +2406,34 @@ async function generate4GridImagesForView(view) {
         }
     }
 
-    // 获取当前视图的画布而不是激活的画布
-    let activeCanvas = null;
+    const canvasStore = typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null;
+    const contentAreaImage = canvasStore?.contentAreaImagesByView?.[view.id] || null;
+
+    let designCanvasDataURL = null;
     if (window.CanvasManager && view.id) {
-        activeCanvas = window.CanvasManager.getCanvas(view.id);
+        const designCanvas = window.CanvasManager.getCanvas(view.id);
+        if (!designCanvas) {
+            console.warn('Active canvas not found for view:', view.id);
+        } else {
+            try {
+                designCanvasDataURL = designCanvas.toDataURL('image/png');
+            } catch (error) {
+                console.warn('Failed to export design canvas as dataURL:', error);
+            }
+        }
     }
 
-    // 如果无法获取特定视图的画布，回退到原来的getActiveCanvas方法
-    if (! activeCanvas) {
-        activeCanvas = getActiveCanvas();
-    }
-
-    if (! activeCanvas) {
-        console.error('No active canvas found for 4-grid generation');
+    if (!contentAreaImage && !designCanvasDataURL) {
+        console.error('No content area image or design data found for 4-grid generation');
         return [
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>')
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">缺少内容区域</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">缺少内容区域</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">缺少内容区域</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">缺少内容区域</text></svg>')
         ];
     }
+
+    const fallbackFillColor = contentAreaImage?.fillColor || getExplicitSelectedColor() || '#FFFFFF';
 
     // 定义4个视图的配置（裁剪参数）
     const viewConfigs = [
@@ -2486,8 +2494,10 @@ async function generate4GridImagesForView(view) {
                 baseLayer,
                 overlayLayer,
                 mappingLayer,
-                activeCanvas,
-                cropConfig: config.cropConfig
+                contentAreaImage,
+                designImageData: designCanvasDataURL,
+                cropConfig: config.cropConfig,
+                fallbackFillColor
             });
             gridImages.push(imageData);
         } catch (error) {
@@ -2586,8 +2596,10 @@ async function generateCompositeImageForGrid(options) {
         baseLayer,
         overlayLayer,
         mappingLayer,
-        activeCanvas,
-        cropConfig
+        contentAreaImage,
+        designImageData,
+        cropConfig,
+        fallbackFillColor
     } = options;
 
     // 创建临时画布
@@ -2606,7 +2618,7 @@ async function generateCompositeImageForGrid(options) {
 
         // 2. 绘制Base Layer（如果存在）并应用当前选中的颜色
         if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) {
-            const explicitColor = getExplicitSelectedColor();
+            const explicitColor = getExplicitSelectedColor() || fallbackFillColor;
             if (explicitColor) {
                 // 有明确选中的颜色，应用颜色
                 await drawLayerImageForGridWithColor(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight, explicitColor);
@@ -2621,9 +2633,15 @@ async function generateCompositeImageForGrid(options) {
             await drawLayerImageForGrid(ctx, overlayLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
         }
 
-        // 4. 绘制当前激活画布的裁剪区域，实现窗户效果
-        if (activeCanvas) {
-            await drawCroppedCanvasRegionWithWindowEffect(ctx, activeCanvas, cropConfig, canvasWidth, canvasHeight);
+        // 4. 使用缓存的内容区域PNG与设计图合成后绘制
+        const maskedCanvas = await createMaskedCanvasForGrid({
+            contentAreaImage,
+            designImageData,
+            fallbackFillColor
+        });
+
+        if (maskedCanvas) {
+            await drawCroppedCanvasRegionWithWindowEffect(ctx, maskedCanvas, cropConfig, canvasWidth, canvasHeight);
         }
 
         return tempCanvas.toDataURL('image/png');
@@ -2631,6 +2649,54 @@ async function generateCompositeImageForGrid(options) {
         console.error('Error generating composite image for grid:', error);
         throw error;
     }
+}
+
+async function createMaskedCanvasForGrid({ contentAreaImage, designImageData, fallbackFillColor }) {
+    if (!contentAreaImage || !contentAreaImage.dataURL) {
+        return null;
+    }
+
+    try {
+        const maskImage = await loadImageElementForGrid(contentAreaImage.dataURL);
+        const maskedCanvas = document.createElement('canvas');
+        maskedCanvas.width = maskImage.width;
+        maskedCanvas.height = maskImage.height;
+        const maskedCtx = maskedCanvas.getContext('2d');
+
+        maskedCtx.clearRect(0, 0, maskedCanvas.width, maskedCanvas.height);
+        maskedCtx.drawImage(maskImage, 0, 0, maskedCanvas.width, maskedCanvas.height);
+        maskedCtx.globalCompositeOperation = 'source-in';
+
+        if (designImageData) {
+            try {
+                const designImage = await loadImageElementForGrid(designImageData);
+                maskedCtx.drawImage(designImage, 0, 0, maskedCanvas.width, maskedCanvas.height);
+            } catch (error) {
+                console.warn('Failed to load design image for masking, using fallback color.', error);
+                maskedCtx.fillStyle = fallbackFillColor || contentAreaImage.fillColor || '#FFFFFF';
+                maskedCtx.fillRect(0, 0, maskedCanvas.width, maskedCanvas.height);
+            }
+        } else {
+            maskedCtx.fillStyle = fallbackFillColor || contentAreaImage.fillColor || '#FFFFFF';
+            maskedCtx.fillRect(0, 0, maskedCanvas.width, maskedCanvas.height);
+        }
+
+        maskedCtx.globalCompositeOperation = 'source-over';
+        return maskedCanvas;
+    } catch (error) {
+        console.warn('Failed to create masked canvas for grid preview:', error);
+        return null;
+    }
+}
+
+function loadImageElementForGrid(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+    });
 }
 
 /**
