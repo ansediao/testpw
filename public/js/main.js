@@ -2983,12 +2983,15 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
                 // 使用 source-in，将临时源画布裁剪到 baseLayer 的非透明像素区域
                 compositeCtx.globalCompositeOperation = 'source-in';
 
-                // 高度对齐为像素区域高度，宽度自适应等比缩放；顶部位置对齐
-                const desiredHeight = cupBoundary.height;
-                const scale = desiredHeight / tempCanvas.height;
+                // 宽度自适应等比缩放，高度按比例缩放，底部对齐
+                const scaleX = cupBoundary.width / tempCanvas.width;
+                const scaleY = cupBoundary.height / tempCanvas.height;
+                const scale = Math.min(scaleX, scaleY); // 保持比例缩放，确保不超出边界
+                
                 const desiredWidth = tempCanvas.width * scale;
+                const desiredHeight = tempCanvas.height * scale;
 
-                const drawY = cupBoundary.y; // 顶部对齐
+                const drawY = cupBoundary.y + cupBoundary.height - desiredHeight; // 底部对齐
                 const drawX = cupBoundary.x + (cupBoundary.width - desiredWidth) / 2; // 水平居中于像素区域
 
                 compositeCtx.drawImage(tempCanvas, drawX, drawY, desiredWidth, desiredHeight);
