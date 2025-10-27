@@ -572,6 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // 重新绑定事件监听器
                     bindColorSwatchEvents();
+                    initializeViewColorSelectionState();
                 }
 
                 // 生成默认颜色
@@ -605,6 +606,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
 
                     bindColorSwatchEvents();
+                    initializeViewColorSelectionState();
                 }
 
                 // 判断是否为浅色
@@ -623,132 +625,186 @@ document.addEventListener('DOMContentLoaded', function() {
                     colorSwatches.forEach(swatch => {
                         // 移除已有的事件监听器，避免重复绑定
                         swatch.removeEventListener('click', swatch._colorSwatchHandler);
-                        
+
                         // 创建新的事件处理函数
                         swatch._colorSwatchHandler = function() {
                             colorSwatches.forEach(s => s.classList.remove('selected'));
                             swatch.classList.add('selected');
                             const color = swatch.getAttribute('data-color');
-                            
+
                             // 调用颜色应用逻辑
-                            handleColorSwatchClick(color);
+                            handleColorSwatchClick(color, swatch);
                         };
-                        
+
                         // 绑定新的事件监听器
                         swatch.addEventListener('click', swatch._colorSwatchHandler);
                     });
                 }
-                
+
+                function saveColorSelectionToStore(selectedColor, options = {}) {
+                    const { sourceSwatch = null, variantOverride = null } = options;
+
+                    if (!window.useCanvasStore) {
+                        console.warn('CanvasStore 不可用');
+                        return;
+                    }
+
+                    const store = window.useCanvasStore();
+                    const activeViewId = store && store.activeViewId;
+
+                    if (!activeViewId) {
+                        console.warn('没有激活的视图ID');
+                        return;
+                    }
+
+                    const swatchElement = sourceSwatch || document.querySelector('.color-swatch.selected');
+                    const overrideVariantId = variantOverride && Object.prototype.hasOwnProperty.call(variantOverride, 'variantId')
+                        ? variantOverride.variantId
+                        : null;
+                    const overrideVariantName = variantOverride && Object.prototype.hasOwnProperty.call(variantOverride, 'variantName')
+                        ? variantOverride.variantName
+                        : null;
+                    const overrideColor = variantOverride && variantOverride.color ? variantOverride.color : null;
+                    const overrideType = variantOverride && variantOverride.type ? variantOverride.type : 'design-selected';
+
+                    let variantId = overrideVariantId;
+                    let variantName = overrideVariantName;
+
+                    if (!variantId && swatchElement) {
+                        variantId = swatchElement.getAttribute('data-variant-id');
+                    }
+                    if (!variantName && swatchElement) {
+                        variantName = swatchElement.getAttribute('data-variant-name');
+                    }
+
+                    let completeVariantData = variantOverride && variantOverride.completeVariantData
+                        ? variantOverride.completeVariantData
+                        : null;
+
+                    if (!completeVariantData && variantId && store.productData && store.productData.variants && store.productData.variants.data) {
+                        const variants = store.productData.variants.data;
+                        completeVariantData = variants.find(variant => variant.id == variantId) || null;
+                    }
+
+                    let colorData;
+                    if (completeVariantData) {
+                        colorData = {
+                            ...completeVariantData,
+                            selectedColor: selectedColor
+                        };
+                    } else {
+                        colorData = {
+                            variantId: variantId || null,
+                            variantName: variantName || null,
+                            color: overrideColor || (swatchElement ? swatchElement.getAttribute('data-color') : selectedColor) || selectedColor,
+                            selectedColor: selectedColor
+                        };
+                    }
+
+                    store.setSelectedColorByView(activeViewId, colorData);
+
+                    if (window.useProductStore) {
+                        try {
+                            const productStore = window.useProductStore();
+                            if (completeVariantData) {
+                                productStore.setSelectedVariant(completeVariantData);
+                                const event = new CustomEvent('pw-color-variant-selected', {
+                                    detail: { variant: completeVariantData }
+                                });
+                                document.dispatchEvent(event);
+                                console.log(`设计页面颜色选择：已更新 selectedVariant 到 Product Store:`, completeVariantData);
+                            } else {
+                                const basicVariant = {
+                                    id: variantId || 'design-' + Date.now(),
+                                    variant_color: selectedColor,
+                                    variant_name: variantName || '自定义颜色',
+                                    type: overrideType,
+                                    isDesignSelected: true
+                                };
+                                productStore.setSelectedVariant(basicVariant);
+                                const event = new CustomEvent('pw-color-variant-selected', {
+                                    detail: { variant: basicVariant }
+                                });
+                                document.dispatchEvent(event);
+                                console.log(`设计页面颜色选择：已创建并更新基本 selectedVariant:`, basicVariant);
+                            }
+                        } catch (error) {
+                            console.warn('更新 Product Store selectedVariant 失败:', error);
+                        }
+                    }
+
+                    console.log(`颜色数据已存储到视图 ${activeViewId}:`, colorData);
+                }
+
+                function initializeViewColorSelectionState() {
+                    let attempts = 0;
+                    const maxAttempts = 10;
+
+                    const trySync = () => {
+                        attempts++;
+
+                        if (!window.useCanvasStore) {
+                            if (attempts < maxAttempts) {
+                                setTimeout(trySync, 200);
+                            }
+                            return;
+                        }
+
+                        const store = window.useCanvasStore();
+                        if (!store || !store.activeViewId) {
+                            if (attempts < maxAttempts) {
+                                setTimeout(trySync, 200);
+                            }
+                            return;
+                        }
+
+                        const selectedSwatch = document.querySelector('.color-swatch.selected');
+                        if (!selectedSwatch) {
+                            if (attempts < maxAttempts) {
+                                setTimeout(trySync, 200);
+                            }
+                            return;
+                        }
+
+                        const color = selectedSwatch.getAttribute('data-color');
+                        if (!color) {
+                            if (attempts < maxAttempts) {
+                                setTimeout(trySync, 200);
+                            }
+                            return;
+                        }
+
+                        if (window.currentColor !== color) {
+                            window.currentColor = color;
+                            console.log('初始化同步 window.currentColor:', color);
+                        }
+
+                        const existing = store.selectedColorsByView && store.selectedColorsByView[store.activeViewId];
+                        if (!existing || existing.selectedColor !== color) {
+                            saveColorSelectionToStore(color, { sourceSwatch: selectedSwatch });
+                        }
+                    };
+
+                    trySync();
+                }
+
+                initializeViewColorSelectionState();
+
                 // 处理颜色样本点击的逻辑
-                function handleColorSwatchClick(color) {
+                function handleColorSwatchClick(color, swatchElement = null) {
                     // 更新全局颜色变量，确保与 Custom Colors 保持一致
                     window.currentColor = color;
                     console.log('颜色样本点击，更新 window.currentColor:', color);
-                    
+
                     // 先清除所有渐变色对象
                     if (window.clearAllGradientRects) {
                         window.clearAllGradientRects();
                     }
-                    
-                    // ===== 新增：将颜色数据存储到 Pinia store =====
-                    function saveColorToStore(selectedColor) {
-                        if (window.useCanvasStore) {
-                            const store = window.useCanvasStore();
-                            const activeViewId = store.activeViewId;
-                            
-                            if (activeViewId) {
-                                // 从当前选中的颜色样本获取变体ID
-                                const selectedSwatch = document.querySelector('.color-swatch.selected');
-                                if (selectedSwatch) {
-                                    const variantId = selectedSwatch.getAttribute('data-variant-id');
-                                    
-                                    // 从store中获取完整的变体数据
-                                    let completeVariantData = null;
-                                    if (variantId && store.productData && store.productData.variants && store.productData.variants.data) {
-                                        const variants = store.productData.variants.data;
-                                        completeVariantData = variants.find(variant => variant.id == variantId);
-                                    }
-                                    
-                                    // 如果找到完整的变体数据，存储整个对象；否则使用基本信息
-                                    let colorData;
-                                    if (completeVariantData) {
-                                        // 存储完整的变体对象
-                                        colorData = {
-                                            ...completeVariantData,
-                                            // 确保包含当前选中的颜色
-                                            selectedColor: selectedColor
-                                        };
-                                    } else {
-                                        // 回退到基本信息
-                                        const variantName = selectedSwatch.getAttribute('data-variant-name');
-                                        const color = selectedSwatch.getAttribute('data-color');
-                                        colorData = {
-                                            variantId: variantId || null,
-                                            variantName: variantName || null,
-                                            color: color || selectedColor,
-                                            selectedColor: selectedColor
-                                        };
-                                    }
-                                    
-                                    // 存储到 Canvas store
-                                    store.setSelectedColorByView(activeViewId, colorData);
-                                    
-                                    // ===== 新增：参考产品页面逻辑，更新 selectedVariant 到 Product Store =====
-                                    if (window.useProductStore && completeVariantData) {
-                                        try {
-                                            const productStore = window.useProductStore();
-                                            // 参考 ColorVariants.js 中的 selectVariant 方法
-                                            productStore.setSelectedVariant(completeVariantData);
-                                            
-                                            // 发送自定义事件，与产品页面保持一致
-                                            const event = new CustomEvent('pw-color-variant-selected', {
-                                                detail: { variant: completeVariantData }
-                                            });
-                                            document.dispatchEvent(event);
-                                            
-                                            console.log(`设计页面颜色选择：已更新 selectedVariant 到 Product Store:`, completeVariantData);
-                                        } catch (error) {
-                                            console.warn('更新 Product Store selectedVariant 失败:', error);
-                                        }
-                                    } else if (window.useProductStore && !completeVariantData) {
-                                        // 如果没有完整的变体数据，创建一个基本的变体对象
-                                        try {
-                                            const productStore = window.useProductStore();
-                                            const basicVariant = {
-                                                id: variantId || 'design-' + Date.now(),
-                                                variant_color: selectedColor,
-                                                variant_name: selectedSwatch.getAttribute('data-variant-name') || '自定义颜色',
-                                                type: 'design-selected',
-                                                isDesignSelected: true
-                                            };
-                                            productStore.setSelectedVariant(basicVariant);
-                                            
-                                            // 发送自定义事件
-                                            const event = new CustomEvent('pw-color-variant-selected', {
-                                                detail: { variant: basicVariant }
-                                            });
-                                            document.dispatchEvent(event);
-                                            
-                                            console.log(`设计页面颜色选择：已创建并更新基本 selectedVariant:`, basicVariant);
-                                        } catch (error) {
-                                            console.warn('创建基本 selectedVariant 失败:', error);
-                                        }
-                                    }
-                                    
-                                    console.log(`完整颜色数据已存储到视图 ${activeViewId}:`, colorData);
-                                } else {
-                                    console.warn('未找到选中的颜色样本元素');
-                                }
-                            } else {
-                                console.warn('没有激活的视图ID');
-                            }
-                        } else {
-                            console.warn('CanvasStore 不可用');
-                        }
-                    }
-                    
+
+                    const targetSwatch = swatchElement || document.querySelector('.color-swatch.selected');
+
                     // 先保存颜色数据到 store
-                    saveColorToStore(color);
+                    saveColorSelectionToStore(color, { sourceSwatch: targetSwatch });
                     
                     // ===== 新增：计算各视图 rts_for_bulk_order 最大值相加 =====
                     function calculateBulkOrderRts() {
@@ -1397,7 +1453,20 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                             document.body.appendChild(customColorSwatch);
                         }
                         customColorSwatch.setAttribute('data-color', color);
+                        customColorSwatch.setAttribute('data-variant-id', 'custom-color');
+                        customColorSwatch.setAttribute('data-variant-name', '自定义颜色');
                         customColorSwatch.classList.add('selected');
+
+                        saveColorSelectionToStore(color, {
+                            sourceSwatch: customColorSwatch,
+                            variantOverride: {
+                                variantId: 'custom-color',
+                                variantName: '自定义颜色',
+                                color: color,
+                                type: 'design-selected'
+                            }
+                        });
+
                         console.log('已创建虚拟自定义颜色样本，颜色:', color);
                         customColorModal.style.display = 'none';
                     });
