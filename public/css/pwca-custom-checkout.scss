@@ -34,7 +34,25 @@
 
     #order_review {
         grid-area: order;
-        align-self: start;
-        background-color: #ccc;
+        align-self: start;       
+    }
+}
+
+.pwca-checkout-review-container{
+    padding: 10px;
+    background-color: #F7F7F7;
+    .pwca-order-summary{
+        .pwca-order-title{
+            font-size: 18px;
+          
+        }
+        .pwca-order-item{
+            border-bottom: 1px solid #E5E5E5;
+            margin-bottom: 10px;
+        }
+        .pwca-order-subtotal{
+            padding-top: 10px 0px;
+            border-bottom: 1px solid #E5E5E5;
+        }
     }
 }
