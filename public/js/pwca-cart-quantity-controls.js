@@ -422,7 +422,7 @@
             if (typeof wc_add_to_cart_params !== 'undefined') {
                 // 使用 WooCommerce 通知
                 $('.woocommerce-notices-wrapper').html(
-                    `<div class="woocommerce-error">${message}</div>`
+                    `<div class="pwca-woocommerce-error">${message}</div>`
                 );
             } else {
                 // 简单的 alert 作为备用

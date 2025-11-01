@@ -56,11 +56,11 @@ class Pw_Product_Inquiry {
         if (isset($_GET['inquiry_status'])) {
             $status = sanitize_text_field($_GET['inquiry_status']);
             if ($status === 'success') {
-                echo '<div class="woocommerce-message" role="alert">' . __('Your inquiry has been sent successfully!', 'pw-admin') . '</div>';
+                echo '<div class="pwca-woocommerce-message" role="alert">' . __('Your inquiry has been sent successfully!', 'pw-admin') . '</div>';
             } elseif ($status === 'error') {
-                echo '<div class="woocommerce-error" role="alert">' . __('There was an error sending your inquiry. Please try again.', 'pw-admin') . '</div>';
+                echo '<div class="pwca-woocommerce-error" role="alert">' . __('There was an error sending your inquiry. Please try again.', 'pw-admin') . '</div>';
             } elseif ($status === 'mail_failed') {
-                echo '<div class="woocommerce-info" role="alert">' . __('Your inquiry has been saved but email notification failed.', 'pw-admin') . '</div>';
+                echo '<div class="pwca-woocommerce-info" role="alert">' . __('Your inquiry has been saved but email notification failed.', 'pw-admin') . '</div>';
             }
         }
         
