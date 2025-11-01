@@ -361,14 +361,14 @@ function pwca_shipping_method_init()
             // 首先检查session中是否有用户选择的运费
             $selected_cost = WC()->session->get('pwca_selected_shipping_cost');
             $selected_service = WC()->session->get('pwca_selected_shipping_service');
-            
+
             // 添加调试日志
             error_log('PWCA Shipping Debug - Selected Cost: ' . $selected_cost . ', Service: ' . $selected_service);
-            
+
             if ($selected_cost !== null && $selected_cost !== false && $selected_service) {
                 // 确保运费为数字类型
                 $cost = floatval($selected_cost);
-                
+
                 return array(
                     'id' => $this->id . '_' . $this->instance_id,
                     'label' => 'Shipping Options: ' . $selected_service,
@@ -458,7 +458,8 @@ function add_pwca_shipping_method($methods)
 
 // 确保 PWCA shipping method 在所有 shipping zones 中可用
 add_action('woocommerce_shipping_zone_method_added', 'pwca_ensure_shipping_method_available', 10, 3);
-function pwca_ensure_shipping_method_available($instance_id, $method_id, $zone_id) {
+function pwca_ensure_shipping_method_available($instance_id, $method_id, $zone_id)
+{
     if ($method_id === 'pwca_shipping_method') {
         error_log('PWCA Shipping method added to zone: ' . $zone_id);
     }
@@ -466,13 +467,14 @@ function pwca_ensure_shipping_method_available($instance_id, $method_id, $zone_i
 
 // 在插件激活时自动添加 shipping method 到默认 zone
 add_action('woocommerce_init', 'pwca_auto_add_shipping_method');
-function pwca_auto_add_shipping_method() {
+function pwca_auto_add_shipping_method()
+{
     // 检查是否已经添加过
     $added = get_option('pwca_shipping_method_added', false);
     if (!$added) {
         // 获取所有 shipping zones
         $zones = WC_Shipping_Zones::get_zones();
-        
+
         // 如果没有 zones，创建一个默认的
         if (empty($zones)) {
             $zone = new WC_Shipping_Zone();
@@ -483,7 +485,7 @@ function pwca_auto_add_shipping_method() {
             // 使用第一个 zone
             $zone_id = array_keys($zones)[0];
         }
-        
+
         // 添加我们的 shipping method 到 zone
         $zone = WC_Shipping_Zones::get_zone($zone_id);
         if ($zone) {
@@ -523,7 +525,7 @@ function pwca_fetch_shipping_options_from_api($country_code, $weight, $shipping_
     );
 
     $response = wp_remote_post($api_url, $args);
-    
+
     if (is_wp_error($response)) {
         error_log('PWCA Shipping API WP Error: ' . $response->get_error_message());
         return array(
@@ -536,13 +538,13 @@ function pwca_fetch_shipping_options_from_api($country_code, $weight, $shipping_
 
     $response_code = wp_remote_retrieve_response_code($response);
     $body = wp_remote_retrieve_body($response);
-    
+
     // 详细的响应日志
     error_log('PWCA API Response - Code: ' . $response_code);
     error_log('PWCA API Response - Body: ' . $body);
-    
+
     $data = json_decode($body, true);
-    
+
     if (json_last_error() !== JSON_ERROR_NONE) {
         error_log('PWCA API JSON Decode Error: ' . json_last_error_msg());
         return array(
@@ -552,9 +554,9 @@ function pwca_fetch_shipping_options_from_api($country_code, $weight, $shipping_
             'error' => true
         );
     }
-    
+
     error_log('PWCA API Parsed Data: ' . print_r($data, true));
-    
+
     // 检查API响应是否成功
     if ($response_code === 200 && $data && isset($data['code']) && $data['code'] === 200) {
         if (isset($data['data']['raw_response']['data']) && !empty($data['data']['raw_response']['data'])) {
@@ -570,7 +572,7 @@ function pwca_fetch_shipping_options_from_api($country_code, $weight, $shipping_
             error_log('PWCA API Error Message: ' . $data['message']);
         }
     }
-    
+
     // API失败或返回错误，返回真实的错误状态
     error_log('PWCA Shipping API failed (Code: ' . $response_code . '), no shipping options available');
     return array(
@@ -603,12 +605,12 @@ function pwca_handle_get_shipping_options()
     // 计算总重量
     $weight = 0;
     $cart_items = WC()->cart->get_cart();
-    
+
     foreach ($cart_items as $cart_item_key => $cart_item) {
         $product = $cart_item['data'];
         $product_weight = $product->get_weight();
         $quantity = $cart_item['quantity'];
-        
+
         if ($product_weight) {
             $weight += floatval($product_weight) * $quantity;
         }
@@ -635,7 +637,7 @@ function pwca_handle_get_shipping_options()
     if ($shipping_options && isset($shipping_options['code']) && $shipping_options['code'] === 200) {
         $message = 'Shipping options loaded successfully from API';
         error_log('PWCA AJAX - Using real API data');
-            
+
         wp_send_json_success(array(
             'data' => $shipping_options,
             'message' => $message
@@ -646,7 +648,7 @@ function pwca_handle_get_shipping_options()
         if ($shipping_options && isset($shipping_options['message'])) {
             $error_message = $shipping_options['message'];
         }
-        
+
         error_log('PWCA AJAX - API failure: ' . $error_message);
         wp_send_json_error($error_message);
     }
@@ -669,10 +671,10 @@ function pwca_handle_update_shipping_cost()
     // 将选中的运费存储到session中
     WC()->session->set('pwca_selected_shipping_cost', $selected_cost);
     WC()->session->set('pwca_selected_shipping_service', $service_name);
-    
+
     // 强制清除 WooCommerce shipping packages 缓存
     WC()->shipping()->reset_shipping();
-    
+
     // 清除购物车缓存，强制重新计算
     if (WC()->cart) {
         WC()->cart->calculate_shipping();
@@ -701,13 +703,13 @@ function pwca_add_calculate_shipping_button()
         echo '<button type="button" class="button pwca-calculate-shipping-btn" id="pwca-calculate-shipping">' . __('Calculate Shipping', 'woocommerce') . '</button>';
         echo '<div id="pwca-shipping-options" style="display: none; margin-top: 15px;"></div>';
         echo '</div>';
-        
+
         // 添加nonce用于AJAX安全验证
         wp_localize_script('jquery', 'pwca_ajax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('pwca_shipping_nonce')
         ));
-        
+
         // 添加JavaScript处理按钮点击事件
         wc_enqueue_js('
             jQuery(document).ready(function($) {
@@ -1175,14 +1177,15 @@ function pwca_calculate_shipping_styles()
 
 // 添加 WooCommerce hooks 确保运费正确更新
 add_action('woocommerce_checkout_update_order_review', 'pwca_force_shipping_recalculation');
-function pwca_force_shipping_recalculation($post_data) {
+function pwca_force_shipping_recalculation($post_data)
+{
     // 解析 POST 数据
     parse_str($post_data, $data);
-    
+
     // 检查是否有选中的运费
     $selected_cost = WC()->session->get('pwca_selected_shipping_cost');
     $selected_service = WC()->session->get('pwca_selected_shipping_service');
-    
+
     if ($selected_cost !== null && $selected_cost !== false) {
         // 强制重新计算运费
         WC()->shipping()->reset_shipping();
@@ -1194,11 +1197,12 @@ function pwca_force_shipping_recalculation($post_data) {
 
 // 确保在 checkout 页面加载时显示正确的运费
 add_action('woocommerce_checkout_init', 'pwca_init_checkout_shipping');
-function pwca_init_checkout_shipping() {
+function pwca_init_checkout_shipping()
+{
     // 检查是否有选中的运费
     $selected_cost = WC()->session->get('pwca_selected_shipping_cost');
     // $selected_service = WC()->session->get('pwca_selected_shipping_service');
-    
+
     if ($selected_cost !== null && $selected_cost !== false) {
         // 强制重新计算运费以确保显示正确
         WC()->shipping()->reset_shipping();
@@ -1211,7 +1215,8 @@ function pwca_init_checkout_shipping() {
 
 // 确保运费方法只显示一个选项（不显示选择器）
 add_filter('woocommerce_package_rates', 'pwca_filter_shipping_methods', 10, 2);
-function pwca_filter_shipping_methods($rates, $package) {
+function pwca_filter_shipping_methods($rates, $package)
+{
     // 检查是否有我们的运费方法
     $pwca_rates = array();
     foreach ($rates as $rate_id => $rate) {
@@ -1219,12 +1224,12 @@ function pwca_filter_shipping_methods($rates, $package) {
             $pwca_rates[$rate_id] = $rate;
         }
     }
-    
+
     // 如果有我们的运费方法，只返回我们的方法
     if (!empty($pwca_rates)) {
         return $pwca_rates;
     }
-    
+
     // 否则返回原始的运费方法
     return $rates;
 }
@@ -1232,25 +1237,57 @@ function pwca_filter_shipping_methods($rates, $package) {
 // 添加 AJAX 处理来清除运费选择
 add_action('wp_ajax_pwca_clear_shipping_selection', 'pwca_handle_clear_shipping_selection');
 add_action('wp_ajax_nopriv_pwca_clear_shipping_selection', 'pwca_handle_clear_shipping_selection');
-function pwca_handle_clear_shipping_selection() {
+function pwca_handle_clear_shipping_selection()
+{
     // 验证nonce
     if (!wp_verify_nonce($_POST['nonce'], 'pwca_shipping_nonce')) {
         wp_send_json_error('Security check failed');
         return;
     }
-    
+
     // 清除 session 中的运费数据
     WC()->session->set('pwca_selected_shipping_cost', null);
     WC()->session->set('pwca_selected_shipping_service', null);
-    
+
     // 强制重新计算
     WC()->shipping()->reset_shipping();
     if (WC()->cart) {
         WC()->cart->calculate_shipping();
         WC()->cart->calculate_totals();
     }
-    
+
     wp_send_json_success(array(
         'message' => 'Shipping selection cleared'
     ));
+}
+
+/**
+ * 允许插件覆盖 WooCommerce 模板
+ *
+ * @param string $template      默认模板的路径
+ * @param string $template_name 模板文件的名称 (例如 "checkout/review-order.php")
+ * @param string $template_path 模板路径 (通常是 "woocommerce/")
+ * @return string               新的模板路径
+ */
+add_filter('woocommerce_locate_template', 'my_plugin_wc_template_override', 10, 3);
+
+function my_plugin_wc_template_override($template, $template_name, $template_path)
+{
+
+    // if (is_page('custom-checkout')) {
+    //     return $template;
+    // }
+    // 获取您插件内部 'woocommerce' 文件夹的路径
+    // __FILE__ 指向当前文件 (my-plugin.php)
+    $plugin_template_path = plugin_dir_path(__FILE__) . 'woocommerce/' . $template_name;
+
+    // 检查您插件的 'woocommerce' 文件夹中是否存在该模板文件
+    if (file_exists($plugin_template_path)) {
+        // 如果存在，返回您插件中的文件路径
+        // 这将覆盖主题和 WooCommerce 的默认模板
+        $template = $plugin_template_path;
+    }
+
+    // 如果不存在，返回原始的 $template 路径，以便 WooCommerce 正常加载
+    return $template;
 }
