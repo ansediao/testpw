@@ -2627,15 +2627,18 @@ async function generateCompositeImageForGrid(options) {
             await drawLayerImageForGrid(ctx, overlayLayer.layer_data.content.imageURL, canvasWidth, canvasHeight);
         }
 
-        // 4. 绘制当前激活画布的裁剪区域，实现窗户效果
-        if (activeCanvas) {
-            await drawCroppedCanvasRegionWithWindowEffect(ctx, activeCanvas, cropConfig, canvasWidth, canvasHeight);
+        // 控制台输出 baseLayer.layer_data.content.imageURL png 图片信息
+        let imageAnalysisData = null;
+        if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) {
+            imageAnalysisData = await analyzeImageInfo(baseLayer.layer_data.content.imageURL);
         }
 
-        // 控制台输出 baseLayer.layer_data.content.imageURL png 图片信息
-        if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) {
-            await analyzeImageInfo(baseLayer.layer_data.content.imageURL);
+        // 4. 绘制当前激活画布的裁剪区域，实现窗户效果
+        if (activeCanvas) {
+            await drawCroppedCanvasRegionWithWindowEffect(ctx, activeCanvas, cropConfig, canvasWidth, canvasHeight, imageAnalysisData);
         }
+
+        
 
         
 
@@ -2918,8 +2921,9 @@ async function drawCroppedCanvasRegionForGrid(ctx, sourceCanvas, cropConfig, tar
  * @param {Object} cropConfig - 裁剪配置
  * @param {number} targetWidth - 目标宽度
  * @param {number} targetHeight - 目标高度
+ * @param {Object} imageAnalysisData - 图片分析数据（包含图片尺寸和非透明区域信息）
  */
-async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropConfig, targetWidth, targetHeight) {
+async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropConfig, targetWidth, targetHeight, imageAnalysisData) {
     return new Promise((resolve) => { // 获取源画布的数据URL
         const sourceDataURL = sourceCanvas.toDataURL('image/png');
         const img = new Image();
@@ -2930,6 +2934,29 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
 
             // 获取杯子边界信息
             const cupBoundary = window.cupBoundary;
+            
+            // 输出图片分析数据信息
+            if (imageAnalysisData) {
+                console.log('=== 窗户效果绘制中使用的图片分析数据 ===');
+                console.log('图片原始尺寸:', {
+                    width: imageAnalysisData.imageWidth,
+                    height: imageAnalysisData.imageHeight
+                });
+                console.log('非透明区域信息:', {
+                    topMargin: imageAnalysisData.topMargin,
+                    height: imageAnalysisData.nonTransparentHeight,
+                    coverage: ((imageAnalysisData.nonTransparentHeight / imageAnalysisData.imageHeight) * 100).toFixed(2) + '%'
+                });
+                console.log('当前画布尺寸:', {
+                    sourceWidth: sourceWidth,
+                    sourceHeight: sourceHeight
+                });
+                console.log('目标输出尺寸:', {
+                    targetWidth: targetWidth,
+                    targetHeight: targetHeight
+                });
+                console.log('==========================================');
+            }
             
             if (! cupBoundary) {
                 console.warn('Cup boundary not found, using original drawing method');
@@ -2991,9 +3018,34 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
             // 高度调整为 window.baseCupBoundary.height
             // 绘制的宽高比 和原始比例一致
             // 绘制的起始点高度为 window.baseCupBoundary.y
-            const x = (targetWidth - tempCanvas.width) / 2;
-            const y = window.baseCupBoundary.y;
-            ctx.drawImage(tempCanvas, x, y, window.baseCupBoundary.width, window.baseCupBoundary.height);
+            
+            // 基于图片分析数据优化绘制位置和尺寸
+            let drawX, drawY, drawWidth, drawHeight;
+            
+            if (imageAnalysisData ) {
+
+                // base 图片相对舞台缩放系数
+                const xishu = targetHeight / imageAnalysisData.imageHeight;
+
+                drawHeight  = imageAnalysisData.nonTransparentHeight * xishu;
+
+                drawWidth = tempCanvas.width * ( imageAnalysisData.nonTransparentHeight * xishu  / tempCanvas.height)
+                // 水平居中
+                drawX = (targetWidth - drawWidth) / 2;
+
+                drawY = imageAnalysisData.topMargin * xishu;
+
+               
+            } 
+            // 控制台输出 drawX drawY drawWidth drawHeight参数
+            console.log('drawX:', drawX);
+            console.log('drawY:', drawY);
+            console.log('drawWidth:', drawWidth);
+            console.log('drawHeight:', drawHeight);
+
+
+
+            ctx.drawImage(tempCanvas, drawX, drawY, drawWidth, drawHeight);
             
             ctx.restore();
             resolve();
