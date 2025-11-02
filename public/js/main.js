@@ -2968,62 +2968,10 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
                 tempCtx.drawImage(img, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
             }
 
-            // 创建离屏合成画布，用 baseLayer 非透明像素区域作为遮罩，应用 source-in
-            const compositeCanvas = document.createElement('canvas');
-            compositeCanvas.width = targetWidth;
-            compositeCanvas.height = targetHeight;
-            const compositeCtx = compositeCanvas.getContext('2d');
-
-            const maskImg = new Image();
-            maskImg.crossOrigin = 'anonymous';
-            maskImg.onload = () => {
-                // 绘制遮罩（baseLayer原图，保持与先前绘制一致的缩放与位置）
-                compositeCtx.drawImage(maskImg, cupBoundary.originalX, cupBoundary.originalY, cupBoundary.originalWidth, cupBoundary.originalHeight);
-
-                // 使用 source-in，将临时源画布裁剪到 baseLayer 的非透明像素区域
-                compositeCtx.globalCompositeOperation = 'source-in';
-
-                // 宽度自适应等比缩放，高度按比例缩放，底部对齐
-                const scaleX = cupBoundary.width / tempCanvas.width;
-                const scaleY = cupBoundary.height / tempCanvas.height;
-                const scale = Math.min(scaleX, scaleY); // 保持比例缩放，确保不超出边界
-                
-                const desiredWidth = tempCanvas.width * scale;
-                const desiredHeight = tempCanvas.height * scale;
-
-                const drawY = cupBoundary.y + cupBoundary.height - desiredHeight; // 底部对齐
-                const drawX = cupBoundary.x + (cupBoundary.width - desiredWidth) / 2; // 水平居中于像素区域
-
-                compositeCtx.drawImage(tempCanvas, drawX, drawY, desiredWidth, desiredHeight);
-
-                // 重置混合模式
-                compositeCtx.globalCompositeOperation = 'source-over';
-
-                // 将合成结果绘制到目标画布
-                ctx.drawImage(compositeCanvas, 0, 0);
-
-                // 恢复画布状态并完成
-                ctx.restore();
-                resolve();
-            };
-            maskImg.onerror = () => {
-                console.warn('Mask image failed to load, fallback to boundary drawing');
-                // 回退：在边界内绘制（不使用 source-in）
-                drawCanvasWithinBoundaryForWindow(ctx, tempCanvas, cupBoundary);
-                ctx.restore();
-                resolve();
-            };
-
-            // 优先使用记录的 base 图像 URL
-            const maskSrc = cupBoundary.imageUrl || window.baseCupBoundaryImageUrl;
-            if (maskSrc) {
-                maskImg.src = maskSrc;
-            } else {
-                // 无法获取遮罩图片，直接回退
-                drawCanvasWithinBoundaryForWindow(ctx, tempCanvas, cupBoundary);
-                ctx.restore();
-                resolve();
-            }
+            // 直接在边界内绘制，不使用离屏合成画布和遮罩
+            drawCanvasWithinBoundaryForWindow(ctx, tempCanvas, cupBoundary);
+            ctx.restore();
+            resolve();
         };
 
         img.src = sourceDataURL;
