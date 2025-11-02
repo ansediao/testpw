@@ -49,33 +49,28 @@ function updateDynamicToolbar(obj) {
             </select>
           `;
             textToolbarArea.appendChild(fontSelector);
-            // 创建字体大小选择器
-            const fontSizeSelector = document.createElement('div');
-            fontSizeSelector.className = 'toolbar-item';
-            fontSizeSelector.innerHTML = `
-            <label for="fontSize" class="tab_control_title">Font-Size：</label>
-            <br>
-            <div class="pwca-font-size-control">
-                <button type="button" id="fontSizeDecrease" class="pwca-font-size-btn">-</button>
-                <input type="number" id="fontSize" min="8" max="120" value="${obj.fontSize}" class="pwca-font-size-input">
-                <button type="button" id="fontSizeIncrease" class="pwca-font-size-btn">+</button>
+            // 创建字体大小和字距控制容器
+            const textControlsContainer = document.createElement('div');
+            textControlsContainer.className = 'toolbar-item pwca-text-controls-container';
+            textControlsContainer.innerHTML = `
+            <div>
+                <label for="fontSize" class="tab_control_title">Font-Size：</label>
+                <div class="pwca-font-size-control">
+                    <button type="button" id="fontSizeDecrease" class="pwca-font-size-btn">-</button>
+                    <input type="number" id="fontSize" min="8" max="120" value="${obj.fontSize}" class="pwca-font-size-input">
+                    <button type="button" id="fontSizeIncrease" class="pwca-font-size-btn">+</button>
+                </div>
+            </div>
+            <div>
+                <label for="letterSpacing" class="tab_control_title">Letter Spacing：</label>
+                <div class="pwca-letter-spacing-control">
+                    <button type="button" id="letterSpacingDecrease" class="pwca-letter-spacing-btn">-</button>
+                    <input type="number" id="letterSpacing" min="-10" max="50" value="${obj.charSpacing || 0}" class="pwca-letter-spacing-input">
+                    <button type="button" id="letterSpacingIncrease" class="pwca-letter-spacing-btn">+</button>
+                </div>
             </div>
           `;
-            textToolbarArea.appendChild(fontSizeSelector);
-            
-            // 创建字距控制选择器
-            const letterSpacingSelector = document.createElement('div');
-            letterSpacingSelector.className = 'toolbar-item';
-            letterSpacingSelector.innerHTML = `
-            <label for="letterSpacing" class="tab_control_title">Letter Spacing：</label>
-            <br>
-            <div class="pwca-letter-spacing-control">
-                <button type="button" id="letterSpacingDecrease" class="pwca-letter-spacing-btn">-</button>
-                <input type="number" id="letterSpacing" min="-10" max="50" value="${obj.charSpacing || 0}" class="pwca-letter-spacing-input">
-                <button type="button" id="letterSpacingIncrease" class="pwca-letter-spacing-btn">+</button>
-            </div>
-          `;
-            textToolbarArea.appendChild(letterSpacingSelector);
+            textToolbarArea.appendChild(textControlsContainer);
         }
 
         // 创建颜色选择器

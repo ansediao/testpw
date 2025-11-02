@@ -88,6 +88,14 @@
     box-sizing: border-box;
 }
 
+/* 字体大小和字距控制容器 */
+.pwca-text-controls-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
 /* 字体大小控制样式 */
 .pwca-font-size-control {
     display: flex;
