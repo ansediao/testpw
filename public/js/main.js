@@ -2632,7 +2632,13 @@ async function generateCompositeImageForGrid(options) {
             await drawCroppedCanvasRegionWithWindowEffect(ctx, activeCanvas, cropConfig, canvasWidth, canvasHeight);
         }
 
+        // 控制台输出 baseLayer.layer_data.content.imageURL png 图片信息
+        if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) {
+            await analyzeImageInfo(baseLayer.layer_data.content.imageURL);
+        }
+
         
+
         // 5.（移除）不再重复绘制 Base Layer 作为输出层
 
 
@@ -2672,7 +2678,7 @@ async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
         img.crossOrigin = 'anonymous';
         img.onload = () => {
             // 1) 保持长宽比进行缩放：目标高度取输出区域的 80%，为上下留白
-            const targetHeight = height * 0.8;
+            const targetHeight = height;
             const aspectRatio = img.width / img.height; // 原始宽高比
             const targetWidth = targetHeight * aspectRatio; // 按比例得到目标宽度
 
@@ -2969,7 +2975,26 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
             }
 
             // 直接在边界内绘制，不使用离屏合成画布和遮罩
-            drawCanvasWithinBoundaryForWindow(ctx, tempCanvas, cupBoundary);
+            // drawCanvasWithinBoundaryForWindow(ctx, tempCanvas, cupBoundary);
+            
+            // 控制台输出 tempCanvas 长宽尺寸 和 最后输出的图片 长宽尺寸
+
+            // console.log('tempCanvas width:', tempCanvas.width);
+            // console.log('tempCanvas height:', tempCanvas.height);
+
+            // console.log('targetWidth:', targetWidth);
+            // console.log('targetHeight:', targetHeight);
+
+            // 获取 
+
+            // 绘制 tempCanvas 到 ctx 相对于最后输出的图片 水平居中 垂直底部对齐 
+            // 高度调整为 window.baseCupBoundary.height
+            // 绘制的宽高比 和原始比例一致
+            // 绘制的起始点高度为 window.baseCupBoundary.y
+            const x = (targetWidth - tempCanvas.width) / 2;
+            const y = window.baseCupBoundary.y;
+            ctx.drawImage(tempCanvas, x, y, window.baseCupBoundary.width, window.baseCupBoundary.height);
+            
             ctx.restore();
             resolve();
         };
@@ -3135,4 +3160,156 @@ async function captureViewImage(view) {
         }:`, error);
         return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">截图失败</text></svg>');
     }
+}
+
+/**
+ * 分析图片信息：获取图片本身长宽和非透明区域高度
+ * @param {string} imageUrl - 图片URL
+ */
+async function analyzeImageInfo(imageUrl) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onload = () => {
+            // 创建临时画布来分析图片
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            
+            // 绘制图片到画布
+            ctx.drawImage(img, 0, 0);
+            
+            // 获取图片本身的长宽
+            const imageWidth = img.width;
+            const imageHeight = img.height;
+            
+            // 获取非透明区域的高度
+            const nonTransparentHeight = getBoundingRectHeight(imageUrl, canvas, ctx);
+            const topMargin = getTopMargin(imageUrl, canvas, ctx);
+            
+            // 控制台输出图片信息
+            console.log('=== 图片信息分析 ===');
+            console.log('图片URL:', imageUrl);
+            console.log('图片本身尺寸:', {
+                width: imageWidth,
+                height: imageHeight
+            });
+            console.log('非透明区域信息:', {
+                topMargin: topMargin,
+                height: nonTransparentHeight,
+                coverage: ((nonTransparentHeight / imageHeight) * 100).toFixed(2) + '%'
+            });
+            console.log('==================');
+            
+            resolve({
+                imageWidth,
+                imageHeight,
+                nonTransparentHeight,
+                topMargin
+            });
+        };
+        
+        img.onerror = (error) => {
+            console.error('图片加载失败:', imageUrl, error);
+            reject(error);
+        };
+        
+        img.src = imageUrl;
+    });
+}
+
+/**
+ * 获取图片的像素数据
+ * @param {HTMLCanvasElement} canvas - canvas元素
+ * @param {CanvasRenderingContext2D} ctx - canvas上下文
+ * @returns {Uint8ClampedArray} 图片像素数据
+ */
+function getPixelData(canvas, ctx) {
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    return imageData.data;
+}
+
+/**
+ * 获取最顶部像素距离图片顶部的距离
+ * @param {string} imageUrl - 图片URL
+ * @param {HTMLCanvasElement} canvas - canvas元素
+ * @param {CanvasRenderingContext2D} ctx - canvas上下文
+ * @returns {number} 最顶部像素到图片顶部的距离
+ */
+function getTopMargin(imageUrl, canvas, ctx) {
+    const pixelData = getPixelData(canvas, ctx);
+    
+    for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+            const index = (y * canvas.width + x) * 4;
+            const alpha = pixelData[index + 3];
+            
+            if (alpha > 0) {
+                return y;
+            }
+        }
+    }
+    
+    return 0;
+}
+
+/**
+ * 获取最顶部非透明像素的Y坐标
+ * @param {HTMLCanvasElement} canvas - canvas元素
+ * @param {CanvasRenderingContext2D} ctx - canvas上下文
+ * @returns {number} 最顶部非透明像素的Y坐标
+ */
+function getTopMostY(canvas, ctx) {
+    const pixelData = getPixelData(canvas, ctx);
+    
+    for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+            const index = (y * canvas.width + x) * 4;
+            const alpha = pixelData[index + 3];
+            
+            if (alpha > 0) {
+                return y;
+            }
+        }
+    }
+    
+    return 0;
+}
+
+/**
+ * 获取最底部非透明像素的Y坐标
+ * @param {HTMLCanvasElement} canvas - canvas元素
+ * @param {CanvasRenderingContext2D} ctx - canvas上下文
+ * @returns {number} 最底部非透明像素的Y坐标
+ */
+function getBottomMostY(canvas, ctx) {
+    const pixelData = getPixelData(canvas, ctx);
+    
+    for (let y = canvas.height - 1; y >= 0; y--) {
+        for (let x = 0; x < canvas.width; x++) {
+            const index = (y * canvas.width + x) * 4;
+            const alpha = pixelData[index + 3];
+            
+            if (alpha > 0) {
+                return y;
+            }
+        }
+    }
+    
+    return canvas.height - 1;
+}
+
+/**
+ * 获取包围所有非透明像素的矩形高度
+ * @param {string} imageUrl - 图片URL
+ * @param {HTMLCanvasElement} canvas - canvas元素
+ * @param {CanvasRenderingContext2D} ctx - canvas上下文
+ * @returns {number} 矩形高度
+ */
+function getBoundingRectHeight(imageUrl, canvas, ctx) {
+    const top = getTopMostY(canvas, ctx);
+    const bottom = getBottomMostY(canvas, ctx);
+    return bottom - top + 1;
 }
