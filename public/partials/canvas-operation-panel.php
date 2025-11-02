@@ -1461,7 +1461,7 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                         
                         // 更新颜色状态显示
                         if (colorStatusDisplay) {
-                            colorStatusDisplay.innerHTML = `纯色: ${color} <a href=\"#\" id=\"clearColorLink\" style=\"margin-left: 10px; color: #007cba; text-decoration: none;\">切换颜色</a>`;
+                            colorStatusDisplay.innerHTML = `Selected: ${color}  <a href=\"#\" id=\"clearColorLink\" style=\"margin-left: 10px; color: #dc3545; text-decoration: none; font-size: 16px; font-weight: bold;\">✕</a>  <a href=\"#\" id=\"changeColorLink\" style=\"margin-left: 10px; color: #007cba; text-decoration: none;\">切换颜色</a>`;
                             colorStatusDisplay.style.display = 'block';
                             
                             // 添加清除颜色链接的事件监听器
@@ -1470,6 +1470,18 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                                 clearColorLink.addEventListener('click', function(e) {
                                     e.preventDefault();
                                     clearAllColorEffects();
+                                });
+                            }
+                            
+                            // 添加切换颜色链接的事件监听器
+                            const changeColorLink = document.getElementById('changeColorLink');
+                            if (changeColorLink) {
+                                changeColorLink.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    const customColorModal = document.getElementById('custom-color-modal');
+                                    if (customColorModal) {
+                                        customColorModal.style.display = 'flex';
+                                    }
                                 });
                             }
                         }
