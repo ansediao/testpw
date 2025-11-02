@@ -55,9 +55,27 @@ function updateDynamicToolbar(obj) {
             fontSizeSelector.innerHTML = `
             <label for="fontSize" class="tab_control_title">Font-Size：</label>
             <br>
-            <input type="number" id="fontSize" min="8" max="120" value="${obj.fontSize}">
+            <div class="pwca-font-size-control">
+                <button type="button" id="fontSizeDecrease" class="pwca-font-size-btn">-</button>
+                <input type="number" id="fontSize" min="8" max="120" value="${obj.fontSize}" class="pwca-font-size-input">
+                <button type="button" id="fontSizeIncrease" class="pwca-font-size-btn">+</button>
+            </div>
           `;
             textToolbarArea.appendChild(fontSizeSelector);
+            
+            // 创建字距控制选择器
+            const letterSpacingSelector = document.createElement('div');
+            letterSpacingSelector.className = 'toolbar-item';
+            letterSpacingSelector.innerHTML = `
+            <label for="letterSpacing" class="tab_control_title">Letter Spacing：</label>
+            <br>
+            <div class="pwca-letter-spacing-control">
+                <button type="button" id="letterSpacingDecrease" class="pwca-letter-spacing-btn">-</button>
+                <input type="number" id="letterSpacing" min="-10" max="50" value="${obj.charSpacing || 0}" class="pwca-letter-spacing-input">
+                <button type="button" id="letterSpacingIncrease" class="pwca-letter-spacing-btn">+</button>
+            </div>
+          `;
+            textToolbarArea.appendChild(letterSpacingSelector);
         }
 
         // 创建颜色选择器
@@ -194,6 +212,73 @@ function updateDynamicToolbar(obj) {
             fontSizeElement.addEventListener('change', function () {
                 if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
                     canvas.getActiveObject().set('fontSize', parseInt(this.value, 10));
+                    canvas.renderAll();
+                }
+            });
+        }
+        
+        // 字体大小加减按钮事件
+        const fontSizeDecreaseBtn = document.getElementById('fontSizeDecrease');
+        const fontSizeIncreaseBtn = document.getElementById('fontSizeIncrease');
+        
+        if (fontSizeDecreaseBtn) {
+            fontSizeDecreaseBtn.addEventListener('click', function () {
+                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                    const currentSize = parseInt(fontSizeElement.value, 10);
+                    const newSize = Math.max(8, currentSize - 1);
+                    fontSizeElement.value = newSize;
+                    canvas.getActiveObject().set('fontSize', newSize);
+                    canvas.renderAll();
+                }
+            });
+        }
+        
+        if (fontSizeIncreaseBtn) {
+            fontSizeIncreaseBtn.addEventListener('click', function () {
+                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                    const currentSize = parseInt(fontSizeElement.value, 10);
+                    const newSize = Math.min(120, currentSize + 1);
+                    fontSizeElement.value = newSize;
+                    canvas.getActiveObject().set('fontSize', newSize);
+                    canvas.renderAll();
+                }
+            });
+        }
+        
+        // 字距控制事件
+        const letterSpacingElement = document.getElementById('letterSpacing');
+        if (letterSpacingElement) {
+            letterSpacingElement.addEventListener('change', function () {
+                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                    canvas.getActiveObject().set('charSpacing', parseInt(this.value, 10));
+                    canvas.renderAll();
+                }
+            });
+        }
+        
+        // 字距加减按钮事件
+        const letterSpacingDecreaseBtn = document.getElementById('letterSpacingDecrease');
+        const letterSpacingIncreaseBtn = document.getElementById('letterSpacingIncrease');
+        
+        if (letterSpacingDecreaseBtn) {
+            letterSpacingDecreaseBtn.addEventListener('click', function () {
+                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                    const currentSpacing = parseInt(letterSpacingElement.value, 10);
+                    const newSpacing = Math.max(-10, currentSpacing - 1);
+                    letterSpacingElement.value = newSpacing;
+                    canvas.getActiveObject().set('charSpacing', newSpacing);
+                    canvas.renderAll();
+                }
+            });
+        }
+        
+        if (letterSpacingIncreaseBtn) {
+            letterSpacingIncreaseBtn.addEventListener('click', function () {
+                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                    const currentSpacing = parseInt(letterSpacingElement.value, 10);
+                    const newSpacing = Math.min(50, currentSpacing + 1);
+                    letterSpacingElement.value = newSpacing;
+                    canvas.getActiveObject().set('charSpacing', newSpacing);
                     canvas.renderAll();
                 }
             });

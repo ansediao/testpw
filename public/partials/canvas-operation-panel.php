@@ -2216,6 +2216,15 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
             controlArea.addEventListener('click', function(e) {
                 const clickedButton = e.target.closest('button');
                 if (!clickedButton) return;
+                
+                // 检查是否是字体大小或字距的加减按钮，如果是则不处理
+                if (clickedButton.id === 'fontSizeDecrease' ||
+                    clickedButton.id === 'fontSizeIncrease' ||
+                    clickedButton.id === 'letterSpacingDecrease' ||
+                    clickedButton.id === 'letterSpacingIncrease') {
+                    return;
+                }
+                
                 const buttons = Array.from(controlArea.querySelectorAll('button'));
                 if (buttons.length === 0) return;
                 const isFirst = clickedButton === buttons[0];
