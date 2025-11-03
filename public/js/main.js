@@ -2965,37 +2965,6 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
             // 保存当前画布状态
             ctx.save();
 
-            // 改为离屏合成：在独立的 maskCanvas 上用 Base 作为遮罩，source-in 合成裁剪后的 activeCanvas 内容，最后叠加到舞台
-            let maskCanvas = null;
-            try {
-                const baseImageUrl = window.baseCupBoundaryImageUrl;
-                if (baseImageUrl) {
-                    maskCanvas = document.createElement('canvas');
-                    maskCanvas.width = targetWidth;
-                    maskCanvas.height = targetHeight;
-                    const maskCtx = maskCanvas.getContext('2d');
-
-                    // 1) 绘制 Base 图层到离屏画布（保持与主舞台一致的缩放与居中）
-                    if (typeof getExplicitSelectedColor === 'function') {
-                        const explicitColor = getExplicitSelectedColor();
-                        if (explicitColor) {
-                            await drawLayerImageForGridWithColor(maskCtx, baseImageUrl, targetWidth, targetHeight, explicitColor);
-                        } else {
-                            await drawLayerImageForGrid(maskCtx, baseImageUrl, targetWidth, targetHeight);
-                        }
-                    } else {
-                        await drawLayerImageForGrid(maskCtx, baseImageUrl, targetWidth, targetHeight);
-                    }
-                    console.log('[WindowEffect] Base Layer drawn into offscreen mask canvas');
-
-                    // 2) 后续会在计算完成后，使用 source-in 将裁剪内容合成到该离屏画布
-                } else {
-                    console.warn('[WindowEffect] No base image url found for mask; activeCanvas will be drawn directly');
-                }
-            } catch (e) {
-                console.error('[WindowEffect] Failed to prepare offscreen mask canvas:', e);
-            }
-
             // 先根据裁剪配置生成临时源画布（裁剪结果）
             let tempCanvas;
             if (cropConfig.extraCrop) { // 后视图特殊处理：右边1/4 + 左边1/4
@@ -3070,6 +3039,35 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
             console.log('drawY:', drawY);
             console.log('drawWidth:', drawWidth);
             console.log('drawHeight:', drawHeight);
+
+            // 根据已生成的 tempCanvas 再准备遮罩并进行裁剪（延后到裁剪结果计算之后）
+            let maskCanvas = null;
+            try {
+                const baseImageUrl = window.baseCupBoundaryImageUrl;
+                if (baseImageUrl) {
+                    maskCanvas = document.createElement('canvas');
+                    maskCanvas.width = targetWidth;
+                    maskCanvas.height = targetHeight;
+                    const maskCtx = maskCanvas.getContext('2d');
+
+                    // 绘制 Base 图层到离屏画布（保持与主舞台一致的缩放与居中）
+                    if (typeof getExplicitSelectedColor === 'function') {
+                        const explicitColor = getExplicitSelectedColor();
+                        if (explicitColor) {
+                            await drawLayerImageForGridWithColor(maskCtx, baseImageUrl, targetWidth, targetHeight, explicitColor);
+                        } else {
+                            await drawLayerImageForGrid(maskCtx, baseImageUrl, targetWidth, targetHeight);
+                        }
+                    } else {
+                        await drawLayerImageForGrid(maskCtx, baseImageUrl, targetWidth, targetHeight);
+                    }
+                    console.log('[WindowEffect] Base Layer drawn into offscreen mask canvas (post-crop)');
+                } else {
+                    console.warn('[WindowEffect] No base image url found for mask; cropped tempCanvas will be drawn directly');
+                }
+            } catch (e) {
+                console.error('[WindowEffect] Failed to prepare offscreen mask canvas (post-crop):', e);
+            }
 
             if (maskCanvas) {
                 // 在离屏遮罩画布上进行 source-in 合成
