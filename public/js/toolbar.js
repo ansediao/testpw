@@ -1,4 +1,13 @@
 // 更新动态工具栏
+// 滑块填充更新工具函数：根据当前值更新 CSS 变量 --value-percent
+function pwUpdateRangeFill(rangeEl) {
+    if (!rangeEl) return;
+    const min = (rangeEl.min !== undefined && rangeEl.min !== '') ? parseFloat(rangeEl.min) : 0;
+    const max = (rangeEl.max !== undefined && rangeEl.max !== '') ? parseFloat(rangeEl.max) : 100;
+    const value = (rangeEl.value !== undefined && rangeEl.value !== '') ? parseFloat(rangeEl.value) : min;
+    const percent = ((value - min) / (max - min)) * 100;
+    rangeEl.style.setProperty('--value-percent', `${percent}%`);
+}
 function updateDynamicToolbar(obj) {
     // 获取当前活动的 canvas 实例
     const canvas = getActiveCanvas();
@@ -92,8 +101,10 @@ function updateDynamicToolbar(obj) {
             rotationControl.innerHTML = `
             <label for="textRotation" class="tab_control_title">Rotate：</label>
             <br>
-            <input type="range" id="textRotationRange" min="-180" max="180" step="1" value="${obj.angle}">
-            <input type="number" id="textRotation" min="0" max="360" value="${obj.angle}">
+            <div class="pwca-content-area-rotate-control">
+                <input type="range" id="textRotationRange" min="-180" max="180" step="1" value="${obj.angle}">
+                <input type="number" id="textRotation" min="0" max="360" value="${obj.angle}">
+            </div>
           `;
             textToolbarArea.appendChild(rotationControl);
         }
@@ -182,8 +193,10 @@ function updateDynamicToolbar(obj) {
             distortControl.innerHTML = `
             <label for="textDistort" class="tab_control_title">Arc：</label>
             <br>
-            <input type="range" id="textDistort" min="-100" max="100" value="0">
-            <input type="number" id="distortValue" min="-100" max="100" value="0">
+            <div class="pwca-content-area-rotate-control">
+                <input type="range" id="textDistort" min="-100" max="100" value="0">
+                <input type="number" id="distortValue" min="-100" max="100" value="0">
+            </div>
           `;
             textToolbarArea.appendChild(distortControl);
         }
@@ -292,9 +305,13 @@ function updateDynamicToolbar(obj) {
         const textRotationInput = document.getElementById('textRotation');
         const textRotationRange = document.getElementById('textRotationRange');
         if (textRotationRange) {
+            // 初始化一次填充效果
+            pwUpdateRangeFill(textRotationRange);
             textRotationRange.addEventListener('input', function () {
                 const val = parseInt(this.value, 10) || 0;
                 if (textRotationInput) textRotationInput.value = val;
+                // 根据当前值更新滑块填充
+                pwUpdateRangeFill(textRotationRange);
                 if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
                     canvas.getActiveObject().set('angle', val);
                     canvas.renderAll();
@@ -305,6 +322,7 @@ function updateDynamicToolbar(obj) {
             textRotationInput.addEventListener('input', function () {
                 const val = parseInt(this.value, 10) || 0;
                 if (textRotationRange) textRotationRange.value = val;
+                if (textRotationRange) pwUpdateRangeFill(textRotationRange);
                 if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
                     canvas.getActiveObject().set('angle', val);
                     canvas.renderAll();
@@ -336,6 +354,8 @@ function updateDynamicToolbar(obj) {
         const distortInput = document.getElementById('textDistort');
         const distortValue = document.getElementById('distortValue');
         if (distortInput && distortValue) {
+            // 初始化一次填充效果
+            pwUpdateRangeFill(distortInput);
             const applyDistort = function(val) {
                 if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
                     const text = canvas.getActiveObject();
@@ -362,11 +382,14 @@ function updateDynamicToolbar(obj) {
             distortInput.addEventListener('input', function () {
                 const sliderValue = parseFloat(this.value) || 0;
                 distortValue.value = sliderValue;
+                // 根据当前值更新滑块填充
+                pwUpdateRangeFill(distortInput);
                 applyDistort(sliderValue);
             });
             distortValue.addEventListener('input', function () {
                 const manualValue = parseFloat(this.value) || 0;
                 distortInput.value = manualValue;
+                pwUpdateRangeFill(distortInput);
                 applyDistort(manualValue);
             });
         }
@@ -421,8 +444,10 @@ function updateDynamicToolbar(obj) {
             rotationControl.innerHTML = `
             <label for="imageRotation" class="tab_control_title">Transform：</label>
             <br>
-            <input type="range" id="imageRotationRange" min="-180" max="180" step="1" value="${obj.angle}">
-            <input type="number" id="imageRotation" min="0" max="360" value="${obj.angle}">
+            <div class="pwca-content-area-rotate-control">
+                <input type="range" id="imageRotationRange" min="-180" max="180" step="1" value="${obj.angle}">
+                <input type="number" id="imageRotation" min="0" max="360" value="${obj.angle}">
+            </div>
           `;
             tempContainer.appendChild(rotationControl);
 
@@ -430,9 +455,13 @@ function updateDynamicToolbar(obj) {
             const rotationInput = document.getElementById('imageRotation');
             const rotationRange = document.getElementById('imageRotationRange');
             if (rotationRange) {
+                // 初始化一次填充效果
+                pwUpdateRangeFill(rotationRange);
                 rotationRange.addEventListener('input', function () {
                     const val = parseInt(this.value, 10) || 0;
                     if (rotationInput) rotationInput.value = val;
+                    // 根据当前值更新滑块填充
+                    pwUpdateRangeFill(rotationRange);
                     obj.set('angle', val);
                     canvas.renderAll();
                 });
@@ -441,6 +470,7 @@ function updateDynamicToolbar(obj) {
                 rotationInput.addEventListener('input', function () {
                     const val = parseInt(this.value, 10) || 0;
                     if (rotationRange) rotationRange.value = val;
+                    if (rotationRange) pwUpdateRangeFill(rotationRange);
                     obj.set('angle', val);
                     canvas.renderAll();
                 });
