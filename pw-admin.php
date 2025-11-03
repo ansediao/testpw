@@ -1215,7 +1215,7 @@ add_action('woocommerce_checkout_init', 'pwca_init_checkout_shipping');
 function pwca_init_checkout_shipping()
 {
     // 检查是否有选中的运费
-    $selected_cost = WC()->session->get('pwca_selected_shipping_cost');
+    // $selected_cost = WC()->session->get('pwca_selected_shipping_cost');
     // $selected_service = WC()->session->get('pwca_selected_shipping_service');
 
     if ($selected_cost !== null && $selected_cost !== false) {
