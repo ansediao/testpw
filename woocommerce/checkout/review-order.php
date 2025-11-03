@@ -47,21 +47,17 @@ defined( 'ABSPATH' ) || exit;
             <!-- 小计 -->
             <div class="pwca-order-subtotal">
                 <div class="pwca-subtotal-row">
-                    <span class="pwca-subtotal-label">Subtotal</span>
-                    <span class="pwca-subtotal-amount"><?php wc_cart_totals_subtotal_html(); ?></span>
+                    <div class="pwca-subtotal-label">Subtotal</div>
+                    <div class="pwca-subtotal-amount"><?php wc_cart_totals_subtotal_html(); ?></div>
                 </div>
             </div>
             
-            <!-- 配送费用 -->
-            <?php foreach ( WC()->cart->get_coupons() as $code => $coupon ) : ?>
-                <div class="pwca-order-coupon">
-                    <div class="pwca-coupon-row">
-                        <span class="pwca-coupon-label"><?php wc_cart_totals_coupon_label( $coupon ); ?></span>
-                        <span class="pwca-coupon-amount"><?php wc_cart_totals_coupon_html( $coupon ); ?></span>
-                    </div>
+            <!-- 运费 -->
+            <div class="pwca-order-shipping">
+                <div class="pwca-shipping-row">
+                   
                 </div>
-            <?php endforeach; ?>
-            
+            </div>
            
             
           
@@ -69,8 +65,8 @@ defined( 'ABSPATH' ) || exit;
             <!-- 总计 -->
             <div class="pwca-order-total">
                 <div class="pwca-total-row">
-                    <span class="pwca-total-label">Total</span>
-                    <span class="pwca-total-amount"><?php wc_cart_totals_order_total_html(); ?></span>
+                    <div class="pwca-total-label">Total</div>
+                    <div class="pwca-total-amount"><?php wc_cart_totals_order_total_html(); ?></div>
                 </div>
             </div>
         </div>

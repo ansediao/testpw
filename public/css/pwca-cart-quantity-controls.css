@@ -1,227 +1,199 @@
+@charset "UTF-8";
 /**
  * 购物车数量调整按钮样式
  * 用于 /custom-cart/ 页面的数量控制功能
- * 遵循项目 CSS 规范和命名约定
+ * 遵循项目 SCSS 规范和命名约定
  */
-
-/* 购物车数量控制容器 */
+/**
+ * SCSS 变量集中定义文件
+ * 定义新变量前请先检查是否已存在相同或相似变量
+ * 每个变量必须包含使用说明注释
+ */
+/**
+ * SCSS 混合器集中定义文件
+ * 用于复用常见样式模式
+ */
 .pwca-quantity-controls {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 0;
 }
-
-/* 数量调整按钮基础样式 */
 .pwca-quantity-controls .pwca-qty-btn {
-    width: 40px;
-    height: 32px;
-    border: 1px solid #ddd;
-    background: #f8f8f8;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 14px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
+  width: 40px;
+  height: 32px;
+  border: 1px solid #ddd;
+  background: #f8f8f8;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
 }
-
-/* 悬停效果 */
 .pwca-quantity-controls .pwca-qty-btn:hover:not(:disabled) {
-    background: #96588a;
-    color: white;
-    border-color: #96588a;
+  background: #96588a;
+  color: white;
+  border-color: #96588a;
 }
-
-/* 禁用状态 */
 .pwca-quantity-controls .pwca-qty-btn:disabled {
-    background: #cccccc;
-    cursor: not-allowed;
-    opacity: 0.6;
-    color: #999;
+  background: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+  color: #999;
 }
-
-/* 减号按钮样式 */
 .pwca-quantity-controls .pwca-qty-btn.minus {
-    border-radius: 3px 0 0 3px;
-    border-right: none;
+  border-radius: 3px 0 0 3px;
+  border-right: none;
 }
-
-/* 加号按钮样式 */
 .pwca-quantity-controls .pwca-qty-btn.plus {
-    border-radius: 0 3px 3px 0;
-    background: #96588a;
-    color: white;
-    border-left: none;
+  border-radius: 0 3px 3px 0;
+  background: #96588a;
+  color: white;
+  border-left: none;
 }
-
 .pwca-quantity-controls .pwca-qty-btn.plus:hover:not(:disabled) {
-    background: #7a4a73;
+  background: #7a4a73;
 }
-
-/* 加载状态动画 */
 .pwca-quantity-controls .pwca-qty-btn.loading {
-    position: relative;
-    color: transparent;
+  position: relative;
+  color: transparent;
 }
-
 .pwca-quantity-controls .pwca-qty-btn.loading::after {
-    content: '';
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    border: 2px solid #fff;
-    border-top: 2px solid transparent;
-    border-radius: 50%;
-    animation: pwca-spin 1s linear infinite;
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: pwca-spin 1s linear infinite;
 }
-
-/* 数量输入框样式 */
 .pwca-quantity-controls .quantity-input {
-    width: 60px;
-    height: 32px;
-    text-align: center;
-    border: 1px solid #ddd;
-    border-left: none;
-    border-right: none;
-    font-size: 16px;
-    font-weight: bold;
-    background: white;
+  width: 60px;
+  height: 32px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-left: none;
+  border-right: none;
+  font-size: 16px;
+  font-weight: bold;
+  background: white;
+}
+.pwca-quantity-controls .quantity-input:focus {
+  outline: none;
+  border-color: #96588a;
+  box-shadow: 0 0 0 1px #96588a;
+}
+.pwca-quantity-controls .quantity-input::-webkit-outer-spin-button, .pwca-quantity-controls .quantity-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.pwca-quantity-controls .quantity-input[type=number] {
+  -moz-appearance: textfield;
 }
 
-.pwca-quantity-controls .quantity-input:focus {
-    outline: none;
+.pwca-price-update {
+  transition: all 0.3s ease;
+}
+.pwca-price-update.updating {
+  color: #28a745;
+  transform: scale(1.05);
+}
+
+.cart-total.pwca-updating {
+  background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%);
+  background-size: 200% 100%;
+  animation: pwca-shimmer 1s ease-in-out;
+}
+
+@keyframes pwca-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pwca-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+@media (max-width: 768px) {
+  .pwca-quantity-controls .pwca-qty-btn {
+    width: 36px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .pwca-quantity-controls .quantity-input {
+    width: 50px;
+    height: 28px;
+    font-size: 14px;
+  }
+}
+@media (max-width: 1024px) and (min-width: 769px) {
+  .pwca-quantity-controls .pwca-qty-btn {
+    width: 38px;
+    height: 30px;
+  }
+  .pwca-quantity-controls .quantity-input {
+    width: 55px;
+    height: 30px;
+  }
+}
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .pwca-quantity-controls .pwca-qty-btn {
+    border-width: 0.5px;
+  }
+  .pwca-quantity-controls .quantity-input {
+    border-width: 0.5px;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .pwca-quantity-controls .pwca-qty-btn {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #e2e8f0;
+  }
+  .pwca-quantity-controls .pwca-qty-btn:hover:not(:disabled) {
+    background: #96588a;
+    border-color: #96588a;
+  }
+  .pwca-quantity-controls .pwca-qty-btn:disabled {
+    background: #1a202c;
+    color: #718096;
+  }
+  .pwca-quantity-controls .quantity-input {
+    background: #2d3748;
+    border-color: #4a5568;
+    color: #e2e8f0;
+  }
+  .pwca-quantity-controls .quantity-input:focus {
     border-color: #96588a;
     box-shadow: 0 0 0 1px #96588a;
+  }
 }
-
-/* 移除数字输入框的默认箭头 */
-.pwca-quantity-controls .quantity-input::-webkit-outer-spin-button,
-.pwca-quantity-controls .quantity-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-.pwca-quantity-controls .quantity-input[type=number] {
-    -moz-appearance: textfield;
-}
-
-/* 价格更新动画效果 */
-.pwca-price-update {
-    transition: all 0.3s ease;
-}
-
-.pwca-price-update.updating {
-    color: #28a745;
-    transform: scale(1.05);
-}
-
-/* 购物车总价更新动画 */
-.cart-total.pwca-updating {
-    background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%);
-    background-size: 200% 100%;
-    animation: pwca-shimmer 1s ease-in-out;
-}
-
-/* 动画定义 */
-@keyframes pwca-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-@keyframes pwca-shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-    .pwca-quantity-controls .pwca-qty-btn {
-        width: 36px;
-        height: 28px;
-        font-size: 12px;
-    }
-    
-    .pwca-quantity-controls .quantity-input {
-        width: 50px;
-        height: 28px;
-        font-size: 14px;
-    }
-}
-
-/* 平板设备适配 */
-@media (max-width: 1024px) and (min-width: 769px) {
-    .pwca-quantity-controls .pwca-qty-btn {
-        width: 38px;
-        height: 30px;
-    }
-    
-    .pwca-quantity-controls .quantity-input {
-        width: 55px;
-        height: 30px;
-    }
-}
-
-/* 高分辨率屏幕优化 */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-    .pwca-quantity-controls .pwca-qty-btn {
-        border-width: 0.5px;
-    }
-    
-    .pwca-quantity-controls .quantity-input {
-        border-width: 0.5px;
-    }
-}
-
-/* 深色模式支持 */
-@media (prefers-color-scheme: dark) {
-    .pwca-quantity-controls .pwca-qty-btn {
-        background: #2d3748;
-        border-color: #4a5568;
-        color: #e2e8f0;
-    }
-    
-    .pwca-quantity-controls .pwca-qty-btn:hover:not(:disabled) {
-        background: #96588a;
-        border-color: #96588a;
-    }
-    
-    .pwca-quantity-controls .pwca-qty-btn:disabled {
-        background: #1a202c;
-        color: #718096;
-    }
-    
-    .pwca-quantity-controls .quantity-input {
-        background: #2d3748;
-        border-color: #4a5568;
-        color: #e2e8f0;
-    }
-    
-    .pwca-quantity-controls .quantity-input:focus {
-        border-color: #96588a;
-        box-shadow: 0 0 0 1px #96588a;
-    }
-}
-
-/* 购物车表格集成样式 */
 .woocommerce-cart-form .cart_item .product-quantity .pwca-quantity-controls {
-    margin: 0 auto;
+  margin: 0 auto;
 }
 
-/* 错误状态样式 */
 .pwca-quantity-controls.error .quantity-input {
-    border-color: #dc3545;
-    background-color: #f8d7da;
+  border-color: #dc3545;
+  background-color: #f8d7da;
 }
-
 .pwca-quantity-controls.error .pwca-qty-btn {
-    border-color: #dc3545;
+  border-color: #dc3545;
 }
 
-/* 成功状态样式 */
 .pwca-quantity-controls.success .quantity-input {
-    border-color: #28a745;
-    background-color: #d4edda;
-}
+  border-color: #28a745;
+  background-color: #d4edda;
+}/*# sourceMappingURL=pwca-cart-quantity-controls.css.map */

@@ -48,11 +48,14 @@
         }
         .pwca-order-item{
             border-bottom: 1px solid #E5E5E5;
-            margin-bottom: 10px;
+            padding-bottom: 10px;
         }
         .pwca-order-subtotal{
-            padding-top: 10px 0px;
+            padding: 10px 0px;
             border-bottom: 1px solid #E5E5E5;
+        }
+        .pwca-order-total{
+            padding: 10px 0px;
         }
     }
 }
