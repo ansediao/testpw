@@ -469,31 +469,45 @@ function pwca_ensure_shipping_method_available($instance_id, $method_id, $zone_i
 add_action('woocommerce_init', 'pwca_auto_add_shipping_method');
 function pwca_auto_add_shipping_method()
 {
-    // 检查是否已经添加过
-    $added = get_option('pwca_shipping_method_added', false);
-    if (!$added) {
-        // 获取所有 shipping zones
-        $zones = WC_Shipping_Zones::get_zones();
+    // 仅在未完成全局注册时执行
+    $added_all = get_option('pwca_shipping_method_added_all_zones', false);
+    if ($added_all) {
+        return;
+    }
 
-        // 如果没有 zones，创建一个默认的
-        if (empty($zones)) {
-            $zone = new WC_Shipping_Zone();
-            $zone->set_zone_name('Default Zone');
-            $zone->save();
-            $zone_id = $zone->get_id();
-        } else {
-            // 使用第一个 zone
-            $zone_id = array_keys($zones)[0];
+    // 获取所有已定义的配送区域
+    $zones = WC_Shipping_Zones::get_zones();
+
+    // 构建区域 ID 列表，并包含默认区域（ID 为 0）
+    $zone_ids = array_map('intval', array_keys($zones));
+    $zone_ids[] = 0; // 默认区域（未被其他区域覆盖的地区）
+
+    foreach ($zone_ids as $zone_id) {
+        // 获取区域对象（默认区域需使用 new WC_Shipping_Zone(0)）
+        $zone = ($zone_id === 0) ? new WC_Shipping_Zone(0) : WC_Shipping_Zones::get_zone($zone_id);
+        if (!$zone) {
+            continue;
         }
 
-        // 添加我们的 shipping method 到 zone
-        $zone = WC_Shipping_Zones::get_zone($zone_id);
-        if ($zone) {
+        // 检查该区域是否已存在我们的运费方法
+        $methods = $zone->get_shipping_methods();
+        $has_pwca = false;
+        foreach ($methods as $method) {
+            if ($method->id === 'pwca_shipping_method') {
+                $has_pwca = true;
+                break;
+            }
+        }
+
+        // 不存在则添加
+        if (!$has_pwca) {
             $zone->add_shipping_method('pwca_shipping_method');
-            update_option('pwca_shipping_method_added', true);
             error_log('PWCA Shipping method auto-added to zone: ' . $zone_id);
         }
     }
+
+    // 标记已完成全局注册，避免重复执行
+    update_option('pwca_shipping_method_added_all_zones', true);
 }
 
 // 独立的API调用函数，用于获取所有运费选项
@@ -1187,10 +1201,11 @@ function pwca_force_shipping_recalculation($post_data)
     $selected_service = WC()->session->get('pwca_selected_shipping_service');
 
     if ($selected_cost !== null && $selected_cost !== false) {
-        // 强制重新计算运费
+        // 强制重新计算运费与总价
         WC()->shipping()->reset_shipping();
         if (WC()->cart) {
             WC()->cart->calculate_shipping();
+            WC()->cart->calculate_totals();
         }
     }
 }
