@@ -42,6 +42,12 @@ function updateDynamicToolbar(obj) {
         const activeButton = document.querySelector('.toolbar_button.active');
         const activeButtonId = activeButton ? activeButton.id : 'text_input';
 
+        // 根据当前按钮显示/隐藏添加文字区域
+        const addTextBox = document.getElementById('addTextBtn_box');
+        if (addTextBox) {
+            addTextBox.style.display = (activeButtonId === 'text_input') ? 'block' : 'none';
+        }
+
         // 创建字体选择器
         if (activeButtonId === 'text_font_style') {
             const fontSelector = document.createElement('div');

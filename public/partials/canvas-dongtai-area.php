@@ -56,6 +56,11 @@ document.querySelectorAll('.text_toolbar .toolbar_button').forEach(button => {
         });
         // 为当前点击的按钮添加激活样式
         this.classList.add('active');
+        // 同步显示/隐藏添加文字输入区域
+        const addTextBox = document.getElementById('addTextBtn_box');
+        if (addTextBox) {
+            addTextBox.style.display = (this.id === 'text_input') ? 'block' : 'none';
+        }
         // 更新工具栏显示
         if (activeObject) {
             updateDynamicToolbar(activeObject);
