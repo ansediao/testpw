@@ -2642,6 +2642,21 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
 
     // 主选项卡 tabs-nav 切换逻辑
     document.addEventListener('DOMContentLoaded', () => {
+        // 全局：文字界面初始化函数（遵循前缀约定）
+        window.canvasInitTextUI = function() {
+            try {
+                const textInputBtn = document.getElementById('text_input');
+                if (textInputBtn) {
+                    // 触发文本工具栏的“Text”按钮点击，负责显示输入区域和更新控制
+                    textInputBtn.click();
+                } else {
+                    console.warn('#text_input 按钮未找到');
+                }
+            } catch (err) {
+                console.warn('初始化文字界面失败:', err);
+            }
+        };
+
         const tabs = document.querySelectorAll('.tab');
         const contentPanes = document.querySelectorAll('.content-pane');
         const colorSwatches = document.querySelectorAll('.color-swatch');
@@ -2678,6 +2693,17 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                 const activePane = document.getElementById(contentId);
                 if (activePane) {
                     activePane.classList.add('active');
+                }
+
+                // 特殊处理：点击文字选项卡时，如当前视图选中了文字对象，则初始化文字界面
+                if (tab.id === 'tab-wenzi') {
+                    const activeCanvas = window.CanvasManager ? window.CanvasManager.getActiveCanvas() : (window.canvas || window.fabricCanvas);
+                    const activeObject = activeCanvas && typeof activeCanvas.getActiveObject === 'function' ? activeCanvas.getActiveObject() : null;
+                    if (activeObject && (activeObject.type === 'text' || activeObject.type === 'i-text' || activeObject.type === 'textbox')) {
+                        if (typeof window.canvasInitTextUI === 'function') {
+                            window.canvasInitTextUI();
+                        }
+                    }
                 }
             });
         });
