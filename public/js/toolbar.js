@@ -88,16 +88,72 @@ function updateDynamicToolbar(obj) {
             textToolbarArea.appendChild(textControlsContainer);
         }
 
-        // 创建颜色选择器
+        // 创建颜色选择器（优先使用印刷方式的自定义颜色）
         if (activeButtonId === 'text_color') {
-            const colorSelector = document.createElement('div');
-            colorSelector.className = 'toolbar-item';
-            colorSelector.innerHTML = `
-            <label for="textColor" class="tab_control_title">Color：</label>
-            <br>
-            <input type="color" id="textColor" value="${obj.fill}">
-          `;
-            textToolbarArea.appendChild(colorSelector);
+            const printMethodStore = window.usePrintMethodStore ? window.usePrintMethodStore() : null;
+            let method = null;
+            if (printMethodStore) {
+                method = printMethodStore.getLayerPrintMethod ? printMethodStore.getLayerPrintMethod(obj.id) : null;
+                if (!method && obj.groupId && printMethodStore.getGroupPrintMethod) {
+                    method = printMethodStore.getGroupPrintMethod(obj.groupId);
+                }
+            }
+
+            const colors = method && method.customColors && method.customColors.data && Array.isArray(method.customColors.data.colors)
+                ? method.customColors.data.colors
+                : null;
+
+            if (colors && colors.length > 0) {
+                const swatchContainer = document.createElement('div');
+                swatchContainer.className = 'toolbar-item';
+                const label = document.createElement('label');
+                label.className = 'tab_control_title';
+                label.textContent = 'Color：';
+                swatchContainer.appendChild(label);
+
+                const swatchesBox = document.createElement('div');
+                swatchesBox.className = 'pwca-color-swatches-box';
+                swatchesBox.style.display = 'flex';
+                swatchesBox.style.flexWrap = 'wrap';
+                swatchesBox.style.gap = '8px';
+
+                colors.forEach(c => {
+                    if (!c || !c.hex_code) return;
+                    const sw = document.createElement('div');
+                    sw.className = 'pwca-color-swatch';
+                    sw.style.width = '24px';
+                    sw.style.height = '24px';
+                    sw.style.borderRadius = '4px';
+                    sw.style.cursor = 'pointer';
+                    sw.style.border = '1px solid #ddd';
+                    sw.style.backgroundColor = c.hex_code;
+                    sw.title = c.name || c.hex_code;
+                    sw.addEventListener('click', function () {
+                        const activeCanvas = getActiveCanvas();
+                        const activeObj = activeCanvas ? activeCanvas.getActiveObject() : null;
+                        if (activeObj && activeObj.type === 'text') {
+                            activeObj.set('fill', c.hex_code);
+                            activeCanvas.renderAll();
+                            if (typeof window.updateModelFromCanvas === 'function') {
+                                setTimeout(() => window.updateModelFromCanvas(), 100);
+                            }
+                        }
+                    });
+                    swatchesBox.appendChild(sw);
+                });
+
+                swatchContainer.appendChild(swatchesBox);
+                textToolbarArea.appendChild(swatchContainer);
+            } else {
+                const colorSelector = document.createElement('div');
+                colorSelector.className = 'toolbar-item';
+                colorSelector.innerHTML = `
+                <label for="textColor" class="tab_control_title">Color：</label>
+                <br>
+                <input type="color" id="textColor" value="${obj.fill}">
+              `;
+                textToolbarArea.appendChild(colorSelector);
+            }
         }
 
         // 创建旋转控制
@@ -734,89 +790,105 @@ function updateDynamicToolbar(obj) {
             });
         }
 
-        // 创建颜色控制 (色调)
+        // 创建颜色控制 (优先使用印刷方式的自定义颜色)
         if (activeButtonId === 'img_color') {
-            const colorControl = document.createElement('div');
-            colorControl.className = 'toolbar-item';
-            colorControl.innerHTML = `
-            <label for="imgTint" class="tab_control_title">Color：</label>
-            <input type="color" id="imgTint" value="#ffffff">
-          `;
-            tempContainer.appendChild(colorControl);
-
-            // 添加预设色块
-        //     const colorPresets = document.createElement('div');
-        //     colorPresets.className = 'toolbar-item';
-        //     colorPresets.innerHTML = `
-        //     <label>预设颜色：</label>
-        //     <div style="display: flex; gap: 10px;">
-        //       <div style="width: 30px; height: 30px; background-color: #ff0000; cursor: pointer;" class="color-preset" data-color="#ff0000"></div>
-        //       <div style="width: 30px; height: 30px; background-color: #00ff00; cursor: pointer;" class="color-preset" data-color="#00ff00"></div>
-        //       <div style="width: 30px; height: 30px; background-color: #0000ff; cursor: pointer;" class="color-preset" data-color="#0000ff"></div>
-        //       <div style="width: 30px; height: 30px; background-color: #ffff00; cursor: pointer;" class="color-preset" data-color="#ffff00"></div>
-        //       <div style="width: 30px; height: 30px; background-color: #ff00ff; cursor: pointer;" class="color-preset" data-color="#ff00ff"></div>
-        //     </div>
-        //   `;
-        //     tempContainer.appendChild(colorPresets);
-
-            // 色调事件监听
-            document.getElementById('imgTint').addEventListener('input', function () {
-                const activeObject = canvas.getActiveObject();
-                if (activeObject) {
-                    if (activeObject.type === 'image') {
-                        activeObject.filters = activeObject.filters || [];
-                        // 移除旧的色调滤镜
-                        activeObject.filters = activeObject.filters.filter(f => !(f instanceof fabric.Image.filters.BlendColor));
-                        // 添加新的色调滤镜
-                        activeObject.filters.push(new fabric.Image.filters.BlendColor({
-                            color: this.value,
-                            mode: 'tint',
-                            alpha: 0.5
-                        }));
-                        activeObject.applyFilters();
-                    } else if (activeObject.type === 'group' && activeObject._objects) {
-                        // 处理 SVG 图片，遍历子对象并设置颜色
-                        activeObject._objects.forEach(obj => {
-                            if (obj.type === 'path' || obj.type === 'circle' || obj.type === 'rect') {
-                                obj.set('fill', this.value);
-                            }
-                        });
-                    }
-                    canvas.requestRenderAll();
+            const printMethodStore = window.usePrintMethodStore ? window.usePrintMethodStore() : null;
+            let method = null;
+            if (printMethodStore) {
+                method = printMethodStore.getLayerPrintMethod ? printMethodStore.getLayerPrintMethod(obj.id) : null;
+                if (!method && obj.groupId && printMethodStore.getGroupPrintMethod) {
+                    method = printMethodStore.getGroupPrintMethod(obj.groupId);
                 }
-            });
+            }
 
-            // 预设色块事件监听
-            // document.querySelectorAll('.color-preset').forEach(preset => {
-            //     preset.addEventListener('click', function () {
-            //         const color = this.getAttribute('data-color');
-            //         const activeObject = canvas.getActiveObject();
-            //         if (activeObject) {
-            //             if (activeObject.type === 'image') {
-            //                 activeObject.filters = activeObject.filters || [];
-            //                 // 移除旧的色调滤镜
-            //                 activeObject.filters = activeObject.filters.filter(f => !(f instanceof fabric.Image.filters.BlendColor));
-            //                 // 添加新的色调滤镜
-            //                 activeObject.filters.push(new fabric.Image.filters.BlendColor({
-            //                     color: color,
-            //                     mode: 'tint',
-            //                     alpha: 0.5
-            //                 }));
-            //                 activeObject.applyFilters();
-            //             } else if (activeObject.type === 'group' && activeObject._objects) {
-            //                 // 处理 SVG 图片，遍历子对象并设置颜色
-            //                 activeObject._objects.forEach(obj => {
-            //                     if (obj.type === 'path' || obj.type === 'circle' || obj.type === 'rect') {
-            //                         obj.set('fill', color);
-            //                     }
-            //                 });
-            //             }
-            //             canvas.requestRenderAll();
-            //             // 更新颜色选择器的值
-            //             document.getElementById('imgTint').value = color;
-            //         }
-            //     });
-            // });
+            const colors = method && method.customColors && method.customColors.data && Array.isArray(method.customColors.data.colors)
+                ? method.customColors.data.colors
+                : null;
+
+            if (colors && colors.length > 0) {
+                const swatchContainer = document.createElement('div');
+                swatchContainer.className = 'toolbar-item';
+                const label = document.createElement('label');
+                label.className = 'tab_control_title';
+                label.textContent = 'Color：';
+                swatchContainer.appendChild(label);
+
+                const swatchesBox = document.createElement('div');
+                swatchesBox.className = 'pwca-color-swatches-box';
+                swatchesBox.style.display = 'flex';
+                swatchesBox.style.flexWrap = 'wrap';
+                swatchesBox.style.gap = '8px';
+
+                colors.forEach(c => {
+                    if (!c || !c.hex_code) return;
+                    const sw = document.createElement('div');
+                    sw.className = 'pwca-color-swatch';
+                    sw.style.width = '24px';
+                    sw.style.height = '24px';
+                    sw.style.borderRadius = '4px';
+                    sw.style.cursor = 'pointer';
+                    sw.style.border = '1px solid #ddd';
+                    sw.style.backgroundColor = c.hex_code;
+                    sw.title = c.name || c.hex_code;
+                    sw.addEventListener('click', function () {
+                        const activeObject = canvas.getActiveObject();
+                        if (activeObject) {
+                            if (activeObject.type === 'image') {
+                                activeObject.filters = activeObject.filters || [];
+                                activeObject.filters = activeObject.filters.filter(f => !(f instanceof fabric.Image.filters.BlendColor));
+                                activeObject.filters.push(new fabric.Image.filters.BlendColor({
+                                    color: c.hex_code,
+                                    mode: 'tint',
+                                    alpha: 0.5
+                                }));
+                                activeObject.applyFilters();
+                            } else if (activeObject.type === 'group' && activeObject._objects) {
+                                activeObject._objects.forEach(o => {
+                                    if (o.type === 'path' || o.type === 'circle' || o.type === 'rect') {
+                                        o.set('fill', c.hex_code);
+                                    }
+                                });
+                            }
+                            canvas.requestRenderAll();
+                        }
+                    });
+                    swatchesBox.appendChild(sw);
+                });
+
+                swatchContainer.appendChild(swatchesBox);
+                tempContainer.appendChild(swatchContainer);
+            } else {
+                const colorControl = document.createElement('div');
+                colorControl.className = 'toolbar-item';
+                colorControl.innerHTML = `
+                <label for="imgTint" class="tab_control_title">Color：</label>
+                <input type="color" id="imgTint" value="#ffffff">
+              `;
+                tempContainer.appendChild(colorControl);
+
+                document.getElementById('imgTint').addEventListener('input', function () {
+                    const activeObject = canvas.getActiveObject();
+                    if (activeObject) {
+                        if (activeObject.type === 'image') {
+                            activeObject.filters = activeObject.filters || [];
+                            activeObject.filters = activeObject.filters.filter(f => !(f instanceof fabric.Image.filters.BlendColor));
+                            activeObject.filters.push(new fabric.Image.filters.BlendColor({
+                                color: this.value,
+                                mode: 'tint',
+                                alpha: 0.5
+                            }));
+                            activeObject.applyFilters();
+                        } else if (activeObject.type === 'group' && activeObject._objects) {
+                            activeObject._objects.forEach(obj => {
+                                if (obj.type === 'path' || obj.type === 'circle' || obj.type === 'rect') {
+                                    obj.set('fill', this.value);
+                                }
+                            });
+                        }
+                        canvas.requestRenderAll();
+                    }
+                });
+            }
         }
 
 
