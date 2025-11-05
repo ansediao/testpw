@@ -2212,33 +2212,7 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                 addTextBox.style.display = visible ? 'block' : 'none';
             }
 
-            // 在 #content-wenzi-control 中做事件委托：除第一个按钮外，点击后隐藏；点击第一个显示
-            controlArea.addEventListener('click', function(e) {
-                const clickedButton = e.target.closest('button');
-                if (!clickedButton) return;
-                
-                // 检查是否是字体大小或字距的加减按钮，如果是则不处理
-                if (clickedButton.id === 'fontSizeDecrease' ||
-                    clickedButton.id === 'fontSizeIncrease' ||
-                    clickedButton.id === 'letterSpacingDecrease' ||
-                    clickedButton.id === 'letterSpacingIncrease') {
-                    return;
-                }
-                
-                const buttons = Array.from(controlArea.querySelectorAll('button'));
-                if (buttons.length === 0) return;
-                const isFirst = clickedButton === buttons[0];
-                setAddTextBoxVisible(isFirst);
-            });
-
-            // 同步顶部文字工具栏按钮：点击第一个（Text/text_input）显示，其它隐藏
-            document.addEventListener('click', function(e) {
-                const toolbarButton = e.target.closest('.text_toolbar .toolbar_button');
-                if (!toolbarButton) return;
-                const allToolbarButtons = document.querySelectorAll('.text_toolbar .toolbar_button');
-                const isFirstToolbarBtn = (allToolbarButtons.length && toolbarButton === allToolbarButtons[0]) || toolbarButton.id === 'text_input';
-                setAddTextBoxVisible(!!isFirstToolbarBtn);
-            });
+            
         })();
         </script>
     </div>
