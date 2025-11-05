@@ -577,6 +577,23 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                 const canvasStore = window.useCanvasStore();
                 const viewId = canvasStore && canvasStore.activeViewId ? canvasStore.activeViewId : null;
                 if (viewId) this.recordPrintMethodUsage(viewId, methodId);
+
+                if (viewId && window.CanvasManager && typeof window.CanvasManager.getCanvas === 'function') {
+                    const canvas = window.CanvasManager.getCanvas(viewId);
+                    if (canvas && typeof canvas.getObjects === 'function') {
+                        const obj = canvas.getObjects().find(o => String(o.id) === String(layerId));
+                        if (obj && window.PrintAreaValidator && typeof window.PrintAreaValidator.validateAndRepositionObject === 'function') {
+                            try {
+                                const result = window.PrintAreaValidator.validateAndRepositionObject(obj, viewId);
+                                if (result && result.wasMoved) {
+                                    console.log(`[PrintMethodStore] 绑定后位置校验：居中对象 layerId=${layerId}, overlapRatio=${result.overlapRatio}`);
+                                }
+                            } catch (e) {
+                                console.warn('[PrintMethodStore] 绑定后自动位置校验失败', e);
+                            }
+                        }
+                    }
+                }
             }
         },
 
@@ -599,6 +616,29 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                 const canvasStore = window.useCanvasStore();
                 const viewId = canvasStore && canvasStore.activeViewId ? canvasStore.activeViewId : null;
                 if (viewId) this.recordPrintMethodUsage(viewId, methodId);
+
+                if (viewId && window.CanvasManager && typeof window.CanvasManager.getCanvas === 'function') {
+                    const canvas = window.CanvasManager.getCanvas(viewId);
+                    if (canvas && typeof canvas.getObjects === 'function' && canvasStore && typeof canvasStore.getViewLayers === 'function') {
+                        const layers = canvasStore.getViewLayers(viewId) || [];
+                        const groupLayers = layers.filter(l => String(l.groupId) === String(groupId));
+                        if (groupLayers.length > 0 && window.PrintAreaValidator && typeof window.PrintAreaValidator.validateAndRepositionObject === 'function') {
+                            try {
+                                for (const l of groupLayers) {
+                                    const obj = canvas.getObjects().find(o => String(o.id) === String(l.id));
+                                    if (obj) {
+                                        const result = window.PrintAreaValidator.validateAndRepositionObject(obj, viewId);
+                                        if (result && result.wasMoved) {
+                                            console.log(`[PrintMethodStore] 组绑定后位置校验：居中对象 layerId=${l.id}, overlapRatio=${result.overlapRatio}`);
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                console.warn('[PrintMethodStore] 组绑定后自动位置校验失败', e);
+                            }
+                        }
+                    }
+                }
             }
         },
 
