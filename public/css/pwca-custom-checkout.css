@@ -54,4 +54,13 @@
 }
 .pwca-checkout-review-container .pwca-order-summary .pwca-order-total {
   padding: 10px 0px;
+}
+
+.pwca-shipping-table tr.pwca-selected {
+  background-color: #F0F8FF;
+}
+
+#place_order.pwca-pay-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }/*# sourceMappingURL=pwca-custom-checkout.css.map */

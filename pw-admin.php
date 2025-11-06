@@ -732,6 +732,26 @@ function pwca_add_calculate_shipping_button()
                     $("#pwca-calculate-shipping:not(:first)").remove();
                 }
                 
+                // 支付按钮状态管理
+                function setPayButtonEnabled(enabled) {
+                    var $btn = $("#place_order");
+                    if ($btn.length) {
+                        $btn.prop("disabled", !enabled);
+                        if (!enabled) {
+                            $btn.addClass("pwca-pay-disabled");
+                        } else {
+                            $btn.removeClass("pwca-pay-disabled");
+                        }
+                    }
+                }
+                // 页面加载后默认禁用支付按钮
+                setPayButtonEnabled(false);
+                // Woo 更新后根据是否已选择运费控制支付按钮
+                $(document.body).on("updated_checkout", function() {
+                    var hasSelected = window.pwcaHasSelectedShipping === true;
+                    setPayButtonEnabled(!!hasSelected);
+                });
+                
                 // 计算运费按钮点击事件
                 $(document).on("click", "#pwca-calculate-shipping", function() {
                     var button = $(this);
@@ -770,6 +790,8 @@ function pwca_add_calculate_shipping_button()
                                     $("#pwca-shipping-options").before(notice);
                                     
                                     displayShippingOptions(shippingData.data.raw_response.data);
+                                    // 通讯成功后隐藏计算按钮（防止重复计算）
+                                    $("#pwca-calculate-shipping").hide();
                                 } else {
                                     alert("' . __('Unable to load shipping options. Please try again.', 'woocommerce') . '");
                                 }
@@ -821,6 +843,11 @@ function pwca_add_calculate_shipping_button()
                     html += "</tbody></table>";
                     
                     $("#pwca-shipping-options").html(html).show();
+                    $(".pwca-shipping-table input[name=\"pwca_shipping_option\"]:checked").closest("tr").addClass("pwca-selected");
+                    $(document).on("change", "input[name=\"pwca_shipping_option\"]", function() {
+                        $(".pwca-shipping-table tr").removeClass("pwca-selected");
+                        $(this).closest("tr").addClass("pwca-selected");
+                    });
                     
                     // 默认选中第一个选项并更新运费
                     if (options.length > 0) {
@@ -919,6 +946,9 @@ function pwca_add_calculate_shipping_button()
                                 // 显示成功消息
                                 var successMsg = "<div class=\"pwca-woocommerce-message\">Shipping cost updated: $" + parseFloat(cost).toFixed(2) + " for " + service + "</div>";
                                 $("#pwca-shipping-options").before(successMsg);
+                                // 通讯成功并更新成本后：启用支付并隐藏计算按钮
+                                setPayButtonEnabled(true);
+                                $("#pwca-calculate-shipping").hide();
                                 
                                 // 3秒后移除成功消息
                                 setTimeout(function() {

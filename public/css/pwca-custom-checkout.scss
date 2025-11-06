@@ -59,3 +59,15 @@
         }
     }
 }
+
+// 运费选项表当前选中行高亮与支付按钮禁用态样式
+.pwca-shipping-table {
+    tr.pwca-selected {
+        background-color: #F0F8FF; // 选中高亮
+    }
+}
+
+#place_order.pwca-pay-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
