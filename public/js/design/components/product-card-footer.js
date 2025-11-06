@@ -26,7 +26,8 @@ export const ProductCardFooter = {
 
     // MOQ、价格、批量步长
     const { showDesign, showColor, moqDesignText, moqColorText, calculatedMoq } = useMoqCalculations(canvasStore, printStore);
-    const { basePrice, customizationPrice } = usePriceCalculations(canvasStore, printStore);
+    // 价格（含折扣）：传入数量和样品订单状态
+    // 注意：useQuantity 在下方定义，但此处只需传入 ref，Vue 会在同一 setup 中保持响应
     const { batchQuantity } = useBatchQuantity(canvasStore);
 
     // 日期计算（依赖样品订单状态）
@@ -35,9 +36,12 @@ export const ProductCardFooter = {
     // 数量状态与 Getter（依赖 MOQ、批量步长、样品订单）
     const { quantity, minQuantity, onMinus, onPlus } = useQuantity(calculatedMoq, batchQuantity, getIsSampleOrder);
 
+    // 现在将数量与样品订单传入价格计算
+    const { originalBasePrice, discountedBasePrice, discountText, hasDiscount, customizationPrice } = usePriceCalculations(canvasStore, printStore, quantity, getIsSampleOrder);
+
     return {
       showDesign, showColor, moqDesignText, moqColorText,
-      basePrice, customizationPrice,
+      originalBasePrice, discountedBasePrice, discountText, hasDiscount, customizationPrice,
       estimatedDeliveryDate, estimatedArrivalDate,
       quantityDisabled, quantity, minQuantity,
       onMinus, onPlus
@@ -56,8 +60,17 @@ export const ProductCardFooter = {
         <div class="product-card__detail">
           <span class="product-card__label">Price</span>
           <span class="product-card__value">
-            Base Price: $<span>{{ basePrice }}</span><br>
-            Customization Price: $<span>{{ customizationPrice }}</span>
+            Base Price:
+            <template v-if="hasDiscount">
+              <span class="original-price">$ {{ originalBasePrice }} </span>
+              <span class="price-value unit-price discounted">$ {{ discountedBasePrice }} </span>
+              <span class="discount-badge">{{ discountText }}</span>
+            </template>
+            <template v-else>
+              <span class="price-value unit-price">$ {{ originalBasePrice }}</span>
+            </template>
+            <br>
+            Customization Price: <span>$ {{ customizationPrice }}</span>
           </span>
         </div>
         <div class="product-card__detail">
