@@ -30,11 +30,11 @@ export const ProductCardFooter = {
     // 注意：useQuantity 在下方定义，但此处只需传入 ref，Vue 会在同一 setup 中保持响应
     const { batchQuantity } = useBatchQuantity(canvasStore);
 
-    // 日期计算（依赖样品订单状态）
-    const { estimatedDeliveryDate, estimatedArrivalDate } = useDateCalculations(canvasStore, printStore, getIsSampleOrder);
-
     // 数量状态与 Getter（依赖 MOQ、批量步长、样品订单）
     const { quantity, minQuantity, onMinus, onPlus } = useQuantity(calculatedMoq, batchQuantity, getIsSampleOrder);
+
+    // 日期计算（依赖样品订单状态与数量累计加工时间）
+    const { estimatedDeliveryDate, estimatedArrivalDate } = useDateCalculations(canvasStore, printStore, getIsSampleOrder, quantity);
 
     // 现在将数量与样品订单传入价格计算
     const { originalBasePrice, discountedBasePrice, discountText, hasDiscount, customizationPrice } = usePriceCalculations(canvasStore, printStore, quantity, getIsSampleOrder);
