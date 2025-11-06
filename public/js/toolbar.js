@@ -171,7 +171,7 @@ function updateDynamicToolbar(obj) {
             textToolbarArea.appendChild(rotationControl);
         }
 
-        // 创建位置控制
+    // 创建位置控制
         if (activeButtonId === 'text_position') {
         //     const positionControl = document.createElement('div');
         //     positionControl.className = 'toolbar-item';
@@ -197,55 +197,74 @@ function updateDynamicToolbar(obj) {
           `;
             textToolbarArea.appendChild(alignmentControl);
 
-            // 对齐按钮事件监听
-            document.getElementById('textAlignCenterH').addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
-                    canvas.getActiveObject().set('left', canvas.width / 2);
-                    canvas.getActiveObject().set('originX', 'center');
-                    canvas.renderAll();
-                    document.getElementById('textPositionX').value = Math.round(canvas.getActiveObject().left);
+            // ===== 对齐按钮事件监听（基于 viewportTransform 严格贴齐画布边缘/中心） =====
+            const alignByBoundingRect = function(mode) {
+                const active = canvas.getActiveObject();
+                if (!active) return;
+                if (typeof active.setCoords === 'function') active.setCoords();
+                const rect = active.getBoundingRect(true, true);
+                if (!rect) return;
+                const cw = typeof canvas.getWidth === 'function' ? canvas.getWidth() : canvas.width;
+                const ch = typeof canvas.getHeight === 'function' ? canvas.getHeight() : canvas.height;
+                const vpt = canvas.viewportTransform || [1,0,0,1,0,0];
+                const sx = vpt[0] || 1; // 缩放X
+                const sy = vpt[3] || sx; // 缩放Y
+
+                // 画布边缘与中心（视口坐标）
+                const tl = fabric.util.transformPoint(new fabric.Point(0, 0), vpt);
+                const tr = fabric.util.transformPoint(new fabric.Point(cw, 0), vpt);
+                const bl = fabric.util.transformPoint(new fabric.Point(0, ch), vpt);
+                const center = fabric.util.transformPoint(new fabric.Point(cw / 2, ch / 2), vpt);
+
+                const brLeft = rect.left;
+                const brTop = rect.top;
+                const brRight = rect.left + rect.width;
+                const brBottom = rect.top + rect.height;
+                const brCenterX = rect.left + rect.width / 2;
+                const brCenterY = rect.top + rect.height / 2;
+
+                let dx = 0, dy = 0;
+                switch (mode) {
+                    case 'centerH': {
+                        dx = (center.x - brCenterX) / sx;
+                        break;
+                    }
+                    case 'centerV': {
+                        dy = (center.y - brCenterY) / sy;
+                        break;
+                    }
+                    case 'left': {
+                        dx = (tl.x - brLeft) / sx;
+                        break;
+                    }
+                    case 'right': {
+                        dx = (tr.x - brRight) / sx;
+                        break;
+                    }
+                    case 'top': {
+                        dy = (tl.y - brTop) / sy;
+                        break;
+                    }
+                    case 'bottom': {
+                        dy = (bl.y - brBottom) / sy;
+                        break;
+                    }
                 }
-            });
-            document.getElementById('textAlignCenterV').addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
-                    canvas.getActiveObject().set('top', canvas.height / 2);
-                    canvas.getActiveObject().set('originY', 'center');
-                    canvas.renderAll();
-                    document.getElementById('textPositionY').value = Math.round(canvas.getActiveObject().top);
-                }
-            });
-            document.getElementById('textAlignLeft').addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
-                    canvas.getActiveObject().set('left', 0);
-                    canvas.getActiveObject().set('originX', 'left');
-                    canvas.renderAll();
-                    document.getElementById('textPositionX').value = Math.round(canvas.getActiveObject().left);
-                }
-            });
-            document.getElementById('textAlignRight').addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
-                    canvas.getActiveObject().set('left', canvas.width);
-                    canvas.getActiveObject().set('originX', 'right');
-                    canvas.renderAll();
-                    document.getElementById('textPositionX').value = Math.round(canvas.getActiveObject().left);
-                }
-            });
-            document.getElementById('textAlignTop').addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
-                    canvas.getActiveObject().set('top', 0);
-                    canvas.getActiveObject().set('originY', 'top');
-                    canvas.renderAll();
-                    document.getElementById('textPositionY').value = Math.round(canvas.getActiveObject().top);
-                }
-            });
-            document.getElementById('textAlignBottom').addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
-                    canvas.getActiveObject().set('top', canvas.height);
-                    canvas.getActiveObject().set('originY', 'bottom');
-                    canvas.renderAll();
-                    document.getElementById('textPositionY').value = Math.round(canvas.getActiveObject().top);
-                }
-            });
+                active.set({ left: active.left + dx, top: active.top + dy });
+                if (typeof active.setCoords === 'function') active.setCoords();
+                canvas.requestRenderAll();
+                const posXEl = document.getElementById('textPositionX');
+                const posYEl = document.getElementById('textPositionY');
+                if (posXEl) posXEl.value = Math.round(active.left);
+                if (posYEl) posYEl.value = Math.round(active.top);
+            };
+
+            document.getElementById('textAlignCenterH').addEventListener('click', function () { alignByBoundingRect('centerH'); });
+            document.getElementById('textAlignCenterV').addEventListener('click', function () { alignByBoundingRect('centerV'); });
+            document.getElementById('textAlignLeft').addEventListener('click', function () { alignByBoundingRect('left'); });
+            document.getElementById('textAlignRight').addEventListener('click', function () { alignByBoundingRect('right'); });
+            document.getElementById('textAlignTop').addEventListener('click', function () { alignByBoundingRect('top'); });
+            document.getElementById('textAlignBottom').addEventListener('click', function () { alignByBoundingRect('bottom'); });
         }
 
         // 创建弯曲控制（使用路径来实现文本弯曲效果）
@@ -646,55 +665,74 @@ function updateDynamicToolbar(obj) {
           `;
             tempContainer.appendChild(alignmentControl);
 
-            // 对齐按钮事件监听
-            document.getElementById('imgAlignCenterH').addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'image') {
-                    canvas.getActiveObject().set('left', canvas.width / 2);
-                    canvas.getActiveObject().set('originX', 'center');
-                    canvas.requestRenderAll();
-                    document.getElementById('imgPositionX').value = Math.round(canvas.getActiveObject().left);
+            // ===== 对齐按钮事件监听（基于 viewportTransform 严格贴齐画布边缘/中心） =====
+            const alignImgByBoundingRect = function(mode) {
+                const active = canvas.getActiveObject();
+                if (!active) return;
+                if (typeof active.setCoords === 'function') active.setCoords();
+                const rect = active.getBoundingRect(true, true);
+                if (!rect) return;
+                const cw = typeof canvas.getWidth === 'function' ? canvas.getWidth() : canvas.width;
+                const ch = typeof canvas.getHeight === 'function' ? canvas.getHeight() : canvas.height;
+                const vpt = canvas.viewportTransform || [1,0,0,1,0,0];
+                const sx = vpt[0] || 1;
+                const sy = vpt[3] || sx;
+
+                // 画布边缘与中心（视口坐标）
+                const tl = fabric.util.transformPoint(new fabric.Point(0, 0), vpt);
+                const tr = fabric.util.transformPoint(new fabric.Point(cw, 0), vpt);
+                const bl = fabric.util.transformPoint(new fabric.Point(0, ch), vpt);
+                const center = fabric.util.transformPoint(new fabric.Point(cw / 2, ch / 2), vpt);
+
+                const brLeft = rect.left;
+                const brTop = rect.top;
+                const brRight = rect.left + rect.width;
+                const brBottom = rect.top + rect.height;
+                const brCenterX = rect.left + rect.width / 2;
+                const brCenterY = rect.top + rect.height / 2;
+
+                let dx = 0, dy = 0;
+                switch (mode) {
+                    case 'centerH': {
+                        dx = (center.x - brCenterX) / sx;
+                        break;
+                    }
+                    case 'centerV': {
+                        dy = (center.y - brCenterY) / sy;
+                        break;
+                    }
+                    case 'left': {
+                        dx = (tl.x - brLeft) / sx;
+                        break;
+                    }
+                    case 'right': {
+                        dx = (tr.x - brRight) / sx;
+                        break;
+                    }
+                    case 'top': {
+                        dy = (tl.y - brTop) / sy;
+                        break;
+                    }
+                    case 'bottom': {
+                        dy = (bl.y - brBottom) / sy;
+                        break;
+                    }
                 }
-            });
-            document.getElementById('imgAlignCenterV').addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'image') {
-                    canvas.getActiveObject().set('top', canvas.height / 2);
-                    canvas.getActiveObject().set('originY', 'center');
-                    canvas.requestRenderAll();
-                    document.getElementById('imgPositionY').value = Math.round(canvas.getActiveObject().top);
-                }
-            });
-            document.getElementById('imgAlignLeft').addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'image') {
-                    canvas.getActiveObject().set('left', 0);
-                    canvas.getActiveObject().set('originX', 'left');
-                    canvas.requestRenderAll();
-                    document.getElementById('imgPositionX').value = Math.round(canvas.getActiveObject().left);
-                }
-            });
-            document.getElementById('imgAlignRight').addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'image') {
-                    canvas.getActiveObject().set('left', canvas.width);
-                    canvas.getActiveObject().set('originX', 'right');
-                    canvas.requestRenderAll();
-                    document.getElementById('imgPositionX').value = Math.round(canvas.getActiveObject().left);
-                }
-            });
-            document.getElementById('imgAlignTop').addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'image') {
-                    canvas.getActiveObject().set('top', 0);
-                    canvas.getActiveObject().set('originY', 'top');
-                    canvas.requestRenderAll();
-                    document.getElementById('imgPositionY').value = Math.round(canvas.getActiveObject().top);
-                }
-            });
-            document.getElementById('imgAlignBottom').addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'image') {
-                    canvas.getActiveObject().set('top', canvas.height);
-                    canvas.getActiveObject().set('originY', 'bottom');
-                    canvas.requestRenderAll();
-                    document.getElementById('imgPositionY').value = Math.round(canvas.getActiveObject().top);
-                }
-            });
+                active.set({ left: active.left + dx, top: active.top + dy });
+                if (typeof active.setCoords === 'function') active.setCoords();
+                canvas.requestRenderAll();
+                const posXEl = document.getElementById('imgPositionX');
+                const posYEl = document.getElementById('imgPositionY');
+                if (posXEl) posXEl.value = Math.round(active.left);
+                if (posYEl) posYEl.value = Math.round(active.top);
+            };
+
+            document.getElementById('imgAlignCenterH').addEventListener('click', function () { alignImgByBoundingRect('centerH'); });
+            document.getElementById('imgAlignCenterV').addEventListener('click', function () { alignImgByBoundingRect('centerV'); });
+            document.getElementById('imgAlignLeft').addEventListener('click', function () { alignImgByBoundingRect('left'); });
+            document.getElementById('imgAlignRight').addEventListener('click', function () { alignImgByBoundingRect('right'); });
+            document.getElementById('imgAlignTop').addEventListener('click', function () { alignImgByBoundingRect('top'); });
+            document.getElementById('imgAlignBottom').addEventListener('click', function () { alignImgByBoundingRect('bottom'); });
         }
 
         // 创建裁剪控制
