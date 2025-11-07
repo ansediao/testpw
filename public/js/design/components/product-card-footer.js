@@ -62,7 +62,6 @@ export const ProductCardFooter = {
           <span class="product-card__value">
             Base Price:
             <template v-if="hasDiscount">
-              <span class="original-price">$ {{ originalBasePrice }} </span>
               <span class="price-value unit-price discounted">$ {{ discountedBasePrice }} </span>
               <span class="discount-badge">{{ discountText }}</span>
             </template>
