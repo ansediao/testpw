@@ -2695,8 +2695,63 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                     activePane.classList.add('active');
                 }
 
+                // 点击图片选项卡时，执行重置逻辑
+                if (tab.id === 'tab-pianquan') {
+                    try {
+                        // 1) 清空所有视图画布的选中状态
+                        if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
+                            const viewIds = window.CanvasManager.getViewIds();
+                            viewIds.forEach(viewId => {
+                                const canvas = window.CanvasManager.getCanvas(viewId);
+                                if (canvas && typeof canvas.discardActiveObject === 'function') {
+                                    canvas.discardActiveObject();
+                                    if (typeof canvas.requestRenderAll === 'function') {
+                                        canvas.requestRenderAll();
+                                    } else if (typeof canvas.renderAll === 'function') {
+                                        canvas.renderAll();
+                                    }
+                                }
+                            });
+                        }
+
+                        // 2) 显示 #img_origin_controls
+                        const imgOriginControls = document.getElementById('img_origin_controls');
+                        if (imgOriginControls) {
+                            imgOriginControls.style.display = 'block';
+                        }
+
+                        // 3) 清空 #img_add_controls 中内容
+                        const imgAddControls = document.getElementById('img_add_controls');
+                        if (imgAddControls) {
+                            imgAddControls.innerHTML = '';
+                        }
+                    } catch (err) {
+                        console.warn('点击图片选项卡时重置失败:', err);
+                    }
+                }
+
                 // 特殊处理：点击文字选项卡时，如当前视图选中了文字对象，则初始化文字界面
                 if (tab.id === 'tab-wenzi') {
+                    // 先清空所有视图的选中状态
+                    try {
+                        if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
+                            const viewIds = window.CanvasManager.getViewIds();
+                            viewIds.forEach(viewId => {
+                                const canvas = window.CanvasManager.getCanvas(viewId);
+                                if (canvas && typeof canvas.discardActiveObject === 'function') {
+                                    canvas.discardActiveObject();
+                                    if (typeof canvas.requestRenderAll === 'function') {
+                                        canvas.requestRenderAll();
+                                    } else if (typeof canvas.renderAll === 'function') {
+                                        canvas.renderAll();
+                                    }
+                                }
+                            });
+                        }
+                    } catch (err) {
+                        console.warn('点击文字选项卡时清空选区失败:', err);
+                    }
+
                     const activeCanvas = window.CanvasManager ? window.CanvasManager.getActiveCanvas() : (window.canvas || window.fabricCanvas);
                     const activeObject = activeCanvas && typeof activeCanvas.getActiveObject === 'function' ? activeCanvas.getActiveObject() : null;
                     if (activeObject && (activeObject.type === 'text' || activeObject.type === 'i-text' || activeObject.type === 'textbox')) {

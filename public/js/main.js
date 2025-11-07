@@ -115,6 +115,63 @@ function switchOperationPanelTab(tabId) {
         return false;
     }
 
+    // 当切换到图片面板(tab-pianquan)时，执行重置逻辑
+    if (tabId === 'tab-pianquan') {
+        try {
+            // 1) 清空所有视图画布的选中状态
+            if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
+                const viewIds = window.CanvasManager.getViewIds();
+                viewIds.forEach(viewId => {
+                    const canvas = window.CanvasManager.getCanvas(viewId);
+                    if (canvas && typeof canvas.discardActiveObject === 'function') {
+                        canvas.discardActiveObject();
+                        if (typeof canvas.requestRenderAll === 'function') {
+                            canvas.requestRenderAll();
+                        } else if (typeof canvas.renderAll === 'function') {
+                            canvas.renderAll();
+                        }
+                    }
+                });
+            }
+
+            // 2) 显示 #img_origin_controls
+            const imgOriginControls = document.getElementById('img_origin_controls');
+            if (imgOriginControls) {
+                imgOriginControls.style.display = 'block';
+            }
+
+            // 3) 清空 #img_add_controls 中内容
+            const imgAddControls = document.getElementById('img_add_controls');
+            if (imgAddControls) {
+                imgAddControls.innerHTML = '';
+            }
+        } catch (err) {
+            console.warn('切换到图片面板时重置失败:', err);
+        }
+    }
+
+    // 当切换到文字面板(tab-wenzi)时，清空所有视图的选中状态
+    if (tabId === 'tab-wenzi') {
+        try {
+            if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
+                const viewIds = window.CanvasManager.getViewIds();
+                viewIds.forEach(viewId => {
+                    const canvas = window.CanvasManager.getCanvas(viewId);
+                    if (canvas && typeof canvas.discardActiveObject === 'function') {
+                        canvas.discardActiveObject();
+                        if (typeof canvas.requestRenderAll === 'function') {
+                            canvas.requestRenderAll();
+                        } else if (typeof canvas.renderAll === 'function') {
+                            canvas.renderAll();
+                        }
+                    }
+                });
+            }
+        } catch (err) {
+            console.warn('切换到文字面板时清空选区失败:', err);
+        }
+    }
+
     return true;
 }
 

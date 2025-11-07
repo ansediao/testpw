@@ -95,6 +95,16 @@ document.querySelectorAll('.img_toolbar .toolbar_button').forEach(button => {
         if (typeof window.switchOperationPanelTab === 'function') {
             window.switchOperationPanelTab('tab-pianquan');
         }
+
+        // 保持选中状态：重新设置原来的活动对象
+        if (activeCanvas && activeObject && typeof activeCanvas.setActiveObject === 'function') {
+            activeCanvas.setActiveObject(activeObject);
+            if (typeof activeCanvas.requestRenderAll === 'function') {
+                activeCanvas.requestRenderAll();
+            } else if (typeof activeCanvas.renderAll === 'function') {
+                activeCanvas.renderAll();
+            }
+        }
         
         // 移除所有按钮的激活样式
         document.querySelectorAll('.toolbar_button').forEach(btn => {
