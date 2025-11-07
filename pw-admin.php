@@ -849,12 +849,10 @@ function pwca_add_calculate_shipping_button()
                         $(this).closest("tr").addClass("pwca-selected");
                     });
                     
-                    // 默认选中第一个选项并更新运费
-                    if (options.length > 0) {
-                        var firstOption = options[0];
-                        var firstCost = firstOption.totalFee || 0;
-                        var firstName = firstOption.serviceCnName || "Unknown Service";
-                        updateShippingCost(firstCost, firstName);
+                    // 默认选中第一个选项并触发 change 事件，保证左侧运费行立即显示
+                    var $firstRadio = $(".pwca-shipping-table input[name=\"pwca_shipping_option\"]").first();
+                    if ($firstRadio.length) {
+                        $firstRadio.prop("checked", true).trigger("change");
                     }
                 }
                 
