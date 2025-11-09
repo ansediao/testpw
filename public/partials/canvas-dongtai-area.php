@@ -47,7 +47,8 @@ document.querySelectorAll('.text_toolbar .toolbar_button').forEach(button => {
         
         // 调用面板切换方法 - 文本工具栏切换到文字面板
         if (typeof window.switchOperationPanelTab === 'function') {
-            window.switchOperationPanelTab('tab-wenzi');
+            // 保留当前选中对象，避免工具栏交互导致清空选区
+            window.switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
         }
         
         // 移除所有按钮的激活样式

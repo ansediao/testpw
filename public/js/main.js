@@ -79,7 +79,7 @@ window.isUserInitiatedAction = isUserInitiatedAction;
  * @param {string} tabId - tab 的 ID
  * @returns {boolean} - 操作是否成功
  */
-function switchOperationPanelTab(tabId) {
+function switchOperationPanelTab(tabId, opts = {}) {
     // 验证 tabId 是否有效
     const validTabs = ['tab-pinming', 'tab-tuan', 'tab-pianquan', 'tab-wenzi', 'tab-sheji'];
     if (!validTabs.includes(tabId)) {
@@ -150,25 +150,28 @@ function switchOperationPanelTab(tabId) {
         }
     }
 
-    // 当切换到文字面板(tab-wenzi)时，清空所有视图的选中状态
+    // 当切换到文字面板(tab-wenzi)时，可选择是否清空选中状态
     if (tabId === 'tab-wenzi') {
-        try {
-            if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
-                const viewIds = window.CanvasManager.getViewIds();
-                viewIds.forEach(viewId => {
-                    const canvas = window.CanvasManager.getCanvas(viewId);
-                    if (canvas && typeof canvas.discardActiveObject === 'function') {
-                        canvas.discardActiveObject();
-                        if (typeof canvas.requestRenderAll === 'function') {
-                            canvas.requestRenderAll();
-                        } else if (typeof canvas.renderAll === 'function') {
-                            canvas.renderAll();
+        const preserveSelection = !!opts.preserveSelection;
+        if (!preserveSelection) {
+            try {
+                if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
+                    const viewIds = window.CanvasManager.getViewIds();
+                    viewIds.forEach(viewId => {
+                        const canvas = window.CanvasManager.getCanvas(viewId);
+                        if (canvas && typeof canvas.discardActiveObject === 'function') {
+                            canvas.discardActiveObject();
+                            if (typeof canvas.requestRenderAll === 'function') {
+                                canvas.requestRenderAll();
+                            } else if (typeof canvas.renderAll === 'function') {
+                                canvas.renderAll();
+                            }
                         }
-                    }
-                });
+                    });
+                }
+            } catch (err) {
+                console.warn('切换到文字面板时清空选区失败:', err);
             }
-        } catch (err) {
-            console.warn('切换到文字面板时清空选区失败:', err);
         }
     }
 
