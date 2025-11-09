@@ -206,8 +206,10 @@ const layersApp = Vue.createApp({
                 </div>
             </div>
             
-            <!-- 弹窗模板 -->
-            ${layerModalsTemplate}
+            <!-- 弹窗模板通过 Teleport 全局挂载，避免受图层面板限制 -->
+            <teleport to="#pwca-modal-root">
+                ${layerModalsTemplate}
+            </teleport>
         </div>
     `,
 
@@ -1891,6 +1893,16 @@ const mountApp = () => {
     const container = document.getElementById('layers-box');
     if (container) {
         try {
+            // 确保全局弹窗挂载容器存在
+            (function pwEnsureModalRoot() {
+                let modalRoot = document.getElementById('pwca-modal-root');
+                if (!modalRoot) {
+                    modalRoot = document.createElement('div');
+                    modalRoot.id = 'pwca-modal-root';
+                    document.body.appendChild(modalRoot);
+                }
+            })();
+
             layersApp.mount('#layers-box');
             isAppMounted = true;
 

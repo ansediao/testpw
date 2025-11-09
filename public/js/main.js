@@ -494,9 +494,9 @@ function isElementInLayerGroup(obj) {
 
 // 显示绑定印刷方式提示 - 模拟点击Switch Printing Method按钮
 function showPrintMethodBindingAlert(targetObject) {
-    switchOperationPanelTab("tab-tuan");
+    // switchOperationPanelTab("tab-tuan");
     // 点击  layer-item ungrouped active  中的  <button class="assign-btn" title="切换印刷方式"><i class="iconfont icon-dayin"></i>Switch Printing Method </button>
-    const assignBtn = document.querySelector('.layer-item.ungrouped.active .assign-btn');
+    const assignBtn = document.querySelector('#content-tuan .layer-item.ungrouped.active .assign-btn');
     if (assignBtn) {
         assignBtn.click();
     }    
