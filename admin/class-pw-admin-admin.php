@@ -1534,8 +1534,10 @@ function import_composite_product_group($composite_group)
             update_post_meta($wp_post_id, 'pw_composite_main_post_id', $main_post_id);
         }
 
+        $related_product_ids = array_values(array_diff($related_product_ids, array($main_post_id)));
+
         // 为主产品设置关联产品列表（保留）
-        update_post_meta($main_post_id, 'pw_composite_related_products', array_values(array_diff($related_product_ids, array($main_post_id))));
+        update_post_meta($main_post_id, 'pw_composite_related_products', $related_product_ids);
         update_post_meta($main_post_id, 'pw_composite_all_product_ids', array_values($created_product_ids));
 
         // 创建一个独立的分组产品（Grouped Product）
@@ -1558,6 +1560,9 @@ function import_composite_product_group($composite_group)
 
             // 将主产品和子产品都作为 Linked Products
             update_post_meta($group_post_id, '_children', $related_product_ids);
+
+            $related_product_ids[] = $group_post_id;
+            update_post_meta($main_post_id, 'pw_composite_related_products', $related_product_ids);
         }
         
         // 获取主产品的container_id并处理容器规则
