@@ -610,6 +610,27 @@ const useProductStore = Pinia.defineStore('product', () => {
             formData.append('color', colorInfo.color_value); // 保持向后兼容
             formData.append('security', window.pwAjax?.nonce || '');
 
+            // 追加业务相关字段到 POST（起订量、批数量、样品/空白、折扣阶梯）
+            // 起订量与批数量
+            formData.append('pw_min_order_quantity', String(minQuantity.value));
+            formData.append('pw_batch_quantity', String(stepQuantity.value));
+            formData.append('pw_sell_in_batch', moqSettings.value.sell_in_batch ? '1' : '0');
+
+            // 是否样品、是否空白件
+            formData.append('pw_is_sample', buySampleChecked.value ? '1' : '0');
+            formData.append('pw_is_blank', blankProductChecked.value ? '1' : '0');
+
+            // 折扣阶梯信息
+            formData.append('pw_discount_enabled', quantityDiscountEnabled.value ? '1' : '0');
+            formData.append('pw_current_discount', String(getCurrentDiscount.value || 0));
+            formData.append('pw_discount_text', getDiscountText.value || '');
+            try {
+                formData.append('pw_quantity_discounts', JSON.stringify(quantityDiscounts.value || []));
+            } catch (e) {
+                // JSON stringify 失败时传空数组字符串，避免后端报错
+                formData.append('pw_quantity_discounts', '[]');
+            }
+
              // 发送到 WordPress AJAX 端点
              const response = await fetch(window.pwAjax?.ajaxurl || '/wp-admin/admin-ajax.php', {
                 method: 'POST',

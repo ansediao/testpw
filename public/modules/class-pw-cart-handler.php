@@ -25,6 +25,8 @@ class Pw_Cart_Handler {
         add_filter('woocommerce_display_item_meta', array($this, 'display_cart_images_properly'), 10, 3);
         add_action('woocommerce_after_cart_item_name', array($this, 'add_custom_cart_column_data_revised'), 10, 2);
         add_action('wp_footer', array($this, 'move_custom_cart_column_with_js_revised'));
+        // 捕获前端提交的自定义数据并附加到购物车项
+        add_filter('woocommerce_add_cart_item_data', array($this, 'append_post_data_to_cart_item_data'), 10, 3);
     }
 
     /**
@@ -54,6 +56,84 @@ class Pw_Cart_Handler {
         }
 
         return $passed;
+    }
+
+    /**
+     * 使用 woocommerce_add_cart_item_data 钩子捕获 $_POST 数据并附加到购物车项
+     *
+     * @param array $cart_item_data 现有购物车项目数据
+     * @param int   $product_id     产品ID
+     * @param int   $variation_id   变体ID（可选）
+     * @return array 修改后的购物车项目数据
+     */
+    public function append_post_data_to_cart_item_data($cart_item_data, $product_id, $variation_id = 0) {
+        // 确保 custom_data 子数组存在
+        if (!isset($cart_item_data['custom_data']) || !is_array($cart_item_data['custom_data'])) {
+            $cart_item_data['custom_data'] = array();
+        }
+
+        // 读取并清洗前端提交的字段
+        $min_order_quantity = isset($_POST['pw_min_order_quantity']) ? intval(wp_unslash($_POST['pw_min_order_quantity'])) : null;
+        $batch_quantity     = isset($_POST['pw_batch_quantity']) ? intval(wp_unslash($_POST['pw_batch_quantity'])) : null;
+        $sell_in_batch      = isset($_POST['pw_sell_in_batch']) ? wp_unslash($_POST['pw_sell_in_batch']) : null;
+        $is_sample_raw      = isset($_POST['pw_is_sample']) ? wp_unslash($_POST['pw_is_sample']) : null;
+        $is_blank_raw       = isset($_POST['pw_is_blank']) ? wp_unslash($_POST['pw_is_blank']) : null;
+
+        $discount_enabled_raw = isset($_POST['pw_discount_enabled']) ? wp_unslash($_POST['pw_discount_enabled']) : null;
+        $current_discount_raw = isset($_POST['pw_current_discount']) ? wp_unslash($_POST['pw_current_discount']) : null;
+        $discount_text        = isset($_POST['pw_discount_text']) ? sanitize_text_field(wp_unslash($_POST['pw_discount_text'])) : '';
+        $quantity_discounts   = array();
+
+        if (isset($_POST['pw_quantity_discounts'])) {
+            $raw = wp_unslash($_POST['pw_quantity_discounts']);
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $quantity_discounts = $decoded;
+            }
+        }
+
+        // 规范化布尔/数值
+        $sell_in_batch_bool = null;
+        if ($sell_in_batch !== null) {
+            $sell_in_batch_bool = ($sell_in_batch === '1' || $sell_in_batch === 1 || $sell_in_batch === true || $sell_in_batch === 'true');
+        }
+
+        $is_sample = null;
+        if ($is_sample_raw !== null) {
+            $is_sample = ($is_sample_raw === '1' || $is_sample_raw === 1 || $is_sample_raw === true || $is_sample_raw === 'true') ? 1 : 0;
+        }
+
+        $is_blank = null;
+        if ($is_blank_raw !== null) {
+            $is_blank = ($is_blank_raw === '1' || $is_blank_raw === 1 || $is_blank_raw === true || $is_blank_raw === 'true') ? 1 : 0;
+        }
+
+        $discount_enabled = null;
+        if ($discount_enabled_raw !== null) {
+            $discount_enabled = ($discount_enabled_raw === '1' || $discount_enabled_raw === 1 || $discount_enabled_raw === true || $discount_enabled_raw === 'true') ? 1 : 0;
+        }
+
+        $current_discount = null;
+        if ($current_discount_raw !== null && $current_discount_raw !== '') {
+            $current_discount = floatval($current_discount_raw);
+        }
+
+        // 合并数据到 custom_data，不覆盖现有键
+        $extra = array();
+        if ($min_order_quantity !== null) { $extra['min_order_quantity'] = $min_order_quantity; }
+        if ($batch_quantity !== null)     { $extra['batch_quantity'] = $batch_quantity; }
+        if ($sell_in_batch_bool !== null) { $extra['sell_in_batch'] = $sell_in_batch_bool ? 1 : 0; }
+        if ($is_sample !== null)          { $extra['is_sample'] = $is_sample; }
+        if ($is_blank !== null)           { $extra['is_blank'] = $is_blank; }
+        if ($discount_enabled !== null)   { $extra['discount_enabled'] = $discount_enabled; }
+        if ($current_discount !== null)   { $extra['current_discount'] = $current_discount; }
+        if ($discount_text !== '')        { $extra['discount_text'] = $discount_text; }
+        if (!empty($quantity_discounts))  { $extra['quantity_discounts'] = $quantity_discounts; }
+
+        // 合并到现有 custom_data
+        $cart_item_data['custom_data'] = array_merge($cart_item_data['custom_data'], $extra);
+
+        return $cart_item_data;
     }
 
     /**
@@ -238,6 +318,93 @@ class Pw_Cart_Handler {
                 'value'   => $color_display,
                 'display' => ''
             );
+        }
+
+        // 显示起订量、批量、样品/空白、折扣阶梯等信息
+        if (isset($cart_item['custom_data']) && is_array($cart_item['custom_data'])) {
+            $custom = $cart_item['custom_data'];
+
+            if (isset($custom['min_order_quantity'])) {
+                $item_data[] = array(
+                    'key'     => '起订量',
+                    'value'   => esc_html(intval($custom['min_order_quantity'])),
+                    'display' => ''
+                );
+            }
+            if (isset($custom['batch_quantity'])) {
+                $item_data[] = array(
+                    'key'     => '批数量',
+                    'value'   => esc_html(intval($custom['batch_quantity'])),
+                    'display' => ''
+                );
+            }
+            if (isset($custom['sell_in_batch'])) {
+                $item_data[] = array(
+                    'key'     => '按批销售',
+                    'value'   => esc_html((intval($custom['sell_in_batch']) === 1) ? '是' : '否'),
+                    'display' => ''
+                );
+            }
+
+            if (isset($custom['is_sample'])) {
+                $item_data[] = array(
+                    'key'     => '样品订单',
+                    'value'   => esc_html((intval($custom['is_sample']) === 1) ? '是' : '否'),
+                    'display' => ''
+                );
+            }
+            if (isset($custom['is_blank'])) {
+                $item_data[] = array(
+                    'key'     => '空白件',
+                    'value'   => esc_html((intval($custom['is_blank']) === 1) ? '是' : '否'),
+                    'display' => ''
+                );
+            }
+
+            if (isset($custom['discount_enabled'])) {
+                $item_data[] = array(
+                    'key'     => '折扣启用',
+                    'value'   => esc_html((intval($custom['discount_enabled']) === 1) ? '是' : '否'),
+                    'display' => ''
+                );
+            }
+            if (!empty($custom['discount_text'])) {
+                $item_data[] = array(
+                    'key'     => '当前折扣',
+                    'value'   => esc_html($custom['discount_text']),
+                    'display' => ''
+                );
+            } elseif (isset($custom['current_discount'])) {
+                $rate = floatval($custom['current_discount']);
+                if ($rate > 0 && $rate < 1) {
+                    $percent_off = round((1 - $rate) * 100);
+                    $item_data[] = array(
+                        'key'     => '当前折扣',
+                        'value'   => esc_html($percent_off . '% OFF'),
+                        'display' => ''
+                    );
+                }
+            }
+
+            if (!empty($custom['quantity_discounts']) && is_array($custom['quantity_discounts'])) {
+                $items_html = '';
+                foreach ($custom['quantity_discounts'] as $step) {
+                    $from = isset($step['range_from']) ? intval($step['range_from']) : null;
+                    $disc = isset($step['discount']) ? floatval($step['discount']) : null;
+                    if ($from !== null && $disc !== null && $disc > 0 && $disc < 1) {
+                        $off = round((1 - $disc) * 100);
+                        $items_html .= '<li>≥' . esc_html($from) . ': ' . esc_html($off) . '% OFF</li>';
+                    }
+                }
+                if ($items_html !== '') {
+                    $value_html = '<ul style="margin:0; padding-left:16px;">' . $items_html . '</ul>';
+                    $item_data[] = array(
+                        'key'     => '折扣阶梯',
+                        'value'   => wp_kses_post($value_html),
+                        'display' => ''
+                    );
+                }
+            }
         }
         
         if (!isset($cart_item['custom_data']) || empty($cart_item['custom_data']['custom_image'])) {
