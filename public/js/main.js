@@ -173,6 +173,16 @@ function switchOperationPanelTab(tabId, opts = {}) {
                 console.warn('切换到文字面板时清空选区失败:', err);
             }
         }
+
+        // 显示添加文字输入区域
+        try {
+            const addTextBox = document.getElementById('addTextBtn_box');
+            if (addTextBox) {
+                addTextBox.style.display = 'block';
+            }
+        } catch (e) {
+            console.warn('切换到文字面板时显示 addTextBtn_box 失败:', e);
+        }
     }
 
     return true;

@@ -2732,6 +2732,16 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
 
                 // 特殊处理：点击文字选项卡时，如当前视图选中了文字对象，则初始化文字界面
                 if (tab.id === 'tab-wenzi') {
+                    // 显示添加文字输入区域
+                    try {
+                        const addTextBox = document.getElementById('addTextBtn_box');
+                        if (addTextBox) {
+                            addTextBox.style.display = 'block';
+                        }
+                    } catch (e) {
+                        console.warn('点击文字选项卡时显示 addTextBtn_box 失败:', e);
+                    }
+
                     // 先清空所有视图的选中状态
                     try {
                         if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
