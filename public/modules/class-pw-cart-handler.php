@@ -27,6 +27,10 @@ class Pw_Cart_Handler {
         add_action('wp_footer', array($this, 'move_custom_cart_column_with_js_revised'));
         // 捕获前端提交的自定义数据并附加到购物车项
         add_filter('woocommerce_add_cart_item_data', array($this, 'append_post_data_to_cart_item_data'), 10, 3);
+
+        // 在购物车的 Price 与 Subtotal 列中显示折扣信息
+        add_filter('woocommerce_cart_item_price', array($this, 'render_cart_item_price_with_discount'), 10, 3);
+        add_filter('woocommerce_cart_item_subtotal', array($this, 'render_cart_item_subtotal_with_discount'), 10, 3);
     }
 
     /**
@@ -522,5 +526,133 @@ class Pw_Cart_Handler {
         }
         </style>
         <?php
+    }
+
+    /**
+     * 在购物车 Price 列显示折扣后的价格（并保留原价）
+     *
+     * @param string $price_html 原始价格HTML
+     * @param array  $cart_item  购物车项
+     * @param string $cart_item_key 购物车项键
+     * @return string 处理后的价格HTML
+     */
+    public function render_cart_item_price_with_discount($price_html, $cart_item, $cart_item_key) {
+        // 仅对包含折扣信息的购物车项处理
+        if (!isset($cart_item['custom_data']) || !is_array($cart_item['custom_data'])) {
+            return $price_html;
+        }
+
+        $custom = $cart_item['custom_data'];
+        $rate = $this->get_discount_rate_from_custom($custom);
+        if ($rate === null) {
+            return $price_html;
+        }
+
+        // 解析产品与税务显示价
+        $product = isset($cart_item['data']) ? $cart_item['data'] : null;
+        if (!$product || !is_object($product)) {
+            return $price_html;
+        }
+
+        $original_price = wc_get_price_to_display($product);
+        $discounted_price = $original_price * $rate;
+
+        // 使用 WooCommerce 的格式化函数生成促销价结构
+        $formatted = wc_format_sale_price(wc_price($original_price), wc_price($discounted_price));
+
+        // 追加折扣标签
+        $label = $this->get_discount_label_from_custom($custom);
+        if (!empty($label)) {
+            $formatted .= ' <small class="pwca-discount-hint">' . esc_html($label) . '</small>';
+        }
+
+        return $formatted;
+    }
+
+    /**
+     * 在购物车 Subtotal 列显示折扣后的小计（并保留原小计）
+     *
+     * @param string $subtotal_html 原始小计HTML
+     * @param array  $cart_item  购物车项
+     * @param string $cart_item_key 购物车项键
+     * @return string 处理后的小计HTML
+     */
+    public function render_cart_item_subtotal_with_discount($subtotal_html, $cart_item, $cart_item_key) {
+        if (!isset($cart_item['custom_data']) || !is_array($cart_item['custom_data'])) {
+            return $subtotal_html;
+        }
+
+        $custom = $cart_item['custom_data'];
+        $rate = $this->get_discount_rate_from_custom($custom);
+        if ($rate === null) {
+            return $subtotal_html;
+        }
+
+        $product = isset($cart_item['data']) ? $cart_item['data'] : null;
+        if (!$product || !is_object($product)) {
+            return $subtotal_html;
+        }
+
+        $qty = isset($cart_item['quantity']) ? intval($cart_item['quantity']) : 1;
+        if ($qty <= 0) { $qty = 1; }
+
+        $unit_display_price = wc_get_price_to_display($product);
+        $original_line_total = $unit_display_price * $qty;
+        $discounted_line_total = $original_line_total * $rate;
+
+        $formatted = wc_format_sale_price(wc_price($original_line_total), wc_price($discounted_line_total));
+
+        $label = $this->get_discount_label_from_custom($custom);
+        if (!empty($label)) {
+            $formatted .= ' <small class="pwca-discount-hint">' . esc_html($label) . '</small>';
+        }
+
+        return $formatted;
+    }
+
+    /**
+     * 从购物车项的 custom_data 中解析折扣率（0~1）
+     * 优先使用 current_discount；若不存在且 discount_text 含有百分比，则解析百分比。
+     *
+     * @param array $custom 购物车项中的 custom_data
+     * @return float|null 折扣率，未解析到返回 null
+     */
+    private function get_discount_rate_from_custom($custom) {
+        if (isset($custom['current_discount'])) {
+            $rate = floatval($custom['current_discount']);
+            if ($rate > 0 && $rate < 1) {
+                return $rate;
+            }
+        }
+        if (!empty($custom['discount_text']) && is_string($custom['discount_text'])) {
+            // 解析形如 "15% OFF" 的折扣文案
+            if (preg_match('/(\d+)\s*%/i', $custom['discount_text'], $m)) {
+                $off = floatval($m[1]);
+                if ($off > 0 && $off < 100) {
+                    return 1 - ($off / 100);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 根据 custom_data 生成折扣标签文案
+     *
+     * @param array $custom
+     * @return string|null 折扣标签
+     */
+    private function get_discount_label_from_custom($custom) {
+        if (!empty($custom['discount_text'])) {
+            return (string) $custom['discount_text'];
+        }
+        if (isset($custom['current_discount'])) {
+            $rate = floatval($custom['current_discount']);
+            if ($rate > 0 && $rate < 1) {
+                $percent_off = round((1 - $rate) * 100);
+                return $percent_off . '% OFF';
+            }
+        }
+        return null;
     }
 }
