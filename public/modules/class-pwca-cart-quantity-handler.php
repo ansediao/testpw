@@ -56,6 +56,9 @@ class Pwca_Cart_Quantity_Handler {
         
         // 添加购物车验证钩子
         add_filter('woocommerce_update_cart_validation', [$this, 'validate_cart_quantity'], 10, 4);
+
+        // 全局注册数量显示过滤器（逻辑内部再判断页面环境）
+        add_filter('woocommerce_cart_item_quantity', [$this, 'modify_cart_item_quantity'], 10, 3);
     }
     
     /**
@@ -65,7 +68,6 @@ class Pwca_Cart_Quantity_Handler {
         if ($this->is_custom_cart_page()) {
             // 在购物车页面添加额外的钩子
             add_action('woocommerce_before_cart_table', [$this, 'add_cart_notices']);
-            add_filter('woocommerce_cart_item_quantity', [$this, 'modify_cart_item_quantity'], 10, 3);
         }
     }
     
@@ -74,12 +76,22 @@ class Pwca_Cart_Quantity_Handler {
      */
     private function is_custom_cart_page() {
         global $wp;
-        
-        // 检查当前页面是否为 /custom-cart/
-        $current_url = home_url($wp->request);
-        $cart_url = home_url('custom-cart');
-        
-        return (strpos($current_url, 'custom-cart') !== false) || is_cart();
+        // 前台判断
+        $current_url = isset($wp->request) ? home_url($wp->request) : '';
+        if (!empty($current_url) && strpos($current_url, 'custom-cart') !== false) {
+            return true;
+        }
+        if (function_exists('is_cart') && is_cart()) {
+            return true;
+        }
+        // AJAX 片段刷新判断（通过 Referer 识别）
+        if (defined('DOING_AJAX') && DOING_AJAX) {
+            $ref = wp_get_referer();
+            if (!empty($ref) && strpos($ref, 'custom-cart') !== false) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**
@@ -160,6 +172,16 @@ class Pwca_Cart_Quantity_Handler {
             // 获取商品配置
             $product_index = $this->get_product_index_in_cart($cart_key);
             $config = $this->get_quantity_config($product_index);
+            // 若购物车项携带自定义配置，则使用该配置覆盖
+            if (isset($cart_item['custom_data']) && is_array($cart_item['custom_data'])) {
+                $custom = $cart_item['custom_data'];
+                if (isset($custom['min_order_quantity'])) {
+                    $config['min'] = max(1, intval($custom['min_order_quantity']));
+                }
+                if (isset($custom['batch_quantity'])) {
+                    $config['step'] = max(1, intval($custom['batch_quantity']));
+                }
+            }
             
             // 验证数量
             if ($quantity < $config['min']) {
@@ -370,9 +392,56 @@ class Pwca_Cart_Quantity_Handler {
      * 修改购物车项目数量显示
      */
     public function modify_cart_item_quantity($product_quantity, $cart_item_key, $cart_item) {
-        // 这个方法可以用来自定义数量显示
-        // 目前保持默认行为
-        return $product_quantity;
+        // 仅在自定义购物车页面应用
+        if (!$this->is_custom_cart_page()) {
+            return $product_quantity;
+        }
+
+        // 从购物车项的 custom_data 读取起订量与批数量
+        $min = null;
+        $step = null;
+        if (isset($cart_item['custom_data']) && is_array($cart_item['custom_data'])) {
+            $custom = $cart_item['custom_data'];
+            if (isset($custom['min_order_quantity'])) {
+                $min = intval($custom['min_order_quantity']);
+            }
+            if (isset($custom['batch_quantity'])) {
+                $step = intval($custom['batch_quantity']);
+            }
+        }
+
+        // 回退到处理器默认配置
+        if ($min === null || $min <= 0 || $step === null || $step <= 0) {
+            $index = $this->get_product_index_in_cart($cart_item_key);
+            $config = $this->get_quantity_config($index);
+            if ($min === null || $min <= 0) { $min = intval($config['min']); }
+            if ($step === null || $step <= 0) { $step = intval($config['step']); }
+        }
+
+        // 当前数量值
+        $current_qty = isset($cart_item['quantity']) ? intval($cart_item['quantity']) : 1;
+        if ($current_qty < $min) {
+            $current_qty = $min;
+        }
+
+        // 构建带有 min/step 的数量输入，保持 WooCommerce 命名规范
+        $input_name = sprintf('cart[%s][qty]', $cart_item_key);
+        $input_id   = sprintf('pwca-qty-%s', $cart_item_key);
+        $classes    = 'input-text qty text';
+
+        $custom_input = sprintf(
+            '<input type="number" id="%s" class="%s" name="%s" value="%d" min="%d" step="%d" data-min="%d" data-step="%d" aria-label="数量">',
+            esc_attr($input_id),
+            esc_attr($classes),
+            esc_attr($input_name),
+            esc_attr($current_qty),
+            esc_attr($min),
+            esc_attr($step),
+            esc_attr($min),
+            esc_attr($step)
+        );
+
+        return $custom_input;
     }
     
     /**

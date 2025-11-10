@@ -10,6 +10,7 @@
 
 // 购物车数量控制容器
 .pwca-quantity-controls {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0;
@@ -80,7 +81,7 @@
             }
         }
     }
-    
+
     // 数量输入框样式
     .quantity-input {
         width: 60px;
@@ -108,6 +109,50 @@
         
         &[type=number] {
             -moz-appearance: textfield;
+        }
+    }
+
+    // 数量提示气泡（tooltip）
+    .pwca-quantity-tooltip {
+        position: absolute;
+        top: -36px; // 显示在控件上方
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: #fff;
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        line-height: 1.4;
+        white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        z-index: 10;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+
+        &.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .tooltip-text {
+            // 纯文本容器
+        }
+
+        .tooltip-arrow {
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #333;
         }
     }
 }
@@ -212,6 +257,16 @@
             &:focus {
                 border-color: #96588a;
                 box-shadow: 0 0 0 1px #96588a;
+            }
+        }
+
+        .pwca-quantity-tooltip {
+            background: #1a202c;
+            color: #e2e8f0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+
+            .tooltip-arrow {
+                border-top-color: #1a202c;
             }
         }
     }

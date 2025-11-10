@@ -9,23 +9,18 @@
 (function($) {
     'use strict';
 
-    // 数量控制配置
+    // UI 行为配置（与业务数据分离）
     const QUANTITY_CONFIG = {
-        // 商品配置：步长和最小值
-        products: [
-            { step: 2, min: 9 },   // 第一项商品
-            { step: 5, min: 29 },  // 第二项商品
-            { step: 3, min: 19 },  // 第三项商品
-        ],
-        // 默认配置（其他商品）
-        default: { step: 2, min: 5 },
-        
         // 防抖延迟（毫秒）
         debounceDelay: 500,
-        
         // 动画持续时间
         animationDuration: 300
     };
+
+    // 服务端提供的数量配置（作为后备）
+    const SERVER_CONFIG = (typeof pwca_cart_ajax !== 'undefined' && pwca_cart_ajax.config)
+        ? pwca_cart_ajax.config
+        : { products: [], default: { step: 1, min: 1 } };
 
     /**
      * 购物车数量控制器类
@@ -99,7 +94,7 @@
                 }
 
                 const cartItemKey = this.getCartItemKey($input);
-                const config = this.getQuantityConfig(index);
+                const config = this.extractConfigFromInput($input, index);
                 const currentValue = parseInt($input.val()) || config.min;
 
                 // 创建新的控件结构
@@ -127,10 +122,32 @@
         }
 
         /**
-         * 获取商品的数量配置
+         * 从原始输入框提取数量配置（优先使用页面已有数据）
          */
-        getQuantityConfig(index) {
-            return QUANTITY_CONFIG.products[index] || QUANTITY_CONFIG.default;
+        extractConfigFromInput($input, index) {
+            // 优先从原始 input 属性读取
+            let minAttr = parseInt($input.attr('min'));
+            let stepAttr = parseInt($input.attr('step'));
+
+            // 某些模板可能用 data-* 存储
+            const minData = parseInt($input.data('min'));
+            const stepData = parseInt($input.data('step'));
+
+            // 服务端后备配置
+            const serverProduct = (SERVER_CONFIG.products && SERVER_CONFIG.products[index])
+                ? SERVER_CONFIG.products[index]
+                : null;
+            const serverDefault = SERVER_CONFIG.default || { step: 1, min: 1 };
+
+            const min = Number.isFinite(minAttr) ? minAttr
+                : (Number.isFinite(minData) ? minData
+                : (serverProduct?.min ?? serverDefault.min));
+
+            const step = Number.isFinite(stepAttr) ? stepAttr
+                : (Number.isFinite(stepData) ? stepData
+                : (serverProduct?.step ?? serverDefault.step));
+
+            return { min, step };
         }
 
         /**
@@ -138,10 +155,11 @@
          */
         createQuantityControls(cartItemKey, currentValue, config, index) {
             const isMinValue = currentValue <= config.min;
+            const minText = `起订量：${config.min}`;
             
             return $(`
                 <div class="pwca-quantity-controls" data-cart-key="${cartItemKey}" data-product-index="${index}">
-                    <button type="button" class="pwca-qty-btn minus" ${isMinValue ? 'disabled' : ''}>
+                    <button type="button" class="pwca-qty-btn minus" ${isMinValue ? 'disabled' : ''} aria-label="减少数量">
                         <span>−</span>
                     </button>
                     <input type="number" 
@@ -151,10 +169,16 @@
                            min="${config.min}" 
                            step="${config.step}"
                            data-min="${config.min}"
-                           data-step="${config.step}">
-                    <button type="button" class="pwca-qty-btn plus">
+                           data-step="${config.step}"
+                           aria-label="数量输入"
+                           aria-describedby="pwca-tooltip-${cartItemKey}">
+                    <button type="button" class="pwca-qty-btn plus" aria-label="增加数量">
                         <span>+</span>
                     </button>
+                    <div class="pwca-quantity-tooltip" id="pwca-tooltip-${cartItemKey}" role="tooltip" aria-live="polite">
+                        <span class="tooltip-text">${minText}</span>
+                        <span class="tooltip-arrow" aria-hidden="true"></span>
+                    </div>
                 </div>
             `);
         }
@@ -194,11 +218,28 @@
             const $controls = $input.closest('.pwca-quantity-controls');
             const value = parseInt($input.val()) || 0;
             const min = parseInt($input.data('min')) || 5;
+            const step = parseInt($input.data('step')) || 1;
             
             // 验证并修正输入值
-            const correctedValue = Math.max(value, min);
+            let correctedValue = Math.max(value, min);
+
+            // 若不满足批量步长，调整到最近的有效值（与后端逻辑一致）
+            const diff = correctedValue - min;
+            const remainder = diff % step;
+            if (remainder !== 0) {
+                correctedValue = (remainder <= step / 2)
+                    ? correctedValue - remainder
+                    : correctedValue + (step - remainder);
+            }
             if (correctedValue !== value) {
                 $input.val(correctedValue);
+            }
+            
+            // 若用户输入小于起订量，展示 tooltip 提示
+            if (value < min) {
+                this.showTooltip($controls, `数量不能小于起订量：${min}`);
+            } else {
+                this.hideTooltip($controls);
             }
 
             this.updateQuantity($controls, correctedValue, true);
@@ -211,9 +252,19 @@
             const $input = $controls.find('.quantity-input');
             const cartKey = $controls.data('cart-key');
             const min = parseInt($input.data('min')) || 5;
+            const step = parseInt($input.data('step')) || 1;
             
             // 确保值不小于最小值
             newValue = Math.max(newValue, min);
+
+            // 保证符合批量步长（与后端一致）
+            const diff = newValue - min;
+            const remainder = diff % step;
+            if (remainder !== 0) {
+                newValue = (remainder <= step / 2)
+                    ? newValue - remainder
+                    : newValue + (step - remainder);
+            }
             
             // 更新输入框值
             if (!fromInput) {
@@ -238,6 +289,8 @@
             if (value <= min) {
                 $minusBtn.prop('disabled', true);
                 $controls.addClass('at-minimum');
+                // 到达最小值后隐藏 tooltip，避免干扰
+                this.hideTooltip($controls);
             } else {
                 $minusBtn.prop('disabled', false);
                 $controls.removeClass('at-minimum');
@@ -245,6 +298,25 @@
             
             // 加号按钮通常不需要禁用，除非有最大值限制
             $plusBtn.prop('disabled', false);
+        }
+
+        /**
+         * 显示 tooltip 提示
+         */
+        showTooltip($controls, message) {
+            const $tooltip = $controls.find('.pwca-quantity-tooltip');
+            $tooltip.find('.tooltip-text').text(message);
+            $tooltip.addClass('show');
+            $controls.addClass('error');
+        }
+
+        /**
+         * 隐藏 tooltip 提示
+         */
+        hideTooltip($controls) {
+            const $tooltip = $controls.find('.pwca-quantity-tooltip');
+            $tooltip.removeClass('show');
+            $controls.removeClass('error');
         }
 
         /**
@@ -343,6 +415,8 @@
             const value = parseInt($controls.find('.quantity-input').val()) || 0;
             const min = parseInt($controls.find('.quantity-input').data('min')) || 5;
             this.updateButtonStates($controls, value, min);
+            // 恢复后隐藏 tooltip（避免残留）
+            this.hideTooltip($controls);
         }
 
         /**
