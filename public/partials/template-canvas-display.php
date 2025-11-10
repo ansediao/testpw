@@ -337,6 +337,44 @@ if ($product_id > 0) {
             return;
           }
 
+          // 读取起订量、步进与折扣信息（优先从产品 Store，回退到 DOM）
+          let minOrderQuantity = 1;
+          let batchQuantity = 1;
+          let sellInBatch = '0';
+          let discountEnabled = '0';
+          let currentDiscount = 0;
+          let discountText = '';
+          let quantityDiscountsJson = '[]';
+
+          try {
+            if (typeof window.useProductStore !== 'undefined') {
+              const ps = window.useProductStore();
+              minOrderQuantity = parseInt(ps.minQuantity) || 1;
+              batchQuantity = parseInt(ps.stepQuantity) || 1;
+              sellInBatch = ps.moqSettings && ps.moqSettings.sell_in_batch ? '1' : '0';
+              discountEnabled = ps.quantityDiscountEnabled ? '1' : '0';
+              currentDiscount = Number(ps.getCurrentDiscount || 0);
+              discountText = ps.getDiscountText || '';
+              try {
+                quantityDiscountsJson = JSON.stringify(ps.quantityDiscounts || []);
+              } catch (e) {
+                quantityDiscountsJson = '[]';
+              }
+            } else {
+              // 回退：从数量输入框的属性读取 min/step
+              const qtyEl = document.querySelector('.product-card__input');
+              minOrderQuantity = qtyEl ? parseInt(qtyEl.getAttribute('min')) || 1 : 1;
+              batchQuantity = qtyEl ? parseInt(qtyEl.getAttribute('step')) || 1 : 1;
+              // 折扣信息在无 Store 时无法可靠获取，保留默认值
+              discountEnabled = '0';
+              currentDiscount = 0;
+              discountText = '';
+              quantityDiscountsJson = '[]';
+            }
+          } catch (e) {
+            console.warn('读取 MOQ/折扣信息失败，使用默认值：', e);
+          }
+
           // 检查是否存在预览容器
           const previewContainer = document.querySelector('.preview-canvas-container');
           // 根据是否存在预览容器选择不同的捕获函数
@@ -378,7 +416,15 @@ if ($product_id > 0) {
             '&quantity=' + encodeURIComponent(quantity) +
             '&custom_image=' + encodeURIComponent(customImage) +
             '&color=' + encodeURIComponent(currentColor) +
-            '&security=' + encodeURIComponent('<?php echo wp_create_nonce("custom-product-nonce"); ?>');
+            '&security=' + encodeURIComponent('<?php echo wp_create_nonce("custom-product-nonce"); ?>') +
+            // 追加起订量、步进与折扣信息
+            '&pw_min_order_quantity=' + encodeURIComponent(minOrderQuantity) +
+            '&pw_batch_quantity=' + encodeURIComponent(batchQuantity) +
+            '&pw_sell_in_batch=' + encodeURIComponent(sellInBatch) +
+            '&pw_discount_enabled=' + encodeURIComponent(discountEnabled) +
+            '&pw_current_discount=' + encodeURIComponent(currentDiscount) +
+            '&pw_discount_text=' + encodeURIComponent(discountText) +
+            '&pw_quantity_discounts=' + encodeURIComponent(quantityDiscountsJson);
           xhr.send(data);
         });
       } else {
