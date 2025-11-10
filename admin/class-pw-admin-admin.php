@@ -1480,6 +1480,7 @@ function import_composite_product_group($composite_group)
     $products = $composite_group['products'];
     $created_product_ids = array();
     $main_post_id = null;
+    $group_post_id = null; // 独立的分组产品（Grouped Product）
 
     // 导入组合产品组中的所有产品
     foreach ($products as $product) {
@@ -1516,32 +1517,48 @@ function import_composite_product_group($composite_group)
                 // 标记为组合产品主产品
                 update_post_meta($post_id, 'pw_is_composite_main', true);
                 update_post_meta($post_id, 'pw_composite_main_id', $main_product_id);
-                
-                // 设置产品类型为Grouped Product
-                wp_set_object_terms($post_id, 'grouped', 'product_type');
+                // 不再将主产品设置为 Grouped Product 类型
             }
         }
     }
 
-    // 建立产品关联关系
+    // 创建独立的分组产品并建立关联关系
     if ($main_post_id && !empty($created_product_ids)) {
         $related_product_ids = array();
-        
+
         foreach ($created_product_ids as $pw_id => $wp_post_id) {
-            if ($pw_id != $main_product_id) {
-                $related_product_ids[] = $wp_post_id;
-                // 为关联产品设置主产品ID
-                update_post_meta($wp_post_id, 'pw_composite_main_id', $main_product_id);
-                update_post_meta($wp_post_id, 'pw_composite_main_post_id', $main_post_id);
-            }
+            // 将主产品与所有子产品都作为 Linked Products
+            $related_product_ids[] = $wp_post_id;
+            // 为每个产品设置主产品关联信息（便于前端与展示）
+            update_post_meta($wp_post_id, 'pw_composite_main_id', $main_product_id);
+            update_post_meta($wp_post_id, 'pw_composite_main_post_id', $main_post_id);
         }
-        
-        // 为主产品设置关联产品列表
-        update_post_meta($main_post_id, 'pw_composite_related_products', $related_product_ids);
+
+        // 为主产品设置关联产品列表（保留）
+        update_post_meta($main_post_id, 'pw_composite_related_products', array_values(array_diff($related_product_ids, array($main_post_id))));
         update_post_meta($main_post_id, 'pw_composite_all_product_ids', array_values($created_product_ids));
-        
-        // 设置Grouped products - 将其他同组产品添加到主产品的Linked Products中
-        update_post_meta($main_post_id, '_children', $related_product_ids);
+
+        // 创建一个独立的分组产品（Grouped Product）
+        $group_title = get_the_title($main_post_id) . ' - Group';
+        $group_post_id = wp_insert_post(array(
+            'post_title'   => $group_title,
+            'post_status'  => 'publish',
+            'post_type'    => 'product',
+            'post_content' => '',
+        ));
+
+        if ($group_post_id) {
+            // 设置为 Grouped Product 类型
+            wp_set_object_terms($group_post_id, 'grouped', 'product_type');
+
+            // 标记这是一个系统创建的分组产品，供后台隐藏
+            update_post_meta($group_post_id, 'pw_is_composite_group', true);
+            update_post_meta($group_post_id, 'pw_composite_main_id', $main_product_id);
+            update_post_meta($group_post_id, 'pw_composite_main_post_id', $main_post_id);
+
+            // 将主产品和子产品都作为 Linked Products
+            update_post_meta($group_post_id, '_children', $related_product_ids);
+        }
         
         // 获取主产品的container_id并处理容器规则
         $main_product_data = null;
