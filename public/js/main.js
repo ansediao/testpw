@@ -2107,12 +2107,17 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                         return;
                     }
 
-                    if (layerName === 'mainCanvas') { // 主Canvas使用fabric.js的toDataURL
-                        const dataURL = fabricCanvas.toDataURL({format: 'png', quality: 1, multiplier: 1});
-                        const img = new Image();
-                        img.onload = () => layerResolve({img, layerName});
-                        img.onerror = () => layerResolve(null);
-                        img.src = dataURL;
+                    if (layerName === 'mainCanvas') { // 主Canvas使用fabric.js的toDataURL（不做对象过滤，保持画面一致性）
+                        try {
+                            const dataURL = fabricCanvas.toDataURL({format: 'png', quality: 1, multiplier: 1});
+                            const img = new Image();
+                            img.onload = () => layerResolve({img, layerName});
+                            img.onerror = () => layerResolve(null);
+                            img.src = dataURL;
+                        } catch (e) {
+                            console.warn('Failed to capture mainCanvas via fabric toDataURL:', e);
+                            layerResolve(null);
+                        }
                     } else if (layerName === 'baseCanvas') {
                         // 对于 baseCanvas，需要根据当前的着色方式决定是否应用额外的纯色覆盖
                         try {
@@ -2213,8 +2218,50 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                     tempCanvas.height = finalCanvas.height;
                     const tempCtx = tempCanvas.getContext('2d');
 
-                    // 先绘制mainCanvas内容
-                    tempCtx.drawImage(layers.mainCanvas, 0, 0);
+                    // 两次渲染：
+                    // 第一次：未绑定印刷方式的对象（不裁剪），直接绘制到最终画布
+                    // 第二次：已绑定对象（裁剪），绘制到临时画布并应用遮罩
+                    try {
+                        if (fabricCanvas && typeof fabricCanvas.getObjects === 'function' && fabricCanvas.lowerCanvasEl) {
+                            const objs = fabricCanvas.getObjects() || [];
+                            const originalVisibility = objs.map(o => o.visible);
+                            const assigned = [];
+                            const unassigned = [];
+                            if (window.PrintAreaValidator && typeof window.PrintAreaValidator.hasPrintMethodAssigned === 'function') {
+                                for (const obj of objs) {
+                                    if (obj && obj.id && window.PrintAreaValidator.hasPrintMethodAssigned(obj)) {
+                                        assigned.push(obj);
+                                    } else {
+                                        unassigned.push(obj);
+                                    }
+                                }
+                            }
+
+                            // 未绑定对象：隐藏已绑定对象，渲染并直接绘制到最终画布
+                            for (const obj of assigned) { obj.visible = false; }
+                            fabricCanvas.renderAll();
+                            finalCtx.drawImage(fabricCanvas.lowerCanvasEl, 0, 0);
+
+                            // 还原可见性
+                            objs.forEach((obj, i) => { obj.visible = originalVisibility[i]; });
+                            fabricCanvas.renderAll();
+
+                            // 已绑定对象：隐藏未绑定对象，只将绑定对象绘制到临时画布以便遮罩
+                            for (const obj of unassigned) { obj.visible = false; }
+                            fabricCanvas.renderAll();
+                            tempCtx.drawImage(fabricCanvas.lowerCanvasEl, 0, 0);
+
+                            // 还原可见性
+                            objs.forEach((obj, i) => { obj.visible = originalVisibility[i]; });
+                            fabricCanvas.renderAll();
+                        } else {
+                            // 回退：无法访问fabric对象时，先不做分类，直接将整体图层绘制到临时画布
+                            tempCtx.drawImage(layers.mainCanvas, 0, 0);
+                        }
+                    } catch (e) {
+                        console.warn('按绑定状态拆分渲染失败，回退为整体遮罩处理：', e);
+                        tempCtx.drawImage(layers.mainCanvas, 0, 0);
+                    }
 
                     // 检查maskCanvas的内容
                     const maskImageData = tempCtx.createImageData(tempCanvas.width, tempCanvas.height);
@@ -2267,14 +2314,53 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
 
                             // 获取像素数据并二值化
                             const binaryImageData = binaryMaskCtx.getImageData(0, 0, binaryMaskCanvas.width, binaryMaskCanvas.height);
-                            for (let i = 3; i < binaryImageData.data.length; i += 4) { // 将任何非透明像素设为完全不透明
+                            // 将任何非透明像素设为完全不透明（包括外部环形和printAreaRect半透明覆盖）
+                            for (let i = 3; i < binaryImageData.data.length; i += 4) {
                                 if (binaryImageData.data[i] > 0) {
                                     binaryImageData.data[i] = 255;
                                 }
                             }
+                            // 忽略打印区域中心矩形：将其像素的alpha重置为0，避免被 destination-out 清除
+                            try {
+                                const viewId = view && (view.id || view.view_id) ? (view.id || view.view_id) : null;
+                                let bounds = null;
+                                if (viewId && window.PrintAreaValidator && typeof window.PrintAreaValidator.getPrintAreaBounds === 'function') {
+                                    bounds = window.PrintAreaValidator.getPrintAreaBounds(viewId);
+                                }
+                                if (!bounds) {
+                                    // 回退：使用当前计算的打印区域宽高，居中得到矩形
+                                    const w = finalCanvas.width;
+                                    const h = finalCanvas.height;
+                                    const left = Math.floor((w - printAreaWidth) / 2);
+                                    const top = Math.floor((h - printAreaHeight) / 2);
+                                    bounds = {
+                                        left,
+                                        top,
+                                        right: left + Math.floor(printAreaWidth),
+                                        bottom: top + Math.floor(printAreaHeight)
+                                    };
+                                }
+                                if (bounds) {
+                                    const w = binaryMaskCanvas.width;
+                                    const h = binaryMaskCanvas.height;
+                                    const left = Math.max(0, Math.floor(bounds.left));
+                                    const top = Math.max(0, Math.floor(bounds.top));
+                                    const right = Math.min(w, Math.ceil(bounds.right));
+                                    const bottom = Math.min(h, Math.ceil(bounds.bottom));
+                                    for (let y = top; y < bottom; y++) {
+                                        const rowOffset = y * w * 4;
+                                        for (let x = left; x < right; x++) {
+                                            const alphaIdx = rowOffset + x * 4 + 3;
+                                            binaryImageData.data[alphaIdx] = 0;
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                console.warn('遮罩中心矩形忽略处理失败，继续使用默认遮罩', e);
+                            }
                             binaryMaskCtx.putImageData(binaryImageData, 0, 0);
 
-                            // 应用二值化后的遮罩
+                            // 应用二值化后的遮罩（destination-out 清除打印区域外部）
                             tempCtx.globalCompositeOperation = 'destination-out';
                             tempCtx.drawImage(binaryMaskCanvas, 0, 0);
                         }
