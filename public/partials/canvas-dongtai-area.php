@@ -97,6 +97,12 @@ document.querySelectorAll('.img_toolbar .toolbar_button').forEach(button => {
             window.switchOperationPanelTab('tab-pianquan');
         }
 
+        // 隐藏图片工具栏区域的原始内容
+        const imgOriginControls = document.getElementById('img_origin_controls');
+        if (imgOriginControls) {
+            imgOriginControls.style.display = 'none';
+        }
+
         // 保持选中状态：重新设置原来的活动对象
         if (activeCanvas && activeObject && typeof activeCanvas.setActiveObject === 'function') {
             activeCanvas.setActiveObject(activeObject);
