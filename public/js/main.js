@@ -115,11 +115,11 @@ function switchOperationPanelTab(tabId, opts = {}) {
         return false;
     }
 
-    // 当切换到图片面板(tab-pianquan)时，执行重置逻辑
+    // 当切换到图片面板(tab-pianquan)时，仅处理是否保留选区；具体控件显示交由 updateDynamicToolbar 决定
     if (tabId === 'tab-pianquan') {
         try {
             const preserveSelection = !!opts.preserveSelection;
-            // 1) 清空所有视图画布的选中状态（除非要求保留选区）
+            // 清空所有视图画布的选中状态（除非要求保留选区）
             if (!preserveSelection) {
                 if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
                     const viewIds = window.CanvasManager.getViewIds();
@@ -136,21 +136,9 @@ function switchOperationPanelTab(tabId, opts = {}) {
                     });
                 }
             }
-
-            // 2) 显示 #img_origin_controls
-            const imgOriginControls = document.getElementById('img_origin_controls');
-            if (imgOriginControls) {
-                imgOriginControls.style.display = 'block';
-            }
-
-            // 3) 隐藏并清空 #img_add_controls 中内容
-            const imgAddControls = document.getElementById('img_add_controls');
-            if (imgAddControls) {
-                imgAddControls.style.display = 'none';
-                imgAddControls.innerHTML = '';
-            }
+            // 不再在此强制显示/隐藏 img_origin_controls 或 img_add_controls，避免与子工具按钮逻辑冲突
         } catch (err) {
-            console.warn('切换到图片面板时重置失败:', err);
+            console.warn('切换到图片面板时处理选区失败:', err);
         }
     }
 
@@ -200,15 +188,7 @@ function switchOperationPanelTab(tabId, opts = {}) {
             console.warn('切换到文字面板时重置文字工具激活状态失败:', e);
         }
 
-        // 额外：隐藏文字控制容器（按需求）
-        try {
-            const wenziControl = document.getElementById('content-wenzi-control');
-            if (wenziControl) {
-                wenziControl.style.display = 'none';
-            }
-        } catch (e) {
-            console.warn('切换到文字面板时隐藏 content-wenzi-control 失败:', e);
-        }
+        // 不再强制隐藏文字控制容器，交由工具栏逻辑自行控制显示
     }
 
     return true;
@@ -615,14 +595,10 @@ function addCanvasSelectionListeners(fabricCanvas) {
                 switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
                 const addTextBox = document.getElementById('addTextBtn_box');
                 if (addTextBox) addTextBox.style.display = 'block';
-                const wenziControl = document.getElementById('content-wenzi-control');
-                if (wenziControl) wenziControl.style.display = 'none';
+                // 文字控制区显示交由 updateDynamicToolbar 决定
             } else if (type === 'image') {
                 switchOperationPanelTab('tab-pianquan', { preserveSelection: true });
-                const imgOriginControls = document.getElementById('img_origin_controls');
-                if (imgOriginControls) imgOriginControls.style.display = 'block';
-                const imgAddControls = document.getElementById('img_add_controls');
-                if (imgAddControls) imgAddControls.style.display = 'none';
+                // 避免在选择事件中强制显示原始图片控制区，防止与子按钮点击逻辑冲突
             }
         }
     });
@@ -636,14 +612,10 @@ function addCanvasSelectionListeners(fabricCanvas) {
                 switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
                 const addTextBox = document.getElementById('addTextBtn_box');
                 if (addTextBox) addTextBox.style.display = 'block';
-                const wenziControl = document.getElementById('content-wenzi-control');
-                if (wenziControl) wenziControl.style.display = 'none';
+                // 文字控制区显示交由 updateDynamicToolbar 决定
             } else if (type === 'image') {
                 switchOperationPanelTab('tab-pianquan', { preserveSelection: true });
-                const imgOriginControls = document.getElementById('img_origin_controls');
-                if (imgOriginControls) imgOriginControls.style.display = 'block';
-                const imgAddControls = document.getElementById('img_add_controls');
-                if (imgAddControls) imgAddControls.style.display = 'none';
+                // 避免在选择事件中强制显示原始图片控制区，防止与子按钮点击逻辑冲突
             }
         }
     });

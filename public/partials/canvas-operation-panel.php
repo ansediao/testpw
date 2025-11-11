@@ -2695,10 +2695,10 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                     activePane.classList.add('active');
                 }
 
-                // 点击图片选项卡时，执行重置逻辑
+                // 点击图片选项卡时，清空选区并让工具栏根据当前状态决定显示内容
                 if (tab.id === 'tab-pianquan') {
                     try {
-                        // 1) 清空所有视图画布的选中状态
+                        // 清空所有视图画布的选中状态
                         if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
                             const viewIds = window.CanvasManager.getViewIds();
                             viewIds.forEach(viewId => {
@@ -2714,16 +2714,9 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                             });
                         }
 
-                        // 2) 显示 #img_origin_controls
-                        const imgOriginControls = document.getElementById('img_origin_controls');
-                        if (imgOriginControls) {
-                            imgOriginControls.style.display = 'block';
-                        }
-
-                        // 3) 清空 #img_add_controls 中内容
-                        const imgAddControls = document.getElementById('img_add_controls');
-                        if (imgAddControls) {
-                            imgAddControls.innerHTML = '';
+                        // 交由 updateDynamicToolbar(null) 显示默认图片控件区域
+                        if (typeof updateDynamicToolbar === 'function') {
+                            updateDynamicToolbar(null);
                         }
                     } catch (err) {
                         console.warn('点击图片选项卡时重置失败:', err);
