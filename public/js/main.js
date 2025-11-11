@@ -118,20 +118,23 @@ function switchOperationPanelTab(tabId, opts = {}) {
     // 当切换到图片面板(tab-pianquan)时，执行重置逻辑
     if (tabId === 'tab-pianquan') {
         try {
-            // 1) 清空所有视图画布的选中状态
-            if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
-                const viewIds = window.CanvasManager.getViewIds();
-                viewIds.forEach(viewId => {
-                    const canvas = window.CanvasManager.getCanvas(viewId);
-                    if (canvas && typeof canvas.discardActiveObject === 'function') {
-                        canvas.discardActiveObject();
-                        if (typeof canvas.requestRenderAll === 'function') {
-                            canvas.requestRenderAll();
-                        } else if (typeof canvas.renderAll === 'function') {
-                            canvas.renderAll();
+            const preserveSelection = !!opts.preserveSelection;
+            // 1) 清空所有视图画布的选中状态（除非要求保留选区）
+            if (!preserveSelection) {
+                if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
+                    const viewIds = window.CanvasManager.getViewIds();
+                    viewIds.forEach(viewId => {
+                        const canvas = window.CanvasManager.getCanvas(viewId);
+                        if (canvas && typeof canvas.discardActiveObject === 'function') {
+                            canvas.discardActiveObject();
+                            if (typeof canvas.requestRenderAll === 'function') {
+                                canvas.requestRenderAll();
+                            } else if (typeof canvas.renderAll === 'function') {
+                                canvas.renderAll();
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
 
             // 2) 显示 #img_origin_controls
@@ -140,9 +143,10 @@ function switchOperationPanelTab(tabId, opts = {}) {
                 imgOriginControls.style.display = 'block';
             }
 
-            // 3) 清空 #img_add_controls 中内容
+            // 3) 隐藏并清空 #img_add_controls 中内容
             const imgAddControls = document.getElementById('img_add_controls');
             if (imgAddControls) {
+                imgAddControls.style.display = 'none';
                 imgAddControls.innerHTML = '';
             }
         } catch (err) {
@@ -194,6 +198,16 @@ function switchOperationPanelTab(tabId, opts = {}) {
             }
         } catch (e) {
             console.warn('切换到文字面板时重置文字工具激活状态失败:', e);
+        }
+
+        // 额外：隐藏文字控制容器（按需求）
+        try {
+            const wenziControl = document.getElementById('content-wenzi-control');
+            if (wenziControl) {
+                wenziControl.style.display = 'none';
+            }
+        } catch (e) {
+            console.warn('切换到文字面板时隐藏 content-wenzi-control 失败:', e);
         }
     }
 
@@ -592,10 +606,46 @@ function addCanvasSelectionListeners(fabricCanvas) {
 
     // 监听对象选择事件
     fabricCanvas.on('selection:created', function (options) {
-        updateDynamicToolbar(options.selected[0]);
+        const selectedObj = options && options.selected ? options.selected[0] : null;
+        updateDynamicToolbar(selectedObj);
+
+        if (selectedObj) {
+            const type = selectedObj.type;
+            if (type === 'text' || type === 'i-text' || type === 'textbox') {
+                switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
+                const addTextBox = document.getElementById('addTextBtn_box');
+                if (addTextBox) addTextBox.style.display = 'block';
+                const wenziControl = document.getElementById('content-wenzi-control');
+                if (wenziControl) wenziControl.style.display = 'none';
+            } else if (type === 'image') {
+                switchOperationPanelTab('tab-pianquan', { preserveSelection: true });
+                const imgOriginControls = document.getElementById('img_origin_controls');
+                if (imgOriginControls) imgOriginControls.style.display = 'block';
+                const imgAddControls = document.getElementById('img_add_controls');
+                if (imgAddControls) imgAddControls.style.display = 'none';
+            }
+        }
     });
     fabricCanvas.on('selection:updated', function (options) {
-        updateDynamicToolbar(options.selected[0]);
+        const selectedObj = options && options.selected ? options.selected[0] : null;
+        updateDynamicToolbar(selectedObj);
+
+        if (selectedObj) {
+            const type = selectedObj.type;
+            if (type === 'text' || type === 'i-text' || type === 'textbox') {
+                switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
+                const addTextBox = document.getElementById('addTextBtn_box');
+                if (addTextBox) addTextBox.style.display = 'block';
+                const wenziControl = document.getElementById('content-wenzi-control');
+                if (wenziControl) wenziControl.style.display = 'none';
+            } else if (type === 'image') {
+                switchOperationPanelTab('tab-pianquan', { preserveSelection: true });
+                const imgOriginControls = document.getElementById('img_origin_controls');
+                if (imgOriginControls) imgOriginControls.style.display = 'block';
+                const imgAddControls = document.getElementById('img_add_controls');
+                if (imgAddControls) imgAddControls.style.display = 'none';
+            }
+        }
     });
     fabricCanvas.on('selection:cleared', function () {
         updateDynamicToolbar(null);
