@@ -34,13 +34,13 @@ function updateDynamicToolbar(obj) {
         return;
     }
 
-    // 如果选中的是文本对象
-    if (obj.type === 'text') {
+    // 如果选中的是文本对象（兼容 i-text、textbox）
+    if (obj.type === 'text' || obj.type === 'i-text' || obj.type === 'textbox') {
         textToolbar.style.display = 'block';
         imgToolbar.style.display = 'none';
-        // 获取当前活动的按钮
-        const activeButton = document.querySelector('.toolbar_button.active');
-        const activeButtonId = activeButton ? activeButton.id : 'text_input';
+        // 获取当前活动的文字工具按钮（仅限文字工具栏作用域）
+        const activeTextButton = document.querySelector('.text_toolbar .toolbar_button.active');
+        const activeButtonId = activeTextButton ? activeTextButton.id : 'text_input';
 
         // 根据当前按钮显示/隐藏添加文字区域
         const addTextBox = document.getElementById('addTextBtn_box');

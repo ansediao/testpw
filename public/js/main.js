@@ -183,6 +183,18 @@ function switchOperationPanelTab(tabId, opts = {}) {
         } catch (e) {
             console.warn('切换到文字面板时显示 addTextBtn_box 失败:', e);
         }
+
+        // 重置文字工具栏按钮激活状态为默认的 text_input，避免因其它工具激活导致隐藏
+        try {
+            const textButtons = document.querySelectorAll('.text_toolbar .toolbar_button');
+            textButtons.forEach(btn => btn.classList.remove('active'));
+            const textInputBtn = document.getElementById('text_input');
+            if (textInputBtn) {
+                textInputBtn.classList.add('active');
+            }
+        } catch (e) {
+            console.warn('切换到文字面板时重置文字工具激活状态失败:', e);
+        }
     }
 
     return true;
