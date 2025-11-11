@@ -590,6 +590,11 @@ function addCanvasSelectionListeners(fabricCanvas) {
         updateDynamicToolbar(selectedObj);
 
         if (selectedObj) {
+            const activeTabId = typeof getCurrentActiveTab === 'function' ? getCurrentActiveTab() : null;
+            const fromLayerList = window.pw_selectionFromLayerList === true;
+            if (activeTabId === 'tab-tuan' && fromLayerList) {
+                window.pw_selectionFromLayerList = false;
+            } else {
             const type = selectedObj.type;
             if (type === 'text' || type === 'i-text' || type === 'textbox') {
                 switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
@@ -606,6 +611,7 @@ function addCanvasSelectionListeners(fabricCanvas) {
                 switchOperationPanelTab('tab-pianquan', { preserveSelection: true });
                 // 避免在选择事件中强制显示原始图片控制区，防止与子按钮点击逻辑冲突
             }
+            }
         }
     });
     fabricCanvas.on('selection:updated', function (options) {
@@ -613,6 +619,11 @@ function addCanvasSelectionListeners(fabricCanvas) {
         updateDynamicToolbar(selectedObj);
 
         if (selectedObj) {
+            const activeTabId = typeof getCurrentActiveTab === 'function' ? getCurrentActiveTab() : null;
+            const fromLayerList = window.pw_selectionFromLayerList === true;
+            if (activeTabId === 'tab-tuan' && fromLayerList) {
+                window.pw_selectionFromLayerList = false;
+            } else {
             const type = selectedObj.type;
             if (type === 'text' || type === 'i-text' || type === 'textbox') {
                 switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
@@ -628,6 +639,7 @@ function addCanvasSelectionListeners(fabricCanvas) {
             } else if (type === 'image') {
                 switchOperationPanelTab('tab-pianquan', { preserveSelection: true });
                 // 避免在选择事件中强制显示原始图片控制区，防止与子按钮点击逻辑冲突
+            }
             }
         }
     });

@@ -979,6 +979,7 @@ const layersApp = Vue.createApp({
         // 选择图层
         const selectLayer = (layerId) => {
             store.setActiveObjectId(layerId);
+            window.pw_selectionFromLayerList = true;
 
             // 同步到画布选中状态
             syncLayerSelectionToCanvas(layerId);
