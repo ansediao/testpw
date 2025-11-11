@@ -702,6 +702,44 @@ if (backwardBtn) {
 
 // 添加渲染预览按钮的点击事件
 document.getElementById('renderBtn').addEventListener('click', async function () { // 检查是否有多视图系统
+    // 1) 点击后先清除所有视图、所有画布的选中状态
+    try {
+        if (window.CanvasManager && typeof window.CanvasManager.getAllCanvasIds === 'function') {
+            const allCanvasIds = window.CanvasManager.getAllCanvasIds();
+            allCanvasIds.forEach(viewId => {
+                const fc = window.CanvasManager.getCanvas(viewId);
+                if (fc) {
+                    try {
+                        const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
+                        if (active && active.isEditing && typeof active.exitEditing === 'function') {
+                            active.exitEditing();
+                        }
+                        if (typeof fc.discardActiveObject === 'function') {
+                            fc.discardActiveObject();
+                        }
+                        fc.renderAll();
+                    } catch (e) {
+                        console.warn('清除单视图选中状态异常：', viewId, e);
+                    }
+                }
+            });
+        } else if (typeof getActiveCanvas === 'function') {
+            const fc = getActiveCanvas();
+            if (fc) {
+                const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
+                if (active && active.isEditing && typeof active.exitEditing === 'function') {
+                    active.exitEditing();
+                }
+                if (typeof fc.discardActiveObject === 'function') {
+                    fc.discardActiveObject();
+                }
+                fc.renderAll();
+            }
+        }
+    } catch (e) {
+        console.warn('清除所有视图的选中状态时发生异常：', e);
+    }
+
     if (typeof window.useCanvasStore === 'function') {
         try {
             const store = window.useCanvasStore();
