@@ -378,7 +378,61 @@ if ($product_id > 0) {
           // 检查是否存在预览容器
           const previewContainer = document.querySelector('.preview-canvas-container');
           // 根据是否存在预览容器选择不同的捕获函数
-          const customImage = await (previewContainer ? capturePreviewCanvas() : captureCanvas());
+          let customImage = await (previewContainer ? capturePreviewCanvas() : captureCanvas());
+
+          // 生成多视图图片 JSON（严格复用 #renderBtn 的统一逻辑）
+          let viewImagesPayload = [];
+          try {
+            // 1) 统一清理所有视图的选中状态，保证截图干净
+            if (window.CanvasManager && typeof window.CanvasManager.getAllCanvasIds === 'function') {
+              const allCanvasIds = window.CanvasManager.getAllCanvasIds();
+              allCanvasIds.forEach(viewId => {
+                const fc = window.CanvasManager.getCanvas(viewId);
+                if (fc) {
+                  try {
+                    const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
+                    if (active && active.isEditing && typeof active.exitEditing === 'function') {
+                      active.exitEditing();
+                    }
+                    if (typeof fc.discardActiveObject === 'function') {
+                      fc.discardActiveObject();
+                    }
+                    fc.renderAll();
+                  } catch (e) {
+                    console.warn('清除单视图选中状态异常：', viewId, e);
+                  }
+                }
+              });
+            }
+
+            // 2) 获取多视图并按统一函数生成图片，支持四格图
+            const store = (typeof window.useCanvasStore === 'function') ? window.useCanvasStore() : null;
+            const views = store && Array.isArray(store.views) ? store.views : [];
+
+            if (views.length > 0 && typeof window.generateUniversalViewImages === 'function') {
+              const images = await window.generateUniversalViewImages(views);
+              viewImagesPayload = images.map((imgData, idx) => {
+                const v = views[idx] || {};
+                const imageArray = Array.isArray(imgData) ? imgData : [imgData]; // 四格图返回4张
+                return {
+                  id: v.id || v.view_id || `view-${idx + 1}`,
+                  name: v.name || v.view_name || `视图 ${idx + 1}`,
+                  images: imageArray
+                };
+              });
+            } else {
+              // 3) 单视图回退：使用 captureCanvas/capturePreviewCanvas
+              const singleImage = await (previewContainer ? capturePreviewCanvas() : captureCanvas());
+              viewImagesPayload = [{ id: 'single', name: '视图', images: [singleImage] }];
+            }
+          } catch (e) {
+            console.warn('生成多视图图片时发生错误，将仅使用单图：', e);
+          }
+
+          // 若捕获到多视图，使用第一张作为 custom_image 以兼容旧逻辑
+          if (viewImagesPayload.length > 0 && Array.isArray(viewImagesPayload[0].images) && viewImagesPayload[0].images.length > 0) {
+            customImage = viewImagesPayload[0].images[0];
+          }
 
           // 发送AJAX请求
           const xhr = new XMLHttpRequest();
@@ -424,7 +478,9 @@ if ($product_id > 0) {
             '&pw_discount_enabled=' + encodeURIComponent(discountEnabled) +
             '&pw_current_discount=' + encodeURIComponent(currentDiscount) +
             '&pw_discount_text=' + encodeURIComponent(discountText) +
-            '&pw_quantity_discounts=' + encodeURIComponent(quantityDiscountsJson);
+            '&pw_quantity_discounts=' + encodeURIComponent(quantityDiscountsJson) +
+            // 追加多视图图片 JSON（若可用）
+            '&pw_view_images=' + encodeURIComponent(JSON.stringify(viewImagesPayload || []));
           xhr.send(data);
         });
       } else {

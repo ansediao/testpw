@@ -592,7 +592,74 @@ const useProductStore = Pinia.defineStore('product', () => {
             formData.append('action', 'add_customized_product_to_cart');
             formData.append('product_id', productId.value);
             formData.append('quantity', finalQuantity);
-            formData.append('custom_image', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='); // 临时占位图片
+            // 触发与 #renderBtn 相同的渲染逻辑，捕获当前各视图图片
+            let firstImageDataUrl = '';
+            try {
+                // 1) 清除所有视图的选中状态，确保渲染干净
+                if (window.CanvasManager && typeof window.CanvasManager.getAllCanvasIds === 'function') {
+                    const allCanvasIds = window.CanvasManager.getAllCanvasIds();
+                    allCanvasIds.forEach(viewId => {
+                        const fc = window.CanvasManager.getCanvas(viewId);
+                        if (fc) {
+                            try {
+                                const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
+                                if (active && active.isEditing && typeof active.exitEditing === 'function') {
+                                    active.exitEditing();
+                                }
+                                if (typeof fc.discardActiveObject === 'function') {
+                                    fc.discardActiveObject();
+                                }
+                                fc.renderAll();
+                            } catch (e) {
+                                console.warn('清除选中状态异常：', viewId, e);
+                            }
+                        }
+                    });
+                }
+
+                // 2) 通过多视图渲染函数生成图片数据
+                const canvasStore = (typeof window.useCanvasStore === 'function') ? window.useCanvasStore() : null;
+                const views = canvasStore && Array.isArray(canvasStore.views) ? canvasStore.views : [];
+                let viewImagesPayload = [];
+
+                if (views.length > 0 && typeof window.generateUniversalViewImages === 'function') {
+                    const images = await window.generateUniversalViewImages(views);
+                    // 组装带视图名的 JSON 结构
+                    viewImagesPayload = images.map((imgData, idx) => {
+                        const v = views[idx] || {};
+                        // 4-Grid Flow 视图返回数组，其它返回单张
+                        const imageArray = Array.isArray(imgData) ? imgData : [imgData];
+                        return {
+                            id: v.id || v.view_id || `view-${idx+1}`,
+                            name: v.name || v.view_name || `视图 ${idx+1}`,
+                            images: imageArray
+                        };
+                    });
+                } else {
+                    // 单视图模式：尝试使用捕获函数
+                    if (typeof window.captureCanvas === 'function') {
+                        const single = await window.captureCanvas();
+                        viewImagesPayload = [{ id: 'single', name: '视图', images: [single] }];
+                    }
+                }
+
+                // 取第一张作为 custom_image（用于兼容现有展示）
+                if (viewImagesPayload.length > 0 && Array.isArray(viewImagesPayload[0].images) && viewImagesPayload[0].images.length > 0) {
+                    firstImageDataUrl = viewImagesPayload[0].images[0];
+                }
+
+                // 写入多视图 JSON
+                try {
+                    formData.append('pw_view_images', JSON.stringify(viewImagesPayload));
+                } catch (e) {
+                    console.warn('序列化视图图片失败，将仅提交第一张图片', e);
+                }
+            } catch (e) {
+                console.error('渲染并采集视图图片失败：', e);
+            }
+
+            // 兼容旧逻辑：custom_image 使用第一张图片，如果不可用则给占位
+            formData.append('custom_image', firstImageDataUrl || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
             // 传递完整的颜色信息
             const colorInfo = selectedVariant.value ? {
                 color_name: selectedVariant.value.variant_name || selectedVariant.value.name || '默认颜色',

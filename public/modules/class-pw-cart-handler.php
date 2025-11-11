@@ -212,16 +212,26 @@ class Pw_Cart_Handler {
         }
 
         $custom_image = isset($_POST['custom_image']) ? wp_kses_post(wp_unslash($_POST['custom_image'])) : '';
+        // 多视图图片（JSON 字符串）：[{ id, name, images: [dataURL, ...] }, ...]
+        $view_images_json = isset($_POST['pw_view_images']) ? wp_unslash($_POST['pw_view_images']) : '';
+        $view_images_data = array();
+        if (!empty($view_images_json)) {
+            $decoded = json_decode($view_images_json, true);
+            if (is_array($decoded)) {
+                $view_images_data = $decoded;
+            }
+        }
         $color = isset($_POST['color']) ? sanitize_text_field(wp_unslash($_POST['color'])) : '';
         $color_name = isset($_POST['color_name']) ? sanitize_text_field(wp_unslash($_POST['color_name'])) : '默认颜色';
         $color_value = isset($_POST['color_value']) ? sanitize_text_field(wp_unslash($_POST['color_value'])) : '';
         $variant_id = isset($_POST['variant_id']) ? sanitize_text_field(wp_unslash($_POST['variant_id'])) : '';
 
-        if (empty($custom_image)) {
+        // 必须提供至少一种图片数据：单图或多视图
+        if (empty($custom_image) && empty($view_images_data)) {
             wp_send_json_error('缺少自定义图片数据');
         }
-
-        if (strpos($custom_image, 'data:image/') !== 0 || strpos($custom_image, ';base64,') === false) {
+        // 如提供单图，校验格式
+        if (!empty($custom_image) && (strpos($custom_image, 'data:image/') !== 0 || strpos($custom_image, ';base64,') === false)) {
             wp_send_json_error('无效的图片数据格式');
         }
 
@@ -234,33 +244,73 @@ class Pw_Cart_Handler {
             }
         }
 
-        $filename = 'custom-' . $product_id . '-' . uniqid() . '.png';
-        $file_path = $custom_dir . '/' . $filename;
+        // 保存图片（多视图优先，失败时回退单图）
+        $saved_view_images_meta = array();
+        $first_saved_image_url = '';
+        $saved_file_paths = array();
 
-        $image_data = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $custom_image));
+        if (!empty($view_images_data)) {
+            foreach ($view_images_data as $view_idx => $view_item) {
+                $view_id   = isset($view_item['id']) ? sanitize_text_field($view_item['id']) : '';
+                $view_name = isset($view_item['name']) ? sanitize_text_field($view_item['name']) : ($view_id ?: ('视图 ' . ($view_idx + 1)));
+                $images    = (isset($view_item['images']) && is_array($view_item['images'])) ? $view_item['images'] : array();
 
-        if ($image_data === false) {
-            wp_send_json_error('解码图片数据失败');
+                $urls = array();
+                foreach ($images as $img_idx => $img_dataurl) {
+                    if (!is_string($img_dataurl) || strpos($img_dataurl, 'data:image/') !== 0 || strpos($img_dataurl, ';base64,') === false) {
+                        continue;
+                    }
+                    $filename  = 'custom-' . $product_id . '-' . sanitize_title($view_name) . '-' . ($img_idx + 1) . '-' . uniqid() . '.png';
+                    $file_path = $custom_dir . '/' . $filename;
+                    $image_data = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $img_dataurl));
+                    if ($image_data === false) { continue; }
+                    if (file_put_contents($file_path, $image_data) === false) { continue; }
+                    $saved_file_paths[] = $file_path;
+                    $url = $upload_dir['baseurl'] . '/custom-products/' . $filename;
+                    $urls[] = $url;
+                    if ($first_saved_image_url === '') { $first_saved_image_url = $url; }
+                }
+                if (!empty($urls)) {
+                    $saved_view_images_meta[] = array(
+                        'view_id'   => $view_id,
+                        'view_name' => $view_name,
+                        'images'    => $urls,
+                    );
+                }
+            }
         }
 
-        if (file_put_contents($file_path, $image_data) === false) {
-            wp_send_json_error('保存自定义图片失败');
+        if (empty($saved_view_images_meta)) {
+            // 回退保存单图
+            $filename  = 'custom-' . $product_id . '-' . uniqid() . '.png';
+            $file_path = $custom_dir . '/' . $filename;
+            $image_data = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $custom_image));
+            if ($image_data === false) {
+                wp_send_json_error('解码图片数据失败');
+            }
+            if (file_put_contents($file_path, $image_data) === false) {
+                wp_send_json_error('保存自定义图片失败');
+            }
+            $saved_file_paths[] = $file_path;
+            $first_saved_image_url = $upload_dir['baseurl'] . '/custom-products/' . $filename;
         }
 
-        $image_url = $upload_dir['baseurl'] . '/custom-products/' . $filename;
-
+        // 构建购物车数据
         $cart_item_data = array(
             'custom_data' => array(
-                'custom_image' => $image_url,
-                'color' => $color,
-                'color_name' => $color_name,
-                'color_value' => $color_value,
-                'variant_id' => $variant_id
+                'custom_image' => $first_saved_image_url,
+                'color'        => $color,
+                'color_name'   => $color_name,
+                'color_value'  => $color_value,
+                'variant_id'   => $variant_id,
             )
         );
+        if (!empty($saved_view_images_meta)) {
+            $cart_item_data['custom_data']['view_images'] = $saved_view_images_meta;
+        }
 
         if (!function_exists('WC') || WC()->cart === null) {
-            unlink($file_path);
+            foreach ($saved_file_paths as $p) { @unlink($p); }
             wp_send_json_error('购物车功能不可用');
         }
 
@@ -281,8 +331,7 @@ class Pw_Cart_Handler {
                 $error_message .= ': ' . implode(', ', array_column($notices, 'notice'));
                 wc_clear_notices();
             }
-            
-            unlink($file_path);
+            foreach ($saved_file_paths as $p) { @unlink($p); }
             wp_send_json_error($error_message);
         }
     }
@@ -291,7 +340,28 @@ class Pw_Cart_Handler {
      * Display custom product image and color in cart
      */
     public function display_custom_product_image($item_data, $cart_item) {
-        if (isset($cart_item['custom_data']) && !empty($cart_item['custom_data']['custom_image'])) {
+        if (isset($cart_item['custom_data']) && !empty($cart_item['custom_data']['view_images']) && is_array($cart_item['custom_data']['view_images'])) {
+            // 优先显示多视图
+            $views_meta = $cart_item['custom_data']['view_images'];
+            $value_html = '';
+            foreach ($views_meta as $vm) {
+                $vname = isset($vm['view_name']) ? esc_html($vm['view_name']) : (isset($vm['view_id']) ? esc_html($vm['view_id']) : 'View');
+                $value_html .= '<div style="margin:6px 0; text-align:center;">';
+                $value_html .= '<div style="font-size:12px; color:#555; margin-bottom:4px;">' . $vname . '</div>';
+                if (!empty($vm['images']) && is_array($vm['images'])) {
+                    foreach ($vm['images'] as $url) {
+                        $value_html .= '<img src="' . esc_url($url) . '" alt="' . esc_attr($vname) . '" style="max-width:100px; height:auto; border:1px solid #ddd; margin:2px; border-radius:4px; background:#fff; padding:3px;">';
+                    }
+                }
+                $value_html .= '</div>';
+            }
+            $item_data[] = array(
+                'key'     => '定制设计',
+                'value'   => wp_kses_post($value_html),
+                'display' => ''
+            );
+        } elseif (isset($cart_item['custom_data']) && !empty($cart_item['custom_data']['custom_image'])) {
+            // 回退显示单图
             $image_url = esc_url($cart_item['custom_data']['custom_image']);
             $item_data[] = array(
                 'key'     => '定制设计',
@@ -411,7 +481,7 @@ class Pw_Cart_Handler {
             }
         }
         
-        if (!isset($cart_item['custom_data']) || empty($cart_item['custom_data']['custom_image'])) {
+        if (!isset($cart_item['custom_data']) || (empty($cart_item['custom_data']['custom_image']) && empty($cart_item['custom_data']['view_images']))) {
             $pw_isSyncProduct = get_post_meta($cart_item['product_id'], 'pw_isSyncProduct', true);
             if ($pw_isSyncProduct == '1') {
                 $item_data[] = array(
@@ -435,7 +505,23 @@ class Pw_Cart_Handler {
     public function display_custom_image_in_order($item_name, $item) {
         $custom_data = $item->get_meta('custom_data');
         
-        if (!empty($custom_data) && !empty($custom_data['custom_image'])) {
+        if (!empty($custom_data) && !empty($custom_data['view_images']) && is_array($custom_data['view_images'])) {
+            $views_meta = $custom_data['view_images'];
+            $html = '<div style="margin-top:10px; text-align:center;">';
+            foreach ($views_meta as $vm) {
+                $vname = isset($vm['view_name']) ? esc_html($vm['view_name']) : (isset($vm['view_id']) ? esc_html($vm['view_id']) : 'View');
+                $html .= '<div style="margin:6px 0;">';
+                $html .= '<div style="font-size:12px; color:#555; margin-bottom:4px;">' . $vname . '</div>';
+                if (!empty($vm['images']) && is_array($vm['images'])) {
+                    foreach ($vm['images'] as $url) {
+                        $html .= '<img src="' . esc_url($url) . '" alt="' . esc_attr($vname) . '" style="max-width:100px; height:auto; border:1px solid #ddd; border-radius:4px; padding:3px; background:#fff; margin:2px;">';
+                    }
+                }
+                $html .= '</div>';
+            }
+            $html .= '</div>';
+            $item_name .= $html;
+        } elseif (!empty($custom_data) && !empty($custom_data['custom_image'])) {
             $image_url = esc_url($custom_data['custom_image']);
             $item_name .= sprintf(
                 '<div style="margin-top: 10px;"><img src="%s" alt="定制设计" style="max-width: 100px; height: auto; display: block; border: 1px solid #ddd; padding: 5px; background: #fff;"></div>',
@@ -485,7 +571,24 @@ class Pw_Cart_Handler {
 
         $custom_html = '';
 
-        if (isset($cart_item['custom_data']['custom_image']) && !empty($cart_item['custom_data']['custom_image'])) {
+        if (isset($cart_item['custom_data']['view_images']) && is_array($cart_item['custom_data']['view_images']) && !empty($cart_item['custom_data']['view_images'])) {
+            $views_meta = $cart_item['custom_data']['view_images'];
+            $parts = array();
+            foreach ($views_meta as $vm) {
+                $vname = isset($vm['view_name']) ? esc_html($vm['view_name']) : (isset($vm['view_id']) ? esc_html($vm['view_id']) : 'View');
+                $html = '<div class="pw-design-view" style="margin:8px 0;">';
+                $html .= '<div class="pw-design-view-name" style="font-size:12px; color:#444; margin-bottom:4px;">' . $vname . '</div>';
+                $html .= '<div class="pw-design-view-images" style="display:flex; flex-wrap:wrap; gap:4px; justify-content:center;">';
+                if (!empty($vm['images']) && is_array($vm['images'])) {
+                    foreach ($vm['images'] as $url) {
+                        $html .= '<img src="' . esc_url($url) . '" alt="' . esc_attr($vname) . '" style="max-width:80px; height:auto; border-radius:4px; border:1px solid #ddd; padding:3px; background:#fff;">';
+                    }
+                }
+                $html .= '</div></div>';
+                $parts[] = $html;
+            }
+            $custom_html = '<div class="pw-design-preview">' . implode('', $parts) . '</div>';
+        } elseif (isset($cart_item['custom_data']['custom_image']) && !empty($cart_item['custom_data']['custom_image'])) {
             $custom_html = '<img src="' . esc_url($cart_item['custom_data']['custom_image']) . '" style="max-width:100px; height:auto; border-radius: 4px;">';
         }
 
