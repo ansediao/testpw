@@ -595,6 +595,12 @@ function addCanvasSelectionListeners(fabricCanvas) {
                 switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
                 const addTextBox = document.getElementById('addTextBtn_box');
                 if (addTextBox) addTextBox.style.display = 'block';
+                // 选择文字时，取消图片子工具的激活状态，确保回到图片选择时显示原始控件
+                try {
+                    document.querySelectorAll('.img_toolbar .toolbar_button').forEach(btn => btn.classList.remove('active'));
+                } catch (err) {
+                    console.warn('清除图片子工具激活状态失败:', err);
+                }
                 // 文字控制区显示交由 updateDynamicToolbar 决定
             } else if (type === 'image') {
                 switchOperationPanelTab('tab-pianquan', { preserveSelection: true });
@@ -612,6 +618,12 @@ function addCanvasSelectionListeners(fabricCanvas) {
                 switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
                 const addTextBox = document.getElementById('addTextBtn_box');
                 if (addTextBox) addTextBox.style.display = 'block';
+                // 选择文字时，取消图片子工具的激活状态，确保回到图片选择时显示原始控件
+                try {
+                    document.querySelectorAll('.img_toolbar .toolbar_button').forEach(btn => btn.classList.remove('active'));
+                } catch (err) {
+                    console.warn('清除图片子工具激活状态失败:', err);
+                }
                 // 文字控制区显示交由 updateDynamicToolbar 决定
             } else if (type === 'image') {
                 switchOperationPanelTab('tab-pianquan', { preserveSelection: true });

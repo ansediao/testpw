@@ -478,12 +478,26 @@ function updateDynamicToolbar(obj) {
     // 如果选中的是图片对象
     else if (obj.type === 'image') {
         textToolbar.style.display = 'none';
-        // 默认隐藏添加控制区，仅在用户点击具体图片工具按钮后显示
-        imgAddControls.style.display = 'none';
         imgToolbar.style.display = 'block';
-        // 获取当前活动的按钮
-        const activeButton = document.querySelector('.toolbar_button.active');
-        const activeButtonId = activeButton ? activeButton.id : null;
+        // 默认：若没有激活的图片子工具，则显示原始内容区域
+        imgAddControls.style.display = 'none';
+        const activeImgButton = document.querySelector('.img_toolbar .toolbar_button.active');
+
+        // 没有激活的图片工具按钮时，显示原始内容并取消所有激活状态
+        if (!activeImgButton) {
+            if (imgOriginControls) {
+                imgOriginControls.style.display = 'block';
+            }
+            document.querySelectorAll('.img_toolbar .toolbar_button').forEach(btn => btn.classList.remove('active'));
+            return;
+        }
+
+        // 有激活按钮时，隐藏原始内容并显示添加控制区
+        if (imgOriginControls) {
+            imgOriginControls.style.display = 'none';
+        }
+        imgAddControls.style.display = 'block';
+        const activeButtonId = activeImgButton.id;
 
         // 创建一个新的容器用于放置工具栏项
         let tempContainer = document.getElementById('img_add_controls');
@@ -495,13 +509,7 @@ function updateDynamicToolbar(obj) {
             tempContainer.innerHTML = '';
         }
 
-        // 没有激活的图片工具按钮时，不生成也不显示控制项
-        if (!activeButtonId) {
-            return;
-        }
-
-        // 仅在有激活按钮时显示添加控制区
-        imgAddControls.style.display = 'block';
+        // 控制项仅在有激活按钮时生成（此时 activeButtonId 已存在）
 
         // 创建变形控制 (透明度、旋转、宽度、高度、反转)
         if (activeButtonId === 'img_input') {
