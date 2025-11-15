@@ -68,7 +68,6 @@ export const useCanvasStore = defineStore('canvas', {
                     }
                 }
             } catch (e) {
-                console.warn('[Canvas] hasAnyGroupedLayersAcrossViews getter error:', e);
             }
             return false;
         },
@@ -257,7 +256,7 @@ export const useCanvasStore = defineStore('canvas', {
                 printMethodStore.switchToViewPrintMethods(viewId);
             }
 
-            console.log(`View switched: ${previousViewId} -> ${viewId}, layers count: ${this.layers.length}`);
+            
         },
         // ===== 新增：颜色选择相关方法 =====
         // 设置指定视图的选中颜色
@@ -279,14 +278,12 @@ export const useCanvasStore = defineStore('canvas', {
             try {
                 const response = await axios.get(`/wp-json/pw/v1/product-data/${pwId}`);
                 this.setProductData(response.data);
-                console.log('Product data retrieved successfully:', response.data);
                 // 从产品数据中提取视图信息
                 // this.extractViewsFromProductData(response.data);
                 this.setViewsFromProductData(response.data);
 
                 return response.data;
             } catch (error) {
-                console.error('Failed to retrieve product data:', error);
                 this.setProductDataError(error.message || 'Failed to retrieve product data');
                 throw error;
             } finally {
@@ -326,51 +323,40 @@ export const useCanvasStore = defineStore('canvas', {
                 this.setActiveViewId(views[0].id);
             }
 
-            console.log('Extracted view information:', views);
+            
         },
         // 直接从 productData.templates.view 数组  中赋值
         setViewsFromProductData(productData) {
-            console.log('=== setViewsFromProductData Debug Info ===');
-            console.log('Complete productData:', productData);
-            console.log('productData.templates:', productData?.templates);
-            console.log('productData.templates.view:', productData?.templates?.view);
+            
 
             // 检查数据结构是否正确
             if (!productData) {
-                console.error('Error: productData is null or undefined');
                 return;
             }
 
             if (!productData.templates) {
-                console.error('Error: productData.templates is null or undefined');
-                console.log('Available productData keys:', Object.keys(productData));
+                
                 return;
             }
 
             if (!productData.templates.views) {
-                console.error('Error: productData.templates.views is null or undefined');
-                console.log('Available templates keys:', Object.keys(productData.templates));
+                
                 return;
             }
 
             if (!Array.isArray(productData.templates.views)) {
-                console.error('Error: productData.templates.view is not an array');
-                console.log('Type of productData.templates.view:', typeof productData.templates.views);
-                console.log('Value of productData.templates.view:', productData.templates.views);
+                
                 return;
             }
 
-            console.log('View array length:', productData.templates.views.length);
-            console.log('View array contents:', productData.templates.views);
+            
 
             try {
                 this.setViews(productData.templates.views);
-                console.log('Successfully set views');
 
                 // 设置 productViewFlow
                 if (productData.templates.views.length > 0 && productData.templates.views[0].view_flow) {
                     this.setProductViewFlow(productData.templates.views[0].view_flow);
-                    console.log('Successfully set productViewFlow:', productData.templates.views[0].view_flow);
                 }
 
                 // 为每个视图加载印刷方式数据
@@ -379,40 +365,33 @@ export const useCanvasStore = defineStore('canvas', {
                 // 默认激活第一个视图
                 if (productData.templates.views.length > 0) {
                     const firstView = productData.templates.views[0];
-                    console.log('First view:', firstView);
-                    console.log('First view ID:', firstView?.id);
 
                     if (firstView && firstView.id) {
                         this.setActiveViewId(firstView.id);
-                        console.log('Successfully set active view ID:', firstView.id);
                     } else {
-                        console.error('Error: First view does not have an id property');
                     }
                 } else {
-                    console.warn('Warning: No views available to activate');
+                    
                 }
             } catch (error) {
-                console.error('Error in setViewsFromProductData:', error);
-                console.error('Error stack:', error.stack);
             }
 
-            console.log('=== End setViewsFromProductData Debug Info ===');
+            
         },
 
         // 为所有视图加载印刷方式数据
         async loadPrintMethodsForAllViews() {
             const printMethodStore = window.usePrintMethodStore();
             if (!printMethodStore) {
-                console.error('PrintMethodStore not available');
                 return;
             }
 
             for (const view of this.views) {
                 if (view.printing_method_list_id && Array.isArray(view.printing_method_list_id) && view.printing_method_list_id.length > 0) {
-                    console.log(`Loading print methods for view ${view.id}:`, view.printing_method_list_id);
+                    
                     await printMethodStore.setViewPrintMethods(view.id, view.printing_method_list_id);
                 } else {
-                    console.log(`No print methods defined for view ${view.id}`);
+                    
                 }
             }
         }

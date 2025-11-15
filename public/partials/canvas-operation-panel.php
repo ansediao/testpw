@@ -643,7 +643,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 function handleColorSwatchClick(color) {
                     // 更新全局颜色变量，确保与 Custom Colors 保持一致
                     window.currentColor = color;
-                    console.log('颜色样本点击，更新 window.currentColor:', color);
                     
                     // 先清除所有渐变色对象
                     if (window.clearAllGradientRects) {
@@ -705,8 +704,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 detail: { variant: completeVariantData }
                                             });
                                             document.dispatchEvent(event);
-                                            
-                                            console.log(`设计页面颜色选择：已更新 selectedVariant 到 Product Store:`, completeVariantData);
                                         } catch (error) {
                                             console.warn('更新 Product Store selectedVariant 失败:', error);
                                         }
@@ -728,14 +725,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 detail: { variant: basicVariant }
                                             });
                                             document.dispatchEvent(event);
-                                            
-                                            console.log(`设计页面颜色选择：已创建并更新基本 selectedVariant:`, basicVariant);
                                         } catch (error) {
                                             console.warn('创建基本 selectedVariant 失败:', error);
                                         }
                                     }
                                     
-                                    console.log(`完整颜色数据已存储到视图 ${activeViewId}:`, colorData);
                                 } else {
                                     console.warn('未找到选中的颜色样本元素');
                                 }
@@ -755,7 +749,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (window.useCanvasStore) {
                             const store = window.useCanvasStore();
                             const totalRts = store.getTotalMaxRtsForBulkOrder;
-                            console.log(`颜色选择后，各视图 rts_for_bulk_order 最大值相加: ${totalRts}`);
                             
                             // 触发自定义事件，供其他组件监听
                             document.dispatchEvent(new CustomEvent('pw-bulk-order-rts-calculated', {
@@ -805,7 +798,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         }
                                     }
                                     
-                                    console.log(`已将颜色 ${color} 应用到当前视图的 base_layer`);
+                                    
                                 } else {
                                     console.warn('当前视图没有 base_layer 或视图不存在');
                                 }
@@ -813,7 +806,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 console.warn('没有激活的视图或 store 不可用');
                             }
                         } else {
-                            console.warn('applyTintFilter 函数或 useCanvasStore 不可用');
                         }
                     }
                     
@@ -833,7 +825,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (typeof window.applyColorToAllViews === 'function') {
                             window.applyColorToAllViews(color);
                         } else {
-                            console.warn('全局方法 applyColorToAllViews 不可用，使用原逻辑');
                             applyColorTint();
                         }
                     } else {
@@ -871,18 +862,15 @@ window.applyColorToView = function(view, color, tintFunction) {
     }
 
     if (isFourGridView(view)) {
-        console.log(`跳过四格视图 ${view.name || view.id} 的纯色应用`);
         return;
     }
 
     if (!view.base_layer) {
-        console.warn(`视图 ${view.name || view.id} 没有 base_layer`);
         return;
     }
 
     const effectiveTint = tintFunction || (typeof applyTintFilter === 'function' ? applyTintFilter : window.applyTintFilter);
     if (typeof effectiveTint !== 'function') {
-        console.warn('applyTintFilter 函数不可用');
         return;
     }
 
@@ -901,16 +889,13 @@ window.applyColorToView = function(view, color, tintFunction) {
         requestAnimationFrame(() => {
             canvas.renderAll();
         });
-        console.log(`已将颜色 ${color} 应用到视图 ${view.name || view.id}`);
     } else {
-        console.warn(`视图 ${view.name || view.id} 的 canvas 未找到`);
     }
 };
 
 // ===== 新增：全局方法 - 应用颜色到所有视图 =====
 window.applyColorToAllViews = function(color) {
     if (!window.useCanvasStore) {
-        console.warn('useCanvasStore 不可用');
         return;
     }
 
@@ -938,14 +923,13 @@ window.applyColorToAllViews = function(color) {
 
     if (hasFourGrid) {
         window.currentColor = color;
-        console.log(`检测到四格视图，已将 window.currentColor 同步为 ${color}`);
     }
 
     if (typeof window.__pwcaUpdatePriceDisplay === 'function') {
         window.__pwcaUpdatePriceDisplay();
     }
 
-    console.log(`全局颜色 ${color} 已应用到所有 ${store.views.length} 个视图（四格视图通过 window.currentColor）`);
+    
 };
 
 // 新增：视图切换自动应用当前纯色到新视图（遇到四格视图跳过）
@@ -968,7 +952,6 @@ document.addEventListener('layerPanelViewSwitch', function(ev) {
 
             // 四格视图跳过直接着色，依赖 window.currentColor
             if (typeof isFourGridView === 'function' && isFourGridView(view)) {
-                console.log(`视图 ${view.name || view.id} 为四格视图，切换时跳过直接着色`);
                 return;
             }
 
@@ -978,7 +961,6 @@ document.addEventListener('layerPanelViewSwitch', function(ev) {
                 if (attempts < 30) {
                     setTimeout(tryApply, 100);
                 } else {
-                    console.warn(`视图 ${view.name || view.id} 的 base_layer 未就绪，无法在切换时应用颜色`);
                 }
                 return;
             }
@@ -1016,23 +998,19 @@ const getGradientCoords = (direction, width, height) => {
 
 window.applyGradientToView = function(view, startColor, endColor, direction) {
     if (!view) {
-        console.warn('无法应用渐变：视图数据无效');
         return;
     }
 
     if (isFourGridView(view)) {
-        console.log(`跳过四格视图 ${view.name || view.id} 的渐变应用`);
         return;
     }
 
     if (typeof fabric === 'undefined') {
-        console.warn('fabric 未加载，无法应用渐变');
         return;
     }
 
     const baseLayerObject = view.base_layer;
     if (!baseLayerObject) {
-        console.warn(`视图 ${view.name || view.id} 没有 base_layer`);
         return;
     }
 
@@ -1144,7 +1122,7 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
         baseCanvas.renderAll();
     }
 
-    console.log(`已为视图 ${view.name || view.id} 应用渐变色: ${startColor} 到 ${endColor}, 方向: ${direction}`);
+    
 };
 
                 // 监听 canvasStore 数据变化
@@ -1217,7 +1195,6 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                     
                     // 重置全局颜色变量
                     window.currentColor = '#000000';
-                    console.log('已重置 window.currentColor 为默认值:', window.currentColor);
                     
                     // 清除所有颜色样本的选中状态
                     const colorSwatches = document.querySelectorAll('.color-swatch');
@@ -1295,8 +1272,6 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                     if (colorStatusDisplay) {
                         colorStatusDisplay.style.display = 'none';
                     }
-                    
-                    console.log('已清除所有颜色效果并重置画布');
                 }
                 
                 // 将清除函数暴露到全局，供链接使用
@@ -1316,7 +1291,6 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                             picker.value = '#000000';
                         }
                         window.currentColor = '#000000';
-                        console.log('已清除显式颜色选择状态，重置 window.currentColor 与选择样本');
                     } catch (e) {
                         console.warn('清除显式颜色选择状态时发生错误:', e);
                     }
@@ -1359,7 +1333,7 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                         
                         // 更新全局颜色变量，确保 getExplicitSelectedColor 能检测到
                         window.currentColor = color;
-                        console.log('自定义颜色已应用，更新 window.currentColor:', color);
+                        
                         
                         // 先清除所有渐变色对象
                         if (window.clearAllGradientRects) {
@@ -1377,7 +1351,6 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                                     if (currentView && currentView.base_layer) {
                                         // 若为四格视图，跳过对 base_layer 的直接上色，仅通过 window.currentColor 同步
                                         if (typeof isFourGridView === 'function' && isFourGridView(currentView)) {
-                                            console.log(`当前视图为四格视图，仅通过 window.currentColor 同步颜色 ${color}`);
                                             if (typeof window.applyColorToAllViews === 'function') {
                                                 window.applyColorToAllViews(color);
                                             }
@@ -1391,7 +1364,6 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                                             originalImg.src = currentView.base_layer._element.src;
                                             originalImg.onload = () => {
                                                 currentView.base_layer._originalElement = originalImg;
-                                                console.log('已保存原始图像元素用于重置');
                                             };
                                         }
                                         
@@ -1421,22 +1393,18 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                                             }
                                         }
 
-                                        console.log(`已将颜色 ${color} 应用到当前视图的 base_layer`);
+                                        
 
                                         // 无条件同步其他视图（四格视图通过 window.currentColor）
                                         if (typeof window.applyColorToAllViews === 'function') {
                                             window.applyColorToAllViews(color);
                                         } else {
-                                            console.warn('applyColorToAllViews 函数不可用，无法同步其他视图的纯色');
                                         }
                                     } else {
-                                        console.warn('当前视图没有 base_layer 或视图不存在');
                                     }
                                 } else {
-                                    console.warn('没有激活的视图或 store 不可用');
                                 }
                             } else {
-                                console.warn('applyTintFilter 函数或 useCanvasStore 不可用');
                             }
                         }
                         
@@ -1455,7 +1423,6 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                             // 设置超时，避免无限等待
                             setTimeout(() => {
                                 clearInterval(checkInterval);
-                                console.warn('applyTintFilter function not available after timeout');
                             }, 5000);
                         }
                         
@@ -1555,7 +1522,6 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                                 const productStore = window.useProductStore();
                                 if (productStore && typeof productStore.setGradientColorApplied === 'function') {
                                     productStore.setGradientColorApplied(true);
-                                    console.log('已更新产品页面渐变色应用状态为 true');
                                 }
                             } catch (error) {
                                 console.warn('无法更新产品页面渐变色状态:', error);
@@ -1566,7 +1532,6 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                         if (typeof window.ProductImageCanvas !== 'undefined' && window.ProductImageCanvas.switchToCanvas) {
                             // 使用第一个颜色作为背景色来初始化画布
                             window.ProductImageCanvas.switchToCanvas(color1);
-                            console.log('已切换到Canvas模式，背景色:', color1);
                         }
                         
                         // 应用渐变色到Base图层（使用剪切方案）
@@ -1586,7 +1551,6 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                                             if (!isFourGridView(currentView)) {
                                                 window.applyGradientToView(currentView, color1, color2, direction);
                                             } else {
-                                                console.log(`跳过四格视图 ${currentView.name || currentView.id} 的渐变应用`);
                                             }
 
                                             const isMainView = store.views.length > 0 && store.views[0].id === activeViewId;
@@ -1594,7 +1558,6 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                                                 store.views.forEach(view => {
                                                     if (view.id !== currentView.id) {
                                                         if (isFourGridView(view)) {
-                                                            console.log(`跳过四格视图 ${view.name || view.id} 的渐变同步`);
                                                             return;
                                                         }
                                                         window.applyGradientToView(view, color1, color2, direction);
@@ -1612,7 +1575,6 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                                 }
                             } else if (typeof window.ProductImageCanvas !== 'undefined' && window.CanvasManager) {
                                 // 产品页面环境：使用ProductImageCanvas的画布
-                                console.log('在产品页面环境中应用渐变色');
                                 
                                 const productCanvas = window.CanvasManager.getCanvas('product-view');
                                 if (productCanvas) {
@@ -1698,8 +1660,6 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                                             }
                                             
                                             productCanvas.renderAll();
-                                            
-                                            console.log(`产品页面已应用渐变色: ${color1} 到 ${color2}, 方向: ${direction}`);
                                         } else {
                                             console.warn('无法获取Base图层的图像元素');
                                         }
@@ -1764,7 +1724,6 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                         // 当勾选样品订单时，计算各视图 rts_for_sample_order 最大值相加
                         calculateSampleOrderRts();
                     } else {
-                        console.log('样品订单复选框已取消勾选');
                         // 可以在这里添加取消勾选时的逻辑
                     }
                 });
@@ -1776,7 +1735,6 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
             if (window.useCanvasStore) {
                 const store = window.useCanvasStore();
                 const totalRts = store.getTotalMaxRtsForSampleOrder;
-                console.log(`样品订单勾选后，各视图 rts_for_sample_order 最大值相加: ${totalRts}`);
                 
                 // 触发自定义事件，供其他组件监听
                 document.dispatchEvent(new CustomEvent('pw-sample-order-rts-calculated', {

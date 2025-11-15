@@ -123,10 +123,8 @@ function add_custom_cart_js()
         <script type="text/javascript">
             // Native
             document.body.addEventListener('wc_fragments_refreshed', function() {
-                console.log("POJS handled the event");
                 // 查找所有包含图片URL的元素
                 const customImageElements = document.querySelectorAll('.wc-block-components-product-details__value');
-                console.log(customImageElements);
                 customImageElements.forEach(element => {
                     const imageUrl = element.textContent.trim();
                     // 检查文本内容是否为图片URL
@@ -159,11 +157,9 @@ function add_custom_cart_js2()
             jQuery(document).ready(function($) {
                 // 监听 WooCommerce 购物车内容更新完成事件
                 $('body').on('updated_wc_div', function() {
-                    console.log("WooCommerce 购物车元素加载完成");
 
                     // 查找所有包含图片URL的元素
                     const customImageElements = document.querySelectorAll('.wc-block-components-product-details__value');
-                    console.log(customImageElements);
 
                     customImageElements.forEach(element => {
                         const imageUrl = element.textContent.trim();
@@ -879,7 +875,6 @@ function pwca_add_calculate_shipping_button()
                         // 构建新的显示文字
                         var newText = "Shipping Options: " + service + ": $" + parseFloat(cost).toFixed(2);
                         $td.html(newText);
-                        console.log("Updated shipping display text to:", newText);
                     });
                     
                     // 也更新可能的其他运费显示位置
@@ -910,7 +905,6 @@ function pwca_add_calculate_shipping_button()
                             $(".pwca-shipping-updating").remove();
                             
                             if (response.success) {
-                                console.log("PWCA Shipping updated:", response.data);
                                 
                                 // 立即更新运费显示文字
                                 updateShippingDisplayText(service, cost);
@@ -930,15 +924,12 @@ function pwca_add_calculate_shipping_button()
                                         
                                         // 再次确保显示文字正确
                                         updateShippingDisplayText(service, cost);
-                                        
-                                        console.log("PWCA: Forced shipping recalculation completed");
                                     }, 500);
                                     
                                     // 额外的延迟确保所有计算完成
-                                    setTimeout(function() {
-                                        $("body").trigger("update_checkout");
-                                        console.log("PWCA: Final checkout update triggered");
-                                    }, 1000);
+                                        setTimeout(function() {
+                                            $("body").trigger("update_checkout");
+                                        }, 1000);
                                 }
                                 
                                 // 显示成功消息
@@ -1137,7 +1128,6 @@ function pwca_calculate_shipping_styles()
                 var buttons = $(".pwca-calculate-shipping-container");
                 if (buttons.length > 1) {
                     buttons.not(":first").remove();
-                    console.log("PW Canvas: Removed duplicate calculate shipping buttons");
                 }
             }
             
@@ -1191,7 +1181,6 @@ function pwca_calculate_shipping_styles()
                     }
                 });
                 
-                console.log("PW Canvas: Hidden WooCommerce shipping selector, hasSelectedShipping:", hasSelectedShipping);
             }
             
             // 初始化运费状态标志

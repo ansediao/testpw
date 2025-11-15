@@ -128,13 +128,10 @@ if ($product_id > 0) {
                 canvas.viewportTransform[0] = zoomLevel;
                 canvas.viewportTransform[3] = zoomLevel;
                 canvas.renderAll();
-                console.log('画布缩放比例更新为：', zoomLevel);
               } else {
-                console.error('画布对象未定义');
               }
             });
           } else {
-            console.error('缩放滑块或数值显示元素未找到');
           }
         });
       </script>
@@ -211,7 +208,6 @@ if ($product_id > 0) {
         try {
           const store = window.useCanvasStore();
           await store.fetchProductData(pwId);
-          console.log('产品数据已加载到 Pinia store');
 
           // 监听 productViewFlow 变化，控制 customization-area 显示
           function updateCustomizationAreaVisibility() {
@@ -220,10 +216,8 @@ if ($product_id > 0) {
               const productViewFlow = store.getProductViewFlow();
               if (productViewFlow === '4-Grid Flow') {
                 customizationArea.style.display = 'none';
-                console.log('隐藏 customization-area，因为 productViewFlow 为 4-Grid Flow');
               } else {
                 customizationArea.style.display = 'flex';
-                console.log('显示 customization-area，productViewFlow 为:', productViewFlow);
               }
             }
           }
@@ -242,12 +236,10 @@ if ($product_id > 0) {
           // if (typeof window.initCanvasFromAPI === 'function') {
           //   // 监听多视图画布初始化完成事件
           //   document.addEventListener('canvasInitializedFromAPI', function(event) {
-          //     console.log('收到画布初始化完成事件:', event.detail);
           //   });
 
           //   // 监听视图特定的画布初始化完成事件
           //   document.addEventListener('viewCanvasInitialized', function(event) {
-          //     console.log('视图画布初始化完成:', event.detail.viewData.name);
           //   });
 
 
@@ -256,7 +248,7 @@ if ($product_id > 0) {
           //   setTimeout(async () => {
           //     // 检查是否有多视图系统
           //     if (store.views && store.views.length > 0) {
-          //       console.log('检测到多视图系统，为每个视图初始化API数据...');
+          //       
 
           //       // 为每个视图初始化API数据
           //       for (const view of store.views) {
@@ -264,12 +256,12 @@ if ($product_id > 0) {
           //         const canvasElement = document.getElementById(canvasId);
 
           //         if (canvasElement) {
-          //           console.log(`正在为视图 ${view.name} 初始化API数据...`);
+          //           
           //           try {
           //             // 使用视图特定的初始化函数
           //             const canvas = await window.initCanvasForView(canvasId, view);
           //             if (canvas) {
-          //               console.log(`视图 ${view.name} 的画布已从API数据成功初始化`);
+          //               
           //               // 使用 CanvasManager 管理 canvas 实例
           //               if (window.CanvasManager) {
           //                 window.CanvasManager._canvasMap[view.id] = canvas;
@@ -295,13 +287,13 @@ if ($product_id > 0) {
           //       // 单视图模式，查找主画布元素
           //       const mainCanvas = document.querySelector('#mainCanvas');
           //       if (mainCanvas) {
-          //         console.log('正在从API数据初始化单视图画布...');
+          //         
           //         // const canvas = await window.initCanvasFromAPI('mainCanvas', pwId);
           //         if (canvas) {
-          //           console.log('单视图画布已从API数据成功初始化');
+          //           
           //         }
           //       } else {
-          //         console.log('未找到主画布元素，跳过API初始化');
+          //         
           //       }
           //     }
           //   }, 1000); // 等待1秒让多视图系统完成初始化
@@ -320,7 +312,6 @@ if ($product_id > 0) {
       const addToCartBtn = document.getElementById('addToCartBtn');
       if (addToCartBtn) {
         addToCartBtn.addEventListener('click', async function() {
-          console.log('加入购物车按钮被点击');
           // 获取产品ID
           const productId = <?php echo $product_id ?: 0; ?>;
           if (!productId) {
@@ -572,8 +563,7 @@ if ($product_id > 0) {
 
       try {
         // 遍历所有视图并捕获图像
-        for (const view of store.views) {
-          console.log(`正在捕获视图用于PDF: ${view.name}`);
+          for (const view of store.views) {
 
           // 切换到当前视图
           store.setActiveViewId(view.id);
@@ -627,7 +617,6 @@ if ($product_id > 0) {
               viewName: view.name,
               imageData: imageDataUrl
             });
-            console.log(`视图 ${view.name} 已捕获用于PDF`);
           }
         }
 
@@ -716,18 +705,14 @@ if ($product_id > 0) {
           const timeStr = currentTime.toLocaleString().replace(/[:\/]/g, '-').replace(/,/g, '');
           const fileName = `${productName}_多视图规格书_${timeStr}.pdf`;
           doc.save(fileName);
-
-          console.log(`成功生成包含 ${exportedImages.length} 个视图的PDF`);
         } else {
-          console.warn('没有成功捕获任何视图用于PDF生成');
         }
 
       } catch (error) {
-        console.error('生成多视图PDF时发生错误:', error);
       } finally {
         // 恢复到原始激活视图
         if (originalActiveViewId) {
-          console.log(`恢复到原始视图: ${originalActiveViewId}`);
+          
           store.setActiveViewId(originalActiveViewId);
 
           const originalViewContainer = document.getElementById(`view-container-${originalActiveViewId}`);
@@ -790,7 +775,7 @@ if ($product_id > 0) {
         // 如果有需要挂载的元素，可以挂载应用
         // app.mount('#app');
 
-        console.log('[Canvas] Pinia 应用已初始化');
+        
 
         // 触发自定义事件，通知其他脚本 Pinia 已准备就绪
         document.dispatchEvent(new CustomEvent('canvasPiniaReady', {
@@ -800,7 +785,6 @@ if ($product_id > 0) {
           }
         }));
       } else {
-        console.warn('[Canvas] Vue、Pinia 或 useCanvasStore 未正确加载');
       }
     });
   </script>

@@ -92,7 +92,6 @@ window.CustomColorsButton = {
         
         // 处理Gradient按钮点击 - 销毁Canvas，恢复原始图片，在原始图片上添加文字
         const handleGradientClick = () => {
-            console.log('Gradient按钮被点击，开始处理...');
             
             selectedButton.value = 'gradient';
             
@@ -102,10 +101,8 @@ window.CustomColorsButton = {
                     // 调用destroy方法销毁Canvas（已包含showOriginalImage调用）
                     if (typeof window.ProductImageCanvas.destroy === 'function') {
                         window.ProductImageCanvas.destroy();
-                        console.log('Canvas实例已销毁，原始图片已恢复');
                     }
                 } catch (error) {
-                    console.error('销毁Canvas时出错:', error);
                 }
             }
             
@@ -119,7 +116,7 @@ window.CustomColorsButton = {
             showGradientStatus.value = true;
             showCustomColorStatus.value = false; // 隐藏Custom Colors状态
             
-            console.log('Gradient处理完成');
+            
         };
         
         // 处理颜色输入变化
@@ -162,12 +159,10 @@ window.CustomColorsButton = {
                     // 保存文字对象引用
                     gradientTextObject.value = text;
                     
-                    console.log('文字已添加到画布');
+                    
                 } else {
-                    console.warn('无法获取画布实例');
                 }
             } catch (error) {
-                console.error('添加文字到画布失败:', error);
             }
         };
         
@@ -189,17 +184,16 @@ window.CustomColorsButton = {
                         canvas.remove(gradientTextObject.value);
                         canvas.renderAll();
                         gradientTextObject.value = null;
-                        console.log('文字已从画布移除');
+                        
                     }
                 }
             } catch (error) {
-                console.error('从画布移除文字失败:', error);
             }
         };
         
         // 重置Custom Colors状态
         const resetCustomColor = () => {
-            console.log('正在还原到原始产品图片...');
+            
             
             // 销毁Canvas实例并还原到原始图片
             if (window.ProductImageCanvas) {
@@ -207,11 +201,9 @@ window.CustomColorsButton = {
                     // 调用destroy方法销毁Canvas（已包含showOriginalImage调用）
                     if (typeof window.ProductImageCanvas.destroy === 'function') {
                         window.ProductImageCanvas.destroy();
-                        console.log('Canvas实例已销毁');
                     }
                     
                 } catch (error) {
-                    console.error('销毁Canvas时出错:', error);
                 }
             }
             
@@ -250,16 +242,13 @@ window.CustomColorsButton = {
             
             if (originalImageContainer) {
                 originalImageContainer.style.display = '';
-                console.log('原始图片容器已重新显示:', originalImageContainer.className);
             } else {
-                console.warn('未找到原始图片容器，可能需要刷新页面');
             }
             
             // 确保移除Canvas容器（如果存在）
             const canvasContainer = document.querySelector('.pw-product-canvas-container');
             if (canvasContainer) {
                 canvasContainer.remove();
-                console.log('Canvas容器已移除');
             }
             
             // 清除产品状态管理中的自定义颜色状态
@@ -267,7 +256,6 @@ window.CustomColorsButton = {
                 productStore.selectedVariant = null;
                 productStore.customColor = null;
                 productStore.gradientApplied = false;
-                console.log('产品状态已清除');
             }
             
             // 重置组件内部状态
@@ -293,7 +281,7 @@ window.CustomColorsButton = {
                 }
             }));
             
-            console.log('已成功还原到原始产品图片');
+            
         };
         
         // 确保原始图片容器可见
@@ -315,7 +303,7 @@ window.CustomColorsButton = {
             for (const selector of selectors) {
                 originalImageContainer = document.querySelector(selector);
                 if (originalImageContainer) {
-                    console.log(`找到原始图片容器: ${selector}`);
+                    
                     break;
                 }
             }
@@ -330,9 +318,7 @@ window.CustomColorsButton = {
             
             if (originalImageContainer) {
                 originalImageContainer.style.display = '';
-                console.log('原始图片容器已确保可见:', originalImageContainer.className);
             } else {
-                console.warn('未找到原始图片容器');
             }
         };
         
@@ -360,7 +346,7 @@ window.CustomColorsButton = {
                 for (const selector of selectors) {
                     imageContainer = document.querySelector(selector);
                     if (imageContainer) {
-                        console.log(`找到图片容器用于添加文字覆盖层: ${selector}`);
+                        
                         break;
                     }
                 }
@@ -410,12 +396,10 @@ window.CustomColorsButton = {
                     // 保存引用
                     gradientTextOverlay.value = textOverlay;
                     
-                    console.log('文字覆盖层已添加到原始图片上');
+                    
                 } else {
-                    console.error('未找到合适的图片容器来添加文字覆盖层');
                 }
             } catch (error) {
-                console.error('添加文字覆盖层失败:', error);
             }
         };
         
@@ -425,17 +409,14 @@ window.CustomColorsButton = {
                 if (gradientTextOverlay.value) {
                     gradientTextOverlay.value.remove();
                     gradientTextOverlay.value = null;
-                    console.log('文字覆盖层已从原始图片移除');
                 }
                 
                 // 额外清理：移除所有可能存在的文字覆盖层
                 const existingOverlays = document.querySelectorAll('.pw-gradient-text-overlay');
-                existingOverlays.forEach(overlay => {
+                    existingOverlays.forEach(overlay => {
                     overlay.remove();
-                    console.log('清理了残留的文字覆盖层');
                 });
             } catch (error) {
-                console.error('移除文字覆盖层失败:', error);
             }
         };
         
@@ -445,7 +426,7 @@ window.CustomColorsButton = {
             selectedButton.value = null;
             removeTextFromCanvas();
             removeTextOverlayFromOriginalImage(); // 添加移除文字覆盖层
-            console.log('Gradient状态已重置');
+            
         };
         
 
@@ -480,10 +461,9 @@ window.CustomColorsButton = {
                 });
                 document.dispatchEvent(customEvent);
                 
-                console.log(`Custom color selected: ${buttonType} - ${colorValue}`);
+                
                 
             } catch (error) {
-                console.error('Error selecting custom color:', error);
             }
         };
         
@@ -522,7 +502,7 @@ window.CustomColorsButton = {
         
         // 组件挂载时的初始化
         Vue.onMounted(() => {
-            console.log('CustomColorsButton component mounted');
+            
             
             // 监听其他颜色选择事件，保持状态同步
             document.addEventListener('pw-color-variant-selected', (event) => {
@@ -537,7 +517,7 @@ window.CustomColorsButton = {
                 // 重置渐变颜色应用状态，重新显示复选框和按钮
                 if (productStore && productStore.setGradientColorApplied) {
                     productStore.setGradientColorApplied(false);
-                    console.log('Other color selected - showing checkboxes and add to cart button');
+                    
                 }
             });
         });
@@ -568,5 +548,3 @@ window.CustomColorsButton = {
 if (typeof window.vueApp !== 'undefined' && window.vueApp.component) {
     window.vueApp.component('CustomColorsButton', window.CustomColorsButton);
 }
-
-console.log('CustomColorsButton component loaded successfully');

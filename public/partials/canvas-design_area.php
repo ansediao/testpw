@@ -78,7 +78,6 @@ if ($first_image_url) {
      */
     function getOriginFromAnchorPoint(anchorPoint) {
         // anchorPoint 输出到控制台
-        console.log(anchorPoint)
 
         // 处理单个值的情况（如'center'）
         if (anchorPoint === 'center') {
@@ -324,8 +323,6 @@ if ($first_image_url) {
                 // 应用多个滤镜来模拟渐变效果
                 layerObject.filters = [blendFilter1, blendFilter2];
                 layerObject.applyFilters();
-
-                console.log(`已应用渐变色滤镜: ${color1} 到 ${color2}`);
             } catch (error) {
                 console.warn('渐变滤镜不支持，使用色调滤镜作为降级方案:', error);
                 // 使用第一个颜色作为降级方案
@@ -543,7 +540,6 @@ if ($first_image_url) {
     });
 
     function initializeMultiViewCanvases(store) {
-        console.log('Initializing multi-view canvases');
 
         let isInitialized = false;
 
@@ -563,7 +559,6 @@ if ($first_image_url) {
     }
 
     function createViewContainers(views, store) {
-        console.log('Creating view containers for views:', views);
 
         const multiViewContainer = document.getElementById('multi-view-container');
         if (!multiViewContainer) {
@@ -588,9 +583,7 @@ if ($first_image_url) {
                     const gridFlowLayer = view.layers.find(layer => layer.name === '4-Grid Flow');
                     if (gridFlowLayer) {
                         targetLayer = gridFlowLayer;
-                        console.log('使用 4-Grid Flow 图层的尺寸初始化画布');
                     } else {
-                        console.warn('未找到 4-Grid Flow 图层，使用默认图层尺寸');
                     }
                 }
                 if (targetLayer && targetLayer.layer_data?.dimensions) {
@@ -754,7 +747,6 @@ if ($first_image_url) {
                         await renderLayerToSpecificCanvas(canvas, layer, store, view);
                     }
                     canvas.renderAll();
-                    console.log(`画布 #${config.canvasId} 上的图层已成功渲染。 ✅`);
                 }
             }
         }
@@ -973,7 +965,7 @@ if ($first_image_url) {
             window.CanvasManager._canvasMap[canvasId] = canvas;
         }
 
-        console.log(`空的fabric画布 #${canvasId} 已初始化。`);
+        
         return canvas;
     }
 
@@ -989,7 +981,6 @@ if ($first_image_url) {
      */
     async function renderLayerToSpecificCanvas(canvas, layer, store, view) {
         if (!canvas || !layer) {
-            console.error("渲染单个图层需要有效的画布实例和图层数据。");
             return null;
         }
 
@@ -1007,7 +998,6 @@ if ($first_image_url) {
                             store.views[viewIndex].base_layer = {};
                         }
                         store.views[viewIndex].base_layer = fabricObject;
-                        console.log(`Base Layer 对象已存入 Pinia store: views[${view.id}].base_layer`);
 
                         // 从pinia 中取出这个 图片对象 修改颜色
                         // applyTintFilter(store.views[viewIndex].base_layer, '#ff0000', 1);
@@ -1018,12 +1008,10 @@ if ($first_image_url) {
 
             if (fabricObject) {
                 canvas.add(fabricObject);
-                console.log(`该图层 "${layer.name}" 已被添加到画布 ${canvas.getElement().id}。`);
                 return fabricObject;
             }
             return null;
         } catch (error) {
-            console.error(`渲染图层 "${layer.name}" 时发生错误:`, error);
             return null;
         }
     }
@@ -1043,7 +1031,6 @@ if ($first_image_url) {
 
         const canvasElement = document.getElementById(canvasId);
         if (!canvasElement) {
-            console.error('Mask canvas element not found:', canvasId);
             return;
         }
 
@@ -1085,7 +1072,6 @@ if ($first_image_url) {
                     // 将尺寸乘以50转换为像素
                     printAreaWidth = firstMethod.print_method_area_width * 50;
                     printAreaHeight = firstMethod.print_method_area_height * 50;
-                    console.log(`获取到打印区域尺寸: ${printAreaWidth}x${printAreaHeight}px`);
                 }
             }
         }
@@ -1132,7 +1118,7 @@ if ($first_image_url) {
         canvasElement.__fabricCanvas = maskCanvas;
         canvasElement.__viewId = view.id;
 
-        console.log(`遮罩画布 #${canvasId} 初始化完成，打印区域: ${printAreaWidth}x${printAreaHeight}px`);
+        
 
         return maskCanvas;
     }
@@ -1351,7 +1337,6 @@ if ($first_image_url) {
             }
 
             processedCanvases.add(canvas);
-            console.log(`已从 ${canvasId || '未知画布'} 清除 ${gradientObjects.length} 个渐变色对象`);
             return gradientObjects.length;
         };
 
@@ -1402,7 +1387,7 @@ if ($first_image_url) {
             console.error('清除渐变色对象时发生错误:', error);
         }
 
-        console.log(`clearAllGradientRects 总共清除了 ${totalRemoved} 个渐变覆盖对象`);
+        
         return totalRemoved;
     }
 

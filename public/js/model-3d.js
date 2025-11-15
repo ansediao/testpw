@@ -2,15 +2,13 @@
 function init3DModel() {
     const modelContainer = document.getElementById('model3dContainer');
     if (! modelContainer) {
-        console.error('找不到模型容器元素');
         return;
     }
     const modelUrl = modelContainer.getAttribute('data-model-url');
     if (! modelUrl) {
-        console.error('模型URL未设置');
         return;
     }
-    console.log('尝试加载3D模型:', modelUrl);
+    
     // 设置容器样式
     modelContainer.style.width = '100%';
     modelContainer.style.height = '400px';
@@ -43,7 +41,6 @@ function init3DModel() {
             renderer.outputColorSpace = THREE.SRGBColorSpace;
         }
     } catch (e) {
-        console.warn('设置渲染器编码时出错:', e);
     }
     modelContainer.appendChild(renderer.domElement);
     // 添加环境光和方向光
@@ -69,11 +66,10 @@ function init3DModel() {
         const loader = new THREE.GLTFLoader();
         // 添加错误处理
         loader.load(modelUrl, function (gltf) { // 模型加载成功
-            console.log('模型加载成功:', gltf);
+            
             const model = gltf.scene;
             // 检查模型是否为空
             if (! model || ! model.children || model.children.length === 0) {
-                console.error('加载的模型没有内容');
                 return;
             }
             // 遍历模型的所有子对象，确保材质可见并准备应用纹理
@@ -102,11 +98,9 @@ function init3DModel() {
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
             const center = box.getCenter(new THREE.Vector3());
-            console.log('模型尺寸:', size);
-            console.log('模型中心点:', center);
+            
             const maxDim = Math.max(size.x, size.y, size.z);
             if (maxDim === 0 || isNaN(maxDim)) {
-                console.error('模型尺寸计算为零或无效');
                 return;
             }
             const scale = 3 / maxDim;
@@ -124,15 +118,12 @@ function init3DModel() {
             // 初始加载完成后，立即捕获画布并应用纹理
             captureCanvas(false).then(imageUrl => {
                 updateModelTexture(imageUrl);
-                console.log('初始纹理已应用到模型');
             });
         }, function (xhr) { // 加载进度 - 不显示进度信息
             if (xhr.lengthComputable) {
                 const percent = Math.floor((xhr.loaded / xhr.total) * 100);
-                console.log('模型加载进度: ' + percent + '%');
             }
         }, function (error) { // 加载错误
-            console.error('模型加载错误:', error);
             // 显示错误信息（简化版）
             const errorMsg = document.createElement('div');
             errorMsg.style.color = 'red';
@@ -141,7 +132,6 @@ function init3DModel() {
             modelContainer.appendChild(errorMsg);
         });
     } catch (e) {
-        console.error('初始化3D模型加载器时出错:', e);
         // 显示错误信息（简化版）
         const errorMsg = document.createElement('div');
         errorMsg.style.color = 'red';
@@ -166,7 +156,6 @@ function init3DModel() {
 // 添加更新3D模型纹理的函数
 function updateModelTexture(imageUrl) {
     if (!window.modelMesh) {
-        console.log('模型网格未准备好，无法更新纹理');
         return;
     }
     // 如果已有纹理，则更新它

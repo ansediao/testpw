@@ -174,10 +174,8 @@ class Pw_CDN_Loader {
         // 直接注入缓存的产品聚合数据，避免API调用延迟
         <?php if ($cached_data): ?>
         window.pwProductData = <?php echo wp_json_encode($cached_data); ?>;
-        console.log('Product data loaded from cache:', window.pwProductData);
         <?php else: ?>
         window.pwProductData = null;
-        console.log('No cached product data found, will use API call');
         <?php endif; ?>
         </script>
         <?php

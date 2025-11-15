@@ -434,7 +434,7 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
                                 <button type="button" id="pw-remove-image" class="button" style="margin-top:10px;">移除图片</button>
                             </div>
                         </label>
-                        <input type="file" id="pw-design-image" name="design_image" accept="image/*" style="display:none;" onchange="console.log('File selected:', this.files);">
+                        <input type="file" id="pw-design-image" name="design_image" accept="image/*" style="display:none;">
                     </div>
                     </div>
                     

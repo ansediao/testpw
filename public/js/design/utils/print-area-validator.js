@@ -104,7 +104,6 @@ function getPrintAreaBounds(viewId) {
             }
         }
     } catch (err) {
-        console.warn('[PrintAreaValidator] 读取 maskCanvas 的 printAreaRect 失败，回退到打印方式尺寸', err);
     }
 
     // 回退：从当前视图的打印方式数据计算边界
@@ -217,7 +216,6 @@ function isObjectInPrintArea(obj, printAreaBounds) {
  */
 function moveObjectToCanvasCenter(obj, canvas, printAreaBounds) {
     if (!obj || !canvas) {
-        console.warn('[PrintAreaValidator] moveObjectToCanvasCenter 参数不完整，退出');
         return;
     }
 
@@ -245,7 +243,7 @@ function moveObjectToCanvasCenter(obj, canvas, printAreaBounds) {
     if (typeof obj.setCoords === 'function') obj.setCoords();
     canvas.renderAll();
 
-    console.log(`[PrintAreaValidator] 对象已移动到画布中心: (${centerX}, ${centerY})`);
+    
 }
 
 /**
@@ -321,7 +319,6 @@ function validateAndRepositionObject(obj, viewId) {
  */
 function addPrintAreaValidationListeners(canvas, viewId) {
     if (!canvas || !viewId) {
-        console.warn(`[PrintAreaValidator] addPrintAreaValidationListeners 参数无效: canvas=${!!canvas}, viewId=${viewId}`);
         return;
     }
     
@@ -382,10 +379,6 @@ window.PrintAreaValidator = {
     addPrintAreaValidationListeners,
     // 添加调试方法
     checkModuleStatus: function() {
-        console.log('[PrintAreaValidator] 模块状态检查:');
-        console.log('- CanvasManager 存在:', !!window.CanvasManager);
-        console.log('- usePrintMethodStore 存在:', !!window.usePrintMethodStore);
-        console.log('- useCanvasStore 存在:', !!window.useCanvasStore);
         
         if (window.CanvasManager) {
             // 获取CanvasManager的所有方法（包括原型链上的）
@@ -399,13 +392,12 @@ window.PrintAreaValidator = {
                 });
                 obj = Object.getPrototypeOf(obj);
             }
-            console.log('- CanvasManager 方法:', methods);
+            
             
             const activeCanvas = window.CanvasManager.getActiveCanvas();
-            console.log('- 当前激活画布:', !!activeCanvas);
+            
             if (activeCanvas) {
-                console.log('- 激活画布事件监听器数量:', Object.keys(activeCanvas.__eventListeners || {}).length);
-                console.log('- 激活画布事件类型:', Object.keys(activeCanvas.__eventListeners || {}));
+                
             }
         }
         
@@ -422,88 +414,77 @@ window.PrintAreaValidator = {
  * 在浏览器控制台中运行：window.PrintAreaValidator.testPrintAreaValidation()
  */
 function testPrintAreaValidation() {
-    console.log('[PrintAreaValidator] 开始测试打印区域验证功能...');
+    
     
     // 获取当前激活的画布
     const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
     if (!canvasStore || !canvasStore.activeViewId) {
-        console.warn('[PrintAreaValidator] 无法获取当前激活的视图');
         return;
     }
     
     const viewId = canvasStore.activeViewId;
     const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
     if (!canvas) {
-        console.warn('[PrintAreaValidator] 无法获取画布实例');
         return;
     }
     
     // 获取打印区域边界
     const printAreaBounds = getPrintAreaBounds(viewId);
     if (!printAreaBounds) {
-        console.warn('[PrintAreaValidator] 无法获取打印区域边界');
         return;
     }
     
-    console.log('[PrintAreaValidator] 打印区域边界:', printAreaBounds);
+    
     
     // 获取当前选中的对象
     const activeObject = canvas.getActiveObject();
     if (!activeObject) {
-        console.warn('[PrintAreaValidator] 没有选中的对象，请先在画布上选择一个对象');
         return;
     }
     
     // 检查对象是否分配了打印方式
     const hasPrintMethod = hasPrintMethodAssigned(activeObject);
-    console.log('[PrintAreaValidator] 对象是否分配了打印方式:', hasPrintMethod);
     
     // 检查对象与打印区域的重叠情况
     const overlapCheck = isObjectInPrintArea(activeObject, printAreaBounds);
-    console.log('[PrintAreaValidator] 重叠检查结果:', overlapCheck);
     
     // 执行验证和重新定位
     const validationResult = validateAndRepositionObject(activeObject, viewId);
-    console.log('[PrintAreaValidator] 验证结果:', validationResult);
     
-    console.log('[PrintAreaValidator] 测试完成');
+    
 }
 
 /**
  * 手动触发拖拽结束验证（用于调试）
  */
 function testDragEndValidation() {
-    console.log('[PrintAreaValidator] 手动触发拖拽结束验证');
+    
     
     // 检查 CanvasManager 是否存在
     if (!window.CanvasManager) {
-        console.error('[PrintAreaValidator] CanvasManager 未找到');
         return;
     }
     
-    console.log('[PrintAreaValidator] CanvasManager 可用方法:', Object.getOwnPropertyNames(window.CanvasManager));
+    
     
     const activeCanvas = window.CanvasManager.getActiveCanvas();
     if (!activeCanvas) {
-        console.error('[PrintAreaValidator] 无法获取激活的画布');
         
         // 尝试获取所有可用的视图ID
         const viewIds = window.CanvasManager.getViewIds();
-        console.log('[PrintAreaValidator] 可用的视图ID:', viewIds);
         
         if (viewIds.length > 0) {
-            console.log('[PrintAreaValidator] 尝试使用第一个可用的视图');
+            
             const firstViewId = viewIds[0];
             const firstCanvas = window.CanvasManager.getCanvas(firstViewId);
             
             if (firstCanvas) {
                 const activeObject = firstCanvas.getActiveObject();
                 if (!activeObject) {
-                    console.error('[PrintAreaValidator] 第一个画布中没有选中的对象');
                     return;
                 }
                 
-                console.log(`[PrintAreaValidator] 使用视图 ${firstViewId} 进行验证`);
+                
                 validateAndRepositionObject(activeObject, firstViewId);
                 return;
             }
@@ -514,32 +495,28 @@ function testDragEndValidation() {
     
     const activeObject = activeCanvas.getActiveObject();
     if (!activeObject) {
-        console.error('[PrintAreaValidator] 没有选中的对象');
         return;
     }
     
     const currentViewId = window.CanvasManager.getCurrentViewId();
-    console.log(`[PrintAreaValidator] 当前视图ID: ${currentViewId}`);
     
     if (!currentViewId) {
         // 如果没有当前视图ID，尝试从所有视图中找到包含激活画布的视图
         const viewIds = window.CanvasManager.getViewIds();
-        console.log('[PrintAreaValidator] 所有视图ID:', viewIds);
         
         for (const viewId of viewIds) {
             const canvas = window.CanvasManager.getCanvas(viewId);
             if (canvas === activeCanvas) {
-                console.log(`[PrintAreaValidator] 找到匹配的视图ID: ${viewId}`);
+                
                 validateAndRepositionObject(activeObject, viewId);
                 return;
             }
         }
         
-        console.error('[PrintAreaValidator] 无法确定当前视图ID');
         return;
     }
     
-    console.log('[PrintAreaValidator] 模拟拖拽结束，触发验证...');
+    
     validateAndRepositionObject(activeObject, currentViewId);
 }
 
@@ -547,28 +524,26 @@ function testDragEndValidation() {
  * 手动为当前激活画布添加事件监听器（用于调试）
  */
 function manualAddListeners() {
-    console.log('[PrintAreaValidator] 手动添加事件监听器...');
+    
     
     const activeCanvas = window.CanvasManager ? window.CanvasManager.getActiveCanvas() : null;
     const currentViewId = window.CanvasManager ? window.CanvasManager.getCurrentViewId() : null;
     
     if (!activeCanvas) {
-        console.error('[PrintAreaValidator] 无法获取激活画布');
         return false;
     }
     
     if (!currentViewId) {
-        console.error('[PrintAreaValidator] 无法获取当前视图ID');
         return false;
     }
     
-    console.log(`[PrintAreaValidator] 为视图 ${currentViewId} 手动添加监听器`);
+    
     
     // 检查添加前的监听器数量
     const beforeMouseUp = activeCanvas.__eventListeners['mouse:up'] ? activeCanvas.__eventListeners['mouse:up'].length : 0;
     const beforeObjectModified = activeCanvas.__eventListeners['object:modified'] ? activeCanvas.__eventListeners['object:modified'].length : 0;
     
-    console.log(`[PrintAreaValidator] 添加前 - mouse:up: ${beforeMouseUp}, object:modified: ${beforeObjectModified}`);
+    
     
     // 调用添加函数
     addPrintAreaValidationListeners(activeCanvas, currentViewId);
@@ -577,7 +552,7 @@ function manualAddListeners() {
     const afterMouseUp = activeCanvas.__eventListeners['mouse:up'] ? activeCanvas.__eventListeners['mouse:up'].length : 0;
     const afterObjectModified = activeCanvas.__eventListeners['object:modified'] ? activeCanvas.__eventListeners['object:modified'].length : 0;
     
-    console.log(`[PrintAreaValidator] 添加后 - mouse:up: ${afterMouseUp}, object:modified: ${afterObjectModified}`);
+    
     
     return true;
 }

@@ -221,7 +221,6 @@ const layersApp = Vue.createApp({
             store = useCanvasStore();
             printMethodStore = usePrintMethodStore();
         } catch (error) {
-            console.error('Failed to initialize stores:', error);
             // 返回空的响应式对象作为fallback
             return {
                 layers: Vue.ref([]),
@@ -370,13 +369,7 @@ const layersApp = Vue.createApp({
             const groupLayers = layers.value.filter(layer => layer.groupId === expectedGroupId);
             const groupLayerCount = groupLayers.length;
             
-            console.log('isSelectedLayerInExistingGroup check:', {
-                selectedPrintMethodId: selectedPrintMethodId.value,
-                expectedGroupId: expectedGroupId,
-                existingGroup: existingGroup,
-                groupLayerCount: groupLayerCount,
-                shouldShowMergeOption: groupLayerCount >= 2
-            });
+            
             
             // 只有当组中有2个或更多图层时才显示合并选项
             // 这意味着：
@@ -520,7 +513,6 @@ const layersApp = Vue.createApp({
                 return generateThumbnail(obj, layer.id);
 
             } catch (error) {
-                console.warn('生成缩略图失败:', error);
                 return '';
             }
         };
@@ -573,7 +565,6 @@ const layersApp = Vue.createApp({
                         tempFabricCanvas.add(cloned);
                         tempFabricCanvas.renderAll();
                     } catch (error) {
-                        console.warn('生成克隆缩略图失败:', error);
                     }
                 });
 
@@ -591,7 +582,6 @@ const layersApp = Vue.createApp({
                 return dataUrl;
 
             } catch (error) {
-                console.warn('生成缩略图失败:', error);
                 return '';
             }
         };
@@ -632,7 +622,6 @@ const layersApp = Vue.createApp({
                 }
 
                 if (!imageSrc) {
-                    console.warn('无法获取图片源，使用默认方法生成缩略图');
                     return generateThumbnail(obj, layerId);
                 }
 
@@ -673,12 +662,10 @@ const layersApp = Vue.createApp({
                         document.dispatchEvent(refreshEvent);
 
                     } catch (error) {
-                        console.warn('绘制图片缩略图失败:', error);
                     }
                 };
 
                 img.onerror = () => {
-                    console.warn('图片加载失败:', imageSrc);
                 };
 
                 img.src = imageSrc;
@@ -694,7 +681,6 @@ const layersApp = Vue.createApp({
                 return canvas.toDataURL('image/png');
 
             } catch (error) {
-                console.warn('生成图片缩略图失败:', error);
                 return '';
             }
         };
@@ -705,7 +691,6 @@ const layersApp = Vue.createApp({
             const imgHeight = imageElement.naturalHeight || imageElement.height;
 
             if (imgWidth === 0 || imgHeight === 0) {
-                console.warn('图片尺寸无效');
                 return;
             }
 
@@ -851,7 +836,6 @@ const layersApp = Vue.createApp({
                     dpi: dpiText
                 };
             } catch (error) {
-                console.warn('获取图片信息失败:', error);
                 return null;
             }
         };
@@ -1235,7 +1219,6 @@ const layersApp = Vue.createApp({
                             const existingLayer = currentViewLayers.find(layer => layer.id === newId);
                             if (!existingLayer) {
                                 store.addLayerToView(currentViewId, newLayer);
-                                console.log('图层已手动同步到列表:', newLayer);
                             }
 
                             // 设置为当前选中的图层
@@ -1304,7 +1287,6 @@ const layersApp = Vue.createApp({
         const showGroupAssignDialog = (layer) => {
             // 检查是否只有单个印刷方式
             if (printMethodStore.isSinglePrintMethod) {
-                console.warn('当前视图只有一种印刷方式，无法切换');
                 return;
             }
 
@@ -1318,7 +1300,6 @@ const layersApp = Vue.createApp({
             if (typeof MicroModal !== 'undefined') {
                 MicroModal.show('pwca-print-method-modal');
             } else {
-                console.error('MicroModal 库未加载');
                 // 备用方案：使用原有的弹窗方式
                 alert('请选择印刷方式。');
             }
@@ -1355,7 +1336,7 @@ const layersApp = Vue.createApp({
                 }
             }
 
-            console.log(`[AssignLayer] 选择的选项: ${printMethodOption}`);
+            
 
             // 根据选择的选项处理图层分配
             if (printMethodOption === 'separate') {
@@ -1383,7 +1364,6 @@ const layersApp = Vue.createApp({
                 
                 // 将图层分配到新创建的组
                 assignLayerToGroup(groupId);
-                console.log(`[AssignLayer] 创建独立组: ${groupId}`);
             } else {
                 // 合并印刷方式组：使用现有组或创建标准组
                 const groupId = `print-method-${selectedPrintMethodId.value}`;
@@ -1414,7 +1394,6 @@ const layersApp = Vue.createApp({
                 
                 // 将图层分配到现有或新创建的标准组
                 assignLayerToGroup(groupId);
-                console.log(`[AssignLayer] 合并到现有组: ${groupId}`);
             }
         };
         
@@ -1438,7 +1417,6 @@ const layersApp = Vue.createApp({
                 // 检查该图层是否当前选中，如果是则显示蒙版画布
                 if (store.activeObjectId === selectedLayerForAssign.value.id) {
                     controlMaskCanvasVisibility(selectedLayerForAssign.value.id);
-                    console.log(`[AssignLayer] 图层分配到组后，显示蒙版画布: ${selectedLayerForAssign.value.id}`);
                 }
             }
 
@@ -1446,7 +1424,6 @@ const layersApp = Vue.createApp({
             if (typeof MicroModal !== 'undefined') {
                 MicroModal.close('pwca-print-method-modal');
             } else {
-                console.error('MicroModal 库未加载');
             }
         };
 
@@ -1483,7 +1460,6 @@ const layersApp = Vue.createApp({
                 // 检查该图层是否当前选中，如果是则隐藏蒙版画布
                 if (store.activeObjectId === layer.id) {
                     controlMaskCanvasVisibility(layer.id);
-                    console.log(`[RemoveFromGroup] 图层从组中移除后，隐藏蒙版画布: ${layer.id}`);
                 }
             }
         };
@@ -1640,7 +1616,6 @@ const layersApp = Vue.createApp({
         const showGroupPrintMethodDialog = (group) => {
             // 检查是否只有单个印刷方式
             if (printMethodStore.isSinglePrintMethod) {
-                console.warn('当前视图只有一种印刷方式，无法切换');
                 return;
             }
 
@@ -1659,7 +1634,6 @@ const layersApp = Vue.createApp({
             if (typeof MicroModal !== 'undefined') {
                 MicroModal.show('pwca-group-print-method-modal');
             } else {
-                console.error('MicroModal 库未加载');
                 // 备用方案：使用原有的弹窗方式
                 alert('请选择新的印刷方式。');
             }
@@ -1771,7 +1745,6 @@ const layersApp = Vue.createApp({
             document.dispatchEvent(event);
 
             // 显示成功消息
-            console.log(`图层组 "${selectedGroupForPrintMethod.value.name}" 的印刷方式已更改为 "${selectedMethod.name}"`);
 
             // 清理状态
             selectedGroupForPrintMethod.value = null;
@@ -1782,7 +1755,6 @@ const layersApp = Vue.createApp({
                 const affectedLayerIds = groupLayers.map(layer => layer.id);
                 if (affectedLayerIds.includes(store.activeObjectId)) {
                     controlMaskCanvasVisibility(store.activeObjectId);
-                    console.log(`[GroupPrintMethodChange] 图层组印刷方式修改后，更新蒙版画布显示: ${store.activeObjectId}`);
                 }
             }
         };
@@ -1910,9 +1882,7 @@ const mountApp = () => {
             // 初始化 MicroModal
             if (typeof MicroModal !== 'undefined') {
                 MicroModal.init();
-                console.log('MicroModal 已初始化');
             } else {
-                console.warn('MicroModal 库未加载');
             }
         } catch (error) {
             // 挂载失败
@@ -1943,7 +1913,6 @@ window.addLayerToStore = function (layerId, layerName, layerType) {
             const currentViewId = store.activeViewId;
 
             if (!currentViewId) {
-                console.warn('没有激活的视图，无法添加图层');
                 return;
             }
 
@@ -1969,7 +1938,6 @@ window.addLayerToStore = function (layerId, layerName, layerType) {
             store.setActiveObjectId(layerId);
 
         } catch (error) {
-            console.error('添加图层到管理系统失败:', error);
         }
     }
 };

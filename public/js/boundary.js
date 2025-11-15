@@ -15,15 +15,13 @@ function drawBoundary() {
     }
     
     if (!boundaryCanvas) {
-        console.warn('Boundary canvas element not found. Active view ID:', canvasStore ? canvasStore.activeViewId : 'No store');
         return;
     }
     
-    console.log('Found boundary canvas:', boundaryCanvas.id || 'no-id');
+    
     
     const boundaryCtx = boundaryCanvas.getContext('2d');
     if (!boundaryCtx) {
-        console.warn('Cannot get boundary canvas context');
         return;
     }
     

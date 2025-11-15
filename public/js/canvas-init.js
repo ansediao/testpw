@@ -6,7 +6,6 @@
     function init() {
         // 检查 CanvasManager 是否已加载
         if (typeof window.CanvasManager === 'undefined') {
-            console.log('CanvasManager not loaded, waiting...');
             return;
         }
 
@@ -16,7 +15,6 @@
         
         if ((canvasStore && canvasStore.views && canvasStore.views.length > 0) || hasMultiViewContainer) {
             // 多视图模式：使用 CanvasManager 管理多个视图
-            console.log('Multi-view mode activated, using CanvasManager');
             initializeMultiViewCanvases(canvasStore);
             return;
         }
@@ -45,7 +43,6 @@
             const canvasElement = document.getElementById(canvasId);
             
             if (canvasElement) {
-                console.log(`[CanvasInit] 初始化视图 ${view.name} 的Canvas`);
                 
                 // 使用 CanvasManager 创建 Canvas 实例
                 const canvas = window.CanvasManager.createCanvas(canvasId, view.id, {
@@ -69,7 +66,6 @@
                 setTimeout(() => {
                     if (window.CanvasInitializationState) {
                         window.CanvasInitializationState.completeInitialization(view.id);
-                        console.log(`[CanvasInit] 视图 ${view.name} 初始化完成`);
                     }
                 }, 500); // 等待500ms模拟API加载时间
             }
@@ -84,7 +80,6 @@
         const shadowCanvas = document.getElementById('shadowLayer');
         
         if (!colorCanvas || !shadowCanvas) {
-            console.log('Traditional canvas elements not found');
             return;
         }
 
@@ -107,7 +102,6 @@
         });
 
         if (!colorCanvasInstance || !shadowCanvasInstance) {
-            console.error('Failed to create traditional canvas instances');
             return;
         }
 
@@ -128,7 +122,6 @@
         setTimeout(() => {
             if (window.CanvasInitializationState) {
                 window.CanvasInitializationState.completeInitialization('traditional');
-                console.log('[CanvasInit] 传统模式初始化完成');
             }
         }, 1000); // 等待1秒模拟图片加载时间
     }
@@ -244,7 +237,6 @@
             const canvasBox = document.querySelector('.canvas-box');
             
             if (!multiViewContainer || !canvasBox) {
-                console.warn('Multi-view container or canvas-box not found, using default zoom 95%');
                 return 95;
             }
 
@@ -265,7 +257,6 @@
 
             return 95; // 初始返回默认值
         } catch (error) {
-            console.error('Error calculating auto zoom:', error);
             return 95;
         }
     }
@@ -295,7 +286,7 @@
         // 获取 multi-view-container 的实际高度
         const containerHeight = multiViewContainer.scrollHeight;
         
-        console.log('Available height:', availableHeight, 'Container height:', containerHeight);
+        
         
         // 恢复原始变换
         multiViewContainer.style.transform = originalTransform;
@@ -306,7 +297,7 @@
             const requiredScale = (availableHeight * 0.95) / containerHeight;
             const zoomPercentage = Math.max(10, Math.min(200, Math.round(requiredScale * 100)));
             
-            console.log('Auto-calculated zoom:', zoomPercentage + '%');
+            
             return zoomPercentage;
         }
         
@@ -327,7 +318,7 @@
                 zoomSlider.value = actualZoom;
                 zoomValue.textContent = actualZoom + '%';
                 updateCanvasZoom(actualZoom / 100);
-                console.log('Auto-adjusted zoom to:', actualZoom + '%');
+                
             }
         }
     }
@@ -345,7 +336,6 @@
             multiViewContainer.style.transform = `scale(${scale})`;
             multiViewContainer.style.transformOrigin = 'center center';
         } else {
-            console.warn('multi-view-container not found for zoom control');
         }
     }
 
@@ -395,13 +385,11 @@ function loadColorImage1(imageUrl, color) {
     }
     
     if (!shadowCanvas) {
-        console.warn('Shadow canvas element not found');
         return;
     }
     
     shadowCtx = shadowCanvas.getContext('2d');
     if (!shadowCtx) {
-        console.warn('Cannot get shadow canvas context');
         return;
     }
     
@@ -446,7 +434,6 @@ if (zoomSlider && zoomValue) {
         updateCanvasZoom();
     });
 } else {
-    console.error('Zoom slider or value display element not found');
 }
 // 更新画布缩放 - 控制 multi-view-container
 function updateCanvasZoom() { 
@@ -461,9 +448,8 @@ function updateCanvasZoom() {
         multiViewContainer.style.transform = `scale(${scale})`;
         multiViewContainer.style.transformOrigin = 'center center';
         
-        console.log('multi-view-container 缩放比例更新为：', scale);
+        
     } else {
-        console.warn('multi-view-container not found for zoom control');
     }
 }
 
@@ -507,13 +493,11 @@ function loadColorImage(imageUrl, color) {
     }
     
     if (!shadowCanvas) {
-        console.warn('Shadow canvas element not found');
         return;
     }
     
     shadowCtx = shadowCanvas.getContext('2d');
     if (!shadowCtx) {
-        console.warn('Cannot get shadow canvas context');
         return;
     }
     

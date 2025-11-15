@@ -286,7 +286,6 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
          */
         async fetchPrintMethods(printingMethodIds) {
             if (!printingMethodIds || !Array.isArray(printingMethodIds) || printingMethodIds.length === 0) {
-                console.warn('fetchPrintMethods: 无效的 printingMethodIds 参数');
                 return [];
             }
 
@@ -346,13 +345,11 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                                              convertedMethod.customColors = colorResult.data;
                                              convertedMethod.apiData.customColors = colorResult.data;
                                              convertedMethod.settings.color.availableColors = colorResult.data;
-                                             console.log(`成功获取印刷方式 ${item.id} 的颜色数据:`, colorResult.data);
+                                             
                                          }
                                      } else {
-                                         console.warn(`获取印刷方式 ${item.id} 的颜色数据失败:`, colorResponse.status);
                                      }
                                 } catch (colorError) {
-                                    console.error(`获取印刷方式 ${item.id} 的颜色数据时出错:`, colorError);
                                 }
                             }
                             
@@ -362,7 +359,6 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                     convertedData = methodsWithColors;
                 } else if (apiData) {
                     // 如果data不是数组，尝试将其包装为数组
-                    console.warn('API返回的data不是数组格式:', apiData);
                     const convertedMethod = this.convertApiDataToInternalFormat(apiData);
                     
                     // 为单个印刷方式获取颜色数据
@@ -384,28 +380,24 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                                      convertedMethod.customColors = colorResult.data;
                                      convertedMethod.apiData.customColors = colorResult.data;
                                      convertedMethod.settings.color.availableColors = colorResult.data;
-                                     console.log(`成功获取印刷方式 ${apiData.id} 的颜色数据:`, colorResult.data);
+                                     
                                  }
                              }
                         } catch (colorError) {
-                            console.error(`获取印刷方式 ${apiData.id} 的颜色数据时出错:`, colorError);
                         }
                     }
                     
                     convertedData = [convertedMethod];
                 } else {
-                    console.warn('API返回的数据中没有有效的data字段:', result);
                 }
                 
                 // 如果有部分错误，记录警告
                 if (result.has_errors && result.errors) {
-                    console.warn('fetchPrintMethods: 部分印刷方式获取失败', result.errors);
                 }
                 
-                console.log('fetchPrintMethods: 成功获取印刷方式数据', convertedData);
+                
                 return convertedData;
             } catch (error) {
-                console.error('fetchPrintMethods: 获取印刷方式数据失败', error);
                 this.printMethodsError = error.message;
                 return [];
             } finally {
@@ -534,8 +526,7 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                     this.usedPrintMethodsByView[viewId][methodId] = found;
                     this.usedPrintMethodCountsByView[viewId][methodId] = 1;
                 } else {
-                    // 未找到完整对象则忽略，但记录告警
-                    console.warn('recordPrintMethodUsage: 未能在视图配置中找到对应的印刷方式对象', { viewId, methodId });
+                    // 未找到完整对象则忽略
                     return;
                 }
             } else {
@@ -585,11 +576,7 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                         if (obj && window.PrintAreaValidator && typeof window.PrintAreaValidator.validateAndRepositionObject === 'function') {
                             try {
                                 const result = window.PrintAreaValidator.validateAndRepositionObject(obj, viewId);
-                                if (result && result.wasMoved) {
-                                    console.log(`[PrintMethodStore] 绑定后位置校验：居中对象 layerId=${layerId}, overlapRatio=${result.overlapRatio}`);
-                                }
                             } catch (e) {
-                                console.warn('[PrintMethodStore] 绑定后自动位置校验失败', e);
                             }
                         }
                     }
@@ -628,13 +615,9 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                                     const obj = canvas.getObjects().find(o => String(o.id) === String(l.id));
                                     if (obj) {
                                         const result = window.PrintAreaValidator.validateAndRepositionObject(obj, viewId);
-                                        if (result && result.wasMoved) {
-                                            console.log(`[PrintMethodStore] 组绑定后位置校验：居中对象 layerId=${l.id}, overlapRatio=${result.overlapRatio}`);
-                                        }
                                     }
                                 }
                             } catch (e) {
-                                console.warn('[PrintMethodStore] 组绑定后自动位置校验失败', e);
                             }
                         }
                     }

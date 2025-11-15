@@ -275,7 +275,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     const productStore = window.useProductStore();
                     if (productStore && typeof productStore.setGradientColorApplied === 'function') {
                         productStore.setGradientColorApplied(true);
-                        console.log('已更新产品页面渐变色应用状态为 true');
                     }
                 } catch (error) {
                     console.warn('无法更新产品页面渐变色状态:', error);
@@ -286,7 +285,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (typeof window.ProductImageCanvas !== 'undefined' && window.ProductImageCanvas.switchToCanvas) {
                 // 使用第一个颜色作为背景色来初始化画布
                 window.ProductImageCanvas.switchToCanvas(color1);
-                console.log('已切换到Canvas模式，背景色:', color1);
             }
             
             // 应用渐变色到Base图层（使用剪切方案）
@@ -395,8 +393,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                             baseCanvas.renderAll();
                             
-                            console.log(`已应用渐变色: ${color1} 到 ${color2}, 方向: ${direction}`);
-                            
                         } else {
                             console.warn('当前视图没有 base_layer 或视图不存在');
                         }
@@ -405,7 +401,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 } else if (typeof window.ProductImageCanvas !== 'undefined' && window.CanvasManager) {
                     // 产品页面环境：使用ProductImageCanvas的画布
-                    console.log('在产品页面环境中应用渐变色');
                     
                     const productCanvas = window.CanvasManager.getCanvas('product-view');
                     if (productCanvas) {
@@ -491,8 +486,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                                 
                                 productCanvas.renderAll();
-                                
-                                console.log(`产品页面已应用渐变色: ${color1} 到 ${color2}, 方向: ${direction}`);
                             } else {
                                 console.warn('无法获取Base图层的图像元素');
                             }

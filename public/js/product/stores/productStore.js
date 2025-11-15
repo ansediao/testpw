@@ -343,7 +343,6 @@ const useProductStore = Pinia.defineStore('product', () => {
 
     const setQuantityDiscounts = (discounts) => {
         if (!Array.isArray(discounts)) {
-            console.warn('Quantity discounts should be an array:', discounts);
             return;
         }
 
@@ -558,7 +557,6 @@ const useProductStore = Pinia.defineStore('product', () => {
             try {
                 // 优先使用直接注入的缓存数据，避免API调用延迟
                 if (window.pwProductData) {
-                    console.log('Using cached product data from window.pwProductData');
                     const apiData = window.pwProductData;
                     
                     // 处理数据并更新状态
@@ -570,7 +568,6 @@ const useProductStore = Pinia.defineStore('product', () => {
                 }
 
                 // 如果没有缓存数据，回退到API调用
-                console.log('No cached data found, falling back to API call');
                 if (typeof window.productDataAPI === 'undefined') {
                     throw new Error('ProductDataAPI not loaded');
                 }
@@ -627,8 +624,7 @@ const useProductStore = Pinia.defineStore('product', () => {
                                     fc.discardActiveObject();
                                 }
                                 fc.renderAll();
-                            } catch (e) {
-                                console.warn('清除选中状态异常：', viewId, e);
+                        } catch (e) {
                             }
                         }
                     });
@@ -669,10 +665,8 @@ const useProductStore = Pinia.defineStore('product', () => {
                 try {
                     formData.append('pw_view_images', JSON.stringify(viewImagesPayload));
                 } catch (e) {
-                    console.warn('序列化视图图片失败，将仅提交第一张图片', e);
                 }
             } catch (e) {
-                console.error('渲染并采集视图图片失败：', e);
             }
 
             // 兼容旧逻辑：custom_image 使用第一张图片，如果不可用则给占位
@@ -728,7 +722,6 @@ const useProductStore = Pinia.defineStore('product', () => {
             }
             
             // 成功添加到购物车
-            console.log('产品已成功添加到购物车:', result.data);
             
             // 显示成功提示
             showSuccessMessage(`已成功添加 ${finalQuantity} 件商品到购物车！`);

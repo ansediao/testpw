@@ -6,9 +6,6 @@
     'use strict';
 
     $(document).ready(function() {
-        console.log('Simple Modal Handler initializing...');
-        console.log('pw_design_vars available:', typeof pw_design_vars !== 'undefined');
-        console.log('pw_admin_vars available:', typeof pw_admin_vars !== 'undefined');
         
         // 初始化MicroModal（忽略警告）
         if (typeof MicroModal !== 'undefined') {
@@ -262,7 +259,6 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('AJAX Error:', xhr.responseText);
                     alert('添加时发生错误: ' + error);
                 },
                 complete: function() {
@@ -273,11 +269,10 @@
         
         // 分类表单提交处理
         $(document).on('submit', '#pw-add-category-form', function(e) {
-            console.log('Category form submit triggered');
+            
             e.preventDefault();
             
             if (typeof pw_admin_vars === 'undefined') {
-                console.error('pw_admin_vars not available');
                 alert('配置错误：pw_admin_vars 未定义');
                 return;
             }
@@ -285,8 +280,7 @@
             const formData = $(this).serialize();
             const $submitBtn = $('#pw-add-category-submit');
             
-            console.log('Form data:', formData);
-            console.log('AJAX URL:', pw_admin_vars.ajaxurl);
+            
             
             $submitBtn.prop('disabled', true).text('添加中...');
             
@@ -295,7 +289,7 @@
                 type: 'POST',
                 data: formData + '&action=pw_add_category&nonce=' + pw_admin_vars.nonce,
                 success: function(response) {
-                    console.log('Category AJAX response:', response);
+                    
                     if (response.success) {
                         alert('分类添加成功！');
                         MicroModal.close('pw-add-category-modal');
@@ -305,7 +299,6 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('Category AJAX Error:', xhr.responseText);
                     alert('添加时发生错误: ' + error);
                 },
                 complete: function() {
@@ -316,7 +309,7 @@
         
         // 分类提交按钮点击处理（防止默认表单提交）
         $(document).on('click', '#pw-add-category-submit', function(e) {
-            console.log('Category submit button clicked');
+            
             e.preventDefault();
             e.stopPropagation();
             $('#pw-add-category-form').trigger('submit');
@@ -438,7 +431,6 @@
             if (typeof MicroModal !== 'undefined') {
                 MicroModal.show('pw-bulk-update-modal');
             } else {
-                console.error('MicroModal not loaded');
             }
         });
          
@@ -475,7 +467,6 @@
                      }
                  },
                  error: function(xhr, status, error) {
-                     console.error('AJAX Error:', error);
                      alert('请求失败，请稍后重试');
                  },
                  complete: function() {
@@ -488,7 +479,7 @@
          // Initialize checkbox states on page load
          toggleDeleteButton();
         
-        console.log('Simple Modal Handler initialized');
+        
     });
     
     /**
@@ -609,7 +600,7 @@
      * 打开编辑设计模态框
      */
     function openEditDesignModal(designId) {
-        console.log('Opening edit modal for design:', designId);
+        
         
         // 获取设计数据
         $.ajax({
@@ -626,7 +617,7 @@
                 MicroModal.show('pw-edit-design-modal');
             },
             success: function(response) {
-                console.log('Design data response:', response);
+                
                 if (response.success) {
                     populateEditForm(response.data);
                 } else {
@@ -635,7 +626,6 @@
                 }
             },
             error: function(xhr, status, error) {
-                console.error('AJAX error:', error);
                 alert('Failed to load design data');
                 MicroModal.close('pw-edit-design-modal');
             }
@@ -646,7 +636,7 @@
      * 填充编辑表单
      */
     function populateEditForm(designData) {
-        console.log('Populating form with data:', designData);
+        
         
         // 恢复原始表单内容
         $('#pw-edit-design-modal .modal__content').html(`
@@ -863,7 +853,7 @@
     function bindEditFormSubmit() {
         $('#pw-edit-design-submit').off('click').on('click', function(e) {
             e.preventDefault();
-            console.log('Submitting edit form');
+            
             
             const formData = new FormData($('#pw-edit-design-form')[0]);
             formData.append('action', 'pw_update_design_meta');
@@ -879,7 +869,7 @@
                     $('#pw-edit-design-submit').prop('disabled', true).text('Updating...');
                 },
                 success: function(response) {
-                    console.log('Update response:', response);
+                    
                     if (response.success) {
                         alert('Design updated successfully!');
                         MicroModal.close('pw-edit-design-modal');
@@ -890,7 +880,6 @@
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.error('Update error:', error);
                     alert('Failed to update design');
                 },
                 complete: function() {

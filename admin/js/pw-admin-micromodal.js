@@ -17,8 +17,6 @@
     };
 
     $(document).ready(function() {
-        console.log('PW Admin Micromodal initializing...');
-        console.log('pw_design_vars available:', typeof pw_design_vars !== 'undefined');
         
         initMicromodal();
         bindModalTriggers();
@@ -28,14 +26,10 @@
         // 添加调试事件监听器
         $(document).on('click', function(e) {
             if ($(e.target).closest('#pw-image-upload-area').length > 0) {
-                console.log('Click detected on upload area or its children');
             }
             if ($(e.target).closest('.modal__overlay').length > 0) {
-                console.log('Click detected on modal overlay');
             }
         });
-        
-        console.log('PW Admin Micromodal initialized successfully');
     });
 
     /**
@@ -43,13 +37,11 @@
      */
     function initMicromodal() {
         if (typeof MicroModal !== 'undefined') {
-            console.log('Micromodal initializing...');
             
             // 使用最简配置，避免MicroModal警告
             try {
                 MicroModal.init({
                     onShow: function(modal) {
-                        console.log('Modal opened:', modal.id);
                         
                         // 当模态框打开时，重新绑定上传事件
                         if (modal.id === 'pw-add-design-modal') {
@@ -59,14 +51,12 @@
                         }
                     },
                     onClose: function(modal) {
-                        console.log('Modal closed:', modal.id);
                     },
                     disableScroll: true,
                     awaitCloseAnimation: false,
                     awaitOpenAnimation: false
                 });
             } catch (error) {
-                console.warn('MicroModal init warning (can be ignored):', error.message);
             }
             
             // 完全自定义点击处理逻辑
@@ -80,15 +70,12 @@
                     
                     // 阻止容器内所有点击事件冒泡到遮罩层
                     container.addEventListener('click', function(e) {
-                        console.log('Container clicked, stopping propagation');
                         e.stopPropagation();
                     });
                     
                     // 只有直接点击遮罩层才关闭模态框
                     overlay.addEventListener('click', function(e) {
-                        console.log('Overlay clicked, target:', e.target, 'overlay:', overlay);
                         if (e.target === overlay) {
-                            console.log('Closing modal due to overlay click');
                             MicroModal.close(modal.id);
                         }
                     });
@@ -100,13 +87,11 @@
                     button.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log('Close button clicked');
                         MicroModal.close(modal.id);
                     });
                 });
             });
         } else {
-            console.error('Micromodal.js not loaded');
         }
     }
 
@@ -164,7 +149,6 @@
             e.preventDefault();
             e.stopPropagation();
             const modalId = $(this).closest('[id$="-modal"]').attr('id');
-            console.log('Closing modal via close button:', modalId);
             MicroModal.close(modalId);
         });
         
@@ -304,7 +288,6 @@
                 }
             },
             error: function(xhr, status, error) {
-                console.error('AJAX Error:', xhr.responseText);
                 let errorMessage = '添加时发生错误';
                 
                 try {
@@ -450,7 +433,6 @@
         
         // 在模态框容器级别阻止所有点击事件冒泡
         $modalContainer.on('click.modalProtection', function(e) {
-            console.log('Modal container click intercepted');
             e.stopPropagation();
         });
 
@@ -459,7 +441,6 @@
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation(); // 阻止所有其他事件处理器
-            console.log('Upload area clicked, triggering file input');
             
             // 直接触发文件输入点击
             const fileInput = document.getElementById('pw-design-image');
@@ -497,7 +478,6 @@
         // 文件选择 - 阻止事件冒泡保持模态框打开
         $fileInput.on('change.imageUpload', function(e) {
             e.stopPropagation();
-            console.log('File input changed:', this.files.length);
             if (this.files.length > 0) {
                 handleFileUpload(this.files[0]);
             }
@@ -521,7 +501,6 @@
         });
 
         function handleFileUpload(file) {
-            console.log('Handling file upload:', file.name);
             
             // 验证文件类型
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];

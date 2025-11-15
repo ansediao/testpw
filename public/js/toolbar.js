@@ -12,7 +12,6 @@ function updateDynamicToolbar(obj) {
     // 获取当前活动的 canvas 实例
     const canvas = getActiveCanvas();
     if (!canvas) {
-        console.error('Canvas instance not found in updateDynamicToolbar');
         return;
     }
     
@@ -951,13 +950,11 @@ function updateDynamicToolbar(obj) {
 function addImage(event) {
     const file = event.target.files[0];
     if (!file) return;
-    console.log('addImage function called, file name:', file.name);
     const reader = new FileReader();
     reader.onload = function (e) {
         // 获取当前活动的 canvas 实例
         const canvas = getActiveCanvas();
         if (!canvas) {
-            console.error('Canvas instance not found');
             return;
         }
         
@@ -986,9 +983,8 @@ function addImage(event) {
             if (!existingObject) {
                 canvas.add(img);
                 canvas.setActiveObject(img);
-                console.log('[AddImage] 用户添加图片到画布, ID:', newId);
             } else {
-                console.log('Image already exists, avoiding duplicate addition, ID:', newId);
+                
             }
         });
     }
@@ -999,7 +995,6 @@ function addDesignToCanvas(designId) {
     // 获取当前活动的 canvas 实例
     const canvas = getActiveCanvas();
     if (!canvas) {
-        console.error('Canvas instance not found');
         return;
     }
     
@@ -1032,13 +1027,11 @@ function addDesignToCanvas(designId) {
             if (!existingObject) {
                 canvas.add(img);
                 canvas.setActiveObject(img);
-                console.log('[AddDesign] 用户添加设计图片到画布, ID:', newId);
             } else {
-                console.log('Design image already exists, avoiding duplicate addition, ID:', newId);
+                
             }
         });
     } else {
-        console.error('Cannot find design image, ID:', designId);
     }
 }
 

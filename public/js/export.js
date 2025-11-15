@@ -5,7 +5,6 @@ function captureCanvas(includeBoundary = false) {
     const currentCanvas = activeCanvas || window.canvas || window.fabricCanvas;
     
     if (!currentCanvas) {
-        console.error('Cannot find current canvas instance');
         return Promise.resolve(null);
     }
     

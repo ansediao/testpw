@@ -212,7 +212,6 @@ class CanvasManager {
             
             return true;
         } catch (error) {
-            console.error('恢复 Canvas 状态失败:', error);
             return false;
         }
     }

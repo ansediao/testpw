@@ -66,14 +66,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Check if required dependencies are loaded
     if (typeof Vue === 'undefined' || typeof Pinia === 'undefined') {
-        console.error('Vue or Pinia not loaded properly');
         return;
     }
 
     // Get mount point
     const mountPoint = document.getElementById('vue-dynamic-product-area');
     if (!mountPoint) {
-        console.error('Vue mount point not found');
         return;
     }
 
@@ -122,7 +120,6 @@ function initializeModularApp(productId) {
                 try {
                     await store.fetchProductData();
                 } catch (error) {
-                    console.error('App: Product data initialization failed:', error);
                 }
             });
 

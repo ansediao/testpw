@@ -365,7 +365,6 @@
                 }
                 
             } catch (error) {
-                console.error('购物车更新失败:', error);
                 this.handleUpdateError($controls, { message: '网络错误，请重试' });
             } finally {
                 this.hideLoadingState($controls);

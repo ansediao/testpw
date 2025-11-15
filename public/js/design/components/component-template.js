@@ -60,7 +60,6 @@ export const YourComponentName = {
     //    - 执行复杂的 DOM 操作
     //    - 打印日志
     watch(count, (newCount, oldCount) => {
-      console.log(`count 从 ${oldCount} 变为 ${newCount}`);
       // 示例：当 count 变化时，更新 Pinia store 中的某个状态
       // canvasStore.updateSomeCount(newCount);
     });
@@ -69,7 +68,6 @@ export const YourComponentName = {
     //    这些方法通常用于响应用户交互（如点击事件）或执行特定逻辑。
     const handleClick = () => {
       count.value++;
-      console.log('按钮被点击了！');
       // 示例：调用 Pinia store 的 action 来修改全局状态
       // canvasStore.someAction();
     };
@@ -110,7 +108,6 @@ export const YourComponentName = {
   const container = document.getElementById('your-component-mount-point');
   // 如果挂载点不存在，则安全退出，避免报错
   if (!container) {
-    console.warn('挂载点 #your-component-mount-point 未找到，组件 YourComponentName 未挂载。');
     return;
   }
 
@@ -126,5 +123,5 @@ export const YourComponentName = {
 
   // (可选) 将组件实例暴露到全局 window 对象，便于在浏览器控制台进行调试
   window.YourComponentName = YourComponentName;
-  console.log('组件 YourComponentName 已成功挂载。');
+  
 })();
