@@ -28,6 +28,7 @@ export function useQuantity(calculatedMoq, batchQuantity, getIsSampleOrder, sell
   };
 
   const minQuantity = computed(() => {
+    if (Boolean(getIsSampleOrder?.value)) return 1;
     const calculatedMoqValue = Number(calculatedMoq?.value || 0);
     return Number.isFinite(calculatedMoqValue) && calculatedMoqValue > 0 ? calculatedMoqValue : 1;
   });
@@ -64,6 +65,14 @@ export function useQuantity(calculatedMoq, batchQuantity, getIsSampleOrder, sell
     const newVal = (quantity.value || 1) + step;
     setQuantity(newVal);
   };
+
+  watch(getIsSampleOrder, (isSample) => {
+    if (isSample) {
+      quantity.value = 1;
+    } else {
+      setQuantity(quantity.value);
+    }
+  });
 
   return { quantity, minQuantity, setQuantity, onMinus, onPlus, maxQuantity };
 }

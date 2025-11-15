@@ -87,20 +87,19 @@ const useProductStore = Pinia.defineStore('product', () => {
             const batchQty = stepQuantity.value;
             const sellInBatch = moqSettings.value.sell_in_batch;
 
-            // 确保不低于最小数量
             if (inputQuantity < minQty) {
                 return minQty;
             }
 
-            // 如果需要按批次销售，调整到最近的批次数量
+            if (buySampleChecked.value) {
+                return inputQuantity;
+            }
+
             if (sellInBatch === true) {
                 if (batchQty > 1) {
-                    // 计算从最小数量开始的批次倍数
                     const excessQuantity = inputQuantity - minQty;
                     const remainder = excessQuantity % batchQty;
-
                     if (remainder !== 0) {
-                        // 向上调整到下一个批次
                         return inputQuantity - remainder + batchQty;
                     }
                 }
@@ -323,6 +322,24 @@ const useProductStore = Pinia.defineStore('product', () => {
             }
         }
     };
+
+    Vue.watch(buySampleChecked, (isSample) => {
+        if (isSample) {
+            minQuantity.value = 1;
+            quantity.value = 1;
+        } else {
+            minQuantity.value = moqSettings.value.minimum_order_quantity || 1;
+            if (quantity.value < minQuantity.value) {
+                quantity.value = minQuantity.value;
+            }
+            if (moqSettings.value.sell_in_batch === true) {
+                const corrected = correctedQuantity.value(quantity.value);
+                if (corrected !== quantity.value) {
+                    quantity.value = corrected;
+                }
+            }
+        }
+    });
 
     const setQuantityDiscounts = (discounts) => {
         if (!Array.isArray(discounts)) {
