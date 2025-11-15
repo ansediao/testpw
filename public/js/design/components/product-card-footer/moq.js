@@ -31,6 +31,7 @@ export function useMoqCalculations(canvasStore, printStore) {
   const calculatedMoq = computed(() => {
     let maxColorMoq = 0;
     let maxPrintMethodMoq = 0;
+    let productMoq = 0;
 
     const colorsMap = canvasStore?.selectedColorsByView || {};
     for (const viewId in colorsMap) {
@@ -69,7 +70,19 @@ export function useMoqCalculations(canvasStore, printStore) {
       }
     }
 
-    const finalMoq = Math.max(maxColorMoq, maxPrintMethodMoq);
+    try {
+      const pd = canvasStore?.productData?.product?.data;
+      if (pd && pd.sell_in_batch_info && pd.sell_in_batch_info.moq_quantity !== undefined) {
+        const q = Number(pd.sell_in_batch_info.moq_quantity);
+        if (Number.isFinite(q) && q > productMoq) productMoq = q;
+      }
+      if (pd && pd.moq_setting && pd.moq_setting.minimum_order_quantity !== undefined) {
+        const q = Number(pd.moq_setting.minimum_order_quantity);
+        if (Number.isFinite(q) && q > productMoq) productMoq = q;
+      }
+    } catch (e) {}
+
+    const finalMoq = Math.max(maxColorMoq, maxPrintMethodMoq, productMoq);
     return finalMoq > 0 ? finalMoq : 1;
   });
 

@@ -28,10 +28,9 @@ export const ProductCardFooter = {
     const { showDesign, showColor, moqDesignText, moqColorText, calculatedMoq } = useMoqCalculations(canvasStore, printStore);
     // 价格（含折扣）：传入数量和样品订单状态
     // 注意：useQuantity 在下方定义，但此处只需传入 ref，Vue 会在同一 setup 中保持响应
-    const { batchQuantity } = useBatchQuantity(canvasStore);
-
     // 数量状态与 Getter（依赖 MOQ、批量步长、样品订单）
-    const { quantity, minQuantity, onMinus, onPlus } = useQuantity(calculatedMoq, batchQuantity, getIsSampleOrder);
+    const { batchQuantity, sellInBatch } = useBatchQuantity(canvasStore);
+    const { quantity, minQuantity, onMinus, onPlus, maxQuantity } = useQuantity(calculatedMoq, batchQuantity, getIsSampleOrder, sellInBatch);
 
     // 日期计算（依赖样品订单状态与数量累计加工时间）
     const { estimatedDeliveryDate, estimatedArrivalDate } = useDateCalculations(canvasStore, printStore, getIsSampleOrder, quantity);
@@ -43,7 +42,7 @@ export const ProductCardFooter = {
       showDesign, showColor, moqDesignText, moqColorText,
       originalBasePrice, discountedBasePrice, discountText, hasDiscount, customizationPrice,
       estimatedDeliveryDate, estimatedArrivalDate,
-      quantityDisabled, quantity, minQuantity,
+      quantityDisabled, quantity, minQuantity, maxQuantity, batchQuantity,
       onMinus, onPlus
     };
   },
@@ -82,7 +81,7 @@ export const ProductCardFooter = {
       </div>
       <div class="product-card__quantity">
         <button class="product-card__button product-card__button--minus" :disabled="quantityDisabled" @click="onMinus">-</button>
-        <input type="number" :min="minQuantity" v-model.number="quantity" class="product-card__input" :readonly="quantityDisabled">
+        <input type="number" :min="minQuantity" :max="maxQuantity" :step="batchQuantity" v-model.number="quantity" class="product-card__input" :readonly="quantityDisabled">
         <button class="product-card__button product-card__button--plus" :disabled="quantityDisabled" @click="onPlus">+</button>
       </div>
   `

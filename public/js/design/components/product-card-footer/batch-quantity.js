@@ -24,5 +24,14 @@ export function useBatchQuantity(canvasStore) {
     return 1;
   });
 
-  return { batchQuantity };
+  const sellInBatch = computed(() => {
+    const productData = canvasStore?.productData;
+    if (!productData || !productData.product || !productData.product.data) {
+      return false;
+    }
+    const product = productData.product.data;
+    return product.sell_in_batch === true || product.sell_in_batch === 1 || product.sell_in_batch === '1' || product.sell_in_batch === 'true';
+  });
+
+  return { batchQuantity, sellInBatch };
 }
