@@ -22,6 +22,8 @@ class Pw_Cart_Handler {
         add_action('wp_ajax_nopriv_add_customized_product_to_cart', array($this, 'add_customized_product_to_cart'));
         add_action('wp_ajax_pw_has_blank_in_cart', array($this, 'has_blank_in_cart'));
         add_action('wp_ajax_nopriv_pw_has_blank_in_cart', array($this, 'has_blank_in_cart'));
+        add_action('wp_ajax_pw_cart_blank_state', array($this, 'cart_blank_state'));
+        add_action('wp_ajax_nopriv_pw_cart_blank_state', array($this, 'cart_blank_state'));
         add_filter('woocommerce_get_item_data', array($this, 'display_custom_product_image'), 10, 2);
         add_filter('woocommerce_order_item_name', array($this, 'display_custom_image_in_order'), 10, 2);
         add_filter('woocommerce_display_item_meta', array($this, 'display_cart_images_properly'), 10, 3);
@@ -215,9 +217,14 @@ class Pw_Cart_Handler {
         if ($quantity < 1) {
             $quantity = 1;
         }
-
-        if ($this->cart_has_blank()) {
-            wp_send_json_error('购物车中存在空白件商品，当前操作不可加入');
+        $is_blank_raw = isset($_POST['pw_is_blank']) ? wp_unslash($_POST['pw_is_blank']) : null;
+        $incoming_is_blank = ($is_blank_raw === '1' || $is_blank_raw === 1 || $is_blank_raw === true || $is_blank_raw === 'true') ? 1 : 0;
+        if (!$this->cart_is_compatible_with($incoming_is_blank)) {
+            if ($incoming_is_blank === 1) {
+                wp_send_json_error('购物车中有定制产品，不可以加入购物车');
+            } else {
+                wp_send_json_error('购物车中已存在空白件商品，无法加入');
+            }
         }
 
         $custom_image = isset($_POST['custom_image']) ? wp_kses_post(wp_unslash($_POST['custom_image'])) : '';
@@ -363,6 +370,48 @@ class Pw_Cart_Handler {
             }
         }
         return false;
+    }
+
+    public function cart_blank_state() {
+        $state = $this->cart_state();
+        wp_send_json_success(array(
+            'blank_count' => $state['blank'],
+            'non_blank_count' => $state['non_blank'],
+            'cart_empty' => ($state['blank'] + $state['non_blank']) === 0,
+            'all_blank' => $state['blank'] > 0 && $state['non_blank'] === 0,
+            'all_non_blank' => $state['non_blank'] > 0 && $state['blank'] === 0,
+        ));
+    }
+
+    private function cart_state() {
+        $blank = 0;
+        $non_blank = 0;
+        if (function_exists('WC') && WC()->cart !== null) {
+            foreach (WC()->cart->get_cart() as $cart_item) {
+                $flag = 0;
+                if (isset($cart_item['custom_data']) && isset($cart_item['custom_data']['is_blank'])) {
+                    $flag = intval($cart_item['custom_data']['is_blank']) === 1 ? 1 : 0;
+                }
+                if ($flag === 1) { $blank++; } else { $non_blank++; }
+            }
+        }
+        return array('blank' => $blank, 'non_blank' => $non_blank);
+    }
+
+    private function cart_is_compatible_with($incoming_is_blank) {
+        if (!function_exists('WC') || WC()->cart === null || WC()->cart->is_empty()) {
+            return true;
+        }
+        foreach (WC()->cart->get_cart() as $cart_item) {
+            $existing = 0;
+            if (isset($cart_item['custom_data']) && isset($cart_item['custom_data']['is_blank'])) {
+                $existing = intval($cart_item['custom_data']['is_blank']) === 1 ? 1 : 0;
+            }
+            if ($existing !== $incoming_is_blank) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
