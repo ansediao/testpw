@@ -21,4 +21,8 @@ td.product-subtotal .woocommerce-Price-amount {
 }
 td.product-subtotal .pwca-discount-hint {
   display: block;
+}
+
+td.product-name .variation dd p {
+  margin: 0;
 }/*# sourceMappingURL=pwca-custom-cart.css.map */

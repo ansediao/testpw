@@ -424,9 +424,23 @@ class Pw_Cart_Handler {
             
             $item_data[] = array(
                 'key'     => 'Order Type',
-                'value'   => esc_html($order_type),
+                'value'   => '123',
                 'display' => ''
             );
+
+            // 根据 added_from 显示  Customization
+            $added_from = '';
+            if (isset($cart_item['custom_data']) && is_array($cart_item['custom_data'])) {
+                $added_from = isset($cart_item['custom_data']['added_from']) ? $cart_item['custom_data']['added_from'] : '';
+            }
+            $is_design = ($added_from === 'design');
+            $label = $is_design ? 'Yes' : 'No';
+            $item_data[] = array(
+                'key'     => 'Customization',
+                'value'   => $label,
+                'display' => ''
+            );
+
             // if (isset($custom['is_blank'])) {
             //     $item_data[] = array(
             //         'key'     => '空白件',
