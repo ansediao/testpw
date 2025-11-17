@@ -2526,16 +2526,17 @@ window.captureViewForPDF = captureViewForPDF;
 async function generateUniversalViewImages(views) {
     const images = [];
 
-    for (const view of views) {
-        try {
-            if (view.view_flow === '4-Grid Flow') { // 生成4格图预览
-                const gridImages = await generate4GridImagesForView(view, { onlyFirst: true });
-                images.push(gridImages);
-            } else { // 普通视图预览
+        for (const view of views) {
+            try {
+                if (view.view_flow === '4-Grid Flow') { // 生成4格图预览
+                const currentImage = await captureViewImage(view);
+                const firstGridImage = await generate4GridImagesForView(view, { onlyFirst: true });
+                images.push([currentImage, firstGridImage]);
+                } else { // 普通视图预览
                 const imageData = await captureViewImage(view);
                 images.push(imageData);
-            }
-        } catch (error) {
+                }
+            } catch (error) {
             // 添加错误占位图
             images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">截图失败</text></svg>'));
         }
