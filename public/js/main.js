@@ -2529,7 +2529,7 @@ async function generateUniversalViewImages(views) {
     for (const view of views) {
         try {
             if (view.view_flow === '4-Grid Flow') { // 生成4格图预览
-                const gridImages = await generate4GridImagesForView(view);
+                const gridImages = await generate4GridImagesForView(view, { onlyFirst: true });
                 images.push(gridImages);
             } else { // 普通视图预览
                 const imageData = await captureViewImage(view);
@@ -2549,8 +2549,11 @@ async function generateUniversalViewImages(views) {
  * @param {Object} view - 视图对象
  * @returns {Promise<Array>} 4张图片的数据数组
  */
-async function generate4GridImagesForView(view) {
+async function generate4GridImagesForView(view, options = {}) {
     if (! view || ! view.layers) {
+        if (options.onlyFirst) {
+            return 'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">前视图</text></svg>');
+        }
         return [
             'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">前视图</text></svg>'),
             'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">左视图</text></svg>'),
@@ -2589,6 +2592,9 @@ async function generate4GridImagesForView(view) {
     }
 
     if (! activeCanvas) {
+        if (options.onlyFirst) {
+            return 'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>');
+        }
         return [
             'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>'),
             'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>'),
@@ -2645,9 +2651,8 @@ async function generate4GridImagesForView(view) {
     ];
 
     const gridImages = [];
-
-    // 为每个视图配置生成合成图片
-    for (const config of viewConfigs) {
+    const configs = options.onlyFirst ? [viewConfigs[0]] : viewConfigs;
+    for (const config of configs) {
         try {
             const imageData = await generateCompositeImageForGrid({
                 canvasWidth,
@@ -2668,7 +2673,7 @@ async function generate4GridImagesForView(view) {
         }
     }
 
-    return gridImages;
+    return options.onlyFirst ? gridImages[0] : gridImages;
 }
 
 /**
