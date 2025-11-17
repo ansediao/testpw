@@ -137,6 +137,9 @@ class Pw_Cart_Handler {
         // 合并到现有 custom_data
         $cart_item_data['custom_data'] = array_merge($cart_item_data['custom_data'], $extra);
 
+        // 标记来源：产品页加购
+        $cart_item_data['custom_data']['added_from'] = 'product';
+
         return $cart_item_data;
     }
 
@@ -303,6 +306,7 @@ class Pw_Cart_Handler {
                 'color_name'   => $color_name,
                 'color_value'  => $color_value,
                 'variant_id'   => $variant_id,
+                'added_from'   => 'design',
             )
         );
         if (!empty($saved_view_images_meta)) {
@@ -584,12 +588,16 @@ class Pw_Cart_Handler {
                 $parts[] = $html;
             }
             $custom_html = '<div class="pw-design-preview">' . implode('', $parts) . '</div>';
-        } elseif (isset($cart_item['custom_data']['custom_image']) && !empty($cart_item['custom_data']['custom_image'])) {
-            $custom_html = '<img src="' . esc_url($cart_item['custom_data']['custom_image']) . '" style="max-width:100px; height:auto; border-radius: 4px;">';
+        } else {
+            // 无设计数据或来源为产品页，显示 Not Available
+            $added_from = isset($cart_item['custom_data']['added_from']) ? $cart_item['custom_data']['added_from'] : '';
+            if ($added_from === 'product' || empty($added_from)) {
+                $custom_html = '<span class="pw-design-na">Not Available</span>';
+            }
         }
 
         echo '<div class="hidden-custom-data" style="display:none;">' . $custom_html . '</div>';
-    }
+    } 
 
     /**
      * Move custom cart column with JavaScript
