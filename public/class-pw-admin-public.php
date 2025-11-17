@@ -133,6 +133,11 @@ class Pw_Admin_Public
         if (is_page('custom-checkout') || is_checkout()) {
             wp_enqueue_style('pwca-custom-checkout', plugin_dir_url(__FILE__) . 'css/pwca-custom-checkout.css', array(), $this->version, 'all');
         }
+
+        // 添加自定义购物车页面样式
+        if (is_page('custom-cart')) {
+            wp_enqueue_style('pwca-custom-cart', plugin_dir_url(__FILE__) . 'css/pwca-custom-cart.css', array(), $this->version, 'all');
+        }
     }
 
     /**
