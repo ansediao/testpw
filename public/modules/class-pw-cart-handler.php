@@ -424,7 +424,7 @@ class Pw_Cart_Handler {
             
             $item_data[] = array(
                 'key'     => 'Order Type',
-                'value'   => '123',
+                'value'   => $order_type,
                 'display' => ''
             );
 
