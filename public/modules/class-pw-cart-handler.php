@@ -20,6 +20,8 @@ class Pw_Cart_Handler {
         add_filter('woocommerce_add_to_cart_validation', array($this, 'validate_cart_products_before_add'), 10, 2);
         add_action('wp_ajax_add_customized_product_to_cart', array($this, 'add_customized_product_to_cart'));
         add_action('wp_ajax_nopriv_add_customized_product_to_cart', array($this, 'add_customized_product_to_cart'));
+        add_action('wp_ajax_pw_has_blank_in_cart', array($this, 'has_blank_in_cart'));
+        add_action('wp_ajax_nopriv_pw_has_blank_in_cart', array($this, 'has_blank_in_cart'));
         add_filter('woocommerce_get_item_data', array($this, 'display_custom_product_image'), 10, 2);
         add_filter('woocommerce_order_item_name', array($this, 'display_custom_image_in_order'), 10, 2);
         add_filter('woocommerce_display_item_meta', array($this, 'display_cart_images_properly'), 10, 3);
@@ -214,6 +216,10 @@ class Pw_Cart_Handler {
             $quantity = 1;
         }
 
+        if ($this->cart_has_blank()) {
+            wp_send_json_error('购物车中存在空白件商品，当前操作不可加入');
+        }
+
         $custom_image = isset($_POST['custom_image']) ? wp_kses_post(wp_unslash($_POST['custom_image'])) : '';
         // 多视图图片（JSON 字符串）：[{ id, name, images: [dataURL, ...] }, ...]
         $view_images_json = isset($_POST['pw_view_images']) ? wp_unslash($_POST['pw_view_images']) : '';
@@ -338,6 +344,25 @@ class Pw_Cart_Handler {
             foreach ($saved_file_paths as $p) { @unlink($p); }
             wp_send_json_error($error_message);
         }
+    }
+
+    public function has_blank_in_cart() {
+        $has_blank = $this->cart_has_blank();
+        wp_send_json_success(array('has_blank' => $has_blank));
+    }
+
+    private function cart_has_blank() {
+        if (!function_exists('WC') || WC()->cart === null) {
+            return false;
+        }
+        foreach (WC()->cart->get_cart() as $cart_item) {
+            if (isset($cart_item['custom_data']) && isset($cart_item['custom_data']['is_blank'])) {
+                if (intval($cart_item['custom_data']['is_blank']) === 1) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

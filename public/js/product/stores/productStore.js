@@ -600,6 +600,14 @@ const useProductStore = Pinia.defineStore('product', () => {
         try {
             // 使用传入的数量参数，如果没有则使用 store 中的数量
             const finalQuantity = customQuantity !== null ? customQuantity : quantity.value;
+            const precheckForm = new FormData();
+            precheckForm.append('action', 'pw_has_blank_in_cart');
+            precheckForm.append('security', window.pwAjax?.nonce || '');
+            const precheckResp = await fetch(window.pwAjax?.ajaxurl || '/wp-admin/admin-ajax.php', { method: 'POST', body: precheckForm });
+            const precheckResult = await precheckResp.json();
+            if (precheckResult && precheckResult.success && precheckResult.data && precheckResult.data.has_blank) {
+                throw new Error('购物车中已存在空白件商品，无法加入');
+            }
             
             // 准备 WordPress AJAX 请求数据
             const formData = new FormData();
