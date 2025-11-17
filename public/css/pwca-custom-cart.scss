@@ -1,5 +1,18 @@
 @import 'variables';
 @import 'mixins';
 body.woocommerce-cart main .woocommerce {
-  max-width: 1240px;
+    max-width: 1240px;
+}
+td.product-price{
+  .woocommerce-Price-amount{
+    display: block;
+  }
+}
+td.product-subtotal {
+    .woocommerce-Price-amount {
+        display: block;
+    }
+    .pwca-discount-hint {
+        display: block;
+    }
 }

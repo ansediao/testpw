@@ -10,4 +10,15 @@
  */
 body.woocommerce-cart main .woocommerce {
   max-width: 1240px;
+}
+
+td.product-price .woocommerce-Price-amount {
+  display: block;
+}
+
+td.product-subtotal .woocommerce-Price-amount {
+  display: block;
+}
+td.product-subtotal .pwca-discount-hint {
+  display: block;
 }/*# sourceMappingURL=pwca-custom-cart.css.map */
