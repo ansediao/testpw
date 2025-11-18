@@ -180,7 +180,16 @@ if ($product_id > 0) {
   <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/canvas-manager.js?time=' . microtime(true); ?>"></script>
   <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/utils/print-area-validator.js?time=' . microtime(true); ?>"></script>
   <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/canvas-init.js?time=' . microtime(true); ?>"></script>
-  <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/main.js?time=' . microtime(true); ?>"></script>
+  <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/main/core-init.js?time=' . microtime(true); ?>"></script>
+  <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/main/history.js?time=' . microtime(true); ?>"></script>
+  <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/main/preview.js?time=' . microtime(true); ?>"></script>
+  <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/main/layers-sync.js?time=' . microtime(true); ?>"></script>
+  <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/main/color-utils.js?time=' . microtime(true); ?>"></script>
+  <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/main/capture.js?time=' . microtime(true); ?>"></script>
+  <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/main/image-analyze.js?time=' . microtime(true); ?>"></script>
+  <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/main/grid-preview.js?time=' . microtime(true); ?>"></script>
+  <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/main/universal-preview.js?time=' . microtime(true); ?>"></script>
+  <script src="<?php echo plugin_dir_url(dirname(__FILE__)) . 'js/main/events.js?time=' . microtime(true); ?>"></script>
 
 
   <script>
