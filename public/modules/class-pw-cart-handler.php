@@ -711,42 +711,57 @@ class Pw_Cart_Handler {
         ?>
         <script type="text/javascript">
         jQuery(function($) {
-            var $headerRow = $('.woocommerce-cart-form .shop_table thead tr');
-            if ($headerRow.length && !$('.th-custom-column').length) {
-                $headerRow.find('.product-price').before('<th class="th-custom-column">Design</th>');
+            function pwcaEnsureDesignColumn() {
+                var $form = $('.woocommerce-cart-form');
+                if (!$form.length) { return; }
+                var $headerRow = $form.find('.shop_table thead tr');
+                if ($headerRow.length && !$form.find('.th-custom-column').length) {
+                    $headerRow.find('.product-price').before('<th class="th-custom-column">Design</th>');
+                }
+
+                $form.find('.cart_item').each(function() {
+                    var $row = $(this);
+                    var $hiddenData = $row.find('.hidden-custom-data');
+                    if ($hiddenData.length && !$row.find('.td-custom-column').length) {
+                        var $newCell = $('<td class="td-custom-column" data-title="Design"></td>');
+                        $row.find('.product-price').before($newCell);
+                        $newCell.html($hiddenData.html());
+                        $hiddenData.remove();
+                    }
+                });
             }
 
-            $('.woocommerce-cart-form .cart_item').each(function() {
-                var $row = $(this);
-                var $hiddenData = $row.find('.hidden-custom-data');
-                if ($hiddenData.length && !$row.find('.td-custom-column').length) {
-                    var $newCell = $('<td class="td-custom-column" data-title="Design"></td>');
-                    $row.find('.product-price').before($newCell);
-                    $newCell.html($hiddenData.html());
-                    $hiddenData.remove();
+            function ensurePreviewModal() {
+                if (!document.getElementById('pwca-image-preview-modal')) {
+                    var modalHtml = '' +
+                        '<div class="modal micromodal-slide" id="pwca-image-preview-modal" aria-hidden="true">' +
+                          '<div class="modal__overlay" tabindex="-1" data-micromodal-close>' +
+                            '<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pwca-image-preview-modal-title">' +
+                              '<header class="modal__header">' +
+                                '<h2 class="modal__title" id="pwca-image-preview-modal-title">渲染图</h2>' +
+                                '<button class="modal__close" aria-label="Close" data-micromodal-close></button>' +
+                              '</header>' +
+                              '<main class="modal__content" id="pwca-image-preview-modal-content">' +
+                                '<img src="" alt="渲染图" style="max-width:100%; height:auto;" />' +
+                              '</main>' +
+                            '</div>' +
+                          '</div>' +
+                        '</div>';
+                    $('body').append(modalHtml);
+                    if (window.MicroModal && typeof window.MicroModal.init === 'function') {
+                        window.MicroModal.init();
+                    }
                 }
+            }
+
+            pwcaEnsureDesignColumn();
+            ensurePreviewModal();
+
+            $(document.body).on('updated_wc_div wc_fragments_refreshed updated_cart_totals pwca_cart_quantity_updated removed_from_cart', function() {
+                setTimeout(function(){
+                    pwcaEnsureDesignColumn();
+                }, 0);
             });
-
-            if (!document.getElementById('pwca-image-preview-modal')) {
-                var modalHtml = '' +
-                    '<div class="modal micromodal-slide" id="pwca-image-preview-modal" aria-hidden="true">' +
-                      '<div class="modal__overlay" tabindex="-1" data-micromodal-close>' +
-                        '<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pwca-image-preview-modal-title">' +
-                          '<header class="modal__header">' +
-                            '<h2 class="modal__title" id="pwca-image-preview-modal-title">渲染图</h2>' +
-                            '<button class="modal__close" aria-label="Close" data-micromodal-close></button>' +
-                          '</header>' +
-                          '<main class="modal__content" id="pwca-image-preview-modal-content">' +
-                            '<img src="" alt="渲染图" style="max-width:100%; height:auto;" />' +
-                          '</main>' +
-                        '</div>' +
-                      '</div>' +
-                    '</div>';
-                $('body').append(modalHtml);
-                if (window.MicroModal && typeof window.MicroModal.init === 'function') {
-                    window.MicroModal.init();
-                }
-            }
 
             $(document).on('click', '.pw-design-view-images img.pwca-design-render, .pw-design-view-images img.渲染图', function(e) {
                 var src = $(this).attr('src');
