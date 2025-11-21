@@ -375,6 +375,15 @@ class Pw_Cart_Admin_Actions {
                     $(this).click();
                 }
             });
+
+            $('.pw-cart-admin-actions').each(function() {
+                var container = $(this);
+                var row = container.closest('.cart_item');
+                var variation = row.find('dl.variation').last();
+                if (variation.length) {
+                    container.insertAfter(variation);
+                }
+            });
         });
         ";
 
