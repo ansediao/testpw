@@ -668,8 +668,19 @@ class Pw_Cart_Handler {
                 $html .= '<div class="pw-design-view-name" style="font-size:12px; color:#444; margin-bottom:4px;">' . $vname . '</div>';
                 $html .= '<div class="pw-design-view-images" style="display:flex; flex-wrap:wrap; gap:4px; justify-content:center;">';
                 if (!empty($vm['images']) && is_array($vm['images'])) {
+                    $img_count = count($vm['images']);
+                    $idx = 0;
                     foreach ($vm['images'] as $url) {
-                        $html .= '<img src="' . esc_url($url) . '" alt="' . esc_attr($vname) . '" style="max-width:80px; height:auto; border-radius:4px; border:1px solid #ddd; padding:3px; background:#fff;">';
+                        $classes = '';
+                        if ($img_count === 2) {
+                            if ($idx === 0) {
+                                $classes = ' class="pwca-design-draft 设计稿"';
+                            } else {
+                                $classes = ' class="pwca-design-render 渲染图"';
+                            }
+                        }
+                        $html .= '<img' . $classes . ' src="' . esc_url($url) . '" alt="' . esc_attr($vname) . '" style="max-width:80px; height:auto; border-radius:4px; border:1px solid #ddd; padding:3px; background:#fff;">';
+                        $idx++;
                     }
                 }
                 $html .= '</div></div>';
@@ -691,7 +702,10 @@ class Pw_Cart_Handler {
      * Move custom cart column with JavaScript
      */
     public function move_custom_cart_column_with_js_revised() {
-        if (!is_cart()) {
+        global $wp;
+        $current_url = isset($wp->request) ? home_url($wp->request) : '';
+        $is_custom_cart = (!empty($current_url) && strpos($current_url, 'custom-cart') !== false);
+        if (!is_cart() && !$is_custom_cart) {
             return;
         }
         ?>
@@ -710,6 +724,36 @@ class Pw_Cart_Handler {
                     $row.find('.product-price').before($newCell);
                     $newCell.html($hiddenData.html());
                     $hiddenData.remove();
+                }
+            });
+
+            if (!document.getElementById('pwca-image-preview-modal')) {
+                var modalHtml = '' +
+                    '<div class="modal micromodal-slide" id="pwca-image-preview-modal" aria-hidden="true">' +
+                      '<div class="modal__overlay" tabindex="-1" data-micromodal-close>' +
+                        '<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pwca-image-preview-modal-title">' +
+                          '<header class="modal__header">' +
+                            '<h2 class="modal__title" id="pwca-image-preview-modal-title">渲染图</h2>' +
+                            '<button class="modal__close" aria-label="Close" data-micromodal-close></button>' +
+                          '</header>' +
+                          '<main class="modal__content" id="pwca-image-preview-modal-content">' +
+                            '<img src="" alt="渲染图" style="max-width:100%; height:auto;" />' +
+                          '</main>' +
+                        '</div>' +
+                      '</div>' +
+                    '</div>';
+                $('body').append(modalHtml);
+                if (window.MicroModal && typeof window.MicroModal.init === 'function') {
+                    window.MicroModal.init();
+                }
+            }
+
+            $(document).on('click', '.pw-design-view-images img.pwca-design-render, .pw-design-view-images img.渲染图', function(e) {
+                var src = $(this).attr('src');
+                var $img = $('#pwca-image-preview-modal').find('img');
+                $img.attr('src', src);
+                if (window.MicroModal && typeof window.MicroModal.show === 'function') {
+                    window.MicroModal.show('pwca-image-preview-modal');
                 }
             });
         });

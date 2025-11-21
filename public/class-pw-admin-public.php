@@ -137,6 +137,7 @@ class Pw_Admin_Public
         // 添加自定义购物车页面样式
         if (is_page('custom-cart')) {
             wp_enqueue_style('pwca-custom-cart', plugin_dir_url(__FILE__) . 'css/pwca-custom-cart.css', array(), $this->version, 'all');
+            wp_enqueue_style('pw-gradient-modal', plugin_dir_url(__FILE__) . 'css/pw-gradient-modal.css', array(), $this->version, 'all');
         }
     }
 
@@ -160,8 +161,10 @@ class Pw_Admin_Public
             wp_enqueue_script('wc-add-to-cart');
         }
 
-       
-
+        if (is_page('custom-cart') || (function_exists('is_cart') && is_cart())) {
+            wp_enqueue_script('micromodal', 'https://unpkg.com/micromodal/dist/micromodal.min.js', array(), '0.4.10', true);
+        }
+        
         // 添加内联脚本处理购物车图片
         $script = '
             (function($) {
