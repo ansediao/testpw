@@ -37,41 +37,36 @@ class Pw_Composite_Products
         global $product;
 
         $current_product_id = $product->get_id();
-        $grouped_product_id = null;
+        $main_product_id = null;
         $child_product_ids = array();
-        
-        // 检查当前产品是否为组合产品（父产品）
-        $current_children = get_post_meta($current_product_id, '_children', true);
-        
-        if (!empty($current_children) && is_array($current_children)) {
-            // 当前是父产品
-            $grouped_product_id = $current_product_id;
-            $child_product_ids = $current_children;
+
+        $all_ids = get_post_meta($current_product_id, 'pw_composite_all_product_ids', true);
+        if (is_array($all_ids) && !empty($all_ids)) {
+            $main_product_id = $current_product_id;
+            $child_product_ids = array_values(array_diff(array_map('intval', $all_ids), array($main_product_id)));
         } else {
-            // 检查当前产品是否为子产品，使用现有的 pw_composite_main_post_id 字段
             $parent_id = get_post_meta($current_product_id, 'pw_composite_main_post_id', true);
             if ($parent_id) {
-                // 当前是子产品，获取父产品信息
-                $grouped_product_id = $parent_id;
-                $child_product_ids = get_post_meta($parent_id, '_children', true);
-                if (empty($child_product_ids) || !is_array($child_product_ids)) {
-                    $child_product_ids = array();
+                $main_product_id = intval($parent_id);
+                $all_ids = get_post_meta($main_product_id, 'pw_composite_all_product_ids', true);
+                if (is_array($all_ids) && !empty($all_ids)) {
+                    $child_product_ids = array_values(array_diff(array_map('intval', $all_ids), array($main_product_id)));
                 }
             }
         }
 
         // 如果找到了组合产品信息，显示列表
-        if ($grouped_product_id && (!empty($child_product_ids) || $grouped_product_id == $current_product_id)) {
+        if ($main_product_id && (!empty($child_product_ids) || $main_product_id == $current_product_id)) {
             echo '<ul class="pw-composite-components">';
 
             // 输出主产品meta
-            $pw_container_value = get_post_meta($grouped_product_id, 'pw_container_value', true);
+            $pw_container_value = get_post_meta($main_product_id, 'pw_container_value', true);
             if ($pw_container_value) {
-                $active_class = ($current_product_id == $grouped_product_id) ? ' class="active"' : '';
-                if ($current_product_id == $grouped_product_id) {
+                $active_class = ($current_product_id == $main_product_id) ? ' class="active"' : '';
+                if ($current_product_id == $main_product_id) {
                     echo '<li class="active">' . esc_html($pw_container_value) . '</li>';
                 } else {
-                    echo '<li><a href="' . get_permalink($grouped_product_id) . '">' . esc_html($pw_container_value) . '</a></li>';
+                    echo '<li><a href="' . get_permalink($main_product_id) . '">' . esc_html($pw_container_value) . '</a></li>';
                 }
             }
 
