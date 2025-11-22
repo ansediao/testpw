@@ -58,22 +58,18 @@ class Pw_Cart_Admin_Actions {
         // 构建按钮HTML
         $buttons_html = '<div class="pw-cart-admin-actions" style="margin-top: 8px;">';
         
-        // 复制按钮
+        // 复制链接
         $buttons_html .= sprintf(
-            '<button type="button" class="pw-cart-duplicate-btn" data-cart-key="%s" data-product-id="%s" data-variation-id="%s" style="margin-right: 8px; padding: 4px 8px; font-size: 12px; background: #0073aa; color: white; border: none; border-radius: 3px; cursor: pointer;">
-                <i class="dashicons dashicons-admin-page" style="font-size: 12px; line-height: 1;"></i> 复制
-            </button>',
+            '<a href="#" class="pw-cart-duplicate-btn" data-cart-key="%s" data-product-id="%s" data-variation-id="%s" style="margin-right: 8px; font-size: 12px; text-decoration: underline;">复制</a>',
             esc_attr($cart_item_key),
             esc_attr($product_id),
             esc_attr($variation_id)
         );
         
-        // 编辑按钮 - 跳转到后台编辑界面
+        // 编辑链接 - 跳转到后台编辑界面
         $edit_url = $this->get_product_admin_edit_url($product_id);
         $buttons_html .= sprintf(
-            '<a href="%s" class="pw-cart-edit-btn" target="_blank" style="padding: 4px 8px; font-size: 12px; background: #00a32a; color: white; text-decoration: none; border-radius: 3px; display: inline-block;">
-                <i class="dashicons dashicons-edit" style="font-size: 12px; line-height: 1;"></i> 编辑
-            </a>',
+            '<a href="%s" class="pw-cart-edit-btn" target="_blank" style="margin-right: 8px; font-size: 12px; text-decoration: underline;">编辑</a>',
             esc_url($edit_url)
         );
         
@@ -278,8 +274,7 @@ class Pw_Cart_Admin_Actions {
             return;
         }
 
-        // 加载Dashicons（管理员图标）
-        wp_enqueue_style('dashicons');
+        
         
         // 加载自定义样式
         wp_enqueue_style(
@@ -307,18 +302,19 @@ class Pw_Cart_Admin_Actions {
                 }, 3000);
             }
             
-            // 复制按钮点击事件
+            // 复制链接点击事件
             $(document).on('click', '.pw-cart-duplicate-btn', function(e) {
                 e.preventDefault();
                 
-                var button = $(this);
-                var container = button.closest('.pw-cart-admin-actions');
-                var cartKey = button.data('cart-key');
-                var productId = button.data('product-id');
-                var originalHtml = button.html();
+                var link = $(this);
+                if (link.hasClass('loading')) { return; }
+                var container = link.closest('.pw-cart-admin-actions');
+                var cartKey = link.data('cart-key');
+                var productId = link.data('product-id');
+                var originalHtml = link.html();
                 
                 // 添加加载状态
-                button.prop('disabled', true).addClass('loading').html('复制中...');
+                link.addClass('loading').attr('aria-disabled', 'true').html('复制中...');
                 
                 $.ajax({
                     url: '" . admin_url('admin-ajax.php') . "',
@@ -329,7 +325,7 @@ class Pw_Cart_Admin_Actions {
                         nonce: '" . wp_create_nonce('pw_cart_actions') . "'
                     },
                     success: function(response) {
-                        button.removeClass('loading');
+                        link.removeClass('loading').removeAttr('aria-disabled');
                         
                         if (response.success) {
                             showMessage(container, '产品已成功复制为新产品！正在跳转到后台编辑页面...', 'success');
@@ -340,13 +336,13 @@ class Pw_Cart_Admin_Actions {
                             }, 1500);
                         } else {
                             showMessage(container, '复制失败: ' + response.data, 'error');
-                            button.prop('disabled', false).html(originalHtml);
+                            link.html(originalHtml);
                         }
                     },
                     error: function(xhr, status, error) {
-                        button.removeClass('loading');
+                        link.removeClass('loading').removeAttr('aria-disabled');
                         showMessage(container, '请求失败，请重试 (' + error + ')', 'error');
-                        button.prop('disabled', false).html(originalHtml);
+                        link.html(originalHtml);
                     }
                 });
             });
