@@ -934,9 +934,37 @@ class Pw_Admin_Admin
         }
     }
 
+    public function register_pw_design_price_metabox() {
+        add_meta_box('pw_design_price_metabox', '价格', [$this, 'render_pw_design_price_metabox'], 'pw_design', 'side', 'default');
+    }
+
+    public function render_pw_design_price_metabox($post) {
+        wp_nonce_field('pw_design_price_nonce', 'pw_design_price_nonce_field');
+        $value = get_post_meta($post->ID, '_pw_design_price', true);
+        echo '<label for="pw_design_price">价格</label>';
+        echo '<input type="number" id="pw_design_price" name="pw_design_price" value="' . esc_attr($value) . '" min="0" step="0.01" style="width:100%" />';
+    }
+
+    public function save_pw_design_price_meta($post_id) {
+        if (!isset($_POST['pw_design_price_nonce_field']) || !wp_verify_nonce($_POST['pw_design_price_nonce_field'], 'pw_design_price_nonce')) {
+            return;
+        }
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+        $price = isset($_POST['pw_design_price']) ? $_POST['pw_design_price'] : null;
+        if ($price !== null && $price !== '') {
+            $price_val = floatval($price);
+            update_post_meta($post_id, '_pw_design_price', $price_val);
+        } else {
+            delete_post_meta($post_id, '_pw_design_price');
+        }
+    }
+
 }
-
-
 
 
 // 检查 WooCommerce 是否已激活

@@ -191,6 +191,9 @@ class Pw_Admin {
 		// Register bulk update designs handler
 		$this->loader->add_action( 'wp_ajax_pw_bulk_update_designs', $plugin_admin, 'handle_bulk_update_designs' );
 
+		$this->loader->add_action( 'add_meta_boxes_pw_design', $plugin_admin, 'register_pw_design_price_metabox' );
+		$this->loader->add_action( 'save_post_pw_design', $plugin_admin, 'save_pw_design_price_meta' );
+
 	}
 
 	/**
