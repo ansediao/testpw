@@ -40,6 +40,7 @@ const useProductStore = Pinia.defineStore('product', () => {
 
     // Accessories price state
     const accessoriesPrice = Vue.ref(0);
+    const selectedAccessoriesNames = Vue.ref([]);
 
 
 
@@ -410,6 +411,9 @@ const useProductStore = Pinia.defineStore('product', () => {
     const setAccessoriesPrice = (price) => {
         accessoriesPrice.value = parseFloat(price) || 0;
     };
+    const setSelectedAccessoriesNames = (names) => {
+        selectedAccessoriesNames.value = Array.isArray(names) ? names : [];
+    };
 
     // 处理产品数据的核心逻辑
     const processProductData = (apiData) => {
@@ -726,6 +730,14 @@ const useProductStore = Pinia.defineStore('product', () => {
                 formData.append('pw_quantity_discounts', '[]');
             }
 
+            if (blankProductChecked.value && selectedAccessoriesNames.value && selectedAccessoriesNames.value.length > 0) {
+                try {
+                    formData.append('pw_accessories_names', JSON.stringify(selectedAccessoriesNames.value));
+                } catch (e) {
+                    formData.append('pw_accessories_names', selectedAccessoriesNames.value.join(','));
+                }
+            }
+
              // 发送到 WordPress AJAX 端点
              const response = await fetch(window.pwAjax?.ajaxurl || '/wp-admin/admin-ajax.php', {
                 method: 'POST',
@@ -783,6 +795,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         blankProductChecked,
         gradientColorApplied,
         accessoriesPrice,
+        selectedAccessoriesNames,
         moqSettings,
         minQuantity,
         maxQuantity,
@@ -834,6 +847,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         setBuySampleChecked,
         setBlankProductChecked,
         setAccessoriesPrice,
+        setSelectedAccessoriesNames,
         setMoqSettings,
         setQuantityDiscounts,
         fetchProductData,

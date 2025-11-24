@@ -93,14 +93,14 @@ const ProductAccessories = {
             }, 0);
         });
 
-        // Update store with accessories price whenever selection changes
         Vue.watch([selectedAccessoriesArray], () => {
             store.setAccessoriesPrice(totalAccessoriesPrice.value);
+            store.setSelectedAccessoriesNames(selectedAccessoriesArray.value.map(a => a.testname));
         }, { deep: true });
 
-        // Initialize accessories price on mount
         Vue.onMounted(() => {
             store.setAccessoriesPrice(totalAccessoriesPrice.value);
+            store.setSelectedAccessoriesNames(selectedAccessoriesArray.value.map(a => a.testname));
         });
 
         // Close dropdown when clicking outside

@@ -311,7 +311,6 @@ class Pw_Cart_Handler {
             $first_saved_image_url = $upload_dir['baseurl'] . '/custom-products/' . $filename;
         }
 
-        // 构建购物车数据
         $cart_item_data = array(
             'custom_data' => array(
                 'custom_image' => $first_saved_image_url,
@@ -320,10 +319,30 @@ class Pw_Cart_Handler {
                 'color_value'  => $color_value,
                 'variant_id'   => $variant_id,
                 'added_from'   => 'design',
+                'is_blank'     => $incoming_is_blank,
             )
         );
         if (!empty($saved_view_images_meta)) {
             $cart_item_data['custom_data']['view_images'] = $saved_view_images_meta;
+        }
+
+        $acc_names_raw = isset($_POST['pw_accessories_names']) ? wp_unslash($_POST['pw_accessories_names']) : '';
+        if (!empty($acc_names_raw)) {
+            $acc = array();
+            $decoded = json_decode($acc_names_raw, true);
+            if (is_array($decoded)) {
+                foreach ($decoded as $n) {
+                    $acc[] = sanitize_text_field($n);
+                }
+            } else {
+                $parts = array_map('trim', explode(',', $acc_names_raw));
+                foreach ($parts as $n) {
+                    if ($n !== '') { $acc[] = sanitize_text_field($n); }
+                }
+            }
+            if (!empty($acc)) {
+                $cart_item_data['custom_data']['accessories_names'] = $acc;
+            }
         }
 
         if (!function_exists('WC') || WC()->cart === null) {
@@ -514,6 +533,29 @@ class Pw_Cart_Handler {
                 'value'   => $label,
                 'display' => ''
             );
+
+            if (isset($custom['is_blank']) && intval($custom['is_blank']) === 1 && !empty($custom['accessories_names'])) {
+                $names_value = '';
+                $names = $custom['accessories_names'];
+                if (is_string($names)) {
+                    $decoded = json_decode($names, true);
+                    if (is_array($decoded)) {
+                        $names_value = implode(', ', array_map('esc_html', $decoded));
+                    } else {
+                        $parts = array_filter(array_map('trim', explode(',', $names)));
+                        $names_value = implode(', ', array_map('esc_html', $parts));
+                    }
+                } elseif (is_array($names)) {
+                    $names_value = implode(', ', array_map('esc_html', $names));
+                }
+                if ($names_value !== '') {
+                    $item_data[] = array(
+                        'key'     => 'Accessories Name',
+                        'value'   => $names_value,
+                        'display' => ''
+                    );
+                }
+            }
 
             // if (isset($custom['is_blank'])) {
             //     $item_data[] = array(
