@@ -693,14 +693,15 @@ const useProductStore = Pinia.defineStore('product', () => {
             // 兼容旧逻辑：custom_image 使用第一张图片，如果不可用则给占位
             formData.append('custom_image', firstImageDataUrl || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
             // 传递完整的颜色信息
-            const colorInfo = selectedVariant.value ? {
-                color_name: selectedVariant.value.variant_name || selectedVariant.value.name || '默认颜色',
-                color_value: selectedVariant.value.variant_color || selectedVariant.value.color || '#000000',
-                variant_id: selectedVariant.value.id
+            const variant = selectedVariant.value || (Array.isArray(variants.value) && variants.value.length > 0 ? variants.value[0] : null);
+            const colorInfo = variant ? {
+                color_name: variant.variant_name || variant.name || '',
+                color_value: variant.variant_color || variant.color || '',
+                variant_id: variant.id || ''
             } : {
-                color_name: '默认颜色',
-                color_value: '#000000',
-                variant_id: null
+                color_name: '',
+                color_value: '',
+                variant_id: ''
             };
             
             formData.append('color_name', colorInfo.color_name);
