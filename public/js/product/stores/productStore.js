@@ -695,7 +695,7 @@ const useProductStore = Pinia.defineStore('product', () => {
             // 传递完整的颜色信息
             const variant = selectedVariant.value || (Array.isArray(variants.value) && variants.value.length > 0 ? variants.value[0] : null);
             const colorInfo = variant ? {
-                color_name: variant.variant_name || variant.name || '',
+                color_name: (variant.isCustom ? 'Custom Color' : (variant.variant_name || variant.name || '')),
                 color_value: variant.variant_color || variant.color || '',
                 variant_id: variant.id || ''
             } : {
@@ -708,6 +708,9 @@ const useProductStore = Pinia.defineStore('product', () => {
             formData.append('color_value', colorInfo.color_value);
             formData.append('variant_id', colorInfo.variant_id || '');
             formData.append('color', colorInfo.color_value); // 保持向后兼容
+            if (variant && variant.isCustom && colorInfo.color_value) {
+                formData.append('custom_color', colorInfo.color_value);
+            }
             formData.append('security', window.pwAjax?.nonce || '');
 
             // 追加业务相关字段到 POST（起订量、批数量、样品/空白、折扣阶梯）

@@ -238,6 +238,7 @@ class Pw_Cart_Handler {
             }
         }
         $color = isset($_POST['color']) ? sanitize_text_field(wp_unslash($_POST['color'])) : '';
+        $custom_color = isset($_POST['custom_color']) ? sanitize_text_field(wp_unslash($_POST['custom_color'])) : '';
         $color_name = isset($_POST['color_name']) ? sanitize_text_field(wp_unslash($_POST['color_name'])) : '默认颜色';
         $color_value = isset($_POST['color_value']) ? sanitize_text_field(wp_unslash($_POST['color_value'])) : '';
         $variant_id = isset($_POST['variant_id']) ? sanitize_text_field(wp_unslash($_POST['variant_id'])) : '';
@@ -322,6 +323,9 @@ class Pw_Cart_Handler {
                 'is_blank'     => $incoming_is_blank,
             )
         );
+        if ($custom_color !== '') {
+            $cart_item_data['custom_data']['custom_color'] = $custom_color;
+        }
         if (!empty($saved_view_images_meta)) {
             $cart_item_data['custom_data']['view_images'] = $saved_view_images_meta;
         }
@@ -471,24 +475,28 @@ class Pw_Cart_Handler {
         // }
         
         // 显示选择的颜色信息
-        if (isset($cart_item['custom_data']) && !empty($cart_item['custom_data']['color_name'])) {
-            $color_name = esc_html($cart_item['custom_data']['color_name']);
-            $color_value = isset($cart_item['custom_data']['color_value']) ? esc_attr($cart_item['custom_data']['color_value']) : '';
-            
-            $color_display = $color_name;
-            if (!empty($color_value)) {
-                $color_display = sprintf(
-                    '%s <div class="color_box" style="display: inline-block !important; width: 16px !important; height: 16px !important; background-color: %s !important; border: 1px solid #ddd !important; border-radius: 3px !important; vertical-align: middle !important; margin-left: 5px !important;"></div>',
-                    $color_name,
-                    $color_value
+        if (isset($cart_item['custom_data'])) {
+            if (!empty($cart_item['custom_data']['custom_color'])) {
+                $cc = esc_attr($cart_item['custom_data']['custom_color']);
+                $cc_display = sprintf('%s', $cc, $cc);
+                $item_data[] = array(
+                    'key'     => 'Custom Color',
+                    'value'   => $cc,
+                    'display' => wp_kses_post($cc_display)
+                );
+            } elseif (!empty($cart_item['custom_data']['color_name'])) {
+                $color_name = esc_html($cart_item['custom_data']['color_name']);
+                $color_value = isset($cart_item['custom_data']['color_value']) ? esc_attr($cart_item['custom_data']['color_value']) : '';
+                $color_display = $color_name;
+                if (!empty($color_value)) {
+                    $color_display = sprintf('%s <div class="color_box" style="display: inline-block !important; width: 16px !important; height: 16px !important; background-color: %s !important; border: 1px solid #ddd !important; border-radius: 3px !important; vertical-align: middle !important; margin-left: 5px !important;"></div>', $color_name, $color_value);
+                }
+                $item_data[] = array(
+                    'key'     => 'Color',
+                    'value'   => $color_name,
+                    'display' => wp_kses_post($color_display)
                 );
             }
-            
-            $item_data[] = array(
-                'key'     => 'Color',
-                'value'   => $color_name,
-                'display' => wp_kses_post($color_display)
-            );
         }
 
         // 显示起订量、批量、样品/空白、折扣阶梯等信息
