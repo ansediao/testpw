@@ -25,4 +25,9 @@ td.product-subtotal .pwca-discount-hint {
 
 td.product-name .variation dd p {
   margin: 0;
+}
+
+dd.variation-Color {
+  display: flex;
+  align-items: center;
 }/*# sourceMappingURL=pwca-custom-cart.css.map */

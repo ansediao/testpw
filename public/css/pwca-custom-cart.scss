@@ -17,11 +17,18 @@ td.product-subtotal {
     }
 }
 td.product-name {
+    
     .variation {
         dd {
             p {
                 margin: 0;
             }
         }
+       
     }
 }
+dd.variation-Color {
+    display: flex;
+    align-items: center;
+}
+

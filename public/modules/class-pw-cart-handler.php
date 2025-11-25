@@ -476,18 +476,18 @@ class Pw_Cart_Handler {
             $color_value = isset($cart_item['custom_data']['color_value']) ? esc_attr($cart_item['custom_data']['color_value']) : '';
             
             $color_display = $color_name;
-            // if (!empty($color_value)) {
-            //     $color_display = sprintf(
-            //         '%s <span style="display: inline-block; width: 16px; height: 16px; background-color: %s; border: 1px solid #ddd; border-radius: 3px; vertical-align: middle; margin-left: 5px;"></span>',
-            //         $color_name,
-            //         $color_value
-            //     );
-            // }
+            if (!empty($color_value)) {
+                $color_display = sprintf(
+                    '%s <div class="color_box" style="display: inline-block !important; width: 16px !important; height: 16px !important; background-color: %s !important; border: 1px solid #ddd !important; border-radius: 3px !important; vertical-align: middle !important; margin-left: 5px !important;"></div>',
+                    $color_name,
+                    $color_value
+                );
+            }
             
             $item_data[] = array(
                 'key'     => 'Color',
-                'value'   => $color_display,
-                'display' => ''
+                'value'   => $color_name,
+                'display' => wp_kses_post($color_display)
             );
         }
 
