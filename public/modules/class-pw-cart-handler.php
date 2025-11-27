@@ -39,57 +39,20 @@ class Pw_Cart_Handler {
     add_filter('woocommerce_cart_item_name', 'gemini_embed_design_rows_html', 10, 3);
 
 function gemini_embed_design_rows_html($product_name, $cart_item, $cart_item_key) {
-    $custom = (isset($cart_item['custom_data']) && is_array($cart_item['custom_data'])) ? $cart_item['custom_data'] : array();
-    if (empty($custom['designs']) || !is_array($custom['designs'])) {
-        return $product_name;
-    }
-
-    $designs = $custom['designs'];
-    $total_fee = isset($custom['design_fee_total']) ? floatval($custom['design_fee_total']) : null;
-    $sum_qty = 0;
-    foreach ($designs as $d) {
-        $sum_qty += isset($d['quantity']) ? intval($d['quantity']) : 0;
-    }
-    $unit_fee = null;
-    if ($total_fee !== null && $sum_qty > 0) {
-        $unit_fee = $total_fee / $sum_qty;
-    }
-
-    $rows_html = '';
-    foreach ($designs as $d) {
-        $name = isset($d['name']) ? $d['name'] : '';
-        $image = isset($d['image']) ? $d['image'] : '';
-        $qty = isset($d['quantity']) ? intval($d['quantity']) : 0;
-        $img_html = '';
-        if (!empty($image)) {
-            $img_html = '<img src="' . esc_url($image) . '" width="32">';
-        } else {
-            $img_html = '<img src="' . wc_placeholder_img_src() . '" width="32">';
-        }
-
-        $rows_html .= '<tr class="gemini-design-row">';
-        $rows_html .= '<td class="product-remove">&nbsp;</td>';
-        $rows_html .= '<td class="product-thumbnail">' . $img_html . '</td>';
-        
-        $rows_html .= '<td class="product-name" data-title="Product"><span class="design-title">↳ ' . esc_html($name) . '</span></td>';
-        $rows_html .= '<td class="product-design">' .  '</td>';
-        $price_html = ($unit_fee !== null) ? wc_price($unit_fee) : '&mdash;';
-        $rows_html .= '<td class="product-price" data-title="Price">' .  '</td>';
-        $rows_html .= '<td class="product-quantity" data-title="Quantity"> <div class="quantity">1</div></td>';
-        $subtotal_html = ($unit_fee !== null) ? wc_price($unit_fee * max(0, $qty)) : '&mdash;';
-        $rows_html .= '<td class="product-subtotal" data-title="Subtotal">' . $subtotal_html . '</td>';
-        $rows_html .= '</tr>';
-    }
-
-    $output = $product_name;
-    $output .= '<div class="gemini-design-payload" style="display:none;">' . $rows_html . '</div>';
-    return $output;
+    return $product_name;
 }
+
+function gemini_cart_item_class($class, $cart_item, $cart_item_key) {
+    $class .= ' ' . sanitize_html_class('gemini-ci-' . $cart_item_key);
+    return $class;
+}
+add_filter('woocommerce_cart_item_class', 'gemini_cart_item_class', 10, 3);
 add_action('woocommerce_after_cart_table', 'gemini_cart_js_logic');
 
 function gemini_cart_js_logic() {
     ?>
     <style>
+        .gemini-design-row { display: none; }
         /* CSS 样式：美化插入的行 */
         tr.gemini-design-row td {
             background-color: #fcfcfc; /* 浅灰背景区分 */
@@ -104,51 +67,97 @@ function gemini_cart_js_logic() {
             height: auto;
             margin: 0 auto;
         }
-        /* 针对移动端的简单适配 */
-        @media screen and (max-width: 768px) {
-            tr.gemini-design-row td {
-                display: block;
-                text-align: right;
-                padding-left: 50% !important;
-            }
-            tr.gemini-design-row td::before {
-                content: attr(data-title);
-                float: left;
-                font-weight: 700;
-            }
-        }
     </style>
-
+    <?php
+    $data_map = array();
+    if (function_exists('WC') && WC()->cart) {
+        foreach (WC()->cart->get_cart() as $ci_key => $ci) {
+            $custom = (isset($ci['custom_data']) && is_array($ci['custom_data'])) ? $ci['custom_data'] : array();
+            $designs = (isset($custom['designs']) && is_array($custom['designs'])) ? $custom['designs'] : array();
+            $total_fee = isset($custom['design_fee_total']) ? floatval($custom['design_fee_total']) : null;
+            $sum_qty = 0;
+            foreach ($designs as $d) {
+                $sum_qty += isset($d['quantity']) ? intval($d['quantity']) : 0;
+            }
+            $unit_fee = null;
+            if ($total_fee !== null && $sum_qty > 0) {
+                $unit_fee = $total_fee / $sum_qty;
+            }
+            $data_map[$ci_key] = array(
+                'designs' => $designs,
+                'unit_fee' => $unit_fee,
+            );
+        }
+    }
+    $json_map = wp_json_encode($data_map, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $placeholder = wc_placeholder_img_src();
+    ?>
     <script type="text/javascript">
     jQuery(function($) {
-        
-        // 定义核心逻辑函数
-        function moveDesignRows() {
-            // 找到所有包含我们隐藏数据的容器
-            $('.gemini-design-payload').each(function() {
-                var $payload = $(this);
-                var rowsHtml = $payload.html();
-                
-                // 找到当前购物车行 (tr)
-                var $mainRow = $payload.closest('tr.cart_item');
-                
-                // 检查是否已经插入过 (避免重复)
-                // 我们检查该行后面紧接着的是不是我们的设计稿行
-                if ($mainRow.next('.gemini-design-row').length === 0 && rowsHtml.trim() !== '') {
-                    // 核心动作：将隐藏的 TR 插入到主产品 TR 的后面
+        window.pwCartDesigns = <?php echo $json_map ? $json_map : '{}'; ?>;
+        window.pwPlaceholderImg = '<?php echo esc_js($placeholder); ?>';
+        var wcParams = window.wc_cart_params || window.wc_add_to_cart_params || {};
+        function formatPrice(amount) {
+            if (amount === null || typeof amount === 'undefined') return '&mdash;';
+            var s = wcParams.currency_symbol || '';
+            var pos = wcParams.currency_format || wcParams.currency_pos || 'left';
+            var precision = wcParams.currency_format_num_decimals != null ? parseInt(wcParams.currency_format_num_decimals, 10) : 2;
+            var dec = wcParams.currency_format_decimal_sep || '.';
+            var thou = wcParams.currency_format_thousand_sep || ',';
+            if (window.accounting && accounting.formatMoney) {
+                var fmt = '%s%v';
+                if (pos === 'right') fmt = '%v%s';
+                if (pos === 'left_space') fmt = '%s %v';
+                if (pos === 'right_space') fmt = '%v %s';
+                return accounting.formatMoney(amount, { symbol: s, precision: precision, thousand: thou, decimal: dec, format: fmt });
+            }
+            var v = Number(amount);
+            v = isFinite(v) ? v : 0;
+            v = v.toFixed(precision);
+            var parts = v.split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thou);
+            var joined = parts.join(dec);
+            if (pos === 'right') return joined + s;
+            if (pos === 'left_space') return s + ' ' + joined;
+            if (pos === 'right_space') return joined + ' ' + s;
+            return s + joined;
+        }
+        function buildAndInsert() {
+            var map = window.pwCartDesigns || {};
+            Object.keys(map).forEach(function(key) {
+                var $mainRow = $('tr.cart_item.gemini-ci-' + key);
+                if (!$mainRow.length) return;
+                if ($mainRow.next('.gemini-design-row').length) return;
+                var data = map[key] || {};
+                var designs = data.designs || [];
+                var unit_fee = data.unit_fee;
+                var rowsHtml = '';
+                designs.forEach(function(d) {
+                    var name = d && d.name ? d.name : '';
+                    var image = d && d.image ? d.image : '';
+                    var qty = d && d.quantity ? parseInt(d.quantity, 10) : 0;
+                    var imgSrc = image ? image : (window.pwPlaceholderImg || '');
+                    var subtotalHtml = unit_fee != null ? formatPrice(unit_fee * Math.max(0, qty)) : '&mdash;';
+                    rowsHtml += '<tr class="gemini-design-row">';
+                    rowsHtml += '<td class="product-remove">&nbsp;</td>';
+                    rowsHtml += '<td class="product-thumbnail"><img src="' + imgSrc + '" width="32"></td>';
+                    rowsHtml += '<td class="product-name" data-title="Product"><span class="design-title">↳ ' + $('<div>').text(name).html() + '</span></td>';
+                    rowsHtml += '<td class="product-design"></td>';
+                    rowsHtml += '<td class="product-price" data-title="Price"></td>';
+                    rowsHtml += '<td class="product-quantity" data-title="Quantity"><div class="quantity">1</div></td>';
+                    rowsHtml += '<td class="product-subtotal" data-title="Subtotal">' + subtotalHtml + '</td>';
+                    rowsHtml += '</tr>';
+                });
+                if (rowsHtml.trim() !== '') {
                     $mainRow.after(rowsHtml);
                 }
             });
+            $('.gemini-design-row').show();
         }
-
-        // 1. 页面加载完成立即执行
-        moveDesignRows();
-
-        // 2. 监听 WooCommerce 的购物车更新事件
-        // 当用户修改数量点击更新，或移除项目时，WooCommerce 会用 AJAX 刷新 div.woocommerce-cart-form
-        // 我们必须在刷新后重新执行搬运逻辑
+        buildAndInsert();
         $(document.body).on('updated_cart_totals updated_wc_div', function() {
-            moveDesignRows();
+            buildAndInsert();
+            $('.gemini-design-row').show();
         });
     });
     </script>
