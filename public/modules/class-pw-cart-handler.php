@@ -35,6 +35,130 @@ class Pw_Cart_Handler {
         // 在购物车的 Price 与 Subtotal 列中显示折扣信息
         add_filter('woocommerce_cart_item_price', array($this, 'render_cart_item_price_with_discount'), 10, 3);
         add_filter('woocommerce_cart_item_subtotal', array($this, 'render_cart_item_subtotal_with_discount'), 10, 3);
+    
+    add_filter('woocommerce_cart_item_name', 'gemini_embed_design_rows_html', 10, 3);
+
+function gemini_embed_design_rows_html($product_name, $cart_item, $cart_item_key) {
+    $custom = (isset($cart_item['custom_data']) && is_array($cart_item['custom_data'])) ? $cart_item['custom_data'] : array();
+    if (empty($custom['designs']) || !is_array($custom['designs'])) {
+        return $product_name;
+    }
+
+    $designs = $custom['designs'];
+    $total_fee = isset($custom['design_fee_total']) ? floatval($custom['design_fee_total']) : null;
+    $sum_qty = 0;
+    foreach ($designs as $d) {
+        $sum_qty += isset($d['quantity']) ? intval($d['quantity']) : 0;
+    }
+    $unit_fee = null;
+    if ($total_fee !== null && $sum_qty > 0) {
+        $unit_fee = $total_fee / $sum_qty;
+    }
+
+    $rows_html = '';
+    foreach ($designs as $d) {
+        $name = isset($d['name']) ? $d['name'] : '';
+        $image = isset($d['image']) ? $d['image'] : '';
+        $qty = isset($d['quantity']) ? intval($d['quantity']) : 0;
+        $img_html = '';
+        if (!empty($image)) {
+            $img_html = '<img src="' . esc_url($image) . '" width="32">';
+        } else {
+            $img_html = '<img src="' . wc_placeholder_img_src() . '" width="32">';
+        }
+
+        $rows_html .= '<tr class="gemini-design-row">';
+        $rows_html .= '<td class="product-remove">&nbsp;</td>';
+        $rows_html .= '<td class="product-thumbnail">' . $img_html . '</td>';
+        
+        $rows_html .= '<td class="product-name" data-title="Product"><span class="design-title">↳ ' . esc_html($name) . '</span></td>';
+        $rows_html .= '<td class="product-design">' .  '</td>';
+        $price_html = ($unit_fee !== null) ? wc_price($unit_fee) : '&mdash;';
+        $rows_html .= '<td class="product-price" data-title="Price">' .  '</td>';
+        $rows_html .= '<td class="product-quantity" data-title="Quantity"> <div class="quantity">1</div></td>';
+        $subtotal_html = ($unit_fee !== null) ? wc_price($unit_fee * max(0, $qty)) : '&mdash;';
+        $rows_html .= '<td class="product-subtotal" data-title="Subtotal">' . $subtotal_html . '</td>';
+        $rows_html .= '</tr>';
+    }
+
+    $output = $product_name;
+    $output .= '<div class="gemini-design-payload" style="display:none;">' . $rows_html . '</div>';
+    return $output;
+}
+add_action('woocommerce_after_cart_table', 'gemini_cart_js_logic');
+
+function gemini_cart_js_logic() {
+    ?>
+    <style>
+        /* CSS 样式：美化插入的行 */
+        tr.gemini-design-row td {
+            background-color: #fcfcfc; /* 浅灰背景区分 */
+            border-top: none !important; /* 去掉上边框，显得与主产品是一体的 */
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+            font-size: 0.9em;
+            color: #666;
+        }
+        tr.gemini-design-row td.product-thumbnail img {
+            width: 40px; /* 强制控制一下图片大小 */
+            height: auto;
+            margin: 0 auto;
+        }
+        /* 针对移动端的简单适配 */
+        @media screen and (max-width: 768px) {
+            tr.gemini-design-row td {
+                display: block;
+                text-align: right;
+                padding-left: 50% !important;
+            }
+            tr.gemini-design-row td::before {
+                content: attr(data-title);
+                float: left;
+                font-weight: 700;
+            }
+        }
+    </style>
+
+    <script type="text/javascript">
+    jQuery(function($) {
+        
+        // 定义核心逻辑函数
+        function moveDesignRows() {
+            // 找到所有包含我们隐藏数据的容器
+            $('.gemini-design-payload').each(function() {
+                var $payload = $(this);
+                var rowsHtml = $payload.html();
+                
+                // 找到当前购物车行 (tr)
+                var $mainRow = $payload.closest('tr.cart_item');
+                
+                // 检查是否已经插入过 (避免重复)
+                // 我们检查该行后面紧接着的是不是我们的设计稿行
+                if ($mainRow.next('.gemini-design-row').length === 0 && rowsHtml.trim() !== '') {
+                    // 核心动作：将隐藏的 TR 插入到主产品 TR 的后面
+                    $mainRow.after(rowsHtml);
+                }
+            });
+        }
+
+        // 1. 页面加载完成立即执行
+        moveDesignRows();
+
+        // 2. 监听 WooCommerce 的购物车更新事件
+        // 当用户修改数量点击更新，或移除项目时，WooCommerce 会用 AJAX 刷新 div.woocommerce-cart-form
+        // 我们必须在刷新后重新执行搬运逻辑
+        $(document.body).on('updated_cart_totals updated_wc_div', function() {
+            moveDesignRows();
+        });
+    });
+    </script>
+    <?php
+}
+
+    
+    
+    
+    
     }
 
     /**
@@ -519,25 +643,7 @@ class Pw_Cart_Handler {
                 );
             }
 
-            if (!empty($cart_item['custom_data']['designs']) && is_array($cart_item['custom_data']['designs'])) {
-                $names = array();
-                foreach ($cart_item['custom_data']['designs'] as $d) {
-                    $n = isset($d['name']) ? trim($d['name']) : '';
-                    $q = isset($d['quantity']) ? intval($d['quantity']) : 0;
-                    if ($n !== '') {
-                        $entry = esc_html($n);
-                        if ($q > 1) { $entry .= ' x' . $q; }
-                        $names[] = $entry;
-                    }
-                }
-                if (!empty($names)) {
-                    $item_data[] = array(
-                        'key'     => 'Designs',
-                        'value'   => implode(', ', $names),
-                        'display' => ''
-                    );
-                }
-            }
+            
         }
 
         // 显示起订量、批量、样品/空白、折扣阶梯等信息
@@ -703,10 +809,10 @@ class Pw_Cart_Handler {
             $item_name .= $html;
         } elseif (!empty($custom_data) && !empty($custom_data['custom_image'])) {
             $image_url = esc_url($custom_data['custom_image']);
-            $item_name .= sprintf(
-                '<div style="margin-top: 10px;"><img src="%s" alt="定制设计" style="max-width: 100px; height: auto; display: block; border: 1px solid #ddd; padding: 5px; background: #fff;"></div>',
-                $image_url
-            );
+        $item_name .= sprintf(
+            '<div style="margin-top: 10px;"><img src="%s" alt="定制设计" style="max-width: 100px; height: auto; display: block; border: 1px solid #ddd; padding: 5px; background: #fff;"></div>',
+            $image_url
+        );
         }
         
         return $item_name;
