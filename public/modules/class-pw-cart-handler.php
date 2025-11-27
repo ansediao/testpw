@@ -141,7 +141,7 @@ function gemini_cart_js_logic() {
                     rowsHtml += '<tr class="gemini-design-row">';
                     rowsHtml += '<td class="product-remove">&nbsp;</td>';
                     rowsHtml += '<td class="product-thumbnail"><img src="' + imgSrc + '" width="32"></td>';
-                    rowsHtml += '<td class="product-name" data-title="Product"><span class="design-title">↳ ' + $('<div>').text(name).html() + '</span></td>';
+                    rowsHtml += '<td class="product-name" data-title="Product"><span class="design-title">' + $('<div>').text(name).html() + '</span></td>';
                     rowsHtml += '<td class="product-design"></td>';
                     rowsHtml += '<td class="product-price" data-title="Price"></td>';
                     rowsHtml += '<td class="product-quantity" data-title="Quantity"><div class="quantity">1</div></td>';
