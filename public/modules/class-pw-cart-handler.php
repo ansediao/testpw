@@ -138,6 +138,27 @@ class Pw_Cart_Handler {
         if ($discount_text !== '')        { $extra['discount_text'] = $discount_text; }
         if (!empty($quantity_discounts))  { $extra['quantity_discounts'] = $quantity_discounts; }
 
+        $design_fee_total = null;
+        if (isset($_POST['pw_design_fee_total'])) {
+            $design_fee_total = floatval(wp_unslash($_POST['pw_design_fee_total']));
+            if (!is_finite($design_fee_total)) { $design_fee_total = null; }
+        }
+        $designs = array();
+        if (isset($_POST['pw_designs'])) {
+            $raw = wp_unslash($_POST['pw_designs']);
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                foreach ($decoded as $item) {
+                    $name = isset($item['name']) ? sanitize_text_field($item['name']) : '';
+                    $image = isset($item['image']) ? esc_url_raw($item['image']) : '';
+                    $quantity = isset($item['quantity']) ? intval($item['quantity']) : 0;
+                    $designs[] = array('name' => $name, 'image' => $image, 'quantity' => $quantity);
+                }
+            }
+        }
+        if ($design_fee_total !== null) { $extra['design_fee_total'] = $design_fee_total; }
+        if (!empty($designs)) { $extra['designs'] = $designs; }
+
         // 合并到现有 custom_data
         $cart_item_data['custom_data'] = array_merge($cart_item_data['custom_data'], $extra);
 

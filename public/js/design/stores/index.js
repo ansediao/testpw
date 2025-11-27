@@ -404,6 +404,7 @@ export const useCanvasStore = defineStore('canvas', {
 
 // 5. 创建 Pinia 实例，后续所有 Vue 应用都要 use(pinia) 才能访问全局状态
 export const pinia = createPinia();
+window.pinia = pinia;
 
 // 6. 导入打印方式store
 import { usePrintMethodStore } from './printMethodStore.js';
@@ -414,6 +415,69 @@ export { usePrintMethodStore };
 // 8. 将 store 暴露到全局，让非 Vue 组件也能访问
 window.useCanvasStore = useCanvasStore;
 window.usePrintMethodStore = usePrintMethodStore;
+
+const useDesignUsageStore = defineStore('designUsage', {
+    state: () => ({
+        items: [],
+        feePerItem: 7
+    }),
+    getters: {
+        totalFee(state) {
+            let total = 0;
+            for (const it of state.items) {
+                const q = Number(it.quantity || 0);
+                if (Number.isFinite(q) && q > 0) {
+                    total += q * state.feePerItem;
+                }
+            }
+            return total;
+        },
+        list(state) {
+            return state.items;
+        }
+    },
+    actions: {
+        addDesign(payload) {
+            const id = payload && payload.id ? String(payload.id) : '';
+            const name = payload && payload.name ? String(payload.name) : '';
+            const image = payload && payload.image ? String(payload.image) : '';
+            let found = null;
+            for (const it of this.items) {
+                if ((id && it.id === id) || (!id && image && it.image === image)) {
+                    found = it;
+                    break;
+                }
+            }
+            if (found) {
+                found.quantity = (Number(found.quantity || 0) + 1);
+            } else {
+                this.items.push({ id, name, image, quantity: 1 });
+            }
+        },
+        removeDesign(payload) {
+            const id = payload && payload.id ? String(payload.id) : '';
+            const image = payload && payload.image ? String(payload.image) : '';
+            for (let i = 0; i < this.items.length; i++) {
+                const it = this.items[i];
+                const match = (id && it.id === id) || (!id && image && it.image === image);
+                if (match) {
+                    const nextQty = Number(it.quantity || 0) - 1;
+                    if (nextQty > 0) {
+                        it.quantity = nextQty;
+                    } else {
+                        this.items.splice(i, 1);
+                    }
+                    break;
+                }
+            }
+        },
+        clear() {
+            this.items = [];
+        }
+    }
+});
+export { useDesignUsageStore };
+window.useDesignUsageStore = useDesignUsageStore;
 
 // 9. 通知其他脚本stores已准备就绪
 let eventTriggered = false;

@@ -107,8 +107,17 @@ export function usePriceCalculations(canvasStore, printStore, quantityRef, getIs
 
   // 自定义印刷费用
   const customizationPrice = computed(() => {
-    const total = printStore.getTotalPrintCostFromUsedMethods || 0;
-    return Number.isFinite(total) ? total.toFixed(2) : '0.00';
+    const totalPrint = printStore.getTotalPrintCostFromUsedMethods || 0;
+    let designFee = 0;
+    try {
+      if (typeof window.useDesignUsageStore === 'function') {
+        const ds = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
+        const fee = Number(ds.totalFee || 0);
+        if (Number.isFinite(fee)) designFee = fee;
+      }
+    } catch (e) {}
+    const val = Number(totalPrint) + Number(designFee);
+    return Number.isFinite(val) ? val.toFixed(2) : '0.00';
   });
 
   return { originalBasePrice, discountedBasePrice, discountText, hasDiscount, customizationPrice };

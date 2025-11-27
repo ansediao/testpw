@@ -39,11 +39,43 @@ function addCanvasEventListeners(fabricCanvas) {
         const isRestoring = window.__historyInternals && window.__historyInternals.isRestoringRef();
         if (!isRestoring) if (typeof window.saveState === 'function') window.saveState();
     });
-    fabricCanvas.on('object:removed', () => {
+    fabricCanvas.on('object:removed', (e) => {
         if (typeof window.updatePreviewCanvas === 'function') window.updatePreviewCanvas();
         const isRestoring = window.__historyInternals && window.__historyInternals.isRestoringRef();
         if (!isRestoring) if (typeof window.saveState === 'function') window.saveState();
+        try {
+            const tgt = e && e.target ? e.target : null;
+            if (tgt && tgt.type === 'image' && tgt.isDesignElement) {
+                const meta = tgt.designMeta || {};
+                if (typeof recordDesignRemoval === 'function') {
+                    recordDesignRemoval(meta) || (typeof queueDesignRemoval === 'function' && queueDesignRemoval(meta));
+                } else if (typeof window.useDesignUsageStore === 'function') {
+                    const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
+                    store.removeDesign({ id: meta.id || '', image: meta.image || '' });
+                }
+            }
+        } catch (err) {}
     });
+
+function recordDesignRemoval(meta) {
+    try {
+        if (typeof window.useDesignUsageStore === 'function') {
+            const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
+            store.removeDesign({ id: String(meta.id || ''), image: String(meta.image || '') });
+            return true;
+        }
+    } catch (e) {}
+    return false;
+}
+
+function queueDesignRemoval(meta) {
+    if (recordDesignRemoval(meta)) return;
+    const handler = () => {
+        recordDesignRemoval(meta);
+        document.removeEventListener('canvasPiniaReady', handler);
+    };
+    document.addEventListener('canvasPiniaReady', handler);
+}
     fabricCanvas.on('object:moving', (e) => {
         const obj = e.target;
         if (obj && !isElementInLayerGroup(obj)) { needsAlertOnRelease = true; alertTargetObject = obj; }

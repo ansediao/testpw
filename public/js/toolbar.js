@@ -975,14 +975,22 @@ function addImage(event) {
                 id: newId,
                 userInitiated: true,  // 标记为用户操作
                 fromButton: true,     // 标记来源为按钮操作
-                fromToolbar: true     // 标记来源为工具栏
+                fromToolbar: true,     // 标记来源为工具栏
+                isDesignElement: true
             });
+            img.designMeta = { id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl) };
             
             // 检查画布上是否已经存在相同 ID 的对象
             const existingObject = canvas.getObjects().find(obj => obj.id === newId);
             if (!existingObject) {
                 canvas.add(img);
                 canvas.setActiveObject(img);
+                try {
+                    if (typeof window.useDesignUsageStore === 'function') {
+                        const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
+                        store.addDesign({ id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl) });
+                    }
+                } catch (e) {}
             } else {
                 
             }
@@ -1017,16 +1025,27 @@ function addDesignToCanvas(designId) {
                 originX: 'center',
                 originY: 'center',
                 id: newId,
-                userInitiated: true,  // 标记为用户操作
-                fromButton: true,     // 标记来源为按钮操作
-                fromToolbar: true     // 标记来源为工具栏
+                userInitiated: true,
+                fromButton: true,
+                fromToolbar: true,
+                isDesignElement: true
             });
+            img.designMeta = { id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl) };
             
             // 检查画布上是否已经存在相同 ID 的对象
             const existingObject = canvas.getObjects().find(obj => obj.id === newId);
             if (!existingObject) {
                 canvas.add(img);
                 canvas.setActiveObject(img);
+                const meta = { id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl) };
+                try {
+                    if (typeof recordDesignUsage === 'function') {
+                        recordDesignUsage(meta) || (typeof queueDesignUsage === 'function' && queueDesignUsage(meta));
+                    } else if (typeof window.useDesignUsageStore === 'function') {
+                        const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
+                        store.addDesign(meta);
+                    }
+                } catch (e) {}
             } else {
                 
             }
@@ -1048,3 +1067,26 @@ document.addEventListener('keydown', function (e) {
         activeCanvas.remove(activeCanvas.getActiveObject());
     }
 });
+
+function recordDesignUsage(meta) {
+    try {
+        if (typeof window.useDesignUsageStore === 'function') {
+            const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
+            store.addDesign({ id: String(meta.id || ''), name: String(meta.name || ''), image: String(meta.image || '') });
+            return true;
+        }
+    } catch (e) {}
+    return false;
+}
+
+function queueDesignUsage(meta) {
+    if (recordDesignUsage(meta)) return;
+    const handler = () => {
+        recordDesignUsage(meta);
+        document.removeEventListener('canvasPiniaReady', handler);
+    };
+    document.addEventListener('canvasPiniaReady', handler);
+}
+
+window.recordDesignUsage = recordDesignUsage;
+window.queueDesignUsage = queueDesignUsage;
