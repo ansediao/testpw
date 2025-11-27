@@ -465,6 +465,10 @@ if ($product_id > 0) {
             }
           };
           // 准备数据
+          const ds = (typeof window.useDesignUsageStore === 'function') ? window.useDesignUsageStore(window.pinia) : null;
+          const designList = ds && Array.isArray(ds.list) ? ds.list : [];
+          const designPayload = designList.map(it => ({ name: String(it.name || ''), image: String(it.image || ''), quantity: Number(it.quantity || 0) }));
+          const designFeeTotal = ds && Number(ds.totalFee || 0);
           const data = 'action=add_customized_product_to_cart' +
             '&product_id=' + encodeURIComponent(productId) +
             '&quantity=' + encodeURIComponent(quantity) +
@@ -480,7 +484,9 @@ if ($product_id > 0) {
             '&pw_discount_text=' + encodeURIComponent(discountText) +
             '&pw_quantity_discounts=' + encodeURIComponent(quantityDiscountsJson) +
             // 追加多视图图片 JSON（若可用）
-            '&pw_view_images=' + encodeURIComponent(JSON.stringify(viewImagesPayload || []));
+            '&pw_view_images=' + encodeURIComponent(JSON.stringify(viewImagesPayload || [])) +
+            '&pw_design_fee_total=' + encodeURIComponent(String(Number(isFinite(designFeeTotal) ? designFeeTotal : 0))) +
+            '&pw_designs=' + encodeURIComponent(JSON.stringify(designPayload));
           xhr.send(data);
         });
       } else {

@@ -740,17 +740,7 @@ const useProductStore = Pinia.defineStore('product', () => {
                 } catch (e) {
                     formData.append('pw_accessories_names', selectedAccessoriesNames.value.join(','));
                 }
-            }
-
-            try {
-                if (typeof window.useDesignUsageStore === 'function') {
-                    const ds = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
-                    const list = ds.list || [];
-                    const payload = Array.isArray(list) ? list.map(it => ({ name: String(it.name || ''), image: String(it.image || ''), quantity: Number(it.quantity || 0) })) : [];
-                    formData.append('pw_design_fee_total', String(Number(ds.totalFee || 0)));
-                    formData.append('pw_designs', JSON.stringify(payload));
-                }
-            } catch (e) {}
+            }            
 
              // 发送到 WordPress AJAX 端点
              const response = await fetch(window.pwAjax?.ajaxurl || '/wp-admin/admin-ajax.php', {

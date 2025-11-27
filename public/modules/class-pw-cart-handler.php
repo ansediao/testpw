@@ -518,6 +518,26 @@ class Pw_Cart_Handler {
                     'display' => wp_kses_post($color_display)
                 );
             }
+
+            if (!empty($cart_item['custom_data']['designs']) && is_array($cart_item['custom_data']['designs'])) {
+                $names = array();
+                foreach ($cart_item['custom_data']['designs'] as $d) {
+                    $n = isset($d['name']) ? trim($d['name']) : '';
+                    $q = isset($d['quantity']) ? intval($d['quantity']) : 0;
+                    if ($n !== '') {
+                        $entry = esc_html($n);
+                        if ($q > 1) { $entry .= ' x' . $q; }
+                        $names[] = $entry;
+                    }
+                }
+                if (!empty($names)) {
+                    $item_data[] = array(
+                        'key'     => 'Designs',
+                        'value'   => implode(', ', $names),
+                        'display' => ''
+                    );
+                }
+            }
         }
 
         // 显示起订量、批量、样品/空白、折扣阶梯等信息
@@ -655,6 +675,7 @@ class Pw_Cart_Handler {
                 );
             }
         }
+        // print_r($cart_item['custom_data']);
         return $item_data;
     }
 
