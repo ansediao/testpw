@@ -115,10 +115,10 @@ window.getCurrentActiveTab = getCurrentActiveTab;
 window.listAvailableTabs = listAvailableTabs;
 window.showTabControlHelp = function() {
     const help = {
-        'switchOperationPanelTab(tabId)': '切换到指定的 tab',
-        'getCurrentActiveTab()': '获取当前激活的 tab ID',
-        'listAvailableTabs()': '列出所有可用的 tab 及其状态',
-        '可用的 tabId': ['tab-pinming (Product)', 'tab-tuan (Layers)', 'tab-pianquan (Image)', 'tab-wenzi (Text)', 'tab-sheji (Designs)']
+        'switchOperationPanelTab(tabId)': 'Switch to the specified tab',
+        'getCurrentActiveTab()': 'Get the current active tab ID',
+        'listAvailableTabs()': 'List all available tabs and their state',
+        'Available tabId': ['tab-pinming (Product)', 'tab-tuan (Layers)', 'tab-pianquan (Image)', 'tab-wenzi (Text)', 'tab-sheji (Designs)']
     };
     return help;
 };

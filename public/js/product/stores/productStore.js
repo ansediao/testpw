@@ -613,11 +613,11 @@ const useProductStore = Pinia.defineStore('product', () => {
                 const state = precheckResult.data;
                 if (blankProductChecked.value) {
                     if (state.non_blank_count > 0) {
-                        throw new Error('购物车中有定制产品，不可以加入购物车');
+                        throw new Error('The cart contains customized products; cannot add this item');
                     }
                 } else {
                     if (state.blank_count > 0) {
-                        throw new Error('购物车中已存在空白件商品，无法加入');
+                        throw new Error('The cart already contains blank items; cannot add this item');
                     }
                 }
             }
@@ -665,7 +665,7 @@ const useProductStore = Pinia.defineStore('product', () => {
                         const imageArray = Array.isArray(imgData) ? imgData : [imgData];
                         return {
                             id: v.id || v.view_id || `view-${idx+1}`,
-                            name: v.name || v.view_name || `视图 ${idx+1}`,
+                            name: v.name || v.view_name || `View ${idx+1}`,
                             images: imageArray
                         };
                     });
@@ -673,7 +673,7 @@ const useProductStore = Pinia.defineStore('product', () => {
                     // 单视图模式：尝试使用捕获函数
                     if (typeof window.captureCanvas === 'function') {
                         const single = await window.captureCanvas();
-                        viewImagesPayload = [{ id: 'single', name: '视图', images: [single] }];
+                        viewImagesPayload = [{ id: 'single', name: 'View', images: [single] }];
                     }
                 }
 
@@ -751,13 +751,13 @@ const useProductStore = Pinia.defineStore('product', () => {
             const result = await response.json();
             
             if (!result.success) {
-                throw new Error(result.data || '添加到购物车失败');
+                throw new Error(result.data || 'Failed to add to cart');
             }
             
             // 成功添加到购物车
             
             // 显示成功提示
-            showSuccessMessage(`已成功添加 ${finalQuantity} 件商品到购物车！`);
+            showSuccessMessage(`Successfully added ${finalQuantity} item(s) to the cart!`);
             
             // 可选：触发页面刷新购物车数量显示
             if (typeof jQuery !== 'undefined' && jQuery(document.body).trigger) {
@@ -768,7 +768,7 @@ const useProductStore = Pinia.defineStore('product', () => {
             setError(err.message);
             // 显示错误提示
             if (typeof showErrorMessage === 'function') {
-                showErrorMessage(err.message || '添加到购物车时发生错误');
+                showErrorMessage(err.message || 'An error occurred while adding to cart');
             }
         } finally {
             setLoading(false);

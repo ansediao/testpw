@@ -177,8 +177,8 @@ function controlMainWrapperDisplayArea(objectId) {
 function getLayerName(obj) {
     if (obj.layerName) return obj.layerName;
     if (obj.type === 'text' || obj.type === 'i-text') { const text = obj.text || ''; return text.length > 15 ? text.substring(0, 15) + '...' : text; }
-    else if (obj.type === 'image') { return '图片 ' + Date.now().toString().slice(-4); }
-    else { return '图层 ' + Date.now().toString().slice(-4); }
+    else if (obj.type === 'image') { return 'Image ' + Date.now().toString().slice(-4); }
+    else { return 'Layer ' + Date.now().toString().slice(-4); }
 }
 
 function getLayerType(obj) {

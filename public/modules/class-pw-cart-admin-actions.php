@@ -60,7 +60,7 @@ class Pw_Cart_Admin_Actions {
         
         // 复制链接
         $buttons_html .= sprintf(
-            '<a href="#" class="pw-cart-duplicate-btn" data-cart-key="%s" data-product-id="%s" data-variation-id="%s" style="margin-right: 8px; font-size: 12px; text-decoration: underline;">复制</a>',
+            '<a href="#" class="pw-cart-duplicate-btn" data-cart-key="%s" data-product-id="%s" data-variation-id="%s" style="margin-right: 8px; font-size: 12px; text-decoration: underline;">Duplicate</a>',
             esc_attr($cart_item_key),
             esc_attr($product_id),
             esc_attr($variation_id)
@@ -69,7 +69,7 @@ class Pw_Cart_Admin_Actions {
         // 编辑链接 - 跳转到后台编辑界面
         $edit_url = $this->get_product_admin_edit_url($product_id);
         $buttons_html .= sprintf(
-            '<a href="%s" class="pw-cart-edit-btn" target="_blank" style="margin-right: 8px; font-size: 12px; text-decoration: underline;">编辑</a>',
+            '<a href="%s" class="pw-cart-edit-btn" target="_blank" style="margin-right: 8px; font-size: 12px; text-decoration: underline;">Edit</a>',
             esc_url($edit_url)
         );
         
@@ -95,7 +95,7 @@ class Pw_Cart_Admin_Actions {
     public function handle_duplicate_cart_item() {
         // 验证权限
         if (!current_user_can('manage_options')) {
-            wp_die('权限不足');
+            wp_die('Insufficient permissions');
         }
 
         // 验证nonce
@@ -104,7 +104,7 @@ class Pw_Cart_Admin_Actions {
         $cart_item_key = sanitize_text_field($_POST['cart_key']);
         
         if (empty($cart_item_key)) {
-            wp_send_json_error('无效的购物车项目');
+            wp_send_json_error('Invalid cart item');
         }
 
         // 获取购物车项目
@@ -112,14 +112,14 @@ class Pw_Cart_Admin_Actions {
         $cart_item = $cart->get_cart_item($cart_item_key);
         
         if (!$cart_item) {
-            wp_send_json_error('购物车项目不存在');
+            wp_send_json_error('Cart item does not exist');
         }
 
         $original_product_id = $cart_item['product_id'];
         $original_product = wc_get_product($original_product_id);
         
         if (!$original_product) {
-            wp_send_json_error('原产品不存在');
+            wp_send_json_error('Original product does not exist');
         }
 
         // 创建新产品
@@ -127,12 +127,12 @@ class Pw_Cart_Admin_Actions {
         
         if ($new_product_id) {
             wp_send_json_success(array(
-                'message' => '产品已成功复制',
+                'message' => 'Product duplicated successfully',
                 'new_product_id' => $new_product_id,
                 'redirect_url' => $this->get_product_admin_edit_url($new_product_id)
             ));
         } else {
-            wp_send_json_error('复制失败，请重试');
+            wp_send_json_error('Duplicate failed, please try again');
         }
     }
 
@@ -153,10 +153,10 @@ class Pw_Cart_Admin_Actions {
 
         // 创建新产品文章
         $new_post_data = array(
-            'post_title'    => $original_post->post_title . ' (复制)',
+            'post_title'    => $original_post->post_title . ' (Duplicate)',
             'post_content'  => $original_post->post_content,
             'post_excerpt'  => $original_post->post_excerpt,
-            'post_status'   => 'draft', // 设为草稿状态
+            'post_status'   => 'draft', // set as draft
             'post_type'     => 'product',
             'post_author'   => get_current_user_id(),
             'post_parent'   => $original_post->post_parent,
@@ -314,7 +314,7 @@ class Pw_Cart_Admin_Actions {
                 var originalHtml = link.html();
                 
                 // 添加加载状态
-                link.addClass('loading').attr('aria-disabled', 'true').html('复制中...');
+                link.addClass('loading').attr('aria-disabled', 'true').html('Duplicating...');
                 
                 $.ajax({
                     url: '" . admin_url('admin-ajax.php') . "',
@@ -328,20 +328,20 @@ class Pw_Cart_Admin_Actions {
                         link.removeClass('loading').removeAttr('aria-disabled');
                         
                         if (response.success) {
-                            showMessage(container, '产品已成功复制为新产品！正在跳转到后台编辑页面...', 'success');
+                            showMessage(container, 'Product duplicated as a new item. Redirecting to admin edit page...', 'success');
                             
                             // 延迟跳转，让用户看到成功消息
                             setTimeout(function() {
                                 window.open(response.data.redirect_url, '_blank');
                             }, 1500);
                         } else {
-                            showMessage(container, '复制失败: ' + response.data, 'error');
+                            showMessage(container, 'Duplicate failed: ' + response.data, 'error');
                             link.html(originalHtml);
                         }
                     },
                     error: function(xhr, status, error) {
                         link.removeClass('loading').removeAttr('aria-disabled');
-                        showMessage(container, '请求失败，请重试 (' + error + ')', 'error');
+                        showMessage(container, 'Request failed, please try again (' + error + ')', 'error');
                         link.html(originalHtml);
                     }
                 });
@@ -349,7 +349,7 @@ class Pw_Cart_Admin_Actions {
             
             // 编辑按钮点击事件（添加确认）
             $(document).on('click', '.pw-cart-edit-btn', function(e) {
-                var confirmed = confirm('确定要在后台编辑这个产品吗？这将在新窗口中打开产品编辑页面。');
+                var confirmed = confirm('Edit this product in the admin? This will open the product edit page in a new window.');
                 if (!confirmed) {
                     e.preventDefault();
                 }
@@ -357,11 +357,11 @@ class Pw_Cart_Admin_Actions {
             
             // 添加工具提示
             $(document).on('mouseenter', '.pw-cart-duplicate-btn', function() {
-                $(this).attr('title', '复制此产品为新产品并跳转到后台编辑页面');
+                $(this).attr('title', 'Duplicate this product and open the admin edit page');
             });
             
             $(document).on('mouseenter', '.pw-cart-edit-btn', function() {
-                $(this).attr('title', '在后台编辑此产品');
+                $(this).attr('title', 'Edit this product in admin');
             });
             
             // 键盘支持

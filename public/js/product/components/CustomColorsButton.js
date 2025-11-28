@@ -25,32 +25,32 @@ window.CustomColorsButton = {
                 </button>
             </div>
             
-            <!-- 状态显示区域 -->
+            <!-- Status Display Area -->
             <div class="pw-custom-colors-status" v-if="showCustomColorStatus || showGradientStatus">
-                <!-- Custom Colors 状态显示 -->
+                <!-- Custom Colors Status -->
                 <div v-if="showCustomColorStatus" class="custom-color-status">
-                    已选择: {{ appliedCustomColor }} <br>
-                    <a href="#" @click.prevent="resetCustomColor" class="reset-link">重新选择</a>
+                    Selected: {{ appliedCustomColor }} <br>
+                    <a href="#" @click.prevent="resetCustomColor" class="reset-link">Reselect</a>
                 </div>
                 
-                <!-- Gradient 状态显示 -->
+                <!-- Gradient Status -->
                 <div v-if="showGradientStatus" class="gradient-status">
-                    <span class="gradient-text">渐变色</span>
-                    <button @click="resetGradient" class="gradient-close-btn" title="移除渐变色">×</button>
+                    <span class="gradient-text">Gradient</span>
+                    <button @click="resetGradient" class="gradient-close-btn" title="Remove gradient">×</button>
                 </div>
             </div>
             
-            <!-- 自定义颜色弹窗 (保留原有) -->
+            <!-- Custom Color Modal -->
             <div id="pw-custom-color-modal" class="modal micromodal-slide" aria-hidden="true">
                 <div class="modal__overlay" tabindex="-1" data-micromodal-close>
                     <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-custom-color-modal-title">
                         <header>
-                            <h2 class="modal__title" id="pw-custom-color-modal-title">选择自定义颜色</h2>
+                            <h2 class="modal__title" id="pw-custom-color-modal-title">Select Custom Color</h2>
                             <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
                         </header>
                         <main class="modal__content">
                             <input type="color" id="customColorPicker" v-model="selectedColor" @input="onColorInput" />
-                            <button class="btn btn-inquiry" @click="confirmColorSelection">应用颜色</button>
+                            <button class="btn btn-inquiry" @click="confirmColorSelection">Apply Color</button>
                         </main>
                     </div>
                 </div>
@@ -368,7 +368,7 @@ window.CustomColorsButton = {
                     // 创建遮罩覆盖层
                     const textOverlay = document.createElement('div');
                     textOverlay.className = 'pw-gradient-text-overlay';
-                    textOverlay.textContent = '在定制页面完成设计';
+                    textOverlay.textContent = 'Complete the design on the customization page';
                     textOverlay.style.cssText = `
                         position: absolute;
                         top: 0;

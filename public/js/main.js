@@ -746,7 +746,7 @@ document.getElementById('renderBtn').addEventListener('click', async function ()
     previewWindow.document.write(`
      <html>
        <head>
-         <title>预览效果</title>
+         <title>Preview</title>
          <style>
            body {
              margin: 0;
@@ -764,7 +764,7 @@ document.getElementById('renderBtn').addEventListener('click', async function ()
          </style>
        </head>
        <body>
-         <img src="${imageData}" alt="预览效果">
+         <img src="${imageData}" alt="Preview">
        </body>
      </html>
    `);
@@ -1230,9 +1230,9 @@ function getLayerName(obj) { // 优先使用对象上设置的 layerName 属性�
         const text = obj.text || '';
         return text.length > 15 ? text.substring(0, 15) + '...' : text;
     } else if (obj.type === 'image') {
-        return '图片 ' + Date.now().toString().slice(-4);
+        return 'Image ' + Date.now().toString().slice(-4);
     } else {
-        return '图层 ' + Date.now().toString().slice(-4);
+        return 'Layer ' + Date.now().toString().slice(-4);
     }
 }
 

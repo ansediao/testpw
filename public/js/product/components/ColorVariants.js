@@ -18,7 +18,7 @@ const ColorVariants = {
                     <div class="pw-loading-spinner"></div>
                 </div>
                 <div v-else-if="store.error" class="pw-loading-variants error">{{ store.error }}</div>
-                <div v-else-if="!store.variants || store.variants.length === 0" class="pw-loading-variants">该产品暂无颜色变体</div>
+                <div v-else-if="!store.variants || store.variants.length === 0" class="pw-loading-variants">No color variants available for this product</div>
                 <div v-else class="pw-variants-container">
                     <div 
                         v-for="(variant, index) in store.variants.filter(v => v.variant_color)" 

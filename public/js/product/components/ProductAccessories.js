@@ -41,7 +41,7 @@ const ProductAccessories = {
 
         const selectAccessory = (accessory) => {
             if (selectedAccessories.value.has(accessory.id)) {
-                showCustomAlert('该配件已添加！');
+                showCustomAlert('Accessory already added!');
                 return;
             }
 

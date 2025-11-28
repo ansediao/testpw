@@ -6,16 +6,16 @@ async function showUniversalViewPreview(views) {
             <div class="modal__overlay" tabindex="-1" data-micromodal-close>
                 <div class="modal__container modal__container--fullscreen" role="dialog" aria-modal="true" aria-labelledby="universal-view-title">
                     <header class="modal__header">
-                        <h2 class="modal__title" id="universal-view-title">多视图预览</h2>
+                        <h2 class="modal__title" id="universal-view-title">Multi-View Preview</h2>
                         <button class="modal__close" aria-label="Close modal" data-micromodal-close></button>
                     </header>
                     <main class="modal__content modal__content--scrollable">
                         <div class="preview-body">
-                             <div class="thumbnail-list">
-                                 <div class="loading">正在加载视图...</div>
+                                 <div class="thumbnail-list">
+                                 <div class="loading">Loading views...</div>
                              </div>
                              <div class="main-preview">
-                                 <div class="preview-placeholder">请选择左侧视图查看预览</div>
+                                 <div class="preview-placeholder">Please select a view from the left</div>
                              </div>
                          </div>
                     </main>
@@ -65,26 +65,26 @@ async function showUniversalViewPreview(views) {
         const view = views[index];
         const isGridView = view.view_flow === '4-Grid Flow';
         if (isGridView && Array.isArray(imageData)) {
-            const gridLabels = ['前视图', '左视图', '右视图', '后视图'];
+            const gridLabels = ['Front View', 'Left View', 'Right View', 'Back View'];
             imageData.forEach((gridImageData, gridIndex) => {
                 const thumbnailItem = document.createElement('div');
                 thumbnailItem.className = `thumbnail-item ${thumbnailList.children.length === 0 ? 'active' : ''}`;
-                thumbnailItem.innerHTML = `<img src="${gridImageData}" alt="${view.name || `视图 ${index + 1}`} - ${gridLabels[gridIndex]}" /><div class="thumbnail-label">${view.name || `视图 ${index + 1}`} - ${gridLabels[gridIndex]}</div>`;
+                thumbnailItem.innerHTML = `<img src="${gridImageData}" alt="${view.name || `View ${index + 1}`} - ${gridLabels[gridIndex]}" /><div class="thumbnail-label">${view.name || `View ${index + 1}`} - ${gridLabels[gridIndex]}</div>`;
                 thumbnailItem.addEventListener('click', () => {
                     thumbnailList.querySelectorAll('.thumbnail-item').forEach(item => { item.classList.remove('active'); });
                     thumbnailItem.classList.add('active');
-                    mainPreview.innerHTML = `<img src="${gridImageData}" alt="${view.name || `视图 ${index + 1}`} - ${gridLabels[gridIndex]}">`;
+                    mainPreview.innerHTML = `<img src="${gridImageData}" alt="${view.name || `View ${index + 1}`} - ${gridLabels[gridIndex]}">`;
                 });
                 thumbnailList.appendChild(thumbnailItem);
             });
         } else {
             const thumbnailItem = document.createElement('div');
             thumbnailItem.className = `thumbnail-item ${thumbnailList.children.length === 0 ? 'active' : ''}`;
-            thumbnailItem.innerHTML = `<img src="${imageData}" alt="${view.name || `视图 ${index + 1}`}" /><div class="thumbnail-label">${view.name || `视图 ${index + 1}`}</div>`;
+            thumbnailItem.innerHTML = `<img src="${imageData}" alt="${view.name || `View ${index + 1}`}" /><div class="thumbnail-label">${view.name || `View ${index + 1}`}</div>`;
             thumbnailItem.addEventListener('click', () => {
                 thumbnailList.querySelectorAll('.thumbnail-item').forEach(item => { item.classList.remove('active'); });
                 thumbnailItem.classList.add('active');
-                mainPreview.innerHTML = `<img src="${imageData}" alt="${view.name || `视图 ${index + 1}`}">`;
+                mainPreview.innerHTML = `<img src="${imageData}" alt="${view.name || `View ${index + 1}`}">`;
             });
             thumbnailList.appendChild(thumbnailItem);
         }
@@ -92,8 +92,8 @@ async function showUniversalViewPreview(views) {
     if (viewImages.length > 0) {
         const firstView = views[0];
         const firstImageData = viewImages[0];
-        if (firstView.view_flow === '4-Grid Flow' && Array.isArray(firstImageData)) { mainPreview.innerHTML = `<img src="${firstImageData[0]}" alt="${firstView.name || '视图 1'} - 前视图">`; }
-        else { mainPreview.innerHTML = `<img src="${firstImageData}" alt="${firstView.name || '视图 1'}">`; }
+        if (firstView.view_flow === '4-Grid Flow' && Array.isArray(firstImageData)) { mainPreview.innerHTML = `<img src="${firstImageData[0]}" alt="${firstView.name || 'View 1'} - Front View">`; }
+        else { mainPreview.innerHTML = `<img src="${firstImageData}" alt="${firstView.name || 'View 1'}">`; }
     }
 }
 

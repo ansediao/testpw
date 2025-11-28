@@ -70,11 +70,11 @@ document.getElementById('renderBtn')?.addEventListener('click', async function (
     previewWindow.document.write(`
      <html>
        <head>
-         <title>预览效果</title>
+         <title>Preview</title>
          <style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f0f0;}img{max-width:100%;max-height:90vh;box-shadow:0 0 20px rgba(0,0,0,0.1);} </style>
        </head>
        <body>
-         <img src="${imageData}" alt="预览效果">
+         <img src="${imageData}" alt="Preview">
        </body>
      </html>
    `);

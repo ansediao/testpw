@@ -11,7 +11,7 @@ async function generateUniversalViewImages(views) {
                 images.push(imageData);
             }
         } catch (error) {
-            images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">截图失败</text></svg>'));
+            images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Screenshot failed</text></svg>'));
         }
     }
     return images;
@@ -20,13 +20,13 @@ async function generateUniversalViewImages(views) {
 async function generate4GridImagesForView(view, options = {}) {
     if (!view || !view.layers) {
         if (options.onlyFirst) {
-            return 'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">前视图</text></svg>');
+            return 'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">Front View</text></svg>');
         }
         return [
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">前视图</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">左视图</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">右视图</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">后视图</text></svg>')
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">Front View</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">Left View</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">Right View</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">Back View</text></svg>')
         ];
     }
     const backgroundLayer = view.layers.find(layer => layer.name === 'Background Layer');
@@ -42,19 +42,19 @@ async function generate4GridImagesForView(view, options = {}) {
     if (window.CanvasManager && view.id) activeCanvas = window.CanvasManager.getCanvas(view.id);
     if (!activeCanvas) activeCanvas = typeof window.getActiveCanvas === 'function' ? window.getActiveCanvas() : null;
     if (!activeCanvas) {
-        if (options.onlyFirst) return 'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>');
+        if (!activeCanvas) return 'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Failed to get canvas</text></svg>');
         return [
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">无法获取画布</text></svg>')
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Failed to get canvas</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Failed to get canvas</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Failed to get canvas</text></svg>'),
+            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Failed to get canvas</text></svg>')
         ];
     }
     const viewConfigs = [
-        { name: 'front', label: '前视图', cropConfig: { x: 0.25, y: 0, width: 0.5, height: 1 } },
-        { name: 'left', label: '左视图', cropConfig: { x: 0, y: 0, width: 0.5, height: 1 } },
-        { name: 'right', label: '右视图', cropConfig: { x: 0.5, y: 0, width: 0.5, height: 1 } },
-        { name: 'back', label: '后视图', cropConfig: { x: 0.75, y: 0, width: 0.25, height: 1, extraCrop: { x: 0, y: 0, width: 0.25, height: 1 } } },
+        { name: 'front', label: 'Front View', cropConfig: { x: 0.25, y: 0, width: 0.5, height: 1 } },
+        { name: 'left', label: 'Left View', cropConfig: { x: 0, y: 0, width: 0.5, height: 1 } },
+        { name: 'right', label: 'Right View', cropConfig: { x: 0.5, y: 0, width: 0.5, height: 1 } },
+        { name: 'back', label: 'Back View', cropConfig: { x: 0.75, y: 0, width: 0.25, height: 1, extraCrop: { x: 0, y: 0, width: 0.25, height: 1 } } },
     ];
     const gridImages = [];
     const configs = options.onlyFirst ? [viewConfigs[0]] : viewConfigs;
@@ -63,7 +63,7 @@ async function generate4GridImagesForView(view, options = {}) {
             const imageData = await generateCompositeImageForGrid({ canvasWidth, canvasHeight, backgroundLayer, baseLayer, overlayLayer, mappingLayer, activeCanvas, cropConfig: config.cropConfig });
             gridImages.push(imageData);
         } catch (error) {
-            gridImages.push('data:image/svg+xml;base64,' + btoa(`<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">${config.label}生成失败</text></svg>`));
+            gridImages.push('data:image/svg+xml;base64,' + btoa(`<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">${config.label} generation failed</text></svg>`));
         }
     }
     return options.onlyFirst ? gridImages[0] : gridImages;
@@ -204,7 +204,7 @@ function cropImageWithConfig(imageDataUrl, cropConfig) {
             ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, sourceWidth, sourceHeight);
             resolve(canvas.toDataURL('image/png'));
         };
-        img.onerror = function () { resolve('data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">图像加载失败</text></svg>')); };
+        img.onerror = function () { resolve('data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Image load failed</text></svg>')); };
         img.src = imageDataUrl;
     });
 }
@@ -222,13 +222,13 @@ async function captureViewImage(view) {
                 const imageData = await window.captureMultiLayerCanvasWithMask({ baseCanvas: baseCanvasElement, mainCanvas: mainCanvasElement, overlayCanvas: overlayCanvasElement, maskCanvas: maskCanvasElement, fabricCanvas: fabricCanvas }, view);
                 return imageData;
             } else {
-                return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">无法加载视图</text></svg>');
+                return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">Failed to load view</text></svg>');
             }
         } else {
-            return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">视图不存在</text></svg>');
+            return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">View does not exist</text></svg>');
         }
     } catch (error) {
-        return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">截图失败</text></svg>');
+        return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Screenshot failed</text></svg>');
     }
 }
 

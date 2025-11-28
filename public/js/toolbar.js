@@ -58,8 +58,8 @@ function updateDynamicToolbar(obj) {
               <option value="Arial" ${obj.fontFamily === 'Arial' ? 'selected' : ''}>Arial</option>
               <option value="Times New Roman" ${obj.fontFamily === 'Times New Roman' ? 'selected' : ''}>Times New Roman</option>
               <option value="Courier New" ${obj.fontFamily === 'Courier New' ? 'selected' : ''}>Courier New</option>
-              <option value="SimSun" ${obj.fontFamily === 'SimSun' ? 'selected' : ''}>宋体</option>
-              <option value="Microsoft YaHei" ${obj.fontFamily === 'Microsoft YaHei' ? 'selected' : ''}>微软雅黑</option>
+              <option value="SimSun" ${obj.fontFamily === 'SimSun' ? 'selected' : ''}>SimSun</option>
+              <option value="Microsoft YaHei" ${obj.fontFamily === 'Microsoft YaHei' ? 'selected' : ''}>Microsoft YaHei</option>
             </select>
           `;
             textToolbarArea.appendChild(fontSelector);
