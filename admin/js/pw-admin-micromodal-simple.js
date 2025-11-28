@@ -116,14 +116,14 @@
                 // 验证文件类型
                 const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
                 if (!allowedTypes.includes(file.type)) {
-                    alert('请选择图片文件 (JPG, PNG, GIF)');
+                    alert('Please select an image file (JPG, PNG, GIF)');
                     this.value = '';
                     return;
                 }
                 
                 // 验证文件大小 (5MB)
                 if (file.size > 5 * 1024 * 1024) {
-                    alert('文件太大，请选择小于5MB的图片');
+                    alert('File too large, please select an image smaller than 5MB');
                     this.value = '';
                     return;
                 }
@@ -175,11 +175,11 @@
                         
                         MicroModal.show('pw-category-settings-modal');
                     } else {
-                        alert('加载分类设置失败: ' + response.data);
+                        alert('Failed to load category settings: ' + response.data);
                     }
                 },
                 error: function() {
-                    alert('加载分类设置时发生错误');
+                    alert('An error occurred while loading category settings');
                 }
             });
         });
@@ -190,7 +190,7 @@
             const categoryId = $(this).data('category-id');
             const categoryName = $(this).closest('.pw-category-item').find('.pw-category-name-input').val();
             
-            if (confirm('确定要删除分类 "' + categoryName + '" 吗？此操作不可恢复。')) {
+            if (confirm('Are you sure you want to delete category "' + categoryName + '"? This action cannot be undone.')) {
                 $.ajax({
                     url: pw_admin_vars.ajaxurl,
                     type: 'POST',
@@ -201,14 +201,14 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            alert('分类删除成功！');
+                            alert('Category deleted successfully!');
                             location.reload();
                         } else {
-                            alert('删除失败: ' + response.data);
+                            alert('Delete failed: ' + response.data);
                         }
                     },
                     error: function() {
-                        alert('删除分类时发生错误');
+                        alert('An error occurred while deleting category');
                     }
                 });
             }
@@ -239,7 +239,7 @@
             }
             
             const $submitBtn = $('#pw-add-design-submit');
-            $submitBtn.prop('disabled', true).text('添加中...');
+            $submitBtn.prop('disabled', true).text('Adding...');
             
 
             
@@ -251,15 +251,15 @@
                 contentType: false,
                 success: function(response) {
                     if (response.success) {
-                        alert('设计添加成功！');
+                        alert('Design added successfully!');
                         MicroModal.close('pw-add-design-modal');
                         location.reload();
                     } else {
-                        alert('添加失败: ' + response.data);
+                        alert('Add failed: ' + response.data);
                     }
                 },
                 error: function(xhr, status, error) {
-                    alert('添加时发生错误: ' + error);
+                    alert('An error occurred while adding: ' + error);
                 },
                 complete: function() {
                     $submitBtn.prop('disabled', false).text('Add Design');
@@ -273,7 +273,7 @@
             e.preventDefault();
             
             if (typeof pw_admin_vars === 'undefined') {
-                alert('配置错误：pw_admin_vars 未定义');
+                alert('Configuration error: pw_admin_vars is undefined');
                 return;
             }
             
@@ -282,7 +282,7 @@
             
             
             
-            $submitBtn.prop('disabled', true).text('添加中...');
+            $submitBtn.prop('disabled', true).text('Adding...');
             
             $.ajax({
                 url: pw_admin_vars.ajaxurl,
@@ -291,15 +291,15 @@
                 success: function(response) {
                     
                     if (response.success) {
-                        alert('分类添加成功！');
+                        alert('Category added successfully!');
                         MicroModal.close('pw-add-category-modal');
                         location.reload();
                     } else {
-                        alert('添加失败: ' + response.data);
+                        alert('Add failed: ' + response.data);
                     }
                 },
                 error: function(xhr, status, error) {
-                    alert('添加时发生错误: ' + error);
+                    alert('An error occurred while adding: ' + error);
                 },
                 complete: function() {
                     $submitBtn.prop('disabled', false).text('Add Category');
@@ -371,13 +371,13 @@
             }).get();
             
             if (selectedDesigns.length === 0) {
-                alert('请选择要删除的设计');
+                alert('Please select designs to delete');
                 return;
             }
             
-            if (confirm('确定要删除选中的 ' + selectedDesigns.length + ' 个设计吗？此操作不可恢复。')) {
+            if (confirm('Are you sure you want to delete the selected ' + selectedDesigns.length + ' designs? This action cannot be undone.')) {
                 const $deleteBtn = $(this);
-                $deleteBtn.prop('disabled', true).text('删除中...');
+                $deleteBtn.prop('disabled', true).text('Deleting...');
                 
                 $.ajax({
                     url: pw_admin_vars.ajaxurl,
@@ -389,14 +389,14 @@
                     },
                     success: function(response) {
                         if (response.success) {
-                            alert('成功删除 ' + response.data.deleted + ' 个设计');
+                            alert('Successfully deleted ' + response.data.deleted + ' designs');
                             location.reload();
                         } else {
-                            alert('删除失败: ' + response.data);
+                            alert('Delete failed: ' + response.data);
                         }
                     },
                     error: function() {
-                        alert('删除时发生错误');
+                        alert('An error occurred while deleting');
                     },
                     complete: function() {
                         $deleteBtn.prop('disabled', false).text('Delete Selected');
@@ -412,7 +412,7 @@
             }).get();
             
             if (selectedDesigns.length === 0) {
-                alert('请选择要更新的设计');
+                alert('Please select designs to update');
                 return;
             }
             
@@ -445,7 +445,7 @@
              // 显示加载状态
              const submitButton = $(this).find('input[type="submit"]');
              const originalText = submitButton.val();
-             submitButton.val('更新中...').prop('disabled', true);
+             submitButton.val('Updating...').prop('disabled', true);
              
              $.ajax({
                  url: pwDesignManagement.ajaxUrl,
@@ -455,7 +455,7 @@
                  contentType: false,
                  success: function(response) {
                      if (response.success) {
-                         alert('批量更新成功！');
+                         alert('Bulk update successful!');
                          // 关闭弹窗
                          if (typeof MicroModal !== 'undefined') {
                              MicroModal.close('pw-bulk-update-modal');
@@ -463,11 +463,11 @@
                          // 刷新页面以显示更新后的数据
                          location.reload();
                      } else {
-                         alert('更新失败：' + (response.data || '未知错误'));
+                         alert('Update failed: ' + (response.data || 'Unknown error'));
                      }
                  },
                  error: function(xhr, status, error) {
-                     alert('请求失败，请稍后重试');
+                     alert('Request failed, please try again later');
                  },
                  complete: function() {
                      // 恢复按钮状态
@@ -498,18 +498,18 @@
                 nonce: pw_design_vars.nonce
             },
             beforeSend: function() {
-                $('#pw-tag-modal-body').html('<div class="loading">加载中...</div>');
+                $('#pw-tag-modal-body').html('<div class="loading">Loading...</div>');
             },
             success: function(response) {
                 if (response.success) {
                     $('#pw-tag-modal-body').html(response.data);
                     MicroModal.show('pw-tag-modal');
                 } else {
-                    alert('加载标签失败: ' + response.data);
+                    alert('Failed to load tags: ' + response.data);
                 }
             },
             error: function() {
-                alert('加载标签时发生错误');
+                alert('An error occurred while loading tags');
             }
         });
     }
@@ -569,20 +569,20 @@
                 nonce: pw_design_vars.nonce
             },
             beforeSend: function() {
-                $('#pw-tag-modal-save').prop('disabled', true).text('保存中...');
+                $('#pw-tag-modal-save').prop('disabled', true).text('Saving...');
             },
             success: function(response) {
                 if (response.success) {
                     MicroModal.close('pw-tag-modal');
-                    alert('标签保存成功！');
+                    alert('Tags saved successfully!');
                     // 更新界面上的标签显示
                     updateDesignTagsDisplay(designId);
                 } else {
-                    alert('保存失败: ' + response.data);
+                    alert('Save failed: ' + response.data);
                 }
             },
             error: function() {
-                alert('保存时发生错误');
+                alert('An error occurred while saving');
             },
             complete: function() {
                 $('#pw-tag-modal-save').prop('disabled', false).text('Save Changes');

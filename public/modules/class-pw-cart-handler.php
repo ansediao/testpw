@@ -190,7 +190,7 @@ function gemini_cart_js_logic() {
 
             if ($cart_product_is_sync !== $new_product_is_sync) {
                 if (function_exists('wc_add_notice')) {
-                    wc_add_notice('定制产品不能与普通产品一起结算，请先清空购物车。', 'error');
+                    wc_add_notice('Customized products cannot be checked out with regular products. Please clear the cart first.', 'error');
                 }
                 return false;
             }
@@ -306,18 +306,18 @@ function gemini_cart_js_logic() {
      */
     public function add_customized_product_to_cart() {
         if (!isset($_POST['security']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['security'])), 'custom-product-nonce')) {
-            wp_send_json_error('安全验证失败');
+            wp_send_json_error('Security verification failed');
         }
 
         $product_id = isset($_POST['product_id']) ? intval($_POST['product_id']) : 0;
         if (!$product_id || !get_post_status($product_id)) {
-            wp_send_json_error('无效的产品ID');
+            wp_send_json_error('Invalid product ID');
         }
 
         // 验证产品是否为 WooCommerce 产品
         $product = wc_get_product($product_id);
         if (!$product) {
-            wp_send_json_error('产品不存在');
+            wp_send_json_error('Product does not exist');
         }
 
         // 当产品类型为 grouped 时，改为将其一个子产品加入购物车
@@ -325,7 +325,7 @@ function gemini_cart_js_logic() {
             // 获取 grouped 子产品列表（存于 _children 元字段）
             $children = get_post_meta($product_id, '_children', true);
             if (empty($children) || !is_array($children)) {
-                wp_send_json_error('组合产品没有可购买的子产品');
+                wp_send_json_error('Grouped product has no purchasable child products');
             }
 
             // 优先选择标记为空白件的子产品（pw_blank_item = 1）
@@ -346,10 +346,10 @@ function gemini_cart_js_logic() {
             // 使用子产品进行后续可购买与库存校验
             $child_product = wc_get_product($target_child_id);
             if (!$child_product || !$child_product->is_purchasable()) {
-                wp_send_json_error('组合子产品不可购买');
+                wp_send_json_error('Grouped child product is not purchasable');
             }
             if (!$child_product->is_in_stock()) {
-                wp_send_json_error('组合子产品缺货');
+                wp_send_json_error('Grouped child product is out of stock');
             }
 
             // 将后续加入购物车的目标产品替换为子产品
@@ -359,12 +359,12 @@ function gemini_cart_js_logic() {
 
         // 非 grouped 产品：常规可购买校验
         if (!$product->is_purchasable()) {
-            wp_send_json_error('产品不可购买');
+            wp_send_json_error('Product is not purchasable');
         }
 
         // 检查库存
         if (!$product->is_in_stock()) {
-            wp_send_json_error('产品缺货');
+            wp_send_json_error('Product is out of stock');
         }
 
         $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
@@ -375,9 +375,9 @@ function gemini_cart_js_logic() {
         $incoming_is_blank = ($is_blank_raw === '1' || $is_blank_raw === 1 || $is_blank_raw === true || $is_blank_raw === 'true') ? 1 : 0;
         if (!$this->cart_is_compatible_with($incoming_is_blank)) {
             if ($incoming_is_blank === 1) {
-                wp_send_json_error('购物车中有定制产品，不可以加入购物车');
+                wp_send_json_error('The cart contains customized products; cannot add this item');
             } else {
-                wp_send_json_error('购物车中已存在空白件商品，无法加入');
+                wp_send_json_error('The cart already contains blank items; cannot add this item');
             }
         }
 
@@ -393,17 +393,17 @@ function gemini_cart_js_logic() {
         }
         $color = isset($_POST['color']) ? sanitize_text_field(wp_unslash($_POST['color'])) : '';
         $custom_color = isset($_POST['custom_color']) ? sanitize_text_field(wp_unslash($_POST['custom_color'])) : '';
-        $color_name = isset($_POST['color_name']) ? sanitize_text_field(wp_unslash($_POST['color_name'])) : '默认颜色';
+        $color_name = isset($_POST['color_name']) ? sanitize_text_field(wp_unslash($_POST['color_name'])) : 'Default Color';
         $color_value = isset($_POST['color_value']) ? sanitize_text_field(wp_unslash($_POST['color_value'])) : '';
         $variant_id = isset($_POST['variant_id']) ? sanitize_text_field(wp_unslash($_POST['variant_id'])) : '';
 
         // 必须提供至少一种图片数据：单图或多视图
         if (empty($custom_image) && empty($view_images_data)) {
-            wp_send_json_error('缺少自定义图片数据');
+            wp_send_json_error('Missing custom image data');
         }
         // 如提供单图，校验格式
         if (!empty($custom_image) && (strpos($custom_image, 'data:image/') !== 0 || strpos($custom_image, ';base64,') === false)) {
-            wp_send_json_error('无效的图片数据格式');
+            wp_send_json_error('Invalid image data format');
         }
 
         $upload_dir = wp_upload_dir();
@@ -411,7 +411,7 @@ function gemini_cart_js_logic() {
 
         if (!file_exists($custom_dir)) {
             if (!wp_mkdir_p($custom_dir)) {
-                wp_send_json_error('无法创建自定义图片目录');
+                wp_send_json_error('Failed to create custom image directory');
             }
         }
 
@@ -423,7 +423,7 @@ function gemini_cart_js_logic() {
         if (!empty($view_images_data)) {
             foreach ($view_images_data as $view_idx => $view_item) {
                 $view_id   = isset($view_item['id']) ? sanitize_text_field($view_item['id']) : '';
-                $view_name = isset($view_item['name']) ? sanitize_text_field($view_item['name']) : ($view_id ?: ('视图 ' . ($view_idx + 1)));
+                $view_name = isset($view_item['name']) ? sanitize_text_field($view_item['name']) : ($view_id ?: ('View ' . ($view_idx + 1)));
                 $images    = (isset($view_item['images']) && is_array($view_item['images'])) ? $view_item['images'] : array();
 
                 $urls = array();
@@ -457,10 +457,10 @@ function gemini_cart_js_logic() {
             $file_path = $custom_dir . '/' . $filename;
             $image_data = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $custom_image));
             if ($image_data === false) {
-                wp_send_json_error('解码图片数据失败');
+                wp_send_json_error('Failed to decode image data');
             }
             if (file_put_contents($file_path, $image_data) === false) {
-                wp_send_json_error('保存自定义图片失败');
+                wp_send_json_error('Failed to save custom image');
             }
             $saved_file_paths[] = $file_path;
             $first_saved_image_url = $upload_dir['baseurl'] . '/custom-products/' . $filename;
@@ -505,14 +505,14 @@ function gemini_cart_js_logic() {
 
         if (!function_exists('WC') || WC()->cart === null) {
             foreach ($saved_file_paths as $p) { @unlink($p); }
-            wp_send_json_error('购物车功能不可用');
+            wp_send_json_error('Cart functionality is unavailable');
         }
 
         $cart_item_key = WC()->cart->add_to_cart($product_id, $quantity, 0, array(), $cart_item_data);
 
         if ($cart_item_key) {
             wp_send_json_success(array(
-                'message' => '产品已成功添加到购物车',
+                'message' => 'Product added to cart successfully',
                 'cart_item_key' => $cart_item_key,
                 'product_id' => $product_id,
                 'quantity' => $quantity
@@ -520,7 +520,7 @@ function gemini_cart_js_logic() {
         } else {
             // 获取 WooCommerce 错误信息
             $notices = wc_get_notices('error');
-            $error_message = '添加到购物车失败';
+            $error_message = 'Failed to add to cart';
             if (!empty($notices)) {
                 $error_message .= ': ' . implode(', ', array_column($notices, 'notice'));
                 wc_clear_notices();
@@ -779,13 +779,13 @@ function gemini_cart_js_logic() {
             $pw_isSyncProduct = get_post_meta($cart_item['product_id'], 'pw_isSyncProduct', true);
             if ($pw_isSyncProduct == '1') {
                 $item_data[] = array(
-                    'key'     => '定制设计',
-                    'value'   => '无',
+                    'key'     => 'Custom Design',
+                    'value'   => 'None',
                     'display' => '',
                 );
                 $item_data[] = array(
-                    'key'     => '颜色',
-                    'value'   => '未选',
+                    'key'     => 'Color',
+                    'value'   => 'Not selected',
                     'display' => '',
                 );
             }
@@ -819,7 +819,7 @@ function gemini_cart_js_logic() {
         } elseif (!empty($custom_data) && !empty($custom_data['custom_image'])) {
             $image_url = esc_url($custom_data['custom_image']);
         $item_name .= sprintf(
-            '<div style="margin-top: 10px;"><img src="%s" alt="定制设计" style="max-width: 100px; height: auto; display: block; border: 1px solid #ddd; padding: 5px; background: #fff;"></div>',
+            '<div style="margin-top: 10px;"><img src="%s" alt="Custom Design" style="max-width: 100px; height: auto; display: block; border: 1px solid #ddd; padding: 5px; background: #fff;"></div>',
             $image_url
         );
         }
@@ -838,9 +838,9 @@ function gemini_cart_js_logic() {
             $key = $meta->display_key;
             $value = $meta->display_value;
 
-            if ($meta->key === 'custom_data' && $key === '定制设计') {
+            if ($meta->key === 'custom_data' && $key === 'Custom Design') {
                 $value = $meta->value;
-            } else if ($meta->key === 'custom_data' && $key === '颜色') {
+            } else if ($meta->key === 'custom_data' && $key === 'Color') {
                 $value = $meta->value;
             } else {
                 $value = $args['autop'] ? wp_kses_post($value) : wp_kses_post(make_clickable(trim($value)));
@@ -945,11 +945,11 @@ function gemini_cart_js_logic() {
                           '<div class="modal__overlay" tabindex="-1" data-micromodal-close>' +
                             '<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pwca-image-preview-modal-title">' +
                               '<header class="modal__header">' +
-                                '<h2 class="modal__title" id="pwca-image-preview-modal-title">渲染图</h2>' +
+                                '<h2 class="modal__title" id="pwca-image-preview-modal-title">Rendered Image</h2>' +
                                 '<button class="modal__close" aria-label="Close" data-micromodal-close></button>' +
                               '</header>' +
                               '<main class="modal__content" id="pwca-image-preview-modal-content">' +
-                                '<img src="" alt="渲染图" style="max-width:100%; height:auto;" />' +
+                                '<img src="" alt="Rendered Image" style="max-width:100%; height:auto;" />' +
                               '</main>' +
                             '</div>' +
                           '</div>' +

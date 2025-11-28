@@ -176,18 +176,18 @@
                 nonce: pw_design_vars.nonce
             },
             beforeSend: function() {
-                $('#pw-tag-modal-body').html('<div class="loading">加载中...</div>');
+                $('#pw-tag-modal-body').html('<div class="loading">Loading...</div>');
             },
             success: function(response) {
                 if (response.success) {
                     $('#pw-tag-modal-body').html(response.data);
                     MicroModal.show('pw-tag-modal');
                 } else {
-                    alert('加载标签失败: ' + response.data);
+                    alert('Failed to load tags: ' + response.data);
                 }
             },
             error: function() {
-                alert('加载标签时发生错误');
+                alert('An error occurred while loading tags');
             }
         });
     }
@@ -267,14 +267,13 @@
             processData: false,
             contentType: false,
             beforeSend: function() {
-                $('#pw-add-design-submit').prop('disabled', true).text('添加中...');
+                $('#pw-add-design-submit').prop('disabled', true).text('Adding...');
             },
             success: function(response) {
                 if (response.success) {
                     MicroModal.close('pw-add-design-modal');
                     
-                    // 显示成功消息
-                    showNotification('设计添加成功！', 'success');
+                    showNotification('Design added successfully!', 'success');
                     
                     // 重置表单
                     $('#pw-add-design-form')[0].reset();
@@ -284,11 +283,11 @@
                     // 刷新页面
                     setTimeout(() => location.reload(), 1000);
                 } else {
-                    showNotification('添加失败: ' + response.data, 'error');
+                    showNotification('Add failed: ' + response.data, 'error');
                 }
             },
             error: function(xhr, status, error) {
-                let errorMessage = '添加时发生错误';
+                let errorMessage = 'An error occurred while adding';
                 
                 try {
                     const errorResponse = JSON.parse(xhr.responseText);
@@ -318,19 +317,19 @@
             type: 'POST',
             data: formData + '&action=pw_add_category&nonce=' + pw_admin_vars.nonce,
             beforeSend: function() {
-                $('#pw-add-category-submit').prop('disabled', true).text('添加中...');
+                $('#pw-add-category-submit').prop('disabled', true).text('Adding...');
             },
             success: function(response) {
                 if (response.success) {
                     MicroModal.close('pw-add-category-modal');
-                    alert('分类添加成功！');
+                    alert('Category added successfully!');
                     location.reload();
                 } else {
-                    alert('添加失败: ' + response.data);
+                    alert('Add failed: ' + response.data);
                 }
             },
             error: function() {
-                alert('添加时发生错误');
+                alert('An error occurred while adding');
             },
             complete: function() {
                 $('#pw-add-category-submit').prop('disabled', false).text('Add Category');
@@ -350,19 +349,19 @@
             type: 'POST',
             data: formData + '&action=pw_update_category_settings&category_id=' + categoryId + '&nonce=' + pw_admin_vars.nonce,
             beforeSend: function() {
-                $('#pw-settings-save').prop('disabled', true).text('保存中...');
+                $('#pw-settings-save').prop('disabled', true).text('Saving...');
             },
             success: function(response) {
                 if (response.success) {
                     MicroModal.close('pw-category-settings-modal');
-                    alert('设置保存成功！');
+                    alert('Settings saved successfully!');
                     location.reload();
                 } else {
-                    alert('保存失败: ' + response.data);
+                    alert('Save failed: ' + response.data);
                 }
             },
             error: function() {
-                alert('保存时发生错误');
+                alert('An error occurred while saving');
             },
             complete: function() {
                 $('#pw-settings-save').prop('disabled', false).text('Save');
@@ -391,18 +390,18 @@
                 nonce: pw_design_vars.nonce
             },
             beforeSend: function() {
-                $('#pw-tag-modal-save').prop('disabled', true).text('保存中...');
+                $('#pw-tag-modal-save').prop('disabled', true).text('Saving...');
             },
             success: function(response) {
                 if (response.success) {
                     MicroModal.close('pw-tag-modal');
-                    alert('标签保存成功！');
+                    alert('Tags saved successfully!');
                 } else {
-                    alert('保存失败: ' + response.data);
+                    alert('Save failed: ' + response.data);
                 }
             },
             error: function() {
-                alert('保存时发生错误');
+                alert('An error occurred while saving');
             },
             complete: function() {
                 $('#pw-tag-modal-save').prop('disabled', false).text('Save Changes');
@@ -505,14 +504,14 @@
             // 验证文件类型
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
             if (!allowedTypes.includes(file.type)) {
-                showNotification('请选择图片文件 (JPG, PNG, GIF)', 'error');
+                showNotification('Please select an image file (JPG, PNG, GIF)', 'error');
                 return;
             }
             
             // 验证文件大小 (5MB)
             const maxSize = 5 * 1024 * 1024;
             if (file.size > maxSize) {
-                showNotification('文件太大，请选择小于5MB的图片', 'error');
+                showNotification('File too large, please select an image smaller than 5MB', 'error');
                 return;
             }
 
@@ -527,11 +526,11 @@
                 $('#pw-image-preview').show();
                 $uploadArea.removeClass('pw-loading');
                 
-                showNotification('图片上传成功', 'success');
+                showNotification('Image uploaded successfully', 'success');
             };
             
             reader.onerror = function() {
-                showNotification('读取文件时发生错误', 'error');
+                showNotification('An error occurred while reading the file', 'error');
                 $uploadArea.removeClass('pw-loading');
             };
             
