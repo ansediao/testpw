@@ -660,31 +660,6 @@ if (! isMultiViewMode && ! hasMultiViewContainer) { // 单视图模式：执行�
     }
 } else { // 多视图模式：初始化将由多视图系统处理
 }
-
-// 前进按钮事件
-const forwardBtn = document.getElementById('forward');
-if (forwardBtn) {
-    forwardBtn.addEventListener('click', () => {
-        if (historyPointer < history.length - 1) {
-            restoreState(historyPointer + 1);
-
-        } else {}
-    });
-}
-
-// 后退按钮事件
-const backwardBtn = document.getElementById('backward');
-if (backwardBtn) {
-    backwardBtn.addEventListener('click', () => {
-        if (historyPointer > 0) {
-            restoreState(historyPointer - 1);
-        } else {
-            
-        }
-    });
-}
-
-
 // 添加渲染预览按钮的点击事件
 document.getElementById('renderBtn').addEventListener('click', async function () { // 检查是否有多视图系统
     // 1) 点击后先清除所有视图、所有画布的选中状态

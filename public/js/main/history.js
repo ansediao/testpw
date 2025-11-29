@@ -54,18 +54,4 @@ window.restoreState = restoreState;
 window.updateHistoryButtons = updateHistoryButtons;
 window.initializeCanvas = initializeCanvas;
 
-const forwardBtn = document.getElementById('forward');
-if (forwardBtn) {
-    forwardBtn.addEventListener('click', () => {
-        if (historyPointer < history.length - 1) restoreState(historyPointer + 1);
-    });
-}
-
-const backwardBtn = document.getElementById('backward');
-if (backwardBtn) {
-    backwardBtn.addEventListener('click', () => {
-        if (historyPointer > 0) restoreState(historyPointer - 1);
-    });
-}
-
 window.__historyInternals = { isRestoringRef: () => isRestoring };
