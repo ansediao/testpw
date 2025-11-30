@@ -295,8 +295,10 @@ function gemini_cart_js_logic() {
         // 合并到现有 custom_data
         $cart_item_data['custom_data'] = array_merge($cart_item_data['custom_data'], $extra);
 
-        // 标记来源：产品页加购
-        $cart_item_data['custom_data']['added_from'] = 'product';
+        // 标记来源：仅当未指定时默认设为 product，避免覆盖设计页设置
+        if (!isset($cart_item_data['custom_data']['added_from'])) {
+            $cart_item_data['custom_data']['added_from'] = 'product';
+        }
 
         return $cart_item_data;
     }

@@ -52,8 +52,28 @@ class Pw_Cart_Admin_Actions {
             return $product_name;
         }
 
-        $product_id = $cart_item['product_id'];
-        $variation_id = $cart_item['variation_id'];
+        if (!is_array($cart_item) || empty($cart_item)) {
+            if (function_exists('WC') && WC()->cart) {
+                $fetched = WC()->cart->get_cart_item($cart_item_key);
+                if (is_array($fetched) && !empty($fetched)) {
+                    $cart_item = $fetched;
+                } else {
+                    return $product_name;
+                }
+            } else {
+                return $product_name;
+            }
+        }
+
+        $product_id = isset($cart_item['product_id']) ? $cart_item['product_id'] : 0;
+        $variation_id = isset($cart_item['variation_id']) ? $cart_item['variation_id'] : 0;
+        $added_from = '';
+        if (isset($cart_item['custom_data']) && is_array($cart_item['custom_data'])) {
+            $added_from = isset($cart_item['custom_data']['added_from']) ? $cart_item['custom_data']['added_from'] : '';
+        }
+        $is_design = ($added_from === 'design');
+
+        // print_r($cart_item['custom_data']);
         
         // 构建按钮HTML
         $buttons_html = '<div class="pw-cart-admin-actions" style="margin-top: 8px;">';
@@ -66,12 +86,17 @@ class Pw_Cart_Admin_Actions {
             esc_attr($variation_id)
         );
         
-        // 编辑链接 - 跳转到后台编辑界面
-        $edit_url = $this->get_product_admin_edit_url($product_id);
-        $buttons_html .= sprintf(
-            '<a href="%s" class="pw-cart-edit-btn" target="_blank" style="margin-right: 8px; font-size: 12px; text-decoration: underline;">Edit</a>',
-            esc_url($edit_url)
-        );
+        // 编辑链接
+        if ($is_design) {
+            $edit_base = home_url('/pwcanvas/');
+            $edit_url = add_query_arg('product_id', $product_id, $edit_base);
+            $buttons_html .= sprintf(
+                '<a href="%s" class="pw-cart-edit-btn" target="_blank" style="margin-right: 8px; font-size: 12px; text-decoration: underline;">Edit</a>',
+                esc_url($edit_url)
+            );
+        } else {
+            $buttons_html .= '<a href="#" class="pw-cart-edit-btn" aria-disabled="true" style="margin-right: 8px; font-size: 12px; color: #999; opacity: 0.6; cursor: not-allowed; pointer-events: none; text-decoration: none;">Edit</a>';
+        }
         
         $buttons_html .= '</div>';
         
@@ -349,6 +374,11 @@ class Pw_Cart_Admin_Actions {
             
             // 编辑按钮点击事件（添加确认）
             $(document).on('click', '.pw-cart-edit-btn', function(e) {
+                var link = $(this);
+                if (link.attr('aria-disabled') === 'true') {
+                    e.preventDefault();
+                    return;
+                }
                 var confirmed = confirm('Edit this product in the admin? This will open the product edit page in a new window.');
                 if (!confirmed) {
                     e.preventDefault();
