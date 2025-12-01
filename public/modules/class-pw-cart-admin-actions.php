@@ -90,6 +90,9 @@ class Pw_Cart_Admin_Actions {
         if ($is_design) {
             $edit_base = home_url('/pwcanvas/');
             $edit_url = add_query_arg('product_id', $product_id, $edit_base);
+            // 添加参数 edit=true
+            $edit_url = add_query_arg('edit', 'true', $edit_url);
+
             $buttons_html .= sprintf(
                 '<a href="%s" class="pw-cart-edit-btn" target="_blank" style="margin-right: 8px; font-size: 12px; text-decoration: underline;">Edit</a>',
                 esc_url($edit_url)
