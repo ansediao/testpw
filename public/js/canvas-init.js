@@ -35,6 +35,11 @@
 
         // 控制台日志
         console.log('Page Inited');
+
+        // 缩放完成后 log
+        document.addEventListener('stageZoomComplete', (e) => {
+            console.log('缩放完成', e.detail);
+        });
     }
 
     /**
@@ -339,6 +344,16 @@
                 
             }
         }
+
+        // 添加一个标志位 让其他地方可以监听缩放完成事件
+        const zoomCompleteEvent = new CustomEvent('stageZoomComplete', {
+            detail: {
+                scale: actualZoom / 100,
+                currentZoom: actualZoom,
+                container: multiViewContainer
+            }
+        });
+        document.dispatchEvent(zoomCompleteEvent);
     }
 
     /**
@@ -353,6 +368,16 @@
             // 应用缩放到 multi-view-container
             multiViewContainer.style.transform = `scale(${scale})`;
             multiViewContainer.style.transformOrigin = 'center center';
+            
+            // 触发缩放完成事件
+            const zoomCompleteEvent = new CustomEvent('stageZoomComplete', {
+                detail: {
+                    scale: scale,
+                    currentZoom: scale * 100,
+                    container: multiViewContainer
+                }
+            });
+            document.dispatchEvent(zoomCompleteEvent);
         } else {
         }
     }
@@ -466,7 +491,15 @@ function updateCanvasZoom() {
         multiViewContainer.style.transform = `scale(${scale})`;
         multiViewContainer.style.transformOrigin = 'center center';
         
-        
+        // 触发缩放完成事件
+        const zoomCompleteEvent = new CustomEvent('stageZoomComplete', {
+            detail: {
+                scale: scale,
+                currentZoom: currentZoom,
+                container: multiViewContainer
+            }
+        });
+        document.dispatchEvent(zoomCompleteEvent);
     } else {
     }
 }
