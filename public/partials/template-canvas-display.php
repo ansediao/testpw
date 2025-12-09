@@ -108,7 +108,7 @@ if ($product_id > 0) {
     </main>
     <footer class="footer" id="footer">
       <div class="product-card" id="product-card-footer">
-        
+
       </div>
       <!-- 添加画板缩放滑块 -->
       <div class="zoom-control" style="margin-top: 15px;">
@@ -130,11 +130,9 @@ if ($product_id > 0) {
                 canvas.viewportTransform[0] = zoomLevel;
                 canvas.viewportTransform[3] = zoomLevel;
                 canvas.renderAll();
-              } else {
-              }
+              } else {}
             });
-          } else {
-          }
+          } else {}
         });
       </script>
       <?php
@@ -159,7 +157,15 @@ if ($product_id > 0) {
       <?php endif; ?>
       <div class="product-card-btn">
 
-        <button id="addToCartBtn" class="product-card__add-to-cart">Add to Cart</button>
+        <button id="addToCartBtn" class="product-card__add-to-cart"><?php //如果url 包含 edit=true 则显示 Add to Design Cart 否则显示 Add to Cart
+          $current_url = $_SERVER['REQUEST_URI'];
+
+          if (strpos($current_url, 'edit') == false) {
+            echo esc_html__('Add to Cart', 'pwcanvas');
+          } else {
+            echo esc_html__('Update', 'pwcanvas');
+          }
+          ?></button>
       </div>
     </footer>
   </div>
@@ -333,7 +339,7 @@ if ($product_id > 0) {
           // 获取数量信息
           const quantityInput = document.querySelector('.product-card__input');
           const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
-          
+
           if (quantity <= 0) {
             alert('请输入有效的数量');
             return;
@@ -425,7 +431,11 @@ if ($product_id > 0) {
             } else {
               // 3) 单视图回退：使用 captureCanvas/capturePreviewCanvas
               const singleImage = await (previewContainer ? capturePreviewCanvas() : captureCanvas());
-              viewImagesPayload = [{ id: 'single', name: '视图', images: [singleImage] }];
+              viewImagesPayload = [{
+                id: 'single',
+                name: '视图',
+                images: [singleImage]
+              }];
             }
           } catch (e) {
             console.warn('生成多视图图片时发生错误，将仅使用单图：', e);
@@ -469,7 +479,11 @@ if ($product_id > 0) {
           // 准备数据
           const ds = (typeof window.useDesignUsageStore === 'function') ? window.useDesignUsageStore(window.pinia) : null;
           const designList = ds && Array.isArray(ds.list) ? ds.list : [];
-          const designPayload = designList.map(it => ({ name: String(it.name || ''), image: String(it.image || ''), quantity: Number(it.quantity || 0) }));
+          const designPayload = designList.map(it => ({
+            name: String(it.name || ''),
+            image: String(it.image || ''),
+            quantity: Number(it.quantity || 0)
+          }));
           const designFeeTotal = ds && Number(ds.totalFee || 0);
           const data = 'action=add_customized_product_to_cart' +
             '&product_id=' + encodeURIComponent(productId) +
@@ -580,7 +594,7 @@ if ($product_id > 0) {
 
       try {
         // 遍历所有视图并捕获图像
-          for (const view of store.views) {
+        for (const view of store.views) {
 
           // 切换到当前视图
           store.setActiveViewId(view.id);
@@ -722,14 +736,12 @@ if ($product_id > 0) {
           const timeStr = currentTime.toLocaleString().replace(/[:\/]/g, '-').replace(/,/g, '');
           const fileName = `${productName}_多视图规格书_${timeStr}.pdf`;
           doc.save(fileName);
-        } else {
-        }
+        } else {}
 
-      } catch (error) {
-      } finally {
+      } catch (error) {} finally {
         // 恢复到原始激活视图
         if (originalActiveViewId) {
-          
+
           store.setActiveViewId(originalActiveViewId);
 
           const originalViewContainer = document.getElementById(`view-container-${originalActiveViewId}`);
@@ -792,7 +804,7 @@ if ($product_id > 0) {
         // 如果有需要挂载的元素，可以挂载应用
         // app.mount('#app');
 
-        
+
 
         // 触发自定义事件，通知其他脚本 Pinia 已准备就绪
         document.dispatchEvent(new CustomEvent('canvasPiniaReady', {
@@ -801,8 +813,7 @@ if ($product_id > 0) {
             useCanvasStore: window.useCanvasStore
           }
         }));
-      } else {
-      }
+      } else {}
     });
   </script>
 

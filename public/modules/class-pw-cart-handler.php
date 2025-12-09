@@ -295,8 +295,10 @@ function gemini_cart_js_logic() {
         // 合并到现有 custom_data
         $cart_item_data['custom_data'] = array_merge($cart_item_data['custom_data'], $extra);
 
-        // 标记来源：产品页加购
-        $cart_item_data['custom_data']['added_from'] = 'product';
+        // 标记来源：仅当未指定时默认设为 product，避免覆盖设计页设置
+        if (!isset($cart_item_data['custom_data']['added_from'])) {
+            $cart_item_data['custom_data']['added_from'] = 'product';
+        }
 
         return $cart_item_data;
     }
@@ -866,6 +868,13 @@ function gemini_cart_js_logic() {
 
         $custom_html = '';
 
+        $added_from = isset($cart_item['custom_data']['added_from']) ? $cart_item['custom_data']['added_from'] : '';
+        $edit_url = '';
+        if ($added_from === 'design') {
+            $edit_base = home_url('/pwcanvas/');
+            $edit_url = add_query_arg(array('product_id' => $product_id, 'edit' => 'true', 'view' => 'main'), $edit_base);
+        }
+
         if (isset($cart_item['custom_data']['view_images']) && is_array($cart_item['custom_data']['view_images']) && !empty($cart_item['custom_data']['view_images'])) {
             $views_meta = $cart_item['custom_data']['view_images'];
             $parts = array();
@@ -886,7 +895,12 @@ function gemini_cart_js_logic() {
                                 $classes = ' class="pwca-design-render 渲染图"';
                             }
                         }
-                        $html .= '<img' . $classes . ' src="' . esc_url($url) . '" alt="' . esc_attr($vname) . '" style="max-width:80px; height:auto; border-radius:4px; border:1px solid #ddd; padding:3px; background:#fff;">';
+                        $imgTag = '<img' . $classes . ' src="' . esc_url($url) . '" alt="' . esc_attr($vname) . '" style="max-width:80px; height:auto; border-radius:4px; border:1px solid #ddd; padding:3px; background:#fff;">';
+                        if ($idx === 0 && !empty($edit_url)) {
+                            $html .= '<a href="' . esc_url($edit_url) . '" target="_blank" class="pwca-draft-link">' . $imgTag . '</a>';
+                        } else {
+                            $html .= $imgTag;
+                        }
                         $idx++;
                     }
                 }
@@ -895,8 +909,6 @@ function gemini_cart_js_logic() {
             }
             $custom_html = '<div class="pw-design-preview">' . implode('', $parts) . '</div>';
         } else {
-            // 无设计数据或来源为产品页，显示 Not Available
-            $added_from = isset($cart_item['custom_data']['added_from']) ? $cart_item['custom_data']['added_from'] : '';
             if ($added_from === 'product' || empty($added_from)) {
                 $custom_html = '<span class="pw-design-na">Not Available</span>';
             }
