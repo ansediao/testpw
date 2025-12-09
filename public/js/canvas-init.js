@@ -2,12 +2,23 @@
 (function() {
     'use strict';
 
+    // 添加初始化标志，防止重复执行
+    let isInitialized = false;
+
     // 初始化函数
     function init() {
+        // 防止重复初始化
+        if (isInitialized) {
+            return;
+        }
+
         // 检查 CanvasManager 是否已加载
         if (typeof window.CanvasManager === 'undefined') {
             return;
         }
+
+        // 标记为已初始化
+        isInitialized = true;
 
         // 检查是否为多视图模式
         const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
@@ -21,6 +32,9 @@
         
         // 兼容模式：使用 CanvasManager 管理传统 canvas
         initializeTraditionalCanvases();
+
+        // 控制台日志
+        console.log('Page Inited');
     }
 
     /**
