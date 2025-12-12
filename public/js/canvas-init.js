@@ -481,15 +481,7 @@ function updateCanvasZoom() {
         multiViewContainer.style.transform = `scale(${scale})`;
         multiViewContainer.style.transformOrigin = 'center center';
         
-        // 触发缩放完成事件
-        const zoomCompleteEvent = new CustomEvent('stageZoomComplete', {
-            detail: {
-                scale: scale,
-                currentZoom: currentZoom,
-                container: multiViewContainer
-            }
-        });
-        document.dispatchEvent(zoomCompleteEvent);
+        
     } else {
     }
 }
