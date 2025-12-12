@@ -7,11 +7,15 @@
 
     // 初始化函数
     function init() {
+
+        
+
         // 防止重复初始化
         if (isInitialized) {
             return;
         }
-
+        // 控制台日志
+        console.log('Page 开始初始化画布');
         // 检查 CanvasManager 是否已加载
         if (typeof window.CanvasManager === 'undefined') {
             return;
@@ -33,12 +37,11 @@
         // 兼容模式：使用 CanvasManager 管理传统 canvas
         initializeTraditionalCanvases();
 
-        // 控制台日志
-        console.log('Page Inited');
+        
 
-        // 缩放完成后 log
-        document.addEventListener('stageZoomComplete', (e) => {
-            console.log('缩放完成', e.detail);
+        // 初始化完成后 log
+        document.addEventListener('multiViewInitComplete', (e) => {
+            console.log('画布初始化完成');
         });
     }
 
@@ -359,15 +362,6 @@
             multiViewContainer.style.transform = `scale(${scale})`;
             multiViewContainer.style.transformOrigin = 'center center';
             
-            // 触发缩放完成事件
-            const zoomCompleteEvent = new CustomEvent('stageZoomComplete', {
-                detail: {
-                    scale: scale,
-                    currentZoom: scale * 100,
-                    container: multiViewContainer
-                }
-            });
-            document.dispatchEvent(zoomCompleteEvent);
         } else {
         }
     }

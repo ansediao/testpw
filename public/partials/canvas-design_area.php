@@ -569,7 +569,8 @@ if ($first_image_url) {
         // 清空现有容器
         multiViewContainer.innerHTML = '';
 
-        views.forEach((view, index) => {
+        // 收集所有初始化 Promise
+        const initPromises = views.map((view, index) => {
             // 获取目标图层尺寸
             let canvasWidth = 567; // 默认宽度
             let canvasHeight = 567; // 默认高度
@@ -591,7 +592,6 @@ if ($first_image_url) {
                     canvasHeight = targetLayer.layer_data.dimensions.contentArea?.height || targetLayer.layer_data.dimensions.layerSize?.height || canvasHeight;
                 }
             }
-
 
 
 
@@ -649,15 +649,29 @@ if ($first_image_url) {
             viewContainer.innerHTML = canvasHtml;
             multiViewContainer.appendChild(viewContainer);
 
-            // 初始化该视图的 Fabric.js canvas
-            setTimeout(async () => {
-                //  initializeViewCanvas(view, store);
-                await initializeMultiLayerCanvases(view, store);
+            // 返回初始化 Promise
+            return new Promise((resolve) => {
+                // 初始化该视图的 Fabric.js canvas
+                setTimeout(async () => {
+                    //  initializeViewCanvas(view, store);
+                    await initializeMultiLayerCanvases(view, store);
 
-                // 初始化 maskCanvas
-                await initializeMaskCanvas(`maskCanvas-${view.id}`, view, store);
+                    // 初始化 maskCanvas
+                    await initializeMaskCanvas(`maskCanvas-${view.id}`, view, store);
+                    
+                    resolve();
+                }, 100);
+            });
+        });
 
-            }, 100);
+        // 等待所有初始化完成后输出日志
+        Promise.all(initPromises).then(() => {
+                        // 触发完成事件
+                        const initCompleteEvent = new CustomEvent('multiViewInitComplete');
+                        document.dispatchEvent(initCompleteEvent);
+    
+        }).catch((error) => {
+            console.error('Error initializing views:', error);
         });
     }
 
