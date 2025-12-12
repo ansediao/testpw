@@ -528,6 +528,8 @@ if ($first_image_url) {
         // 等待 Pinia store 可用
         function waitForStore() {
             if (typeof window.useCanvasStore === 'function') {
+                // 添加一个事件 pinia 存储准备就绪
+                document.dispatchEvent(new CustomEvent('canvasStoreReady'));
                 const store = window.useCanvasStore();
                 if (store) {
                     initializeMultiViewCanvases(store);
