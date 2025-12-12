@@ -39,6 +39,24 @@ export const useCanvasStore = defineStore('canvas', {
         // ===== 新增：按视图记录用户选择的颜色（来源于 variants.data 的颜色） =====
         // 结构：{ [viewId]: 完整的变体对象 (包含API返回的所有字段) + selectedColor }
         selectedColorsByView: {},
+        // ===== 使用 VueUse useStorage 持久化存储用户偏好设置 =====
+        // 通过 CDN 引入的 VueUse 功能，正确的访问方式是 window.VueUse
+        // 持久化存储用户的设计偏好，如画布背景色、网格显示等
+        userPreferences: window.VueUse && window.VueUse.useStorage ? window.VueUse.useStorage('pwca-user-preferences', {
+            canvasBackgroundColor: '#ffffff',
+            showGrid: true,
+            gridSize: 20,
+            showPrintArea: true,
+            zoomLevel: 100,
+            language: 'en'
+        }) : {
+            canvasBackgroundColor: '#ffffff',
+            showGrid: true,
+            gridSize: 20,
+            showPrintArea: true,
+            zoomLevel: 100,
+            language: 'en'
+        },
     }),
     // 4. getters 定义依赖状态的计算逻辑（所有依赖 Store 状态的计算放在这里）
     getters: {
@@ -135,6 +153,35 @@ export const useCanvasStore = defineStore('canvas', {
             return total;
         },
         
+        // ===== 用户偏好设置相关的 getter 方法 =====
+        // 获取用户偏好设置
+        getUserPreferences: (state) => {
+            return state.userPreferences;
+        },
+        // 获取画布背景色
+        getCanvasBackgroundColor: (state) => {
+            return state.userPreferences.canvasBackgroundColor;
+        },
+        // 获取是否显示网格
+        getShowGrid: (state) => {
+            return state.userPreferences.showGrid;
+        },
+        // 获取网格大小
+        getGridSize: (state) => {
+            return state.userPreferences.gridSize;
+        },
+        // 获取是否显示打印区域
+        getShowPrintArea: (state) => {
+            return state.userPreferences.showPrintArea;
+        },
+        // 获取缩放级别
+        getZoomLevel: (state) => {
+            return state.userPreferences.zoomLevel;
+        },
+        // 获取语言设置
+        getLanguage: (state) => {
+            return state.userPreferences.language;
+        },
     },
     // 5. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
     actions: {
@@ -270,6 +317,28 @@ export const useCanvasStore = defineStore('canvas', {
         // 清除所有视图的选中颜色
         clearAllSelectedColors() {
             this.selectedColorsByView = {};
+        },
+        // ===== 用户偏好设置相关方法 =====
+        // 更新用户偏好设置
+        updateUserPreferences(preferences) {
+            this.userPreferences = { ...this.userPreferences, ...preferences };
+        },
+        // 更新单个偏好设置
+        updateSinglePreference(key, value) {
+            this.userPreferences[key] = value;
+        },
+        // 重置用户偏好设置到默认值
+        resetUserPreferences() {
+            const defaultPreferences = {
+                canvasBackgroundColor: '#ffffff',
+                showGrid: true,
+                gridSize: 20,
+                showPrintArea: true,
+                zoomLevel: 100,
+                language: 'en'
+            };
+            // 使用与state中相同的VueUse useStorage访问方式
+            this.userPreferences = window.VueUse && window.VueUse.useStorage ? window.VueUse.useStorage('pwca-user-preferences', defaultPreferences) : defaultPreferences;
         },
         // 异步获取产品数据
         async fetchProductData(pwId) {
