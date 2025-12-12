@@ -344,16 +344,6 @@
                 
             }
         }
-
-        // 添加一个标志位 让其他地方可以监听缩放完成事件
-        const zoomCompleteEvent = new CustomEvent('stageZoomComplete', {
-            detail: {
-                scale: actualZoom / 100,
-                currentZoom: actualZoom,
-                container: multiViewContainer
-            }
-        });
-        document.dispatchEvent(zoomCompleteEvent);
     }
 
     /**
