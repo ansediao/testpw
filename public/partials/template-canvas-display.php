@@ -510,22 +510,25 @@ if ($product_id > 0) {
       }
     });
     // PDF生成功能
-    document.getElementById('generatePdfBtn').addEventListener('click', async function() {
-      // 获取产品名称
-      const productName = '<?php echo esc_js($product_name); ?>';
+    const pdfBtn = document.getElementById('generatePdfBtn');
+    if (pdfBtn) {
+        pdfBtn.addEventListener('click', async function() {
+            // 获取产品名称
+            const productName = '<?php echo esc_js($product_name); ?>';
 
-      // 检查是否为多视图模式
-      const store = window.useCanvasStore && window.useCanvasStore();
-      const isMultiViewMode = store && store.views && store.views.length > 0;
+            // 检查是否为多视图模式
+            const store = window.useCanvasStore && window.useCanvasStore();
+            const isMultiViewMode = store && store.views && store.views.length > 0;
 
-      if (isMultiViewMode) {
-        // 多视图模式：生成包含所有视图的PDF
-        await generateMultiViewPDF(productName, store);
-      } else {
-        // 单视图模式：使用原有逻辑
-        await generateSingleViewPDF(productName);
-      }
-    });
+            if (isMultiViewMode) {
+                // 多视图模式：生成包含所有视图的PDF
+                await generateMultiViewPDF(productName, store);
+            } else {
+                // 单视图模式：使用原有逻辑
+                await generateSingleViewPDF(productName);
+            }
+        });
+    }
 
     // 单视图PDF生成函数
     async function generateSingleViewPDF(productName) {
@@ -770,9 +773,14 @@ if ($product_id > 0) {
         }
       }
     }
+    
+    // Expose PDF functions to window for Vue components
+    window.generateSingleViewPDF = generateSingleViewPDF;
+    window.generateMultiViewPDF = generateMultiViewPDF;
   </script>
   <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/stores/index.js?time=' . microtime(true); ?>" type="module"></script>
   <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/components/product-card-footer.js?time=' . microtime(true); ?>" type="module"></script>
+  <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/components/header-controls.js?time=' . microtime(true); ?>" type="module"></script>
   <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/main.js?time=' . microtime(true); ?>" type="module"></script>
 
   <!-- 初始化 Pinia 应用 -->

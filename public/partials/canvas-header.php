@@ -4,16 +4,6 @@
         <?php echo get_the_title($product_id); ?>
     </div>
 </div>
-<div class="header_right">
-    <div id="history-controls" class="history-controls"></div>
-    <div class="design-switch-btn-box">
-        <!-- Tab Button 1: Principle -->
-        <button class="design-switch-btn active" data-tab="viewDesign">Design</button>
-        <!-- Tab Button 2: Logic -->
-        <button class="design-switch-btn" id="renderBtn" data-tab="viewMockup">Mockups</button>
-    </div>    
-    <button id="generatePdfBtn">PDF</button>
-    <a href="<?php echo get_permalink($product_id); ?>" class="close-btn" title="返回产品页">
-        X
-    </a>
+<div class="header_right" id="header-controls-app" data-product-link="<?php echo get_permalink($product_id); ?>">
+    <!-- Vue App Mount Point -->
 </div>
