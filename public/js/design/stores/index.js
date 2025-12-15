@@ -57,6 +57,9 @@ export const useCanvasStore = defineStore('canvas', {
             zoomLevel: 100,
             language: 'en'
         },
+        // 使用 VueUse useStorage 持久化存储 所有视图main的tojson数据 名字中要包含产品id
+        canvasStatesByProductId: window.VueUse && window.VueUse.useStorage ? window.VueUse.useStorage('pwca-canvas-states-by-product-id', {}) : {},
+
     }),
     // 4. getters 定义依赖状态的计算逻辑（所有依赖 Store 状态的计算放在这里）
     getters: {

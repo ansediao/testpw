@@ -131,6 +131,22 @@ const HeaderControls = {
                 
                 // We need to keep isSyncingFromCanvas true until the watcher has fired and returned
                 isSyncingFromCanvas = false;
+
+                // 同步到本地存储pwca-canvas-states-by-product-id， 名字中要包含产品id 防止不同产品之间的状态混淆，视图名要包含视图id
+                if (window.VueUse && window.VueUse.useStorage) {
+                    const canvasStates = window.VueUse.useStorage('pwca-canvas-states-by-product-id', {});
+                    // productId 来自url参数  product_id
+                    const productId = window.location.search.split('product_id=')[1] || 'unknown';
+                    if (productId !== 'unknown' && canvasStates.value) {
+                         // 产品id 一个层级 视图id 一个层级
+                         if (!canvasStates.value[`${productId}`]) {
+                             canvasStates.value[`${productId}`] = {};
+                         }
+                         canvasStates.value[`${productId}`][`${viewId}`] = newJson;
+                    } else {
+                        console.warn(`HeaderControls: Failed to sync canvas state to local storage, productId is unknown`);
+                    }
+                }
             };
 
             // Attach listeners
