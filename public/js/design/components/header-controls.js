@@ -110,6 +110,7 @@ const HeaderControls = {
         };
 
         return {
+            store,
             activeTab,
             switchTab,
             generatePdf
@@ -123,7 +124,16 @@ const HeaderControls = {
     },
     template: `
         <div class="header_right_content" style="display: contents;">
-            <div id="history-controls" class="history-controls"></div>
+            <div id="history-controls" class="history-controls">
+                <div v-for="view in store.views" :key="view.id" v-show="view.id === store.activeViewId" class="history-btn-group">
+                    <button :id="'backward-' + view.id" class="history-btn" style="color: #ccc; background: none; border: none; cursor: default; padding: 0 5px;">
+                        <i class="iconfont icon-houtui" style="font-size: 20px;"></i>
+                    </button>
+                    <button :id="'forward-' + view.id" class="history-btn" style="color: #ccc; background: none; border: none; cursor: default; padding: 0 5px;">
+                        <i class="iconfont icon-Icon-forward" style="font-size: 20px;"></i>
+                    </button>
+                </div>
+            </div>
             <div class="design-switch-btn-box">
                 <!-- Tab Button 1: Principle -->
                 <button 
