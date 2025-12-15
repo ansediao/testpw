@@ -67,8 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
         
-        // 创建历史记录按钮
-        createHistoryControls(views);
+       
 
         views.forEach((view, index) => {
             const button = document.createElement('button');
@@ -103,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 // 触发视图切换
                 switchToView(view);
 
-                toggleHistoryButtons(view.id);
+               
 
                 // 同步通知视图切换事件（供颜色同步监听使用）
                 document.dispatchEvent(new CustomEvent('layerPanelViewSwitch', { detail: { viewId: view.id } }));
@@ -116,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (views.length > 0) {
             store.setActiveViewId(views[0].id);
             switchToView(views[0]);
-            toggleHistoryButtons(views[0].id);
+         
 
             // 同步通知视图切换事件（供颜色同步监听使用）
             document.dispatchEvent(new CustomEvent('layerPanelViewSwitch', { detail: { viewId: views[0].id } }));
@@ -142,7 +141,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 const targetView = views.find(v => v.id === viewId);
                 if (targetView) {
                     switchToView(targetView);
-                    toggleHistoryButtons(viewId);
                 }
             }
         });
@@ -294,56 +292,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         
         return null;
-    }
-
-    // 创建历史记录控制按钮
-    function createHistoryControls(views) {
-        const historyContainer = document.getElementById("history-controls");
-        if (!historyContainer) return;
-        
-        historyContainer.innerHTML = "";
-        
-        views.forEach(view => {
-            const group = document.createElement("div");
-            group.className = "history-btn-group";
-            group.id = `history-group-${view.id}`;
-            group.style.display = "none"; // 默认隐藏
-            
-            // Undo Button
-            const undoBtn = document.createElement("button");
-            undoBtn.className = "history-btn undo-btn";
-            undoBtn.setAttribute("data-view-id", view.id);
-            undoBtn.innerHTML = '<i class="iconfont icon-houtui"></i>';
-            
-            // Redo Button
-            const redoBtn = document.createElement("button");
-            redoBtn.className = "history-btn redo-btn";
-            redoBtn.setAttribute("data-view-id", view.id);
-            redoBtn.innerHTML = '<i class="iconfont icon-Icon-forward"></i>';
-            
-            group.appendChild(undoBtn);
-            group.appendChild(redoBtn);
-            historyContainer.appendChild(group);
-        });
-    }
-
-    // 切换历史记录按钮的显示
-    function toggleHistoryButtons(viewId) {
-        const historyContainer = document.getElementById("history-controls");
-        if (!historyContainer) return;
-        
-        // 隐藏所有组
-        const allGroups = historyContainer.querySelectorAll(".history-btn-group");
-        allGroups.forEach(group => {
-            group.style.display = "none";
-        });
-        
-        // 显示当前视图的组
-        const currentGroup = document.getElementById(`history-group-${viewId}`);
-        if (currentGroup) {
-            currentGroup.style.display = "flex";
-        }
-    }
+    }  
     
     // Start monitoring
     waitForStore();
