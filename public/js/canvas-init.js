@@ -42,6 +42,31 @@
         // 初始化完成后 log
         document.addEventListener('multiViewInitComplete', (e) => {
             console.log('画布初始化完成');
+            
+            // 重新获取 store，因为 init 执行时 store 可能未准备好
+            const currentStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : canvasStore;
+
+            if (!currentStore || !currentStore.views) {
+                return;
+            }
+
+            // 监听所有视图中mian 画布中的操作
+            currentStore.views.forEach(view => {
+                const canvasId = `mainCanvas-${view.id}`;
+                const canvasElement = document.getElementById(canvasId);
+                if (canvasElement) {
+                    const canvas = window.CanvasManager.getCanvas(canvasId);
+                    if (canvas) {
+                        // 监听所有操作 添加和修改还有删除 执行同一个保存函数
+                        canvas.on('object:modified object:added object:removed', (e) => {
+                            // console.log('对象修改:', e.target);
+                            // 调用保存函数
+                           
+                        });
+                    }
+                }
+            });
+           
         });
     }
 
