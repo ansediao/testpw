@@ -57,12 +57,17 @@
                 if (canvasElement) {
                     const canvas = window.CanvasManager.getCanvas(canvasId);
                     if (canvas) {
-                        // 监听所有操作 添加和修改还有删除 执行同一个保存函数
-                        canvas.on('object:modified object:added object:removed', (e) => {
-                            // console.log('对象修改:', e.target);
-                            // 调用保存函数
-                           
+                        // 监听修改操作 日志
+                        canvas.on('object:modified', (e) => {
+                            console.log('对象修改:', e.target);
                         });
+                        canvas.on('object:added', (e) => {
+                            console.log('对象添加:', e.target);
+                        });
+                        canvas.on('object:removed', (e) => {
+                            console.log('对象删除:', e.target);
+                        });
+                       
                     }
                 }
             });
