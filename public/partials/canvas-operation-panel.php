@@ -1789,20 +1789,52 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                     if (files.length > 0) {
                         const file = files[0];
                         if (file.type.startsWith('image/')) {
-                            const reader = new FileReader();
-                            reader.onload = function(e) {
-                                const imgElement = new Image();
-                                imgElement.src = e.target.result;
-                                imgElement.onload = function() {
-                                    addImageToCanvas(imgElement, file.name);
-                                };
-                            };
-                            reader.readAsDataURL(file);
+                            uploadImageToServer(file);
                         } else {
                             alert('请上传有效的图片文件。');
                         }
                     }
                 });
+
+                // 上传图片到服务器的函数
+                function uploadImageToServer(file) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    // 显示上传中状态
+                    const dropZone = document.getElementById('dropZone');
+                    const originalText = dropZone.innerHTML;
+                    dropZone.innerHTML = '<div style="color: #666;">Uploading...</div>';
+                    dropZone.style.backgroundColor = '#f0f0f0';
+
+                    fetch('/wp-json/pw-canvas/v1/upload-image', {
+                        method: 'POST',
+                        body: formData,
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // 恢复原始状态
+                        dropZone.innerHTML = originalText;
+                        dropZone.style.backgroundColor = '#fff';
+
+                        if (data.success) {
+                            const imgElement = new Image();
+                            imgElement.src = data.url;
+                            imgElement.onload = function() {
+                                addImageToCanvas(imgElement, data.filename);
+                            };
+                        } else {
+                            alert('上传失败: ' + (data.message || '未知错误'));
+                        }
+                    })
+                    .catch(error => {
+                        // 恢复原始状态
+                        dropZone.innerHTML = originalText;
+                        dropZone.style.backgroundColor = '#fff';
+                        console.error('上传错误:', error);
+                        alert('上传失败: ' + error.message);
+                    });
+                }
                 // 添加图片到画布的函数
                 function addImageToCanvas(imgElement, fileName = '') {
                     // 获取当前激活的画布
@@ -2119,15 +2151,7 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                 document.getElementById('imageInput').addEventListener('change', function(event) {
                     const file = event.target.files[0];
                     if (file && file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            const imgElement = new Image();
-                            imgElement.src = e.target.result;
-                            imgElement.onload = function() {
-                                addImageToCanvas(imgElement, file.name);
-                            };
-                        };
-                        reader.readAsDataURL(file);
+                        uploadImageToServer(file);
                     }
                     // 清空input值，允许重复上传同一文件
                     event.target.value = '';

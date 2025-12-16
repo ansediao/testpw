@@ -502,6 +502,89 @@ class Pw_Admin_Promowares_Api
                 ),
             ),
         ));
+
+        // Register image upload endpoint
+        register_rest_route('pw-canvas/v1', '/upload-image', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'handle_image_upload'),
+            'permission_callback' => '__return_true',
+        ));
+    }
+
+    /**
+     * Handle image upload for canvas.
+     *
+     * @since    1.0.0
+     * @param    WP_REST_Request    $request    The REST request object.
+     * @return   WP_REST_Response   The REST response with uploaded image URL.
+     */
+    public function handle_image_upload($request)
+    {
+        // Check if WordPress upload functions are available
+        if (!function_exists('wp_handle_upload')) {
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+        }
+
+        // Check if file was uploaded
+        if (empty($_FILES['file'])) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'No file uploaded',
+            ), 400);
+        }
+
+        $uploaded_file = $_FILES['file'];
+        $file_extension = pathinfo($uploaded_file['name'], PATHINFO_EXTENSION);
+        
+        // Generate new filename with format: canvas_时间戳.后缀
+        $new_filename = 'canvas_' . time() . '.' . $file_extension;
+        
+        // Override the filename
+        $uploaded_file['name'] = $new_filename;
+        
+        // Set upload overrides
+        $upload_overrides = array(
+            'test_form' => false,
+            'unique_filename_callback' => function($dir, $name, $ext) use ($new_filename) {
+                return $new_filename;
+            }
+        );
+        
+        // Handle the upload
+        $movefile = wp_handle_upload($uploaded_file, $upload_overrides);
+        
+        if ($movefile && !isset($movefile['error'])) {
+            // Create attachment
+            $attachment = array(
+                'post_mime_type' => $movefile['type'],
+                'post_title'     => sanitize_file_name($new_filename),
+                'post_content'   => '',
+                'post_status'    => 'inherit'
+            );
+            
+            // Insert attachment into database
+            $attach_id = wp_insert_attachment($attachment, $movefile['file']);
+            
+            // Generate attachment metadata
+            if (function_exists('wp_generate_attachment_metadata')) {
+                require_once(ABSPATH . 'wp-admin/includes/image.php');
+                $attach_data = wp_generate_attachment_metadata($attach_id, $movefile['file']);
+                wp_update_attachment_metadata($attach_id, $attach_data);
+            }
+            
+            return new WP_REST_Response(array(
+                'success' => true,
+                'url' => $movefile['url'],
+                'filename' => $new_filename,
+                'attachment_id' => $attach_id
+            ), 200);
+        } else {
+            // Return error response
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => $movefile['error'],
+            ), 400);
+        }
     }
 
     /**
