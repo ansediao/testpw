@@ -25,6 +25,33 @@ function addCanvasEventListeners(fabricCanvas) {
     let needsAlertOnRelease = false;
     let alertTargetObject = null;
    
+    fabricCanvas.on('object:modified', (e) => {
+        if (typeof window.updatePreviewCanvas === 'function') window.updatePreviewCanvas();
+        
+        if (needsAlertOnRelease && alertTargetObject) {
+            showPrintMethodBindingAlert(e.target);
+            needsAlertOnRelease = false;
+            alertTargetObject = null;
+        }
+    });
+    fabricCanvas.on('object:added', () => {
+        if (typeof window.updatePreviewCanvas === 'function') window.updatePreviewCanvas();        
+    });
+    fabricCanvas.on('object:removed', (e) => {
+        if (typeof window.updatePreviewCanvas === 'function') window.updatePreviewCanvas();       
+        try {
+            const tgt = e && e.target ? e.target : null;
+            if (tgt && tgt.type === 'image' && tgt.isDesignElement) {
+                const meta = tgt.designMeta || {};
+                if (typeof recordDesignRemoval === 'function') {
+                    recordDesignRemoval(meta) || (typeof queueDesignRemoval === 'function' && queueDesignRemoval(meta));
+                } else if (typeof window.useDesignUsageStore === 'function') {
+                    const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
+                    store.removeDesign({ id: meta.id || '', image: meta.image || '' });
+                }
+            }
+        } catch (err) {}
+    });
 
 function recordDesignRemoval(meta) {
     try {
