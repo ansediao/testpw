@@ -24,38 +24,7 @@ function addCanvasEventListeners(fabricCanvas) {
     if (!fabricCanvas) return;
     let needsAlertOnRelease = false;
     let alertTargetObject = null;
-    fabricCanvas.on('object:modified', (e) => {
-        if (typeof window.updatePreviewCanvas === 'function') window.updatePreviewCanvas();
-        const isRestoring = window.__historyInternals && window.__historyInternals.isRestoringRef();
-        if (!isRestoring) if (typeof window.saveState === 'function') window.saveState();
-        if (needsAlertOnRelease && alertTargetObject) {
-            showPrintMethodBindingAlert(e.target);
-            needsAlertOnRelease = false;
-            alertTargetObject = null;
-        }
-    });
-    fabricCanvas.on('object:added', () => {
-        if (typeof window.updatePreviewCanvas === 'function') window.updatePreviewCanvas();
-        const isRestoring = window.__historyInternals && window.__historyInternals.isRestoringRef();
-        if (!isRestoring) if (typeof window.saveState === 'function') window.saveState();
-    });
-    fabricCanvas.on('object:removed', (e) => {
-        if (typeof window.updatePreviewCanvas === 'function') window.updatePreviewCanvas();
-        const isRestoring = window.__historyInternals && window.__historyInternals.isRestoringRef();
-        if (!isRestoring) if (typeof window.saveState === 'function') window.saveState();
-        try {
-            const tgt = e && e.target ? e.target : null;
-            if (tgt && tgt.type === 'image' && tgt.isDesignElement) {
-                const meta = tgt.designMeta || {};
-                if (typeof recordDesignRemoval === 'function') {
-                    recordDesignRemoval(meta) || (typeof queueDesignRemoval === 'function' && queueDesignRemoval(meta));
-                } else if (typeof window.useDesignUsageStore === 'function') {
-                    const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
-                    store.removeDesign({ id: meta.id || '', image: meta.image || '' });
-                }
-            }
-        } catch (err) {}
-    });
+   
 
 function recordDesignRemoval(meta) {
     try {
