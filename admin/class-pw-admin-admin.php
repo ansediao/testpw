@@ -2175,62 +2175,66 @@ function pw_submenu_page_callback()
                     <form method="post" action="">
                         <?php wp_nonce_field('pw_settings_nonce', 'pw_settings_nonce_field'); ?>
 
-                        <h3>集成设置</h3>
+                       
                         <table class="form-table">
                             <tr>
-                                <th scope="row">重新连接您的商店</th>
+                                <th scope="row">Reconnect your store</th>
                                 <td>
-                                    <input type="button" class="button" value="重新连接" id="pw-reconnect-button">
+                                    <input type="button" class="button" value="Reconnect" id="pw-reconnect-button">
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row">禁用SSL</th>
+                                <th scope="row"><h3>Integration settings</h3></th>
+                                
+                            </tr>
+                            <tr>
+                                <th scope="row">Disable SSL</th>
                                 <td>
                                     <label>
                                         <input type="checkbox" name="pw_disable_ssl" value="1" <?php checked(1, $disable_ssl); ?>>
-                                        使用HTTP而不是HTTPS连接到我们的API（如果插件在某些主机配置下不工作，可能需要此选项）
+                                        Use HTTP instead of HTTPS to connect to our API(may be required if the plugin does not work for some hosting configurations)
                                     </label>
                                 </td>
                             </tr>
                         </table>
 
-                        <h3>查询表单</h3>
                         <table class="form-table">
                             <tr>
-                                <th scope="row">API集成信息</th>
+                                <th scope="row">Inquiry Form</th>
                                 <td>
-                                    <input type="text" name="pw_api_key" value="<?php echo esc_attr($api_key); ?>" class="regular-text">
+                                    <input type="text" name="pw_api_key" value="<?php echo esc_attr($api_key);  ?>" placeholder="API 集成信息" class="regular-text">
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row">API集成信息</th>
+                                <th scope="row"> </th>
                                 <td>
-                                    <input type="text" name="pw_api_secret" value="<?php echo esc_attr($api_secret); ?>" class="regular-text">
+                                    <input type="text" name="pw_api_secret" value="<?php echo esc_attr($api_secret); ?>" placeholder="API 集成信息" class="regular-text">
                                 </td>
                             </tr>
                         </table>
 
-                        <h3>产品个性化设置</h3>
+                        <h3>Product personalization settings</h3>
                         <table class="form-table">
                             <tr>
-                                <th scope="row">自定义按钮文本</th>
+                                <th scope="row">Customization button text</th>
                                 <td>
                                     <input type="text" name="pw_customize_text" value="<?php echo esc_attr($customize_text); ?>" class="regular-text">
                                 </td>
                             </tr>
                             <tr>
-                                <th scope="row">自定义按钮颜色</th>
+                                <th scope="row">Customization button color</th>
                                 <td>
                                     <input type="color" name="pw_customize_color" value="<?php echo esc_attr($customize_color); ?>" class="pw-color-picker">
-                                    <button type="button" class="button button-secondary wp-color-result" aria-expanded="false" style="background-color: <?php echo esc_attr($customize_color); ?>">
-                                        <span class="wp-color-result-text">选择颜色</span>
+                                    <button type="button" class="button button-secondary wp-color-result" aria-expanded="false">
+                                        <span class="wp-color-result-text">select color</span>
                                     </button>
                                 </td>
                             </tr>
                         </table>
 
+
                         <p class="submit">
-                            <input type="submit" name="pw_save_settings" class="button button-primary" value="保存设置">
+                            <input type="submit" name="pw_save_settings" class="button button-primary" value="Save settings">
                         </p>
                     </form>
 
