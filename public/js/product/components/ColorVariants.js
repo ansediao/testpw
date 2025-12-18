@@ -79,6 +79,16 @@ const ColorVariants = {
             if (variant.variant_color && window.ProductImageCanvas) {
                 window.ProductImageCanvas.switchToCanvas(variant.variant_color);
             }
+
+            // 保存颜色到 localStorage
+            if (window.pwProductConfig && window.pwProductConfig.productId && variant.variant_color) {
+                try {
+                    const storageKey = `pw_product_color_${window.pwProductConfig.productId}`;
+                    localStorage.setItem(storageKey, variant.variant_color);
+                } catch (e) {
+                    console.warn('Failed to save color to localStorage:', e);
+                }
+            }
             
             // 发送自定义事件，供其他组件监听
             const event = new CustomEvent('pw-color-variant-selected', {

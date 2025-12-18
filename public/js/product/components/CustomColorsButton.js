@@ -474,6 +474,16 @@ window.CustomColorsButton = {
                 window.ProductImageCanvas.switchToCanvas(colorValue);
             }
             
+            // 保存自定义颜色到 localStorage
+            if (colorValue && window.pwProductConfig && window.pwProductConfig.productId) {
+                try {
+                    const storageKey = `pw_product_color_${window.pwProductConfig.productId}`;
+                    localStorage.setItem(storageKey, colorValue);
+                } catch (e) {
+                    console.warn('Failed to save color to localStorage:', e);
+                }
+            }
+
             // 更新Pinia store状态（如果存在）
             if (productStore && productStore.setSelectedVariant) {
                 // 创建一个类似variant的对象

@@ -72,6 +72,36 @@
                 }
             });
            
+            // 尝试从 URL 获取 product_id 并应用保存的颜色
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('product_id');
+            
+            if (productId) {
+                const storageKey = `pw_product_color_${productId}`;
+                const savedColor = localStorage.getItem(storageKey);
+                
+                if (savedColor) {
+                    console.log('Found saved color in localStorage:', savedColor);
+                    
+                    // 延迟执行以确保所有组件（特别是 canvas-operation-panel.php 中的函数）都已加载
+                    setTimeout(() => {
+                        if (typeof window.applyColorToAllViews === 'function') {
+                            window.applyColorToAllViews(savedColor);
+                        } else {
+                            // Fallback mechanism
+                             const store = window.useCanvasStore ? window.useCanvasStore() : null;
+                             if (store && store.views && (typeof window.applyTintFilter === 'function')) {
+                                store.views.forEach(view => {
+                                     window.applyTintFilter(view, savedColor);
+                                });
+                                window.currentColor = savedColor;
+                            } else {
+                                console.warn('Cannot apply saved color: applyColorToAllViews or applyTintFilter not found.');
+                            }
+                        }
+                    }, 500);
+                }
+            }
         });
     }
 
