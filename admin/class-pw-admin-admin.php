@@ -2231,7 +2231,26 @@ function pw_submenu_page_callback()
                                 </td>
                             </tr>
                         </table>
-
+                        <!-- 工具模式显示 标题和两个勾选项目 -->
+                         <h3>Promoware Shipping</h3>
+                         <table class="form-table">
+                            <tr>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" name="pw_enable_tool_mode" value="1">
+                                        Use Promoware Live Rate Shipping
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" name="pw_enable_tool_mode" value="1">
+                                        Disable standard Woocommerce rates for products
+fulfilled by PromoWares                                    </label>
+                                </td>
+                            </tr>
+                        </table>
 
                         <p class="submit">
                             <input type="submit" name="pw_save_settings" class="button button-primary" value="Save settings">
