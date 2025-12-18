@@ -1277,6 +1277,38 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
                 // 将清除函数暴露到全局，供链接使用
                 window.clearAllColorEffects = clearAllColorEffects;
 
+                // 新增：更新颜色状态UI并设置全局颜色
+                window.updateColorStatusUI = function(color) {
+                     // 更新全局颜色变量
+                    window.currentColor = color;
+
+                    if (!colorStatusDisplay) return;
+
+                    colorStatusDisplay.innerHTML = `Selected: ${color}  <a href="#" id="clearColorLink" style="margin-left: 10px; color: #dc3545; text-decoration: none; font-size: 16px; font-weight: bold;">✕</a>  <a href="#" id="changeColorLink" style="margin-left: 10px; color: #007cba; text-decoration: none;">切换颜色</a>`;
+                    colorStatusDisplay.style.display = 'block';
+
+                    // 添加清除颜色链接的事件监听器
+                    const clearColorLink = document.getElementById('clearColorLink');
+                    if (clearColorLink) {
+                        clearColorLink.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            if (window.clearAllColorEffects) window.clearAllColorEffects();
+                        });
+                    }
+
+                    // 添加切换颜色链接的事件监听器
+                    const changeColorLink = document.getElementById('changeColorLink');
+                    if (changeColorLink) {
+                        changeColorLink.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const customColorModal = document.getElementById('custom-color-modal');
+                            if (customColorModal) {
+                                customColorModal.style.display = 'flex';
+                            }
+                        });
+                    }
+                };
+
                 // 新增：清除显式颜色选择状态（影响 getExplicitSelectedColor）
                 window.clearExplicitColorSelection = function() {
                     try {

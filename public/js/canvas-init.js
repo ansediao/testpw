@@ -85,6 +85,12 @@
                     
                     // 延迟执行以确保所有组件（特别是 canvas-operation-panel.php 中的函数）都已加载
                     setTimeout(() => {
+                        // 0. 清除可能存在的渐变 (保持与 Custom Colors 逻辑一致)
+                        if (typeof window.clearAllGradientRects === 'function') {
+                            window.clearAllGradientRects();
+                        }
+
+                        // 1. 应用颜色到所有视图
                         if (typeof window.applyColorToAllViews === 'function') {
                             window.applyColorToAllViews(savedColor);
                         } else {
@@ -94,10 +100,17 @@
                                 store.views.forEach(view => {
                                      window.applyTintFilter(view, savedColor);
                                 });
-                                window.currentColor = savedColor;
                             } else {
                                 console.warn('Cannot apply saved color: applyColorToAllViews or applyTintFilter not found.');
                             }
+                        }
+
+                        // 2. 更新UI和全局状态
+                        if (typeof window.updateColorStatusUI === 'function') {
+                            window.updateColorStatusUI(savedColor);
+                        } else {
+                            // Fallback if updateColorStatusUI is not ready
+                            window.currentColor = savedColor;
                         }
                     }, 500);
                 }
