@@ -265,6 +265,9 @@ class Pw_Product_Inquiry {
         if (class_exists('Flamingo_Inbound_Message')) {
             $this->save_inquiry_to_flamingo($product_id, $product_title, $name, $email, $phone, $message, $redirect_url);
         }
+
+        // Send to Promowares API
+        $this->send_to_promowares_api($product_id, $first_name, $last_name, $email, $phone, $message);
         
         // Send email notification
         $mail_sent = $this->send_inquiry_email($product_id, $product_title, $name, $email, $phone, $message, $redirect_url);
@@ -276,6 +279,54 @@ class Pw_Product_Inquiry {
             wp_redirect(add_query_arg('inquiry_status', 'mail_failed', $redirect_url));
         }
         exit;
+    }
+
+    /**
+     * Send inquiry to Promowares API
+     */
+    private function send_to_promowares_api($product_id, $first_name, $last_name, $email, $phone, $message) {
+        // Get Promowares Product ID from meta
+        $pw_id = get_post_meta($product_id, 'pw_id', true);
+        
+        if (empty($pw_id)) {
+            error_log('PW Inquiry: Missing pw_id for product ' . $product_id);
+            return;
+        }
+
+        $api_url = 'https://dev.promowares.com/api/v1/plugin/inquiry';
+        
+        // Try to get token from options, fallback to the provided token
+        $token = get_option('pw_api_token');
+        
+
+        $body = array(
+            'email' => $email,
+            'first_name' => $first_name,
+            'last_name' => $last_name,
+            'message' => $message,
+            'product_id' => (int)$pw_id,
+            'tel' => $phone
+        );
+
+        $response = wp_remote_post($api_url, array(
+            'headers' => array(
+                'Authorization' => $token,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+                'Accept-Encoding' => 'gzip, deflate, br',
+                'Connection' => 'keep-alive',
+                'User-Agent' => 'PostmanRuntime-ApipostRuntime/1.1.0'
+            ),
+            'body' => wp_json_encode($body),
+            'timeout' => 10,
+            'blocking' => true
+        ));
+        
+        if (is_wp_error($response)) {
+            error_log('PW Inquiry API Error: ' . $response->get_error_message());
+        } elseif (wp_remote_retrieve_response_code($response) !== 200) {
+            error_log('PW Inquiry API Failed: ' . wp_remote_retrieve_response_code($response) . ' ' . wp_remote_retrieve_body($response));
+        }
     }
 
     /**

@@ -348,7 +348,7 @@ function pwca_shipping_method_init()
             $selected_service = WC()->session->get('pwca_selected_shipping_service');
 
             // 添加调试日志
-            error_log('PWCA Shipping Debug - Selected Cost: ' . $selected_cost . ', Service: ' . $selected_service);
+            // error_log('PWCA Shipping Debug - Selected Cost: ' . $selected_cost . ', Service: ' . $selected_service);
 
             if ($selected_cost !== null && $selected_cost !== false && $selected_service) {
                 // 确保运费为数字类型
