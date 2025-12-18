@@ -729,12 +729,79 @@ function pwca_add_calculate_shipping_button()
                         }
                     }
                 }
-                // 页面加载后默认禁用支付按钮
+                
+                // 计算运费按钮状态管理
+                function setShippingButtonEnabled(enabled) {
+                    var $btn = $("#pwca-calculate-shipping");
+                    if ($btn.length) {
+                        $btn.prop("disabled", !enabled);
+                        if (!enabled) {
+                            $btn.addClass("disabled");
+                        } else {
+                            $btn.removeClass("disabled");
+                        }
+                    }
+                }
+                
+                // 验证必填字段
+                function validateRequiredFields() {
+                    // 检查必填字段是否已填写
+                    var billingCountry = $("#billing_country").val();
+                    var billingFirstName = $("#billing_first_name").val();
+                    var billingLastName = $("#billing_last_name").val();
+                    var billingAddress1 = $("#billing_address_1").val();
+                    var billingCity = $("#billing_city").val();
+                    var billingPostcode = $("#billing_postcode").val();
+                    var billingEmail = $("#billing_email").val();
+                    
+                    // 检查配送地址字段（如果存在）
+                    var shippingFirstName = $("#shipping_first_name").val();
+                    var shippingLastName = $("#shipping_last_name").val();
+                    var shippingAddress1 = $("#shipping_address_1").val();
+                    var shippingCity = $("#shipping_city").val();
+                    var shippingPostcode = $("#shipping_postcode").val();
+                    var shippingCountry = $("#shipping_country").val();
+                    
+                    // 检查是否填写了配送地址
+                    var hasShippingAddress = $("#ship-to-different-address-checkbox").is(":checked");
+                    
+                    // 验证账单地址字段
+                    var billingValid = billingCountry && billingFirstName && billingLastName && 
+                                       billingAddress1 && billingCity && billingPostcode && 
+                                        billingEmail;
+                    
+                    // 如果选择了配送到不同地址，则验证配送地址字段
+                    var shippingValid = true;
+                    if (hasShippingAddress) {
+                        shippingValid = shippingCountry && shippingFirstName && shippingLastName && 
+                                        shippingAddress1 && shippingCity && shippingPostcode;
+                    }
+                    
+                    // 返回所有必填字段是否都已填写
+                    return billingValid && shippingValid;
+                }
+                
+                // 更新计算运费按钮状态
+                function updateShippingButtonState() {
+                    var isValid = validateRequiredFields();
+                    setShippingButtonEnabled(isValid);
+                }
+                
+                // 页面加载后默认禁用支付按钮和计算运费按钮
                 setPayButtonEnabled(false);
+                updateShippingButtonState();
+                
+                // 监听必填字段变化
+                $("#billing_country, #billing_first_name, #billing_last_name, #billing_address_1, #billing_city, #billing_postcode,  #billing_email, #shipping_country, #shipping_first_name, #shipping_last_name, #shipping_address_1, #shipping_city, #shipping_postcode, #ship-to-different-address-checkbox").on("change keyup input", function() {
+                    updateShippingButtonState();
+                });
+                
                 // Woo 更新后根据是否已选择运费控制支付按钮
                 $(document.body).on("updated_checkout", function() {
                     var hasSelected = window.pwcaHasSelectedShipping === true;
                     setPayButtonEnabled(!!hasSelected);
+                    // 更新计算运费按钮状态
+                    updateShippingButtonState();
                 });
                 
                 // 计算运费按钮点击事件
@@ -973,7 +1040,8 @@ function pwca_calculate_shipping_styles()
                 background: #005a87;
             }
             
-            .pwca-calculate-shipping-btn:disabled {
+            .pwca-calculate-shipping-btn:disabled,
+            .pwca-calculate-shipping-btn.disabled {
                 background: #ccc;
                 cursor: not-allowed;
             }
