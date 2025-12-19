@@ -163,7 +163,7 @@
                         <span>−</span>
                     </button>
                     <input type="number" 
-                           class="quantity-input" 
+                           class="quantity-input qty" 
                            name="cart[${cartItemKey}][qty]"
                            value="${currentValue}" 
                            min="${config.min}" 
@@ -269,13 +269,18 @@
             // 更新输入框值
             if (!fromInput) {
                 $input.val(newValue);
+                // 触发 change 事件以通知 WooCommerce (例如启用更新按钮)
+                $input.trigger('change');
             }
             
             // 更新按钮状态
             this.updateButtonStates($controls, newValue, min);
             
-            // 防抖处理购物车更新
-            this.debounceCartUpdate(cartKey, newValue);
+            // 启用更新购物车按钮
+            $('.woocommerce-cart-form :input[name="update_cart"]').prop('disabled', false).attr('aria-disabled', 'false');
+            
+            // 防抖处理购物车更新 (已禁用，改为点击更新按钮触发)
+            // this.debounceCartUpdate(cartKey, newValue);
         }
 
         /**
