@@ -475,7 +475,7 @@ function gemini_cart_js_logic() {
                 'color_name'   => $color_name,
                 'color_value'  => $color_value,
                 'variant_id'   => $variant_id,
-                'added_from'   => 'design',
+                'added_from'   => isset($_POST['added_from']) ? sanitize_text_field(wp_unslash($_POST['added_from'])) : 'design',
                 'is_blank'     => $incoming_is_blank,
             )
         );

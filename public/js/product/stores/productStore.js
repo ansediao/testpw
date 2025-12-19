@@ -722,6 +722,7 @@ const useProductStore = Pinia.defineStore('product', () => {
             // 是否样品、是否空白件
             formData.append('pw_is_sample', buySampleChecked.value ? '1' : '0');
             formData.append('pw_is_blank', blankProductChecked.value ? '1' : '0');
+            formData.append('added_from', 'product');
 
             // 折扣阶梯信息
             formData.append('pw_discount_enabled', quantityDiscountEnabled.value ? '1' : '0');
