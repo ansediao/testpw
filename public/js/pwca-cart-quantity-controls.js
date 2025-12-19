@@ -216,33 +216,49 @@
         handleQuantityInputChange(e) {
             const $input = $(e.target);
             const $controls = $input.closest('.pwca-quantity-controls');
-            const value = parseInt($input.val()) || 0;
+            const value = parseInt($input.val()); // 不要默认 || 0，区分空值
             const min = parseInt($input.data('min')) || 5;
             const step = parseInt($input.data('step')) || 1;
             
-            // 验证并修正输入值
-            let correctedValue = Math.max(value, min);
+            // 处理空值或非数字
+            if (isNaN(value)) {
+                return;
+            }
 
-            // 若不满足批量步长，调整到最近的有效值（与后端逻辑一致）
-            const diff = correctedValue - min;
-            const remainder = diff % step;
-            if (remainder !== 0) {
-                correctedValue = (remainder <= step / 2)
-                    ? correctedValue - remainder
-                    : correctedValue + (step - remainder);
-            }
-            if (correctedValue !== value) {
-                $input.val(correctedValue);
-            }
-            
-            // 若用户输入小于起订量，展示 tooltip 提示
+            // 1. 验证提示 (input 和 change 都触发)
             if (value < min) {
                 this.showTooltip($controls, `数量不能小于起订量：${min}`);
             } else {
                 this.hideTooltip($controls);
             }
 
-            this.updateQuantity($controls, correctedValue, true);
+            // 启用更新按钮 (只要有输入就启用)
+            $('.woocommerce-cart-form :input[name="update_cart"]').prop('disabled', false).attr('aria-disabled', 'false');
+
+            // 2. 修正逻辑 (仅 change 事件触发)
+            if (e.type === 'change') {
+                // 验证并修正输入值
+                let correctedValue = Math.max(value, min);
+
+                // 若不满足批量步长，调整到最近的有效值（与后端逻辑一致）
+                const diff = correctedValue - min;
+                const remainder = diff % step;
+                if (remainder !== 0) {
+                    correctedValue = (remainder <= step / 2)
+                        ? correctedValue - remainder
+                        : correctedValue + (step - remainder);
+                }
+                
+                // 更新输入框 (如果值被修正)
+                if (correctedValue !== value) {
+                    $input.val(correctedValue);
+                    // 修正后隐藏提示
+                    this.hideTooltip($controls);
+                }
+
+                // 更新其他状态 (按钮状态等)
+                this.updateQuantity($controls, correctedValue, true);
+            }
         }
 
         /**
