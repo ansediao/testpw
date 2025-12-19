@@ -261,83 +261,14 @@ function getActiveCanvasContexts() {
         shadowCtx: elements.shadowCanvas ? elements.shadowCanvas.getContext('2d') : null
     };
 }
-// 历史记录管理逻辑
-// 历史记录数组和当前索引
-let history = [];
-let historyPointer = -1;
-const MAX_HISTORY_STEPS = 50; // 限制历史记录步数
-let isRestoring = false;
-// 标志以防止恢复状态时触发保存
-
-// 保存画布当前状态到历史记录
-function saveState() {
-    const activeCanvas = getActiveCanvas();
-    if (! activeCanvas) 
-        return;
-    
-
-    // 如果在历史记录中间进行了新操作，则清除未来的历史记录
-    if (historyPointer < history.length - 1) {
-        history = history.slice(0, historyPointer + 1);
-    }
-    // 将当前画布内容保存为 Data URL
-    history.push(activeCanvas.toDataURL());
-    historyPointer++;
-
-    // 限制历史记录步数
-    if (history.length > MAX_HISTORY_STEPS) {
-        history.shift(); // 移除最旧的记录
-        historyPointer--;
-    }
-
-    updateHistoryButtons();
-
-}
-
-// 从历史记录中加载指定状态并绘制到画布
-function restoreState(index) {
-    const activeCanvas = getActiveCanvas();
-    if (! activeCanvas || index < 0 || index >= history.length) 
-        return;
-    
-
-    isRestoring = true;
-    activeCanvas.clear(); // 清空画布
-    const img = new Image();
-    img.src = history[index];
-    img.onload = () => {
-        fabric.Image.fromURL(img.src, function (oImg) { // 调整图像尺寸以适应画布
-            oImg.scaleToWidth(activeCanvas.width);
-            oImg.scaleToHeight(activeCanvas.height);
-            activeCanvas.add(oImg);
-            activeCanvas.renderAll();
-            historyPointer = index;
-            updateHistoryButtons();
-
-            isRestoring = false;
-        }, {crossOrigin: 'anonymous'});
-    };
-}
-
-// 更新前进/后退按钮状态
-function updateHistoryButtons() {
-    const forwardBtn = document.getElementById('forward');
-    const backwardBtn = document.getElementById('backward');
-    if (forwardBtn) 
-        forwardBtn.disabled = historyPointer >= history.length - 1;
-    
-    if (backwardBtn) 
-        backwardBtn.disabled = historyPointer <= 0;
-    
-
-}
+// 历史记录管理逻辑 - 已移除旧版实现
+// 历史记录现在由 public/js/design/components/header-controls.js 中的 Vue 组件管理
 
 // 初始化画布尺寸并清空
 function initializeCanvas() {
     canvas.setWidth(canvas.getElement().parentElement.clientWidth);
     canvas.setHeight(canvas.getElement().parentElement.clientHeight);
     canvas.clear();
-    saveState(); // 保存初始空白状态
 }
 
 // Canvas 初始化将在多视图系统中处理
@@ -420,10 +351,7 @@ function addCanvasEventListeners(fabricCanvas) {
     // 监听画布对象修改事件，保存状态
     fabricCanvas.on('object:modified', (e) => {
         updatePreviewCanvas();
-        if (! isRestoring) 
-            saveState();
         
-
         // 如果标记了需要显示提示，在松开鼠标时显示
         if (needsAlertOnRelease && alertTargetObject) { // 先取消该元素选中状态
             // fabricCanvas.discardActiveObject();
@@ -439,15 +367,9 @@ function addCanvasEventListeners(fabricCanvas) {
     });
     fabricCanvas.on('object:added', () => {
         updatePreviewCanvas();
-        if (! isRestoring) 
-            saveState();
-        
     });
     fabricCanvas.on('object:removed', () => {
         updatePreviewCanvas();
-        if (! isRestoring) 
-            saveState();
-        
     });
 
     // 监听元素移动事件

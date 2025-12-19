@@ -151,10 +151,6 @@
                     window.CanvasManager.setActiveCanvas(view.id);
                 }
 
-                if (typeof window.saveState === 'function') {
-                    window.saveState(view.id);
-                }
-
                 // 添加打印区域验证监听器
                 if (window.PrintAreaValidator) {
                     window.PrintAreaValidator.addPrintAreaValidationListeners(canvas, view.id);
