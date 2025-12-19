@@ -700,6 +700,12 @@ function gemini_cart_js_logic() {
                 'display' => ''
             );
 
+            //当 网站url 包含 .local 时，为测试环境，显示 定制设计 数据
+            if (strpos($_SERVER['HTTP_HOST'], '.local') !== false) {
+                print_r($cart_item['custom_data']);
+            }
+
+
             if (isset($custom['is_blank']) && intval($custom['is_blank']) === 1 && !empty($custom['accessories_names'])) {
                 $names_value = '';
                 $names = $custom['accessories_names'];
