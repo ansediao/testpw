@@ -72,6 +72,7 @@ class Pw_Cart_Admin_Actions {
             $added_from = isset($cart_item['custom_data']['added_from']) ? $cart_item['custom_data']['added_from'] : '';
         }
         $is_design = ($added_from === 'design');
+        $is_product = ($added_from === 'product');
 
         // print_r($cart_item['custom_data']);
         
@@ -79,12 +80,16 @@ class Pw_Cart_Admin_Actions {
         $buttons_html = '<div class="pw-cart-admin-actions" style="margin-top: 8px;">';
         
         // 复制链接
-        $buttons_html .= sprintf(
-            '<a href="#" class="pw-cart-duplicate-btn" data-cart-key="%s" data-product-id="%s" data-variation-id="%s" style="margin-right: 8px; font-size: 12px; text-decoration: underline;">Duplicate</a>',
-            esc_attr($cart_item_key),
-            esc_attr($product_id),
-            esc_attr($variation_id)
-        );
+        if ($is_product) {
+            $buttons_html .= '<a href="#" class="pw-cart-duplicate-btn-disabled" aria-disabled="true" style="margin-right: 8px; font-size: 12px; color: #999; opacity: 0.6; cursor: not-allowed; pointer-events: none; text-decoration: none;">Duplicate</a>';
+        } else {
+            $buttons_html .= sprintf(
+                '<a href="#" class="pw-cart-duplicate-btn" data-cart-key="%s" data-product-id="%s" data-variation-id="%s" style="margin-right: 8px; font-size: 12px; text-decoration: underline;">Duplicate</a>',
+                esc_attr($cart_item_key),
+                esc_attr($product_id),
+                esc_attr($variation_id)
+            );
+        }
         
         // 编辑链接
         if ($is_design) {
@@ -95,6 +100,13 @@ class Pw_Cart_Admin_Actions {
 
             $buttons_html .= sprintf(
                 '<a href="%s" class="pw-cart-edit-btn" target="_blank" style="margin-right: 8px; font-size: 12px; text-decoration: underline;">Edit</a>',
+                esc_url($edit_url)
+            );
+        } elseif ($is_product) {
+            // 指向原始产品页
+            $edit_url = get_permalink($product_id);
+            $buttons_html .= sprintf(
+                '<a href="%s" class="pw-cart-edit-product-btn" target="_blank" style="margin-right: 8px; font-size: 12px; text-decoration: underline;">Edit</a>',
                 esc_url($edit_url)
             );
         } else {
