@@ -1,8 +1,0 @@
----
-description: 当需要弹窗功能时，使用 micromodal
-globs:
-alwaysApply: true
----
-
-1. 前后台都已引入 micromodal 库
-2. 无论前后台弹窗功能使用 micromodal
