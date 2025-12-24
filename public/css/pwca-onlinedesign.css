@@ -1,0 +1,732 @@
+@charset "UTF-8";
+body.wpcanvas {
+  margin: 0;
+  padding: 0;
+  font-family: "Arial", sans-serif;
+}
+body.wpcanvas #app.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  /* 1. 滑块 <input> 容器本身 */
+  /* 2. 轨道 (Track) - 针对 WebKit 浏览器 (Chrome, Safari, Edge) */
+  /* 3. 控制点 (Thumb) - 针对 WebKit */
+  /* 4. (可选) 针对 Firefox 浏览器的样式 */
+  /* 缩放控制样式 */
+  /* 确保画布容器能够正确处理缩放 */
+  /* 3D视图区域样式 */
+  /* 确保3D模型容器内的canvas元素也有正确的尺寸 */
+  /* 加载进度提示样式 */
+}
+body.wpcanvas #app.container .view-container .canvas-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+body.wpcanvas #app.container .btn {
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  white-space: nowrap; /* 禁止按钮内的文字换行 */
+}
+body.wpcanvas #app.container .btn-custom {
+  background-color: #18afe2;
+  color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+body.wpcanvas #app.container .btn-custom:hover {
+  background-color: #0099ee;
+}
+body.wpcanvas #app.container .header {
+  padding: 20px;
+  border-bottom: 1px solid #dee2e6;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0px;
+}
+body.wpcanvas #app.container .header .header_left .header_title {
+  font-family: Arial-BoldMT, "Arial Bold", Arial, sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  font-size: 18px;
+  color: #303236;
+}
+body.wpcanvas #app.container .header .header_right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  /* --- 选项卡按钮容器 --- */
+}
+body.wpcanvas #app.container .header .header_right button {
+  border: unset;
+  background-color: unset;
+  cursor: pointer;
+}
+body.wpcanvas #app.container .header .header_right .design-switch-btn-box {
+  background-color: rgba(229, 231, 235, 0.8);
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+  display: flex;
+  gap: 0.25rem; /* 替代 space-x-1 */
+  /* --- 选项卡按钮样式 --- */
+}
+body.wpcanvas #app.container .header .header_right .design-switch-btn-box button.design-switch-btn {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  text-align: center;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  /* 默认非激活状态的文字颜色 */
+  color: #4B5563;
+  /* 过渡效果 */
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+body.wpcanvas #app.container .header .header_right .design-switch-btn-box button.design-switch-btn.active {
+  background-color: white;
+  color: #111827;
+  font-weight: 600;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+body.wpcanvas #app.container .customization-area {
+  overflow-y: auto;
+  border-bottom: 1px solid #dee2e6;
+  flex-shrink: 0; /* 防止被压缩 */
+  display: flex;
+  justify-content: center;
+  padding: 6px 0px;
+}
+body.wpcanvas #app.container .customization-area .viewer-switch-btn {
+  margin: 0px;
+  padding: 13px 30px;
+  font-family: "Arial-BoldMT", "Arial Bold", "Arial", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  font-size: 20px;
+  color: #303236;
+  border: unset;
+  background-color: unset;
+  border-radius: 8px;
+}
+body.wpcanvas #app.container .customization-area .viewer-switch-btn:hover, body.wpcanvas #app.container .customization-area .viewer-switch-btn.active {
+  background-color: rgba(23, 176, 228, 0.3568627451);
+  cursor: pointer;
+  color: #18afe2;
+}
+body.wpcanvas #app.container .main-content {
+  /* Left Tabs Navigation */
+  /* Right Content Area */
+  /* 产品信息面板 */
+}
+body.wpcanvas #app.container .main-content .operation-panel {
+  display: flex;
+  justify-content: start;
+}
+body.wpcanvas #app.container .main-content .operation-panel .tabs-nav {
+  display: flex;
+  flex-direction: column;
+}
+body.wpcanvas #app.container .main-content .operation-panel .tabs-nav .tab {
+  padding: 1rem 1rem;
+  text-align: center;
+  border: 1px solid #d1d5db;
+  /* border-bottom: none; */
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 60px;
+}
+body.wpcanvas #app.container .main-content .operation-panel .tabs-nav .tab img {
+  width: 32px;
+  height: auto;
+}
+body.wpcanvas #app.container .main-content .operation-panel .tabs-nav .tab .tab_title {
+  font-family: ArialMT, Arial, sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 13px;
+  color: #303236;
+}
+body.wpcanvas #app.container .main-content .operation-panel .tabs-nav .tab.active {
+  background-color: #ccc;
+}
+body.wpcanvas #app.container .main-content .operation-panel .tabs-nav .tab.active .tab_title {
+  font-weight: 600;
+}
+body.wpcanvas #app.container .main-content .operation-panel.collapsed {
+  flex: unset;
+}
+body.wpcanvas #app.container .main-content .operation-panel.collapsed .content-area {
+  display: none !important;
+}
+body.wpcanvas #app.container .main-content .tabs-nav {
+  margin-right: -1px;
+  /* Overlap border */
+}
+body.wpcanvas #app.container .main-content .tab:hover {
+  background-color: #e5e7eb;
+}
+body.wpcanvas #app.container .main-content .tab.active {
+  background-color: white;
+  /* border-right-color: white; */
+  z-index: 10;
+  font-weight: 600;
+  color: #111827;
+}
+body.wpcanvas #app.container .main-content .content-area {
+  flex-grow: 1;
+  background-color: white;
+  padding: 1.5rem;
+  /* 24px */
+  border-radius: 0 0.5rem 0.5rem 0;
+  border: 1px solid #d1d5db;
+  position: relative;
+}
+body.wpcanvas #app.container .main-content .content-area i.iconfont {
+  font-size: 26px;
+}
+body.wpcanvas #app.container .main-content .content-area .content-area-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+body.wpcanvas #app.container .main-content .content-area .content-area-footer .tab_footer {
+  display: flex;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: 1.5rem;
+  width: 100%;
+}
+body.wpcanvas #app.container .main-content .content-area .content-area-footer .tab_footer .sample-check {
+  display: flex;
+  align-items: center;
+}
+body.wpcanvas #app.container .main-content .content-area .content-area-footer .tab_footer .sample-check label {
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+body.wpcanvas #app.container .main-content .content-area .content-area-footer .tab_footer .btn-inquiry {
+  background-color: #18afe2;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+body.wpcanvas #app.container .main-content .content-area .content-area-footer .tab_footer .btn-inquiry:hover {
+  background-color: #0099ee;
+}
+body.wpcanvas #app.container .main-content .content-pane {
+  display: none;
+  /* Hide all panes by default */
+  position: relative;
+  /* Add position relative for absolute positioning of footer */
+  height: 100%;
+  /* Adjust as needed to ensure content fits above footer */
+  /* Add padding to prevent content from being hidden by footer */
+  position: relative;
+}
+body.wpcanvas #app.container .main-content .content-pane.active {
+  display: block;
+  /* Show only the active pane */
+}
+body.wpcanvas #app.container .main-content .content-pane .tab_control_title {
+  font-family: "Arial-BoldMT", "Arial Bold", "Arial", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  font-size: 16px;
+  color: #303236;
+}
+body.wpcanvas #app.container .main-content .content-pane #img_add_controls button {
+  padding: 5px;
+}
+body.wpcanvas #app.container .main-content .tab_header {
+  margin-bottom: 15px;
+}
+body.wpcanvas #app.container .main-content .tab_header .tab_header_title {
+  font-family: "Arial-BoldMT", "Arial Bold", "Arial", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  font-size: 15px;
+  color: #303236;
+}
+body.wpcanvas #app.container .main-content #content-pinming .rating {
+  font-size: 0.875rem;
+  color: #303236;
+  margin-bottom: 1.5rem;
+}
+body.wpcanvas #app.container .main-content #content-pinming .rating a {
+  margin-left: 1rem;
+  color: #374151;
+  text-decoration: none;
+}
+body.wpcanvas #app.container .main-content #content-pinming .rating a:hover {
+  text-decoration: underline;
+}
+body.wpcanvas #app.container .main-content #content-pinming .color-section h3 {
+  font-size: 1rem;
+  /* 16px */
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.75rem;
+}
+body.wpcanvas #app.container .main-content #content-pinming .color-swatches-box {
+  margin-bottom: 1.5rem;
+  display: flex; /* 声明为 Flex 布局 */
+  flex-wrap: wrap; /* 这是实现自动换行的关键 */
+  gap: 10px;
+}
+body.wpcanvas #app.container .main-content #content-pinming .color-swatch {
+  width: 1.5rem;
+  /* 56px */
+  height: 1.5rem;
+  /* 56px */
+  border-radius: 0.375rem;
+  /* 6px */
+  cursor: pointer;
+  border: 1px solid #d1d5db;
+}
+body.wpcanvas #app.container .main-content #content-pinming .color-swatch.selected {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+body.wpcanvas #app.container .main-content #content-pinming .action-buttons {
+  margin-bottom: 2rem;
+  margin: auto;
+  border-top: 1px solid #ccc;
+  padding: 20px;
+  display: flex;
+  gap: 10px; /* 可选：在按钮之间添加间距 */
+}
+body.wpcanvas #app.container .main-content #content-pinming .action-buttons .btn {
+  flex: 1;
+}
+body.wpcanvas #app.container .main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+body.wpcanvas #app.container .main-content .operation-panel {
+  flex: 100px;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji > .list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji.active > .list {
+  display: block;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji.active .category-item:not(.active) {
+  display: none;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji:not(.active) .category-item-header .category_name {
+  width: 100%;
+  height: 175px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji:not(.active) .category-item-header .category_name img {
+  display: block;
+  margin: 0 auto 8px;
+  max-width: 40px;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji:not(.active) .category-item-header .back-button {
+  display: none;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item .category-item-header .back-button {
+  display: none;
+  color: #11BBF5;
+  font-family: "ArialMT", "Arial", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 13px;
+  text-decoration: underline;
+  background-color: unset;
+  border: unset;
+  cursor: pointer;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item .designs-grid {
+  display: none;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item.active .category-item-header {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item.active .category-item-header .category_name {
+  width: unset;
+  height: unset;
+  display: block;
+  justify-content: unset;
+  align-items: unset;
+  border: unset;
+  background-color: unset;
+  cursor: unset;
+  color: #333333;
+  font-family: "Arial-BoldMT", "Arial Bold", "Arial", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  font-size: 16px;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item.active .category-item-header .category_name img {
+  display: none;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item.active .category-item-header .back-button {
+  display: block;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item.active .designs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item.active .designs-grid .design-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ccc;
+  min-height: 125px;
+  border-radius: 8px;
+  /* 设置为正方形，这里以200px为例，可根据需要调整 */
+  width: 125px;
+  height: 125px;
+  /* 确保内容不会超出容器 */
+  overflow: hidden;
+}
+body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item.active .designs-grid .design-item img {
+  /* 图片充满容器 */
+  width: 100%;
+  height: 100%;
+  /* 保持图片比例，裁剪多余部分 */
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+body.wpcanvas #app.container .main-content .canvas-area {
+  flex: 3;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8f8f8;
+  padding: 15px;
+}
+body.wpcanvas #app.container .main-content .canvas-area .dongtai-area {
+  background-color: #fff;
+  padding: 10px;
+  text-align: left;
+  flex-shrink: 0;
+  min-height: 23px;
+}
+body.wpcanvas #app.container .main-content .canvas-area .dongtai-area .toolbar_button {
+  background-color: unset;
+  border: unset;
+  cursor: pointer;
+  font-family: "Arial-BoldMT", "Arial Bold", "Arial", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  font-size: 15px;
+  color: #303236;
+  padding: 5px;
+  border-radius: 5px;
+}
+body.wpcanvas #app.container .main-content .canvas-area .dongtai-area .toolbar_button.active {
+  color: #18AFE2;
+  background-color: rgba(23, 176, 228, 0.3568627451);
+}
+body.wpcanvas #app.container .main-content .canvas-area .canvas-box {
+  flex-grow: 1;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+}
+body.wpcanvas #app.container .main-content .canvas-area .canvas-box .design_area {
+  position: relative;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+body.wpcanvas #app.container .main-content .canvas-area .canvas-box .preview_area .view-area .preview-canvas-container {
+  position: relative;
+}
+body.wpcanvas #app.container .dongtai-area {
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+body.wpcanvas #app.container .toolbar-item {
+  margin: 10px 0;
+  align-items: center;
+}
+body.wpcanvas #app.container .toolbar-item label {
+  margin-right: 10px;
+  min-width: 60px;
+}
+body.wpcanvas #app.container .toolbar-item select,
+body.wpcanvas #app.container .toolbar-item input:not([type=range]) {
+  padding: 5px;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+}
+body.wpcanvas #app.container select#fontFamily {
+  width: 100%;
+}
+body.wpcanvas #app.container .tab_control_title {
+  margin-right: 0px;
+}
+body.wpcanvas #app.container .toolbar-item input[type=color] {
+  height: 30px;
+  width: 50px;
+}
+body.wpcanvas #app.container .pwca-content-area-rotate-control input[type=range] {
+  -webkit-appearance: none; /* 必须，移除默认样式 */
+  width: calc(100% - 120px);
+  margin: 0;
+  margin-right: 10px;
+  padding: 0;
+  outline: none;
+  background: transparent; /* 容器背景设为透明 */
+  /* 设置一个高度，以便容纳控制点，方便点击 */
+  height: 20px;
+}
+body.wpcanvas #app.container .pwca-content-area-rotate-control input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 1px; /* 你想要的轨道粗细 */
+  cursor: pointer;
+  /* * 关键：使用线性渐变来填充
+   * 左边是蓝色 (已划过)，右边是灰色 (未划过)
+   * --value-percent 是一个 CSS 变量，我们将用 JS 更新它
+   */
+  background: linear-gradient(to right, #18a1d1 0%, #18a1d1 var(--value-percent, 0%), #d7dcdf var(--value-percent, 0%), #d7dcdf 100%);
+}
+body.wpcanvas #app.container .pwca-content-area-rotate-control input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  /* 目标：蓝色圆圈 */
+  height: 15px; /* 圆圈的高度 */
+  width: 15px; /* 圆圈的宽度 */
+  border-radius: 50%; /* 变为圆形 */
+  background: #ffffff; /* 圆圈中心颜色 (白色) */
+  border: 2px solid #18a1d1; /* 圆圈边框 (蓝色) */
+  /* * 如果你想要一个 "实心" 的蓝色圆点，请使用下面的代码替换:
+   * background: blue;
+   * border: none;
+   */
+  cursor: pointer;
+  /* 关键：垂直居中控制点 */
+  /* (轨道高度 - 控制点高度) / 2 = (1px - 15px) / 2 = -7px */
+  margin-top: -7px;
+}
+body.wpcanvas #app.container .pwca-content-area-rotate-control input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 1px;
+  cursor: pointer;
+  background: #d7dcdf; /* Firefox: 轨道背景设为 "未划过" 的颜色 */
+}
+body.wpcanvas #app.container .pwca-content-area-rotate-control input[type=range]::-moz-range-progress {
+  height: 1px;
+  background: #18a1d1; /* Firefox: "已划过" 的颜色 */
+}
+body.wpcanvas #app.container .pwca-content-area-rotate-control input[type=range]::-moz-range-thumb {
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #18a1d1;
+  cursor: pointer;
+}
+body.wpcanvas #app.container #boundaryLayer {
+  pointer-events: none;
+  z-index: 999;
+}
+body.wpcanvas #app.container .zoom-control {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 5px;
+}
+body.wpcanvas #app.container .zoom-control label {
+  font-weight: bold;
+}
+body.wpcanvas #app.container .zoom-control input[type=range] {
+  cursor: pointer;
+}
+body.wpcanvas #app.container .canvas-box {
+  position: relative;
+  overflow: hidden;
+  transition: height 0.3s ease;
+}
+body.wpcanvas #app.container .view3d-area {
+  width: 100%;
+  margin-top: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+}
+body.wpcanvas #app.container #model3dContainer {
+  width: 100% !important;
+  height: 400px !important;
+  background-color: #f0f0f0;
+  position: relative;
+}
+body.wpcanvas #app.container #model3dContainer canvas {
+  width: 600px !important;
+  height: 600px !important;
+}
+body.wpcanvas #app.container .loading-progress {
+  z-index: 1000;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+body.wpcanvas #app.container .footer {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-top: 1px solid #dee2e6;
+  text-align: center;
+  bottom: 0;
+  max-width: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  align-items: center;
+}
+body.wpcanvas #app.container .footer .product-card {
+  background-color: #fff;
+  border: 1px solid #d1d5db;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+body.wpcanvas #app.container .footer .product-card__info {
+  display: flex;
+  gap: 1rem;
+}
+body.wpcanvas #app.container .footer .product-card__detail {
+  display: flex;
+  align-items: baseline;
+  font-size: 0.875rem;
+}
+body.wpcanvas #app.container .footer .product-card__label {
+  margin-right: 0.5rem;
+  text-align: left;
+}
+body.wpcanvas #app.container .footer .product-card__value {
+  color: #6b7280;
+  text-align: left;
+}
+body.wpcanvas #app.container .footer .product-card__sub-value {
+  padding-left: 2.5rem;
+  color: #6b7280;
+}
+body.wpcanvas #app.container .footer .product-card__quantity {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+body.wpcanvas #app.container .footer .product-card__button {
+  background-color: #e5e7eb;
+  color: #4b5563;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  cursor: pointer;
+}
+body.wpcanvas #app.container .footer .product-card__input {
+  width: 3rem;
+  text-align: center;
+  border: 1px solid #d1d5db;
+  padding: 0.25rem;
+}
+body.wpcanvas #app.container .footer .product-card__add-to-cart {
+  background-color: #ef4444;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+}
+body.wpcanvas #app.container .footer .product-card__add-to-cart:hover {
+  background-color: #eb1515;
+}
+body.wpcanvas .popup-modal {
+  display: none;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+body.wpcanvas .popup-modal .modal-box {
+  background: #fff;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90vw;
+  max-height: 80vh;
+  overflow: auto;
+  position: relative;
+}
+body.wpcanvas .popup-modal .modal-box #close-reviews-modal {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+body.wpcanvas .popup-modal .modal-box .popup_header p {
+  padding: 10px;
+  margin: unset;
+  font-family: "Arial-BoldMT", "Arial Bold", "Arial", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  font-size: 18px;
+  color: #303236;
+  border-bottom: 1px solid #ccc;
+}
+body.wpcanvas .popup-modal .modal-box .popup_body {
+  padding: 2rem;
+}
+body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs {
+  display: flex;
+  margin-bottom: 1rem;
+}
+body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+}
+body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.active {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-bottom: 2px solid #000;
+  font-weight: 600;
+}/*# sourceMappingURL=pwca-onlinedesign.css.map */

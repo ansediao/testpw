@@ -1,0 +1,979 @@
+body.wpcanvas {
+    margin: 0;
+    padding: 0;
+    font-family: "Arial", sans-serif;
+    #app.container {
+
+        //每个视图最外围
+.view-container {
+    .canvas-wrapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+}
+
+        //  公共
+        .btn {
+            // flex: 1;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            white-space: nowrap; /* 禁止按钮内的文字换行 */
+        }
+
+        .btn-custom {
+            background-color: #18afe2;
+            color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-custom:hover {
+            background-color: #0099ee;
+        }
+
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        // 顶部
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0px;
+            .header_left {
+                .header_title {
+                    font-family: Arial-BoldMT, "Arial Bold", Arial, sans-serif;
+                    font-weight: 700;
+                    font-style: normal;
+                    font-size: 18px;
+                    color: #303236;
+                }
+            }
+            .header_right {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                button {
+                    border: unset;
+                    background-color: unset;
+                    cursor: pointer;
+                }
+                /* --- 选项卡按钮容器 --- */
+                .design-switch-btn-box {
+                    background-color: rgba(229, 231, 235, 0.8);
+                    padding: 0.25rem;
+                    border-radius: 0.5rem;
+                    display: flex;
+                    gap: 0.25rem; /* 替代 space-x-1 */
+
+                    /* --- 选项卡按钮样式 --- */
+                    button.design-switch-btn {
+                        width: 100%;
+                        padding: 0.5rem 1rem;
+                        border-radius: 0.375rem;
+                        text-align: center;
+                        border: none;
+                        background-color: transparent;
+                        cursor: pointer;
+                        font-size: 1rem;
+                        /* 默认非激活状态的文字颜色 */
+                        color: #4B5563;
+                        /* 过渡效果 */
+                        transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+                        &.active {
+                            background-color: white;
+                            color: #111827;
+                            font-weight: 600;
+                            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+                                0 2px 4px -2px rgb(0 0 0 / 0.1);
+                        }
+                    }
+                }
+            }
+        }
+        // 视图切换
+        .customization-area {
+            overflow-y: auto;
+            border-bottom: 1px solid #dee2e6;
+            flex-shrink: 0; /* 防止被压缩 */
+            display: flex;
+            justify-content: center;
+            padding: 6px 0px;
+            .viewer-switch-btn {
+                margin: 0px;
+                padding: 13px 30px;
+                font-family: "Arial-BoldMT", "Arial Bold", "Arial", sans-serif;
+                font-weight: 700;
+                font-style: normal;
+                font-size: 20px;
+                color: #303236;
+                border: unset;
+                background-color: unset;
+                border-radius: 8px;
+                &:hover,
+                &.active {
+                    background-color: rgba(23, 176, 228, 0.356862745098039);
+
+                    cursor: pointer;
+                    color: #18afe2;
+                }
+            }
+        }
+        // 主操作区域
+        .main-content {
+            .operation-panel {
+                display: flex;
+                justify-content: start;
+                .tabs-nav {
+                    display: flex;
+                    flex-direction: column;
+                    .tab {
+                        padding: 1rem 1rem;
+                        text-align: center;
+                        border: 1px solid #d1d5db;
+                        /* border-bottom: none; */
+                        margin-bottom: -1px;
+                        cursor: pointer;
+                        transition: all 0.2s ease-in-out;
+                        display: inline-block;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        width: 60px;
+                        img {
+                            width: 32px;
+                            height: auto;
+                        }
+                        .tab_title {
+                            font-family: ArialMT, Arial, sans-serif;
+                            font-weight: 400;
+                            font-style: normal;
+                            font-size: 13px;
+                            color: #303236;
+                        }
+                        &.active {
+                            background-color: #ccc;
+                            .tab_title {
+                                font-weight: 600;
+                            }
+                        }
+                    }
+                }
+
+                &.collapsed {
+                    flex: unset;
+                    .content-area {
+                        display: none !important;
+                    }
+                }
+            }
+
+            /* Left Tabs Navigation */
+            .tabs-nav {
+                margin-right: -1px;
+                /* Overlap border */
+            }
+
+            .tab {
+            }
+
+            .tab:hover {
+                background-color: #e5e7eb;
+            }
+
+            .tab.active {
+                background-color: white;
+                /* border-right-color: white; */
+                z-index: 10;
+                font-weight: 600;
+                color: #111827;
+            }
+
+            /* Right Content Area */
+            .content-area {
+                flex-grow: 1;
+                background-color: white;
+                padding: 1.5rem;
+                /* 24px */
+                border-radius: 0 0.5rem 0.5rem 0;
+                border: 1px solid #d1d5db;
+                position: relative;
+                
+                
+                 i.iconfont {
+            font-size: 26px;
+        }
+
+                .content-area-footer {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    width: 100%;
+                    .tab_footer {
+                        
+                        display: flex;
+                        justify-content: space-between;
+                        box-sizing: border-box;
+                        padding: 1.5rem;
+                        width: 100%;
+                        .sample-check {
+                            display: flex;
+                            align-items: center;
+                        }
+
+                        .sample-check label {
+                            margin-left: 0.5rem;
+                            font-size: 0.875rem;
+                            color: #374151;
+                        }
+
+                        .btn-inquiry {
+                            background-color: #18afe2;
+                            color: #ffffff;
+                            font-weight: 700;
+                            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                        }
+
+                        .btn-inquiry:hover {
+                            background-color: #0099ee;
+                        }
+                    }
+                }
+                // /* Footer */
+                // .footer {
+                //     display: flex;
+                //     justify-content: space-between;
+                //     align-items: center;
+                //     border-top: 1px solid #e5e7eb;
+
+                //     position: absolute;
+                //     bottom: 0;
+                //     left: 0;
+                //     width: 100%;
+                //     background-color: white;
+                //     /* Ensure background is white */
+                // }
+            }
+
+            .content-pane {
+                display: none;
+                /* Hide all panes by default */
+                position: relative;
+                /* Add position relative for absolute positioning of footer */
+                height: 100%;
+                /* Adjust as needed to ensure content fits above footer */
+                // padding-bottom: 70px;
+                /* Add padding to prevent content from being hidden by footer */
+                &.active {
+                    display: block;
+                    /* Show only the active pane */
+                }
+                position: relative;
+                .tab_control_title {
+                    font-family: "Arial-BoldMT", "Arial Bold", "Arial",
+                        sans-serif;
+                    font-weight: 700;
+                    font-style: normal;
+                    font-size: 16px;
+                    color: #303236;
+                    // display: block;
+                }
+                
+                #img_add_controls{
+                    button{
+                        padding: 5px;
+                    }
+                }
+            }
+
+            .tab_header {
+                .tab_header_title {
+                    font-family: "Arial-BoldMT", "Arial Bold", "Arial",
+                        sans-serif;
+                    font-weight: 700;
+                    font-style: normal;
+                    font-size: 15px;
+                    color: #303236;
+                }
+                margin-bottom: 15px;
+            }
+
+            /* 产品信息面板 */
+            #content-pinming {
+                .rating {
+                    font-size: 0.875rem;
+                    color: #303236;
+                    margin-bottom: 1.5rem;
+                }
+
+                .rating a {
+                    margin-left: 1rem;
+                    color: #374151;
+                    text-decoration: none;
+                }
+
+                .rating a:hover {
+                    text-decoration: underline;
+                }
+
+                .color-section h3 {
+                    font-size: 1rem;
+                    /* 16px */
+                    font-weight: 600;
+                    color: #374151;
+                    margin-bottom: 0.75rem;
+                }
+
+                .color-swatches-box {
+                    margin-bottom: 1.5rem;
+                    display: flex; /* 声明为 Flex 布局 */
+                    flex-wrap: wrap; /* 这是实现自动换行的关键 */
+                    gap: 10px;
+                }
+
+                .color-swatch {
+                    width: 1.5rem;
+                    /* 56px */
+                    height: 1.5rem;
+                    /* 56px */
+                    border-radius: 0.375rem;
+                    /* 6px */
+                    cursor: pointer;
+                    border: 1px solid #d1d5db;
+                }
+
+                .color-swatch.selected {
+                    outline: 2px solid #3b82f6;
+                    outline-offset: 2px;
+                }
+
+                .action-buttons {
+                    margin-bottom: 2rem;
+                    margin: auto;
+
+                    border-top: 1px solid #ccc;
+                    padding: 20px;
+                    display: flex;
+                    gap: 10px; /* 可选：在按钮之间添加间距 */
+
+                    .btn {
+                        flex: 1;
+                    }
+                }
+            }
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+
+            .operation-panel {
+                flex: 100px;
+
+                #content-sheji {
+                    .content-sheji {
+                        > .list {
+                            display: grid;
+                            grid-template-columns: repeat(2, 1fr);
+                            gap: 10px;
+                        }
+
+                        &.active {
+                            > .list {
+                                display: block;
+                            }
+                            .category-item:not(.active) {
+                                display: none;
+                            }
+                        }
+
+                        &:not(.active) {
+                            .category-item-header {
+                                .category_name {
+                                    width: 100%;
+                                    height: 175px;
+                                    display: flex;
+                                    flex-direction: column;
+                                    justify-content: center;
+                                    align-items: center;
+                                    border: 1px solid #ccc;
+                                    border-radius: 8px;
+                                    cursor: pointer;
+                                    img {
+                                        display: block;
+                                        margin: 0 auto 8px;
+                                        max-width: 40px;
+                                    }
+                                }
+
+                                .back-button {
+                                    display: none;
+                                }
+                            }
+                        }
+
+                        .category-item {
+                            .category-item-header {
+                                .back-button {
+                                    display: none;
+                                    color: #11BBF5;
+                                    font-family: "ArialMT", "Arial", sans-serif;
+                                    font-weight: 400;
+                                    font-style: normal;
+                                    font-size: 13px;
+                                    text-decoration: underline;
+                                    background-color: unset;
+                                    border: unset;
+                                    cursor: pointer;
+                                }
+                            }
+
+                            .designs-grid {
+                                display: none;
+                            }
+
+                            &.active {
+                                .category-item-header {
+                                    margin-bottom: 15px;
+                                    display: flex;
+                                    justify-content: space-between;
+
+                                    .category_name {
+                                        width: unset;
+                                        height: unset;
+                                        display: block;
+                                        justify-content: unset;
+                                        align-items: unset;
+                                        border: unset;
+                                        background-color: unset;
+                                        cursor: unset;
+                                        color: #333333;
+                                        font-family: "Arial-BoldMT",
+                                            "Arial Bold", "Arial", sans-serif;
+                                        font-weight: 700;
+                                        font-style: normal;
+                                        font-size: 16px;
+                                        img {
+                                            display: none;
+                                        }
+                                    }
+
+                                    .back-button {
+                                        display: block;
+                                    }
+                                }
+
+                                .designs-grid {
+                                    display: grid;
+                                    grid-template-columns: repeat(3, 1fr);
+                                    gap: 10px;
+                                    .design-item {
+                                        display: flex;
+                                        justify-content: center;
+                                        align-items: center;
+                                        border: 1px solid #ccc;
+                                        min-height: 125px;
+                                        border-radius: 8px;
+                                        /* 设置为正方形，这里以200px为例，可根据需要调整 */
+                                        width: 125px;
+                                        height: 125px;
+                                        /* 确保内容不会超出容器 */
+                                        overflow: hidden;
+                                        img {
+                                            /* 图片充满容器 */
+                                            width: 100%;
+                                            height: 100%;
+                                            /* 保持图片比例，裁剪多余部分 */
+                                            object-fit: cover;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            .canvas-area {
+                flex: 3;
+                display: flex;
+                flex-direction: column;
+                background-color: #f8f8f8;
+                padding: 15px;
+
+                .dongtai-area {
+                    background-color: #fff;
+                    padding: 10px;
+                    text-align: left;
+                    flex-shrink: 0;
+                    min-height: 23px;
+                    .text_toolbar {
+                    }
+                    .toolbar_button {
+                        background-color: unset;
+                        border: unset;
+                        cursor: pointer;
+                        font-family: "Arial-BoldMT", "Arial Bold", "Arial",
+                            sans-serif;
+                        font-weight: 700;
+                        font-style: normal;
+                        font-size: 15px;
+                        color: #303236;
+                        padding: 5px;
+                        border-radius: 5px;
+                        &.active {
+                            color: #18AFE2;
+                            background-color: rgba(
+                                23,
+                                176,
+                                228,
+                                0.356862745098039
+                            );
+                        }
+                    }
+                }
+
+                .canvas-box {
+                    flex-grow: 1;
+                    overflow: auto;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    background-color: #fff;
+
+                    .design_area {
+                        position: relative;
+                        height: 100%;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        .canvas-container {
+                            // height: 100% !important;
+                        }
+                    }
+
+                    .preview_area {
+                        .view-area {
+                            .preview-canvas-container {
+                                position: relative;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        .dongtai-area {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .toolbar-item {
+            margin: 10px 0;
+            // display: flex;
+            align-items: center;
+        }
+
+        .toolbar-item label {
+            margin-right: 10px;
+            min-width: 60px;
+        }
+
+        .toolbar-item select,
+        .toolbar-item input:not([type="range"]) {
+            padding: 5px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+        }
+        
+        select#fontFamily{
+            width: 100%;
+        }
+        .tab_control_title {
+            margin-right: 0px;
+        }
+
+        .toolbar-item input[type="color"] {
+            height: 30px;
+            width: 50px;
+        }
+       
+        /* 1. 滑块 <input> 容器本身 */
+.pwca-content-area-rotate-control input[type="range"] {
+    -webkit-appearance: none; /* 必须，移除默认样式 */
+    width: calc(100% - (120px));
+    margin: 0;
+    margin-right: 10px;
+    padding: 0;
+    outline: none;
+    background: transparent; /* 容器背景设为透明 */
+    /* 设置一个高度，以便容纳控制点，方便点击 */
+    height: 20px; 
+}
+
+/* 2. 轨道 (Track) - 针对 WebKit 浏览器 (Chrome, Safari, Edge) */
+.pwca-content-area-rotate-control input[type="range"]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 1px; /* 你想要的轨道粗细 */
+    cursor: pointer;
+    
+    /* * 关键：使用线性渐变来填充
+     * 左边是蓝色 (已划过)，右边是灰色 (未划过)
+     * --value-percent 是一个 CSS 变量，我们将用 JS 更新它
+     */
+    background: linear-gradient(to right, 
+        #18a1d1 0%, 
+        #18a1d1 var(--value-percent, 0%), 
+        #d7dcdf var(--value-percent, 0%), 
+        #d7dcdf 100%
+    );
+}
+
+/* 3. 控制点 (Thumb) - 针对 WebKit */
+.pwca-content-area-rotate-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    
+    /* 目标：蓝色圆圈 */
+    height: 15px; /* 圆圈的高度 */
+    width: 15px; /* 圆圈的宽度 */
+    border-radius: 50%; /* 变为圆形 */
+    background: #ffffff; /* 圆圈中心颜色 (白色) */
+    border: 2px solid #18a1d1; /* 圆圈边框 (蓝色) */
+    
+    /* * 如果你想要一个 "实心" 的蓝色圆点，请使用下面的代码替换:
+     * background: blue;
+     * border: none;
+     */
+    
+    cursor: pointer;
+    
+    /* 关键：垂直居中控制点 */
+    /* (轨道高度 - 控制点高度) / 2 = (1px - 15px) / 2 = -7px */
+    margin-top: -7px; 
+}
+
+/* 4. (可选) 针对 Firefox 浏览器的样式 */
+.pwca-content-area-rotate-control input[type="range"]::-moz-range-track {
+    width: 100%;
+    height: 1px;
+    cursor: pointer;
+    background: #d7dcdf; /* Firefox: 轨道背景设为 "未划过" 的颜色 */
+}
+
+.pwca-content-area-rotate-control input[type="range"]::-moz-range-progress {
+    height: 1px;
+    background: #18a1d1; /* Firefox: "已划过" 的颜色 */
+}
+
+.pwca-content-area-rotate-control input[type="range"]::-moz-range-thumb {
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #18a1d1;
+    cursor: pointer;
+}
+        
+
+        // .layers-panel {
+        //     background-color: #fff;
+        //     border: 1px solid #ddd;
+        //     border-radius: 3px;
+        // }
+
+        // .layers-header {
+        //     display: flex;
+        //     background-color: #eee;
+        //     padding: 5px;
+        //     font-weight: bold;
+        //     border-bottom: 1px solid #ddd;
+        // }
+
+        // .layer-column {
+        //     padding: 2px 5px;
+        // }
+
+        // .layer-visibility,
+        // .layer-lock {
+        //     width: 40px;
+        //     text-align: center;
+        // }
+
+        // .layer-name {
+        //     flex-grow: 1;
+        // }
+
+        // .layers-container {
+        //     min-height: 50px;
+        // }
+
+        // .layer-item:hover {
+        //     background-color: #f5f5f5;
+        // }
+
+        // .layer-item.selected {
+        //     background-color: #e0f0ff;
+        // }
+
+        // .layer-item .layer-visibility,
+        // .layer-item .layer-lock {
+        //     display: flex;
+        //     justify-content: center;
+        //     align-items: center;
+        // }
+
+        // .layer-item .layer-visibility i,
+        // .layer-item .layer-lock i {
+        //     cursor: pointer;
+        //     opacity: 0.7;
+        // }
+
+        // .layer-item .layer-visibility i:hover,
+        // .layer-item .layer-lock i:hover {
+        //     opacity: 1;
+        // }
+
+        // .layer-item .layer-name {
+        //     white-space: nowrap;
+        //     overflow: hidden;
+        //     text-overflow: ellipsis;
+        // }
+
+        // .layer-drag-placeholder {
+        //     background-color: #f0f8ff;
+        //     border: 1px dashed #aaa;
+        //     height: 30px;
+        // }
+
+        #boundaryLayer {
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* 缩放控制样式 */
+        .zoom-control {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .zoom-control label {
+            font-weight: bold;
+        }
+
+        .zoom-control input[type="range"] {
+            cursor: pointer;
+        }
+
+        /* 确保画布容器能够正确处理缩放 */
+        .canvas-box {
+            position: relative;
+            overflow: hidden;
+            transition: height 0.3s ease;
+        }
+
+        /* 3D视图区域样式 */
+        .view3d-area {
+            width: 100%;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #model3dContainer {
+            width: 100% !important;
+            height: 400px !important;
+            background-color: #f0f0f0;
+            position: relative;
+        }
+
+        /* 确保3D模型容器内的canvas元素也有正确的尺寸 */
+        #model3dContainer canvas {
+            width: 600px !important;
+            height: 600px !important;
+        }
+
+        /* 加载进度提示样式 */
+        .loading-progress {
+            z-index: 1000;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+            bottom: 0;
+            max-width: 100%;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+
+            align-items: center;
+            .product-card {
+                background-color: #fff;
+                border: 1px solid #d1d5db; // gray-300
+                padding: 1rem; // 16px
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 1rem; // space-x-4 equivalent
+
+                &__info {
+                    display: flex;
+                    gap: 1rem;
+                }
+
+                &__detail {
+                    display: flex;
+                    // flex-direction: column;
+                    align-items: baseline;
+                    font-size: 0.875rem; // text-sm
+                }
+
+                &__label {
+                    margin-right: 0.5rem;
+                    text-align: left;
+                }
+
+                &__value {
+                    color: #6b7280; // text-gray-500
+                    text-align: left;
+                }
+
+                &__sub-value {
+                    padding-left: 2.5rem; // pl-10 equivalent
+                    color: #6b7280; // text-gray-500
+                }
+
+                &__quantity {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem; // space-x-2 equivalent
+                }
+
+                &__button {
+                    background-color: #e5e7eb; // bg-gray-200
+                    color: #4b5563; // text-gray-700
+                    padding: 0.25rem 0.5rem; // py-1 px-2
+                    border: none;
+                    cursor: pointer;
+
+                    &--minus {
+                        // Specific styles for minus button if needed
+                    }
+
+                    &--plus {
+                        // Specific styles for plus button if needed
+                    }
+                }
+
+                &__input {
+                    width: 3rem; // w-12 equivalent
+                    text-align: center;
+                    border: 1px solid #d1d5db; // border-gray-300
+                    padding: 0.25rem;
+                }
+
+                &__add-to-cart {
+                    background-color: #ef4444; // bg-red-500
+                    color: #fff; // text-white
+                    padding: 0.5rem 1rem; // py-2 px-4
+                    border: none;
+                    cursor: pointer;
+
+                    &:hover {
+                        background-color: darken(#ef4444, 10%);
+                    }
+                }
+            }
+        }
+    }
+
+    .popup-modal {
+        display: none;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+
+        .modal-box {
+            background: #fff;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90vw;
+            max-height: 80vh;
+            overflow: auto;
+            position: relative;
+            #close-reviews-modal {
+                position: absolute;
+                right: 1rem;
+                top: 1rem;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+            .popup_header {
+                p {
+                    padding: 10px;
+                    margin: unset;
+                    font-family: "Arial-BoldMT", "Arial Bold", "Arial",
+                        sans-serif;
+                    font-weight: 700;
+                    font-style: normal;
+                    font-size: 18px;
+                    color: #303236;
+                    border-bottom: 1px solid #ccc;
+                }
+            }
+            .popup_body {
+                padding: 2rem;
+                #review-tabs {
+                    display: flex;
+
+                    margin-bottom: 1rem;
+                    .review-tab {
+                        cursor: pointer;
+                        padding: 0.5rem 1rem;
+
+                        &.active {
+                            cursor: pointer;
+                            padding: 0.5rem 1rem;
+                            border-bottom: 2px solid #000;
+                            font-weight: 600;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
