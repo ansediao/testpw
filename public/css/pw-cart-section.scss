@@ -1,0 +1,89 @@
+@import 'variables';
+@import 'mixins';
+
+.cart-section { 
+    .button-group { 
+        display: flex; 
+        gap: 12px; 
+        align-items: center; 
+        flex-wrap: wrap; 
+
+        .cart-btn, 
+        .customize-btn { 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 6px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            text-decoration: none; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 48px; 
+            flex: 1; 
+            min-width: 140px; 
+        } 
+
+        .cart-btn { 
+            background-color: #0073aa; 
+            color: white; 
+
+            &:hover:not(:disabled) { 
+                background-color: #005a87; 
+                transform: translateY(-1px); 
+            } 
+
+            &:disabled { 
+                background-color: #ccc; 
+                cursor: not-allowed; 
+                opacity: 0.6; 
+            } 
+
+            &.loading { 
+                background-color: #005a87; 
+                cursor: wait; 
+            } 
+
+            &:focus { 
+                outline: 2px solid #005a87; 
+                outline-offset: 2px; 
+            } 
+        } 
+
+        .customize-btn { 
+            background-color: #ff6b35; 
+            color: white; 
+
+            &:hover { 
+                background-color: #e55a2b; 
+                transform: translateY(-1px); 
+            } 
+
+            &:active { 
+                transform: translateY(0); 
+            } 
+
+            &:focus { 
+                outline: 2px solid #e55a2b; 
+                outline-offset: 2px; 
+            } 
+        } 
+    } 
+} 
+
+@media (max-width: 768px) { 
+    .cart-section { 
+        .button-group { 
+            flex-direction: column; 
+            width: 100%; 
+
+            .cart-btn, 
+            .customize-btn { 
+                width: 100%; 
+                flex: none; 
+            } 
+        } 
+    } 
+} 
