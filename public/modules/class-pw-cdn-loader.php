@@ -105,8 +105,7 @@ class Pw_CDN_Loader {
             <?php $css_timestamp = time(); ?>
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../css/pw-cart-section.css?v=' . $css_timestamp; ?>">
             <!-- 组件样式文件 -->
-            <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/244.css?v=<?php echo $css_timestamp; ?>">
-            <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/248.css?v=<?php echo $css_timestamp; ?>">
+            <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../css/pw-color-variants.css?v=' . $css_timestamp; ?>">
                         <!-- 产品页 规格选择 -->
 
             <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/250.css?v=<?php echo $css_timestamp; ?>">
