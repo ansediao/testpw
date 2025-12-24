@@ -72,14 +72,6 @@ function getActiveCanvasContexts() {
     };
 }
 
-
-
-
-// Canvas 初始化将在多视图系统中处理
-// 这里保留全局变量的声明以保持兼容性
-let canvas = null;
-
-
 // 为 canvas 添加所有必要的事件监听器
 function initializeCanvasEventListeners(fabricCanvas, options = {}) {
     if (!fabricCanvas) 
@@ -149,33 +141,6 @@ function drawImageCurvedAndCentered(ctx, image, x, y, width, height, arc, source
     }
 }
 
-
-
-// 默认颜色
-const defaultColor = '#3498db';
-let currentColor = defaultColor;
-
-// 检查是否为多视图模式
-const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
-const isMultiViewMode = canvasStore && canvasStore.views && canvasStore.views.length > 0;
-const hasMultiViewContainer = document.querySelector('.multi-view-container') !== null;
-
-if (! isMultiViewMode && ! hasMultiViewContainer) { // 单视图模式：执行传统初始化
-    if (typeof window.initCanvasSystem === 'function') {
-        window.initCanvasSystem();
-    } else if (typeof init === 'function') {
-        init();
-    }
-    // 检查是否存在 boundary canvas 元素再绘制
-    if (document.getElementById('boundaryLayer')) {
-        drawBoundary();
-    }
-    // 只有在 canvas 存在时才初始化
-    if (canvas) {
-        initializeCanvas();
-    }
-} else { // 多视图模式：初始化将由多视图系统处理
-}
 // 添加渲染预览按钮的点击事件
 document.getElementById('renderBtn').addEventListener('click', async function () { // 检查是否有多视图系统
     // 1) 点击后先清除所有视图、所有画布的选中状态
