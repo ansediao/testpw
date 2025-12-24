@@ -89,7 +89,6 @@ class Pw_CDN_Loader {
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/product/stores/productStore.js?v=' . time(); ?>"></script>
             
             <!-- 引入工具函数 -->
-            <script src="<?php echo 'https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/246.js?v=' . time(); ?>"></script>
             <script src="<?php echo plugin_dir_url(__FILE__) . '../js/utils/messageUtils.js?v=' . time(); ?>"></script>
             
             <!-- 引入 Vue 组件 -->

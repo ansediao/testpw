@@ -1,0 +1,751 @@
+@import 'variables';
+@import 'mixins';
+
+$bg-yellow-color: #ffd813; 
+$bg-red-color:#e4100b; 
+
+
+:root { 
+  /* 全局颜色变量 */ 
+  --bg-yellow-color: #ffd813; 
+  --bg-red-color: #e4100b; 
+} 
+.product-options { 
+    margin-top: 20px; 
+
+    &__checkboxes { 
+        display: flex; 
+        flex-direction: column; 
+    } 
+
+    &__label { 
+        display: flex; 
+        align-items: center; 
+        gap: 5px; 
+        cursor: pointer; 
+
+        input[type="checkbox"] { 
+            margin: 0; 
+        } 
+    } 
+
+    hr { 
+        margin: 15px 0; 
+    } 
+} 
+.color-selection { 
+    margin-top: 20px; 
+
+    p { 
+        margin-bottom: 10px; 
+    } 
+
+    .color-options { 
+        display: flex; 
+        gap: 10px; 
+        margin-bottom: 15px; 
+
+        .color-box { 
+            width: 30px; 
+            height: 30px; 
+            cursor: pointer; 
+            border: 1px solid #ddd; 
+            border-radius: 3px; 
+            transition: transform 0.2s ease; 
+
+            &:hover { 
+                transform: scale(1.1); 
+            } 
+
+            &[data-color="black"] { 
+                background: black; 
+            } 
+
+            &[data-color="red"] { 
+                background: red; 
+            } 
+
+            &[data-color="blue"] { 
+                background: blue; 
+            } 
+
+            &[data-color="white"] { 
+                background: white; 
+            } 
+
+            &.selected { 
+                border: 2px solid #333; 
+                box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); 
+            } 
+        } 
+    } 
+
+    .action-buttons { 
+        margin-top: 10px; 
+
+        .btn { 
+            color: #fff; 
+            background-color: rgba(17, 187, 245, 1); 
+            border: none; 
+            border-radius: 5px; 
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.349); 
+            padding: 10px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            transition: background-color 0.3s ease; 
+
+            &:hover { 
+                background-color: rgba(15, 167, 220, 1); 
+            } 
+
+            &:active { 
+                transform: translateY(1px); 
+            } 
+
+            &.btn-gradient { 
+                margin-right: 10px; 
+            } 
+        } 
+
+        hr { 
+            margin-top: 15px; 
+            margin-bottom: 15px; 
+            border: 0; 
+            border-top: 1px solid #eee; 
+        } 
+    } 
+} 
+/* --- 全局和容器样式 --- */ 
+body { 
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+} 
+
+.container-wrapper { 
+  background-color: #ffffff; 
+  padding: 30px 40px; 
+  padding-left: unset; 
+  border-radius: 12px; 
+//   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); 
+  width: 100%; 
+  max-width: 420px; 
+  margin: 20px 0; 
+  
+  @media (max-width: 768px) { 
+    padding: 20px; 
+    margin: 10px 0; 
+  } 
+} 
+
+.quantity-selector { 
+  color: #333; 
+} 
+
+/* --- 数量控制区域 --- */ 
+.quantity-control { 
+  display: flex; 
+  align-items: center; 
+  margin-bottom: 50px; 
+  
+  label { 
+    margin-right: 15px; 
+    font-size: 16px; 
+    font-weight: 500; 
+    color: #2d3748; 
+  } 
+} 
+
+/* --- 步进器 (加减号和输入框) --- */ 
+.stepper { 
+  display: flex; 
+  border: 1px solid #e2e8f0; 
+  border-radius: 8px; 
+  overflow: hidden; 
+  height: 38px; 
+} 
+
+.stepper-btn { 
+  background-color: #f8fafc; 
+  border: none; 
+  cursor: pointer; 
+  font-size: 24px; 
+  width: 38px; 
+  color: #718096; 
+  transition: background-color 0.2s, color 0.2s; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  line-height: 1; 
+  
+  &:hover { 
+    background-color: #edf2f7; 
+    color: #2d3748; 
+  } 
+} 
+
+.quantity-input { 
+  width: 60px; 
+  text-align: center; 
+  border: none; 
+  border-left: 1px solid #e2e8f0; 
+  border-right: 1px solid #e2e8f0; 
+  font-size: 16px; 
+  font-weight: 500; 
+  color: #1a202c; 
+  -moz-appearance: textfield; 
+  outline: none; 
+} 
+
+/* --- 折扣刻度尺区域 --- */ 
+.discount-scale-container { 
+  position: relative; 
+  height: 40px; 
+  padding: 0 8px; 
+  margin-bottom: 20px; 
+} 
+
+.scale-line { 
+  position: absolute; 
+  top: 50%; 
+  left: 8px; 
+  right: 8px; 
+  height: 3px; 
+  background-color: #e2e8f0; 
+  border-radius: 2px; 
+  transform: translateY(-50%); 
+  z-index: 1; 
+} 
+
+.scale-dots { 
+  position: relative; 
+  display: flex; 
+  justify-content: space-between; 
+  height: 100%; 
+  z-index: 2; 
+} 
+
+.scale-dot { 
+  width: 14px; 
+  height: 14px; 
+  background-color: #cbd5e0; 
+  border: 2px solid #ffffff; 
+  border-radius: 50%; 
+  cursor: pointer; 
+  transition: background-color 0.3s, transform 0.2s ease-out; 
+  position: absolute; 
+  top: 50%; 
+  transform: translate(-50%, -50%); 
+  
+  &.active { 
+    background-color: #38b2ac; 
+    transform: translate(-50%, -50%) scale(1.4); 
+    box-shadow: 0 0 0 3px rgba(56, 178, 172, 0.3); 
+  } 
+} 
+
+/* --- 数量提示框 (Tooltip) --- */ 
+.quantity-tooltip { 
+  position: absolute; 
+  background-color: #2d3748; 
+  color: white; 
+  padding: 6px 12px; 
+  border-radius: 6px; 
+  font-size: 14px; 
+  font-weight: 600; 
+  top: -30px; 
+  transform: translateX(-50%); 
+  white-space: nowrap; 
+  opacity: 0; 
+  visibility: hidden; 
+  transition: opacity 0.3s, visibility 0.3s, top 0.3s; 
+  z-index: 10; 
+  
+  &.visible { 
+    opacity: 1; 
+    visibility: visible; 
+    top: -35px; 
+  } 
+  
+  &::after { 
+    content: ''; 
+    position: absolute; 
+    top: 100%; 
+    left: 50%; 
+    margin-left: -6px; 
+    border-width: 6px; 
+    border-style: solid; 
+    border-color: #2d3748 transparent transparent transparent; 
+  } 
+} 
+
+/* --- 新增：下方折扣显示文字 --- */ 
+.discount-display { 
+  margin-top: 25px; 
+  text-align: left; 
+  color: #4a5568; 
+  font-size: 16px; 
+  font-weight: 500; 
+  height: 24px; 
+  transition: color 0.3s; 
+} 
+// 配件选择器样式 SCSS 版本 
+
+// 主容器样式 
+#pw-accessories-container { 
+    background: #f9f9f9; 
+    border: 1px solid #ddd; 
+    margin: 15px 0; 
+    border-radius: 4px; 
+    padding: 15px; 
+} 
+
+// 下拉菜单包装器 
+.dropdown-wrapper { 
+    display: flex; 
+    align-items: center; 
+    gap: 1rem; 
+    margin-bottom: 1.5rem; 
+
+    // 标签样式 
+    label { 
+        font-size: 1.125rem; 
+        font-weight: 600; 
+        color: #1f2937; 
+        white-space: nowrap; 
+    } 
+} 
+
+// 下拉容器 
+.dropdown-container { 
+    position: relative; 
+    width: 100%; 
+} 
+
+// 下拉按钮样式 
+#accessory-dropdown-button { 
+    width: 100%; 
+    background-color: #f9fafb; 
+    border: 1px solid #d1d5db; 
+    color: #1f2937; 
+    font-size: 1rem; 
+    border-radius: 0.5rem; 
+    padding: 0.75rem; 
+    text-align: left; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    cursor: pointer; 
+
+    // 按钮焦点状态 
+    &:focus { 
+        outline: none; 
+        box-shadow: 0 0 0 2px #3b82f6; 
+        border-color: #3b82f6; 
+    } 
+
+    // SVG 图标样式 
+    svg { 
+        width: 1rem; 
+        height: 1rem; 
+        transition: transform 0.3s ease-in-out; 
+    } 
+
+    // 打开状态下的图标旋转 
+    &.open svg { 
+        transform: rotate(180deg); 
+    } 
+} 
+
+// 配件列表下拉菜单 
+#accessory-list { 
+    position: absolute; 
+    z-index: 10; 
+    margin-top: 0.5rem; 
+    width: 100%; 
+    background-color: #ffffff; 
+    border-radius: 0.5rem; 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 
+        0 4px 6px -2px rgba(0, 0, 0, 0.05); 
+    border: 1px solid #e5e7eb; 
+    max-height: 20rem; 
+    overflow-y: auto; 
+} 
+
+// 产品项目样式 
+.product-item { 
+    padding: 0.75rem; 
+    display: flex; 
+    align-items: center; 
+    gap: 1rem; 
+    cursor: pointer; 
+    border-bottom: 1px solid #e5e7eb; 
+
+    // 最后一个项目无底部边框 
+    &:last-child { 
+        border-bottom: none; 
+    } 
+
+    // 悬停效果 
+    &:hover { 
+        background-color: #f3f4f6; 
+    } 
+
+    // 产品图片 
+    img { 
+        width: 3rem; 
+        height: 3rem; 
+        border-radius: 0.375rem; 
+        object-fit: cover; 
+    } 
+
+    // 产品信息容器 
+    .info { 
+        flex-grow: 1; 
+
+        // 产品名称 
+        .name { 
+            font-weight: 600; 
+            color: #1f2937; 
+            margin: 0 0 4px 0; 
+        } 
+
+        // 产品价格 
+        .price { 
+            font-size: 0.875rem; 
+            color: #6b7280; 
+            margin: 0 0 4px 0; 
+        } 
+
+        // 产品SKU 
+        .sku { 
+            font-size: 0.75rem; 
+            color: #9ca3af; 
+            margin: 0; 
+        } 
+    } 
+} 
+
+// 已选择配件容器 
+#selected-accessories-container { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 1rem; 
+    padding: 1rem; 
+    min-height: 120px; 
+    background-color: #f9fafb; 
+    border-radius: 0.5rem; 
+    border: 1px dashed #d1d5db; 
+} 
+
+// 已选择的配件项目 
+.selected-accessory-item { 
+    position: relative; 
+    padding: 0.5rem; 
+    background-color: #ffffff; 
+    border-radius: 0.5rem; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+        0 2px 4px -1px rgba(0, 0, 0, 0.06); 
+    display: flex; 
+    align-items: center; 
+    gap: 0.75rem; 
+    transition: transform 0.2s ease-in-out; 
+
+    // 悬停效果 
+    &:hover { 
+        transform: scale(1.05); 
+    } 
+
+    // 配件图片 
+    img { 
+        width: 4rem; 
+        height: 4rem; 
+        border-radius: 0.375rem; 
+        object-fit: cover; 
+    } 
+
+    // 配件信息 
+    .info { 
+        // 配件名称 
+        .name { 
+            font-weight: 500; 
+            color: #1f2937; 
+            margin: 0 0 4px 0; 
+        } 
+
+        // 配件价格 
+        .price { 
+            font-size: 0.875rem; 
+            color: #6b7280; 
+            margin: 0; 
+        } 
+    } 
+} 
+
+// 移除按钮 
+.remove-btn { 
+    position: absolute; 
+    top: -0.5rem; 
+    right: -0.5rem; 
+    width: 1.5rem; 
+    height: 1.5rem; 
+    background-color: #ef4444; 
+    color: white; 
+    border-radius: 9999px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 1rem; 
+    font-weight: bold; 
+    border: none; 
+    cursor: pointer; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+        0 2px 4px -1px rgba(0, 0, 0, 0.06); 
+    transition: background-color 0.2s; 
+
+    // 悬停效果 
+    &:hover { 
+        background-color: #dc2626; 
+    } 
+} 
+
+// 图片预览容器 
+#accessory-image-preview-container { 
+    position: absolute; 
+    display: none; 
+    z-index: 1000; 
+    pointer-events: none; 
+    transition: opacity 0.2s ease-in-out; 
+
+    // 预览图片 
+    img { 
+        width: 250px; 
+        height: 250px; 
+        border: 4px solid white; 
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); 
+        border-radius: 0.5rem; 
+    } 
+} 
+
+// 隐藏元素 
+.hidden { 
+    display: none; 
+} 
+
+// 自定义警告框 
+.custom-alert { 
+    position: fixed; 
+    top: 20px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    background-color: #f8d7da; 
+    color: #721c24; 
+    padding: 10px 20px; 
+    border-radius: 5px; 
+    z-index: 2000; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+} 
+.pw-price-calculator { 
+  background: #fff; 
+  border: 2px solid #007cba; 
+  margin: 15px 0; 
+  border-radius: 8px; 
+  padding: 20px; 
+  box-shadow: 0 2px 8px rgba(0,123,186,0.1); 
+  
+  h4 { 
+    margin: 0 0 15px 0; 
+    color: #007cba; 
+    font-size: 18px; 
+    font-weight: 600; 
+  } 
+  
+  .price-breakdown { 
+    background: #f8f9fa; 
+    padding: 15px; 
+    border-radius: 6px; 
+    margin-bottom: 15px; 
+    
+    .price-row { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 8px; 
+      
+      span { 
+        &:first-child { 
+          color: #666; 
+        } 
+        
+        &#unit-price, 
+        &#selected-quantity, 
+        &#subtotal-price, 
+        &#accessories-total { 
+          font-weight: 500; 
+        } 
+        
+        &#discount-amount { 
+          font-weight: 500; 
+          color: #28a745; 
+        } 
+      } 
+      
+      &:last-of-type { 
+        span { 
+          &:first-child { 
+            color: #333; 
+            font-weight: 600; 
+            font-size: 16px; 
+          } 
+          
+          &#total-price { 
+            font-weight: 700; 
+            font-size: 18px; 
+            color: #007cba; 
+          } 
+        } 
+      } 
+    } 
+    
+    #discount-row, 
+    #accessories-row { 
+      display: none; 
+    } 
+    
+    #discount-row { 
+      span:first-child { 
+        color: #28a745; 
+      } 
+    } 
+    
+    hr { 
+      margin: 12px 0; 
+      border: none; 
+      border-top: 1px solid #dee2e6; 
+    } 
+  } 
+  
+  .price-note { 
+    font-size: 12px; 
+    color: #6c757d; 
+    text-align: center; 
+  } 
+} 
+// 产品操作按钮容器样式 
+.pw-product-action-buttons { 
+    margin: 20px 0; 
+    padding: 0; 
+    
+    // 按钮容器布局 
+    .action-buttons-container { 
+        display: flex; 
+        gap: 15px; 
+        align-items: center; 
+        justify-content: left; 
+        flex-wrap: wrap; 
+    } 
+    
+    // 按钮基础样式（占位符选择器） 
+    %button-base { 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 8px; 
+        padding: 14px 28px; 
+        border: none; 
+        border-radius: 8px; 
+        font-size: 16px; 
+        font-weight: 600; 
+        cursor: pointer; 
+        transition: all 0.3s ease; 
+        text-decoration: none; 
+        min-width: 160px; 
+        // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); 
+        
+        // 按钮内图标样式 
+        svg { 
+            flex-shrink: 0; 
+        } 
+        
+        // 按钮点击状态 
+        &:active { 
+            transform: translateY(0); 
+            // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); 
+        } 
+    } 
+    
+    // 自定义按钮样式 
+    .btn-customize { 
+        @extend %button-base; 
+        background-color: var(--bg-red-color); 
+        color: white; 
+        
+        // 悬停效果 
+        &:hover { 
+            transform: translateY(-2px); 
+            // box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); 
+        } 
+    } 
+    
+    // 添加到购物车按钮样式 
+    .btn-add-to-cart { 
+        @extend %button-base; 
+        background-color: var(--bg-yellow-color); 
+        color: black; 
+        
+        // 悬停效果 
+        &:hover { 
+            transform: translateY(-2px); 
+            // box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4); 
+           
+        } 
+        
+        // 加载状态样式 
+        &.loading { 
+            opacity: 0.7; 
+            cursor: not-allowed; 
+            position: relative; 
+            
+            // 加载动画 
+            &::after { 
+                content: ''; 
+                position: absolute; 
+                width: 20px; 
+                height: 20px; 
+                border: 2px solid #ffffff; 
+                border-top: 2px solid transparent; 
+                border-radius: 50%; 
+                animation: spin 1s linear infinite; 
+            } 
+        } 
+        
+        // 成功状态样式 
+        &.success { 
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%); 
+        } 
+    } 
+} 
+
+/* 响应式设计 - 移动设备适配 */ 
+@media (max-width: 768px) { 
+    .pw-product-action-buttons { 
+        // 移动设备下按钮容器改为纵向排列 
+        .action-buttons-container { 
+            flex-direction: column; 
+            width: 100%; 
+        } 
+        
+        // 移动设备下按钮样式调整 
+        .btn-customize, 
+        .btn-add-to-cart { 
+            width: 100%; 
+            max-width: 300px; 
+            padding: 16px 24px; 
+            font-size: 17px; 
+        } 
+    } 
+} 
+
+// 加载动画关键帧 
+@keyframes spin { 
+    0% { transform: rotate(0deg); } 
+    100% { transform: rotate(360deg); } 
+} 

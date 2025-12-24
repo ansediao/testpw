@@ -123,7 +123,7 @@ class Pw_Admin_Public
         // Add canvas CSS to product pages with timestamp to prevent caching
         if (is_product()) {
             //产品页 颜色选择模块
-            wp_enqueue_style('pw-canvas-css', 'https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/224.css', array(), microtime(true), 'all');
+            wp_enqueue_style('pw-canvas-css', plugin_dir_url(__FILE__) . 'css/pw-canvas.css', array(), microtime(true), 'all');
             
             // 渐变模态样式
             wp_enqueue_style('pw-gradient-modal', plugin_dir_url(__FILE__) . 'css/pw-gradient-modal.css', array(), $this->version, 'all');
