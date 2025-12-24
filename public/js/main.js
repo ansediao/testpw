@@ -210,25 +210,6 @@ function initializeCanvas() {
 // 这里保留全局变量的声明以保持兼容性
 let canvas = null;
 
-// 获取当前激活的 canvas 实例
-function getActiveCanvas() { // 优先使用 CanvasManager
-    if (window.CanvasManager) {
-        return window.CanvasManager.getActiveCanvas();
-    }
-
-    // 回退到传统方式
-    const store = window.useCanvasStore && window.useCanvasStore();
-    if (store && store.activeViewId) { // 从 DOM 获取 Canvas 实例
-        const canvasElement = document.getElementById(`mainCanvas-${
-            store.activeViewId
-        }`);
-        if (canvasElement && canvasElement.__fabricCanvas) {
-            return canvasElement.__fabricCanvas;
-        }
-    }
-    return window.canvas || window.fabricCanvas;
-}
-
 // 动态设置全局 canvas 引用
 function setGlobalCanvas(fabricCanvas) {
     canvas = fabricCanvas;

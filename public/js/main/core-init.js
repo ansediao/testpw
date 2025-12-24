@@ -145,16 +145,6 @@ function getActiveCanvasContexts() {
 
 let canvas = null;
 
-function getActiveCanvas() {
-    if (window.CanvasManager) return window.CanvasManager.getActiveCanvas();
-    const store = window.useCanvasStore && window.useCanvasStore();
-    if (store && store.activeViewId) {
-        const canvasElement = document.getElementById(`mainCanvas-${store.activeViewId}`);
-        if (canvasElement && canvasElement.__fabricCanvas) return canvasElement.__fabricCanvas;
-    }
-    return window.canvas || window.fabricCanvas;
-}
-
 function setGlobalCanvas(fabricCanvas) {
     canvas = fabricCanvas;
     window.canvas = fabricCanvas;
