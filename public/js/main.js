@@ -210,12 +210,6 @@ function initializeCanvas() {
 // 这里保留全局变量的声明以保持兼容性
 let canvas = null;
 
-// 动态设置全局 canvas 引用
-function setGlobalCanvas(fabricCanvas) {
-    canvas = fabricCanvas;
-    window.canvas = fabricCanvas;
-    window.fabricCanvas = fabricCanvas;
-}
 
 // 为 canvas 添加所有必要的事件监听器
 function initializeCanvasEventListeners(fabricCanvas, options = {}) {
