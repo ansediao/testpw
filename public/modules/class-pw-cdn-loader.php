@@ -108,7 +108,10 @@ class Pw_CDN_Loader {
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../css/pw-color-variants.css?v=' . $css_timestamp; ?>">
                         <!-- 产品页 规格选择 -->
 
-            <link rel="stylesheet" href="https://stage.canvas.939666.xyz/wp-content/uploads/wpcodebox/250.css?v=<?php echo $css_timestamp; ?>">
+            <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../css/pw-product-canvas.css?v=' . $css_timestamp; ?>">
+            <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../css/pw-composite-components.css?v=' . $css_timestamp; ?>">
+
+            
 
 
             <link rel="stylesheet" href="<?php echo plugin_dir_url(__FILE__) . '../js/product/components/CheckboxOptions.css?v=' . time(); ?>">

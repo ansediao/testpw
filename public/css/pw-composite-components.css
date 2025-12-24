@@ -1,0 +1,25 @@
+@charset "UTF-8";
+/**
+ * SCSS 变量集中定义文件
+ * 定义新变量前请先检查是否已存在相同或相似变量
+ * 每个变量必须包含使用说明注释
+ */
+/**
+ * SCSS 混合器集中定义文件
+ * 用于复用常见样式模式
+ */
+ul.pw-composite-components {
+  display: flex;
+  gap: 30px;
+}
+ul.pw-composite-components li {
+  padding: 12px 30px;
+  border: 1px solid #000;
+  border-radius: 10px;
+}
+ul.pw-composite-components li.active {
+  border: 1px dashed #000;
+}
+ul.pw-composite-components li a:hover {
+  color: red;
+}/*# sourceMappingURL=pw-composite-components.css.map */
