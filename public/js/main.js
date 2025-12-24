@@ -349,41 +349,6 @@ if (arcSlider) {
     });
 }
 
-
-// 更新预览画布的函数
-function updatePreviewCanvas() {
-    const activeCanvas = getActiveCanvas();
-    if (! activeCanvas) 
-        return;
-    
-
-    const designPreviewCanvas = document.getElementById('designPreviewCanvas');
-    if (! designPreviewCanvas) 
-        return;
-    
-
-    const mainCanvas = activeCanvas.toDataURL({format: 'png', quality: 1});
-
-    const img = new Image();
-    img.onload = function () {
-        const ctx = designPreviewCanvas.getContext('2d');
-        ctx.clearRect(0, 0, designPreviewCanvas.width, designPreviewCanvas.height);
-
-        // 计算中间50%的区域
-        const sourceX = img.width * 0.25; // 从25%处开始
-        const sourceWidth = img.width * 0.5;
-        // 截取50%的宽度
-
-        // 从 id="arcSlider" input 获取弧度参数
-        const arcSlider = document.getElementById('arcSlider');
-        const arc = arcSlider.value;
-
-        // 使用弯曲函数替代普通的drawImage，传入裁剪参数
-        drawImageCurvedAndCentered(ctx, img, 0, 0, designPreviewCanvas.width, designPreviewCanvas.height, arc, sourceX, sourceWidth);
-    };
-    img.src = mainCanvas;
-}
-
 // 修改弯曲图像绘制函数，添加裁剪参数
 function drawImageCurvedAndCentered(ctx, image, x, y, width, height, arc, sourceX, sourceWidth) {
     const steps = 50;
