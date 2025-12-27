@@ -47,7 +47,7 @@ const printAreaMask = new fabric.Path(maskPath, {
 ## 控制逻辑
 
 ### 1. 分组图层遮罩控制
-**位置**: `public/js/main.js:918-943`
+**位置**: `public/js/main/layers-sync.js`
 
 **函数**: `controlMaskCanvasFromMain(objectId)`
 
@@ -76,7 +76,7 @@ const printAreaMask = new fabric.Path(maskPath, {
 - 图层操作时 (line 1482, 1781)
 
 ### 3. Fabric.js clipPath 功能
-**位置**: `public/js/main.js:2982-3050`
+**位置**: `public/js/main/layers-sync.js`
 
 **函数**: `controlMainWrapperDisplayArea()`
 
@@ -168,7 +168,7 @@ if (width > 0 && height > 0) {
 ## 图像合成逻辑
 
 ### 1. 多层Canvas合成
-**位置**: `public/js/main.js:1740-2038`
+**位置**: `public/js/main/capture.js`
 
 **函数**: `captureMultiLayerCanvasWithMask(canvasLayers, view)`
 
@@ -196,7 +196,7 @@ if (hasContent) {
 ```
 
 ### 2. PDF导出支持
-**位置**: `public/js/main.js:1813-1838`
+**位置**: `public/js/main/capture.js`
 
 **函数**: `captureViewForPDF(viewId)`
 
@@ -309,7 +309,8 @@ console.log('已应用测试clipPath');
 
 ## 相关文件
 - `public/partials/canvas-design_area.php` - 遮罩初始化和DOM结构
-- `public/js/main.js` - 遮罩控制、clipPath实现和图像合成逻辑
+- `public/js/main/layers-sync.js` - 遮罩控制、clipPath 实现
+- `public/js/main/capture.js` - 多层画布合成与截图逻辑
 - `public/js/design/components/layers.js` - 图层面板遮罩控制
 - `public/js/stores/canvas-store.js` - 状态管理支持
 - `public/js/canvas-manager.js` - Canvas实例管理，支持clipPath功能
