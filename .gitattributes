@@ -3,3 +3,5 @@ api_docs/ export-ignore
 docs/ export-ignore
 .trae export-ignore
 *.zip export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
