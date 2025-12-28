@@ -119,6 +119,14 @@ class Pw_Admin {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-pw-admin-admin.php';
 
 		/**
+		 * Additional admin-area functionality split into cohesive modules.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/pw-admin-dashboard.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/pw-admin-promowares-integration.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/pw-admin-woocommerce-enhancements.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/pw-admin-design-admin.php';
+
+		/**
 		 * The class responsible for defining all actions that occur in the public-facing
 		 * side of the site.
 		 */
