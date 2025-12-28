@@ -1,0 +1,5 @@
+demos/ export-ignore
+api_docs/ export-ignore
+docs/ export-ignore
+.trae export-ignore
+*.zip export-ignore
