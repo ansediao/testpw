@@ -36,34 +36,6 @@ function pw_add_custom_menu() {
 		'pw_submenu_page_callback'
 	);
 
-	// 简单占位子菜单
-	add_submenu_page(
-		'pw-dashboard',
-		'Design Library',
-		'Design Library',
-		'read',
-		'pw-submenu-design-library',
-		'pw_submenu_design_library'
-	);
-
-	add_submenu_page(
-		'pw-dashboard',
-		'Designs',
-		'Designs',
-		'read',
-		'pw-submenu-designs',
-		'pw_submenu_designs'
-	);
-
-	add_submenu_page(
-		'pw-dashboard',
-		'Tags',
-		'Tags',
-		'read',
-		'pw-submenu-tags',
-		'pw_submenu_tags'
-	);
-
 	// --- 集成 PW Design 相关菜单 ---
 	$pw_design_post_type_obj   = get_post_type_object( 'pw_design' );
 	$pw_design_capability_edit = $pw_design_post_type_obj ? $pw_design_post_type_obj->cap->edit_posts : 'edit_posts';
@@ -77,40 +49,7 @@ function pw_add_custom_menu() {
 		'pw_manage_designs_page'
 	);
 
-	$pw_design_capability_create = $pw_design_post_type_obj ? $pw_design_post_type_obj->cap->create_posts : 'edit_posts';
-
-	add_submenu_page(
-		'pw-dashboard',
-		'Add New PW Design',
-		'Add New Design',
-		$pw_design_capability_create,
-		'post-new.php?post_type=pw_design',
-		''
-	);
-
-	$pw_design_category_tax_obj = get_taxonomy( 'pw_design_category' );
-	$pw_design_cat_capability   = $pw_design_category_tax_obj ? $pw_design_category_tax_obj->cap->manage_terms : 'manage_categories';
-
-	add_submenu_page(
-		'pw-dashboard',
-		'PW Design Categories',
-		'Design Categories',
-		$pw_design_cat_capability,
-		'edit-tags.php?taxonomy=pw_design_category&post_type=pw_design',
-		''
-	);
-
-	$pw_design_tag_tax_obj    = get_taxonomy( 'pw_design_tag' );
-	$pw_design_tag_capability = $pw_design_tag_tax_obj ? $pw_design_tag_tax_obj->cap->manage_terms : 'manage_categories';
-
-	add_submenu_page(
-		'pw-dashboard',
-		'PW Design Tags',
-		'Design Tags',
-		$pw_design_tag_capability,
-		'edit-tags.php?taxonomy=pw_design_tag&post_type=pw_design',
-		''
-	);
+	
 }
 add_action( 'admin_menu', 'pw_add_custom_menu' );
 
@@ -1191,30 +1130,3 @@ function pw_render_support_tab() {
 	echo '</div>';
 }
 
-// 子菜单占位页
-function pw_submenu_design_library() {
-	?>
-	<div class="wrap">
-		<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-		<p>这是子菜单一的内容。</p>
-	</div>
-	<?php
-}
-
-function pw_submenu_designs() {
-	?>
-	<div class="wrap">
-		<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-		<p>这是子菜单二的内容。</p>
-	</div>
-	<?php
-}
-
-function pw_submenu_tags() {
-	?>
-	<div class="wrap">
-		<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-		<p>这是子菜单三的内容。</p>
-	</div>
-	<?php
-}
