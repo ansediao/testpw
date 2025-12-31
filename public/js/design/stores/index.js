@@ -27,6 +27,9 @@ export const useCanvasStore = defineStore('canvas', {
         // viewLayerGroups：按视图分组的图层组管理 { viewId: [layerGroups] }
         viewLayerGroups: {},
         activeGroupId: null,    // 当前选中的图层组ID
+        // ===== 状态恢复标记 =====
+        // 标记是否正在恢复状态，防止循环保存
+        isRestoringState: false,
         // 产品数据相关状态
         productData: null,      // 存储从API获取的产品数据
         isLoadingProductData: false, // 产品数据加载状态
@@ -188,6 +191,21 @@ export const useCanvasStore = defineStore('canvas', {
     },
     // 5. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
     actions: {
+        // ===== 状态恢复相关方法 =====
+        // 设置状态恢复标记
+        setRestoringState(value) {
+            this.isRestoringState = value;
+        },
+        // 批量设置视图数据（用于状态恢复）
+        restoreViewData(viewId, { layers, layerGroups }) {
+            this.viewLayers[viewId] = layers || [];
+            this.viewLayerGroups[viewId] = layerGroups || [];
+            // 如果是当前激活视图，同时更新全局 layers 和 layerGroups
+            if (viewId === this.activeViewId) {
+                this.layers = layers || [];
+                this.layerGroups = layerGroups || [];
+            }
+        },
         // 切换当前激活的画板
         setActiveCanvasId(id) { this.activeCanvasId = id; },
         // 更新指定画板的状态（如对象、图层等）
@@ -306,6 +324,10 @@ export const useCanvasStore = defineStore('canvas', {
                 printMethodStore.switchToViewPrintMethods(viewId);
             }
 
+            // 切换视图时，触发画布状态保存/恢复
+            if (window.canvasStateIntegration && typeof window.canvasStateIntegration.handleViewSwitch === 'function') {
+                window.canvasStateIntegration.handleViewSwitch(previousViewId, viewId);
+            }
             
         },
         // ===== 新增：颜色选择相关方法 =====

@@ -681,6 +681,26 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
             }
         },
 
+        // 批量恢复印刷方式映射（用于状态恢复）
+        restorePrintMethodMappings(viewId, { layerMap, groupMap }) {
+            // 恢复图层映射
+            if (layerMap && typeof layerMap === 'object') {
+                Object.entries(layerMap).forEach(([layerId, methodId]) => {
+                    this.layerPrintMethodMap[layerId] = methodId;
+                });
+            }
+            
+            // 恢复图层组映射
+            if (groupMap && typeof groupMap === 'object') {
+                Object.entries(groupMap).forEach(([groupId, methodId]) => {
+                    this.groupPrintMethodMap[groupId] = methodId;
+                });
+            }
+            
+            // 重新计算已使用的印刷方式
+            this.recomputeUsedPrintMethodsForView(viewId);
+        },
+
         // 验证图层是否符合打印方式要求
         validateLayerForPrintMethod(layer, methodId) {
             const method = this.getPrintMethodById(methodId);
