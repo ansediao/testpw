@@ -571,6 +571,23 @@ if ($first_image_url) {
         // 清空现有容器
         multiViewContainer.innerHTML = '';
 
+        // 获取 URL 中的 view 参数，决定默认显示哪个视图
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewParam = urlParams.get('view');
+        
+        // 查找目标视图的索引
+        let targetViewIndex = 0; // 默认第一个
+        if (viewParam && viewParam !== 'main') {
+            const foundIndex = views.findIndex(v => 
+                v.id === viewParam || 
+                v.view_id === viewParam || 
+                String(v.id) === String(viewParam)
+            );
+            if (foundIndex !== -1) {
+                targetViewIndex = foundIndex;
+            }
+        }
+
         // 收集所有初始化 Promise
         const initPromises = views.map((view, index) => {
             // 获取目标图层尺寸
@@ -601,11 +618,12 @@ if ($first_image_url) {
             const viewContainer = document.createElement('div');
             viewContainer.id = `view-container-${view.id}`;
             viewContainer.className = 'view-container';
+            // 根据 URL 参数或默认第一个视图来决定显示
             viewContainer.style.cssText = `
                 position: relative;
                 width: ${canvasWidth}px;
                 height: ${canvasHeight}px;
-                display: ${index === 0 ? 'block' : 'none'};
+                display: ${index === targetViewIndex ? 'block' : 'none'};
             `;
 
             //  <div class="canvas-wrapper" id="shadowWrapper-${view.id}">
@@ -668,9 +686,29 @@ if ($first_image_url) {
 
         // 等待所有初始化完成后输出日志
         Promise.all(initPromises).then(() => {
-                        // 触发完成事件
-                        const initCompleteEvent = new CustomEvent('multiViewInitComplete');
-                        document.dispatchEvent(initCompleteEvent);
+            // 根据 URL 参数设置正确的 activeViewId
+            const targetView = views[targetViewIndex];
+            if (targetView) {
+                store.setActiveViewId(targetView.id);
+                
+                // 更新 CanvasManager
+                if (window.CanvasManager) {
+                    window.CanvasManager.setActiveCanvas(targetView.id);
+                    const canvas = window.CanvasManager.getCanvas(targetView.id);
+                    if (canvas) {
+                        if (window.setGlobalCanvas) {
+                            window.setGlobalCanvas(canvas);
+                        } else {
+                            window.canvas = canvas;
+                            window.fabricCanvas = canvas;
+                        }
+                    }
+                }
+            }
+            
+            // 触发完成事件
+            const initCompleteEvent = new CustomEvent('multiViewInitComplete');
+            document.dispatchEvent(initCompleteEvent);
     
         }).catch((error) => {
             console.error('Error initializing views:', error);

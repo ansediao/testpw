@@ -878,7 +878,8 @@ function gemini_cart_js_logic() {
         $edit_url = '';
         if ($added_from === 'design') {
             $edit_base = home_url('/pwcanvas/');
-            $edit_url = add_query_arg(array('product_id' => $product_id, 'edit' => 'true', 'view' => 'main'), $edit_base);
+            // 不再传递 view=main，让前端根据产品数据自动选择第一个视图
+            $edit_url = add_query_arg(array('product_id' => $product_id, 'edit' => 'true'), $edit_base);
         }
 
         if (isset($cart_item['custom_data']['view_images']) && is_array($cart_item['custom_data']['view_images']) && !empty($cart_item['custom_data']['view_images'])) {
@@ -886,6 +887,23 @@ function gemini_cart_js_logic() {
             $parts = array();
             foreach ($views_meta as $vm) {
                 $vname = isset($vm['view_name']) ? esc_html($vm['view_name']) : (isset($vm['view_id']) ? esc_html($vm['view_id']) : 'View');
+                // 获取当前视图的 ID，用于生成编辑链接
+                $view_id = isset($vm['view_id']) ? $vm['view_id'] : (isset($vm['id']) ? $vm['id'] : '');
+                
+                // 为每个视图生成独立的编辑链接
+                $view_edit_url = '';
+                if ($added_from === 'design' && !empty($view_id)) {
+                    $edit_base = home_url('/pwcanvas/');
+                    $view_edit_url = add_query_arg(array(
+                        'product_id' => $product_id, 
+                        'edit' => 'true',
+                        'view' => $view_id
+                    ), $edit_base);
+                } elseif ($added_from === 'design') {
+                    // 如果没有 view_id，使用默认编辑链接
+                    $view_edit_url = $edit_url;
+                }
+                
                 $html = '<div class="pw-design-view" style="margin:8px 0;">';
                 $html .= '<div class="pw-design-view-name" style="font-size:12px; color:#444; margin-bottom:4px;">' . $vname . '</div>';
                 $html .= '<div class="pw-design-view-images" style="display:flex; flex-wrap:wrap; gap:4px; justify-content:center;">';
@@ -902,8 +920,8 @@ function gemini_cart_js_logic() {
                             }
                         }
                         $imgTag = '<img' . $classes . ' src="' . esc_url($url) . '" alt="' . esc_attr($vname) . '" style="max-width:80px; height:auto; border-radius:4px; border:1px solid #ddd; padding:3px; background:#fff;">';
-                        if ($idx === 0 && !empty($edit_url)) {
-                            $html .= '<a href="' . esc_url($edit_url) . '" target="_blank" class="pwca-draft-link">' . $imgTag . '</a>';
+                        if ($idx === 0 && !empty($view_edit_url)) {
+                            $html .= '<a href="' . esc_url($view_edit_url) . '" target="_blank" class="pwca-draft-link" data-view-id="' . esc_attr($view_id) . '">' . $imgTag . '</a>';
                         } else {
                             $html .= $imgTag;
                         }

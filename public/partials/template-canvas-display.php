@@ -171,6 +171,9 @@ if ($product_id > 0) {
 
 
 
+  <!-- 加载 URL 参数处理器 -->
+  <script src="<?php echo plugin_dir_url(__FILE__) . '../js/design/url-params-handler.js?time=' . microtime(true); ?>"></script>
+
   <!-- 加载 Pinia 同步工具 -->
   <script src="<?php echo plugin_dir_url(__FILE__) . '../js/utils/piniaSync.js?time=' . microtime(true); ?>"></script>
 
