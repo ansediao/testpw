@@ -6,5 +6,6 @@ acli.exe
 .claude/
 # .kiro/
 .trae/documents/
+.trae/documents-old/
 .serena/
 *.code-workspace
