@@ -4,7 +4,7 @@ SuperClaude
 .serena/cache/
 acli.exe
 .claude/
-.kiro/
-.trae/
+# .kiro/
+.trae/documents/
 .serena/
 *.code-workspace
