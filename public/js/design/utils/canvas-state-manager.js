@@ -1202,10 +1202,16 @@ class CanvasStateManager {
                 }
                 
                 // 使用 fabric.loadFromJSON 恢复画布对象
-                await this._restoreCanvasObjects(canvas, viewState.canvasJSON);
+                try {
+                    await this._restoreCanvasObjects(canvas, viewState.canvasJSON);
+                } catch (canvasError) {
+                    // 即使画布恢复出错，也继续尝试恢复图层数据
+                    // 因为对象可能已经被部分添加到画布
+                    ErrorHandler.logWarning('画布对象恢复过程中出现错误，但将继续恢复图层数据:', canvasError);
+                }
                 
-                // 恢复图层数据
-                this._restoreLayerData(viewId, viewState.layers, viewState.layerGroups);
+                // 恢复图层数据（传入 canvas 以便在图层数据为空时从画布对象重建）
+                this._restoreLayerData(viewId, viewState.layers, viewState.layerGroups, canvas);
                 
                 // 恢复印刷方式映射
                 this._restorePrintMethodMappings(viewId, viewState.layerPrintMethodMap, viewState.groupPrintMethodMap);
@@ -1263,13 +1269,30 @@ class CanvasStateManager {
                 });
                 
                 // 检查 canvasJSON 是否有对象需要恢复
-                const objectsToRestore = canvasJSON.objects || [];
+                let objectsToRestore = canvasJSON.objects || [];
                 
                 if (objectsToRestore.length === 0) {
                     canvas.renderAll();
                     resolve();
                     return;
                 }
+                
+                // 清理不兼容的属性（修复 Fabric.js 兼容性问题）
+                objectsToRestore = objectsToRestore.map(obj => {
+                    const cleanedObj = { ...obj };
+                    // 移除 pathAlign 属性，它会导致 "alphabetical is not a valid enum value" 错误
+                    if (cleanedObj.pathAlign !== undefined) {
+                        delete cleanedObj.pathAlign;
+                    }
+                    // 移除其他可能导致问题的属性
+                    if (cleanedObj.pathSide !== undefined) {
+                        delete cleanedObj.pathSide;
+                    }
+                    if (cleanedObj.pathStartOffset !== undefined) {
+                        delete cleanedObj.pathStartOffset;
+                    }
+                    return cleanedObj;
+                });
                 
                 // 使用 fabric.util.enlivenObjects 处理图片对象的异步加载
                 fabric.util.enlivenObjects(objectsToRestore, (objects) => {
@@ -1316,9 +1339,10 @@ class CanvasStateManager {
      * @param {string} viewId - 视图ID
      * @param {Array} layers - 图层数据数组
      * @param {Array} layerGroups - 图层组数据数组
+     * @param {fabric.Canvas} canvas - 画布实例（可选，用于从画布对象重建图层）
      * @private
      */
-    _restoreLayerData(viewId, layers, layerGroups) {
+    _restoreLayerData(viewId, layers, layerGroups, canvas = null) {
         try {
             const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
             if (!canvasStore) {
@@ -1326,16 +1350,67 @@ class CanvasStateManager {
                 return;
             }
             
-            // 检查是否有 restoreViewData 方法
-            if (typeof canvasStore.restoreViewData === 'function') {
-                canvasStore.restoreViewData(viewId, { layers, layerGroups });
-            } else {
-                // 降级方案：使用现有方法
-                canvasStore.setViewLayers(viewId, layers || []);
-                canvasStore.setViewLayerGroups(viewId, layerGroups || []);
+            let layersToRestore = layers || [];
+            let layerGroupsToRestore = layerGroups || [];
+            
+            // 如果保存的图层数据为空，但画布有对象，从画布对象重建图层列表
+            if (layersToRestore.length === 0 && canvas) {
+                const canvasObjects = canvas.getObjects();
+                const userObjects = canvasObjects.filter(obj => {
+                    // 过滤掉背景和系统对象
+                    return obj.id && !obj.isBackground && obj.name !== 'background';
+                });
+                
+                if (userObjects.length > 0) {
+                    ErrorHandler.logInfo('从画布对象重建图层列表，对象数:', userObjects.length);
+                    layersToRestore = userObjects.map((obj, index) => {
+                        // 使用 layers-sync.js 中的命名逻辑
+                        let layerName = obj.layerName;
+                        if (!layerName) {
+                            if (obj.type === 'text' || obj.type === 'i-text') {
+                                const text = obj.text || '';
+                                layerName = text.length > 15 ? text.substring(0, 15) + '...' : text;
+                            } else if (obj.type === 'image') {
+                                layerName = 'Image ' + Date.now().toString().slice(-4);
+                            } else {
+                                layerName = 'Layer ' + (index + 1);
+                            }
+                        }
+                        
+                        let layerType = obj.layerType;
+                        if (!layerType) {
+                            if (obj.type === 'text' || obj.type === 'i-text') {
+                                layerType = 'text';
+                            } else if (obj.type === 'image') {
+                                layerType = 'image';
+                            } else {
+                                layerType = 'other';
+                            }
+                        }
+                        
+                        return {
+                            id: obj.id,
+                            name: layerName,
+                            type: layerType,
+                            visible: obj.visible !== false,
+                            locked: obj.selectable === false,
+                            groupId: obj.groupId || null,
+                            groupOrder: obj.groupOrder || 0
+                        };
+                    });
+                }
             }
             
-            ErrorHandler.logInfo('图层数据恢复成功，viewId:', viewId + '，图层数: ' + (layers?.length || 0) + '，图层组数: ' + (layerGroups?.length || 0));
+            // 检查是否有 restoreViewData 方法
+            if (typeof canvasStore.restoreViewData === 'function') {
+                canvasStore.restoreViewData(viewId, { layers: layersToRestore, layerGroups: layerGroupsToRestore });
+            } else {
+                // 降级方案：使用现有方法
+                canvasStore.setViewLayers(viewId, layersToRestore);
+                canvasStore.setViewLayerGroups(viewId, layerGroupsToRestore);
+            }
+            
+            ErrorHandler.logInfo('图层数据恢复成功，viewId:', viewId + '，图层数: ' + layersToRestore.length + '，图层组数: ' + layerGroupsToRestore.length);
         } catch (error) {
             ErrorHandler.logError(ErrorTypes.STORE_ERROR, `恢复图层数据失败，viewId: ${viewId}`, error);
         }

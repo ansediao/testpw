@@ -261,8 +261,9 @@ const layersApp = Vue.createApp({
             if (!activeViewId.value) return [];
             const allGroups = store.getViewLayerGroups(activeViewId.value);
             // 过滤掉只有一个图层的组，让它们显示为普通图层
+            // 使用 currentViewLayers 而不是全局 layers，确保使用当前视图的图层数据
             return allGroups.filter(group => {
-                const groupLayers = layers.value.filter(layer => layer.groupId === group.id);
+                const groupLayers = currentViewLayers.value.filter(layer => layer.groupId === group.id);
                 return groupLayers.length > 1;
             });
         });
@@ -365,8 +366,8 @@ const layersApp = Vue.createApp({
             
             if (!existingGroup) return false;
             
-            // 计算该组中的图层数量
-            const groupLayers = layers.value.filter(layer => layer.groupId === expectedGroupId);
+            // 计算该组中的图层数量（使用当前视图的图层数据）
+            const groupLayers = currentViewLayers.value.filter(layer => layer.groupId === expectedGroupId);
             const groupLayerCount = groupLayers.length;
             
             
@@ -385,15 +386,15 @@ const layersApp = Vue.createApp({
                 // 如果图层没有分组，直接显示为未分组
                 if (!layer.groupId) return true;
                 
-                // 如果图层有分组，检查该组是否只有一个图层
-                const groupLayers = layers.value.filter(l => l.groupId === layer.groupId);
+                // 如果图层有分组，检查该组是否只有一个图层（使用当前视图的图层数据）
+                const groupLayers = currentViewLayers.value.filter(l => l.groupId === layer.groupId);
                 return groupLayers.length === 1;
             });
         });
 
         // 兼容性：保持原有的ungroupedLayers计算属性
         const ungroupedLayers = Vue.computed(() => {
-            return layers.value.filter(layer => !layer.groupId);
+            return currentViewLayers.value.filter(layer => !layer.groupId);
         });
 
         // 视图切换方法
@@ -1252,7 +1253,8 @@ const layersApp = Vue.createApp({
 
         // 图层组相关方法
         const getGroupLayers = (groupId) => {
-            return layers.value.filter(layer => layer.groupId === groupId).sort((a, b) => a.groupOrder - b.groupOrder);
+            // 使用当前视图的图层数据，确保在状态恢复后能正确获取图层
+            return currentViewLayers.value.filter(layer => layer.groupId === groupId).sort((a, b) => a.groupOrder - b.groupOrder);
         };
 
         const createGroup = () => {

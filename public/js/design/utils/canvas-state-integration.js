@@ -128,6 +128,13 @@ class CanvasStateIntegration {
                 }
             }
             
+            // 恢复完成后，同步当前激活视图的数据到全局状态
+            // 这确保了 layers.js 组件中使用的全局 layers 和 layerGroups 是最新的
+            if (typeof canvasStore.syncCurrentViewToGlobal === 'function') {
+                canvasStore.syncCurrentViewToGlobal();
+                ErrorHandler.logInfo('已同步当前视图数据到全局状态');
+            }
+            
             ErrorHandler.logInfo('所有视图状态恢复完成');
         } catch (error) {
             ErrorHandler.logError('RESTORE_ERROR', '恢复视图状态失败', error);

@@ -206,6 +206,13 @@ export const useCanvasStore = defineStore('canvas', {
                 this.layerGroups = layerGroups || [];
             }
         },
+        // 强制同步当前视图的图层数据到全局状态（用于状态恢复后的同步）
+        syncCurrentViewToGlobal() {
+            if (this.activeViewId) {
+                this.layers = this.viewLayers[this.activeViewId] || [];
+                this.layerGroups = this.viewLayerGroups[this.activeViewId] || [];
+            }
+        },
         // 切换当前激活的画板
         setActiveCanvasId(id) { this.activeCanvasId = id; },
         // 更新指定画板的状态（如对象、图层等）
