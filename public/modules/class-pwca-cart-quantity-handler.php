@@ -110,10 +110,27 @@ class Pwca_Cart_Quantity_Handler {
             '1.0.0'
         );
         
+        // 加载弹窗样式
+        wp_enqueue_style(
+            'pwca-cart-modal',
+            plugin_dir_url(__FILE__) . '../css/pwca-cart-modal.css',
+            [],
+            '1.0.0'
+        );
+        
         // 注册并加载 JavaScript
         wp_enqueue_script(
             'pwca-cart-quantity-controls',
             plugin_dir_url(__FILE__) . '../js/pwca-cart-quantity-controls.js',
+            ['jquery'],
+            '1.0.0',
+            true
+        );
+        
+        // 加载弹窗脚本
+        wp_enqueue_script(
+            'pwca-cart-modal',
+            plugin_dir_url(__FILE__) . '../js/pwca-cart-modal.js',
             ['jquery'],
             '1.0.0',
             true
