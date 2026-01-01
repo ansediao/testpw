@@ -931,8 +931,13 @@ function gemini_cart_js_logic() {
                         
                         $html .= '<div class="' . $classes . '">';
                         $imgTag = '<img src="' . esc_url($url) . '" alt="' . esc_attr($vname) . '">';
-                        if ($idx === 0 && !empty($view_edit_url)) {
+                        
+                        // 只给 pwca-design-draft 类的图片加编辑链接
+                        if (strpos($classes, 'pwca-design-draft') !== false && !empty($view_edit_url)) {
                             $html .= '<a href="' . esc_url($view_edit_url) . '" target="_blank" class="pwca-draft-link" data-view-id="' . esc_attr($view_id) . '">' . $imgTag . '</a>';
+                        } elseif (strpos($classes, 'pwca-design-render') !== false) {
+                            // 给 pwca-design-render 类的图片加查看大图功能
+                            $html .= '<a href="' . esc_url($url) . '" class="pwca-image-preview" data-image-url="' . esc_attr($url) . '" data-image-title="' . esc_attr($vname . ' - ' . $label) . '">' . $imgTag . '</a>';
                         } else {
                             $html .= $imgTag;
                         }

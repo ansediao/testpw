@@ -84,6 +84,16 @@
                 }
             });
 
+            // 处理图片预览点击事件
+            $(document).on('click', '.pwca-image-preview', (e) => {
+                e.preventDefault();
+                const imageUrl = $(e.currentTarget).data('image-url');
+                const imageTitle = $(e.currentTarget).data('image-title') || '图片预览';
+                if (imageUrl) {
+                    this.openImagePreview(imageUrl, imageTitle);
+                }
+            });
+
             // 关闭弹窗事件 - 关闭按钮
             $(document).on('click', '.pwca-modal-close', (e) => {
                 e.preventDefault();
@@ -115,17 +125,78 @@
         }
 
         /**
-         * 打开弹窗
+         * 打开图片预览
          */
-        openModal(url) {
+        openImagePreview(imageUrl, imageTitle) {
             const $modal = $('#' + this.modalId);
-            const $iframe = $('#pwca-modal-iframe');
+            const $modalTitle = $('#pwca-modal-title');
+            const $modalBody = $modal.find('.pwca-modal-body');
             const $openEditorBtn = $('#pwca-open-editor');
             
             // 显示弹窗
             $modal.addClass('pwca-modal-open').attr('aria-hidden', 'false');
             $('body').addClass('pwca-modal-body-lock');
             this.isModalOpen = true;
+            
+            // 设置标题
+            $modalTitle.text(imageTitle);
+            
+            // 隐藏编辑按钮（图片预览不需要编辑功能）
+            $openEditorBtn.hide();
+            
+            // 创建图片预览内容
+            const imagePreviewHTML = `
+                <div class="pwca-image-preview-container">
+                    <img src="${imageUrl}" alt="${imageTitle}" class="pwca-preview-image" />
+                </div>
+            `;
+            
+            // 清空并设置新内容
+            $modalBody.html(imagePreviewHTML);
+            
+            // 焦点管理
+            $modal.find('.pwca-modal-close').first().focus();
+        }
+
+        /**
+         * 打开弹窗
+         */
+        openModal(url) {
+            const $modal = $('#' + this.modalId);
+            const $iframe = $('#pwca-modal-iframe');
+            const $openEditorBtn = $('#pwca-open-editor');
+            const $modalTitle = $('#pwca-modal-title');
+            const $modalBody = $modal.find('.pwca-modal-body');
+            
+            // 显示弹窗
+            $modal.addClass('pwca-modal-open').attr('aria-hidden', 'false');
+            $('body').addClass('pwca-modal-body-lock');
+            this.isModalOpen = true;
+            
+            // 重置标题
+            $modalTitle.text('设计预览');
+            
+            // 显示编辑按钮
+            $openEditorBtn.show();
+            
+            // 重置为 iframe 模式的内容
+            const iframeHTML = `
+                <div class="pwca-modal-loading">
+                    <div class="pwca-spinner"></div>
+                    <p>加载中...</p>
+                </div>
+                <div class="pwca-modal-content">
+                    <iframe id="pwca-modal-iframe" src="" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <div class="pwca-modal-error" style="display: none;">
+                    <p>加载失败，请重试</p>
+                    <button type="button" class="pwca-retry-btn">重试</button>
+                </div>
+            `;
+            $modalBody.html(iframeHTML);
+            
+            // 重新获取 iframe 元素
+            const $newIframe = $('#pwca-modal-iframe');
             
             // 显示加载状态
             this.showLoading();
@@ -134,14 +205,14 @@
             $openEditorBtn.attr('href', url);
             
             // 清除之前的事件监听
-            $iframe.off('load error');
+            $newIframe.off('load error');
             
             // 绑定 iframe 加载事件
-            $iframe.on('load', () => {
+            $newIframe.on('load', () => {
                 this.handleIframeLoad();
             });
             
-            $iframe.on('error', () => {
+            $newIframe.on('error', () => {
                 this.handleIframeError();
             });
             
@@ -152,7 +223,7 @@
             }, 3000);
             
             // 设置 iframe 源
-            $iframe.attr('src', url);
+            $newIframe.attr('src', url);
             
             // 焦点管理
             $modal.find('.pwca-modal-close').first().focus();
