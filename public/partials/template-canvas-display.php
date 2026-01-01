@@ -486,6 +486,34 @@ if ($product_id > 0) {
             quantity: Number(it.quantity || 0)
           }));
           const designFeeTotal = ds && Number(ds.totalFee || 0);
+          
+          // 收集各视图中使用的印刷方式（按视图分组）
+          // 结构: [{ view_id: 'main_view', print_methods: ['数码印刷1', '丝网印刷'] }, ...]
+          let viewPrintMethods = [];
+          try {
+            const printMethodStore = (typeof window.usePrintMethodStore === 'function') ? window.usePrintMethodStore() : null;
+            if (printMethodStore && printMethodStore.usedPrintMethodsByView) {
+              for (const viewId in printMethodStore.usedPrintMethodsByView) {
+                const methodsMap = printMethodStore.usedPrintMethodsByView[viewId] || {};
+                const methodNames = [];
+                for (const methodId in methodsMap) {
+                  const method = methodsMap[methodId];
+                  if (method && method.name) {
+                    methodNames.push(method.name);
+                  }
+                }
+                if (methodNames.length > 0) {
+                  viewPrintMethods.push({
+                    view_id: viewId,
+                    print_methods: methodNames
+                  });
+                }
+              }
+            }
+          } catch (e) {
+            console.warn('获取印刷方式名称失败：', e);
+          }
+          
           const data = 'action=add_customized_product_to_cart' +
             '&product_id=' + encodeURIComponent(productId) +
             '&quantity=' + encodeURIComponent(quantity) +
@@ -503,7 +531,9 @@ if ($product_id > 0) {
             // 追加多视图图片 JSON（若可用）
             '&pw_view_images=' + encodeURIComponent(JSON.stringify(viewImagesPayload || [])) +
             '&pw_design_fee_total=' + encodeURIComponent(String(Number(isFinite(designFeeTotal) ? designFeeTotal : 0))) +
-            '&pw_designs=' + encodeURIComponent(JSON.stringify(designPayload));
+            '&pw_designs=' + encodeURIComponent(JSON.stringify(designPayload)) +
+            // 追加各视图使用的印刷方式
+            '&pw_view_print_methods=' + encodeURIComponent(JSON.stringify(viewPrintMethods));
           xhr.send(data);
         });
       } else {

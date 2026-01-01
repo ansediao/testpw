@@ -200,7 +200,7 @@ function gemini_cart_js_logic() {
     }
 
     /**
-     * 使用 woocommerce_add_cart_item_data 钩子捕获 $_POST 数据并附加到购物车项
+     * 使用 woocommerce_add_cart_item_data 钩子捕获设计页面 $_POST 数据并附加到购物车项
      *
      * @param array $cart_item_data 现有购物车项目数据
      * @param int   $product_id     产品ID
@@ -291,6 +291,32 @@ function gemini_cart_js_logic() {
         }
         if ($design_fee_total !== null) { $extra['design_fee_total'] = $design_fee_total; }
         if (!empty($designs)) { $extra['designs'] = $designs; }
+
+        // 处理各视图的印刷方式
+        // 结构: [{ view_id: 'main_view', print_methods: ['数码印刷1', '丝网印刷'] }, ...]
+        $view_print_methods = array();
+        if (isset($_POST['pw_view_print_methods'])) {
+            $raw = wp_unslash($_POST['pw_view_print_methods']);
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                foreach ($decoded as $item) {
+                    $view_id = isset($item['view_id']) ? sanitize_text_field($item['view_id']) : '';
+                    $methods = array();
+                    if (isset($item['print_methods']) && is_array($item['print_methods'])) {
+                        foreach ($item['print_methods'] as $name) {
+                            $methods[] = sanitize_text_field($name);
+                        }
+                    }
+                    if (!empty($view_id) && !empty($methods)) {
+                        $view_print_methods[] = array(
+                            'view_id' => $view_id,
+                            'print_methods' => $methods
+                        );
+                    }
+                }
+            }
+        }
+        if (!empty($view_print_methods)) { $extra['view_print_methods'] = $view_print_methods; }
 
         // 合并到现有 custom_data
         $cart_item_data['custom_data'] = array_merge($cart_item_data['custom_data'], $extra);
@@ -882,6 +908,16 @@ function gemini_cart_js_logic() {
             $edit_url = add_query_arg(array('product_id' => $product_id, 'edit' => 'true'), $edit_base);
         }
 
+        // 构建视图ID到印刷方式名称的映射
+        $view_print_methods_map = array();
+        if (isset($cart_item['custom_data']['view_print_methods']) && is_array($cart_item['custom_data']['view_print_methods'])) {
+            foreach ($cart_item['custom_data']['view_print_methods'] as $vpm) {
+                if (isset($vpm['view_id']) && isset($vpm['print_methods'])) {
+                    $view_print_methods_map[$vpm['view_id']] = $vpm['print_methods'];
+                }
+            }
+        }
+
         if (isset($cart_item['custom_data']['view_images']) && is_array($cart_item['custom_data']['view_images']) && !empty($cart_item['custom_data']['view_images'])) {
             $views_meta = $cart_item['custom_data']['view_images'];
             $parts = array();
@@ -889,6 +925,9 @@ function gemini_cart_js_logic() {
                 $vname = isset($vm['view_name']) ? esc_html($vm['view_name']) : (isset($vm['view_id']) ? esc_html($vm['view_id']) : 'View');
                 // 获取当前视图的 ID，用于生成编辑链接
                 $view_id = isset($vm['view_id']) ? $vm['view_id'] : (isset($vm['id']) ? $vm['id'] : '');
+                
+                // 获取当前视图的印刷方式名称
+                $print_method_names = isset($view_print_methods_map[$view_id]) ? $view_print_methods_map[$view_id] : array();
                 
                 // 为每个视图生成独立的编辑链接
                 $view_edit_url = '';
@@ -906,6 +945,10 @@ function gemini_cart_js_logic() {
                 
                 $html = '<div class="pw-design-view" style="margin:8px 0;">';
                 $html .= '<div class="pw-design-view-name">' . $vname . '</div>';
+                // 显示印刷方式名称
+                if (!empty($print_method_names)) {
+                    $html .= '<div class="pw-design-print-methods">' . esc_html(implode(', ', $print_method_names)) . '</div>';
+                }
                 $html .= '<div class="pw-design-view-images">';
                 if (!empty($vm['images']) && is_array($vm['images'])) {
                     $img_count = count($vm['images']);
