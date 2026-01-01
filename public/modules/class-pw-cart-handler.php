@@ -905,7 +905,7 @@ function gemini_cart_js_logic() {
                 }
                 
                 $html = '<div class="pw-design-view" style="margin:8px 0;">';
-                $html .= '<div class="pw-design-view-name" style="font-size:12px; color:#444; margin-bottom:4px;">' . $vname . '</div>';
+                $html .= '<div class="pw-design-view-name">' . $vname . '</div>';
                 $html .= '<div class="pw-design-view-images" style="display:flex; flex-wrap:wrap; gap:4px; justify-content:center;">';
                 if (!empty($vm['images']) && is_array($vm['images'])) {
                     $img_count = count($vm['images']);
@@ -1015,13 +1015,7 @@ function gemini_cart_js_logic() {
                 }
             });
         });
-        </script>
-        <style>
-        .th-custom-column,
-        .td-custom-column {
-            text-align: center;
-        }
-        </style>
+        </script>        
         <?php
     }
 
