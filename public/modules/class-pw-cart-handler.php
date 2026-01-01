@@ -906,25 +906,34 @@ function gemini_cart_js_logic() {
                 
                 $html = '<div class="pw-design-view" style="margin:8px 0;">';
                 $html .= '<div class="pw-design-view-name">' . $vname . '</div>';
-                $html .= '<div class="pw-design-view-images" style="display:flex; flex-wrap:wrap; gap:4px; justify-content:center;">';
+                $html .= '<div class="pw-design-view-images">';
                 if (!empty($vm['images']) && is_array($vm['images'])) {
                     $img_count = count($vm['images']);
                     $idx = 0;
                     foreach ($vm['images'] as $url) {
-                        $classes = '';
+                        $classes = 'pwca-design-item';
+                        $label = '';
                         if ($img_count === 2) {
                             if ($idx === 0) {
-                                $classes = ' class="pwca-design-draft 设计稿"';
+                                $classes .= ' pwca-design-draft';
+                                $label = 'Print File';
                             } else {
-                                $classes = ' class="pwca-design-render 渲染图"';
+                                $classes .= ' pwca-design-render';
+                                $label = 'Mockup';
                             }
                         }
-                        $imgTag = '<img' . $classes . ' src="' . esc_url($url) . '" alt="' . esc_attr($vname) . '" style="max-width:80px; height:auto; border-radius:4px; border:1px solid #ddd; padding:3px; background:#fff;">';
+                        
+                        $html .= '<div class="' . $classes . '">';
+                        $imgTag = '<img src="' . esc_url($url) . '" alt="' . esc_attr($vname) . '">';
                         if ($idx === 0 && !empty($view_edit_url)) {
                             $html .= '<a href="' . esc_url($view_edit_url) . '" target="_blank" class="pwca-draft-link" data-view-id="' . esc_attr($view_id) . '">' . $imgTag . '</a>';
                         } else {
                             $html .= $imgTag;
                         }
+                        if ($label) {
+                            $html .= '<div class="pwca-design-label">' . $label . '</div>';
+                        }
+                        $html .= '</div>';
                         $idx++;
                     }
                 }
