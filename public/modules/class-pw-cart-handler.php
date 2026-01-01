@@ -913,6 +913,12 @@ function gemini_cart_js_logic() {
                     foreach ($vm['images'] as $url) {
                         $classes = 'pwca-design-item';
                         $label = '';
+                        if ($img_count === 1) {
+                            if ($idx === 0) {
+                                $classes .= ' pwca-design-render';
+                                $label = 'Mockup';
+                            }
+                        }
                         if ($img_count === 2) {
                             if ($idx === 0) {
                                 $classes .= ' pwca-design-draft';
