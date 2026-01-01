@@ -42,12 +42,12 @@ function pw_add_custom_menu() {
 
 	add_submenu_page(
 		'pw-dashboard',
-		'Home Page for Design',
-		'Manage Designs',
+		'Design Library',
+		'Design Library',
 		$pw_design_capability_edit,
-		'pw-manage-designs',
+		'pw-design-library',
 		'pw_manage_designs_page'
-	);
+	);	
 
 	
 }
