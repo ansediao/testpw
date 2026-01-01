@@ -1,7 +1,7 @@
 @import 'variables';
 @import 'mixins';
 body.woocommerce-cart main .woocommerce {
-    max-width: 1240px;
+    max-width: 1400px;
 }
 td.product-price {
     .woocommerce-Price-amount {
@@ -30,5 +30,12 @@ td.product-name {
 dd.variation-Color {
     display: flex;
     align-items: center;
+}
+
+// Design 列宽度调整
+td.product-design {
+    width: 200px; // 设置 design 列的固定宽度
+    min-width: 200px; // 确保最小宽度
+    max-width: 250px; // 限制最大宽度
 }
 

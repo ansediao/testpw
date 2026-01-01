@@ -9,7 +9,7 @@
  * 用于复用常见样式模式
  */
 body.woocommerce-cart main .woocommerce {
-  max-width: 1240px;
+  max-width: 1400px;
 }
 
 td.product-price .woocommerce-Price-amount {
@@ -30,4 +30,10 @@ td.product-name .variation dd p {
 dd.variation-Color {
   display: flex;
   align-items: center;
+}
+
+td.product-design {
+  width: 200px;
+  min-width: 200px;
+  max-width: 250px;
 }/*# sourceMappingURL=pwca-custom-cart.css.map */

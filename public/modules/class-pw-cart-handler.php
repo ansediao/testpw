@@ -966,7 +966,7 @@ function gemini_cart_js_logic() {
                     var $row = $(this);
                     var $hiddenData = $row.find('.hidden-custom-data');
                     if ($hiddenData.length && !$row.find('.td-custom-column').length) {
-                        var $newCell = $('<td class="td-custom-column" data-title="Design"></td>');
+                        var $newCell = $('<td class="product-design" data-title="Design"></td>');
                         $row.find('.product-price').before($newCell);
                         $newCell.html($hiddenData.html());
                         $hiddenData.remove();
