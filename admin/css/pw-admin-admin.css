@@ -1,156 +1,66 @@
+@charset "UTF-8";
+/**
+ * SCSS 变量集中定义文件
+ * 定义新变量前请先检查是否已存在相同或相似变量
+ * 每个变量必须包含使用说明注释
+ */
+/**
+ * SCSS 混合器集中定义文件
+ * 用于复用常见样式模式
+ */
 /**
  * All of the CSS for your admin-specific functionality should be
  * included in this file.
  */
-
-/* Edit Design Button Styles */
-.pw-edit-design-btn {
-    background: #0073aa;
-    color: white;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 12px;
-    transition: background-color 0.3s ease;
-}
-
-.pw-edit-design-btn:hover {
-    background: #005a87;
-}
-
-.pw-edit-design-btn:focus {
-    outline: 2px solid #0073aa;
-    outline-offset: 2px;
-}
-
-.pw-edit-design-btn .dashicons {
-    font-size: 14px;
-    width: 14px;
-    height: 14px;
-}
-
-.pw-design-actions-bottom .pw-edit-design-btn {
-    margin-left: 5px;
-}
-
-/* Toggle Switch Styles */
-.pw-toggle-input:checked + .pw-toggle-label {
-    background: #0073aa !important;
-}
-
-.pw-toggle-input:checked + .pw-toggle-label .pw-toggle-slider {
-    transform: translateX(30px);
-}
-
-.pw-toggle-label:hover {
-    background: #999 !important;
-}
-
-.pw-toggle-input:checked + .pw-toggle-label:hover {
-    background: #005a87 !important;
-}
-
-/* Advanced Settings Animation */
-.pw-advanced-settings {
-    transition: all 0.3s ease;
-    overflow: hidden;
-}
-
-.pw-advanced-settings.show {
-    display: block !important;
-    animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        max-height: 0;
-    }
-    to {
-        opacity: 1;
-        max-height: 500px;
-    }
-}
-
-/* Design Actions Bottom Styles */
-.pw-design-actions-bottom {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.pw-design-actions-bottom .pw-edit-design-btn,
-.pw-design-actions-bottom .pw-delete-design-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 5px;
-    border-radius: 3px;
-    transition: all 0.2s ease;
-}
-
-.pw-design-actions-bottom .pw-edit-design-btn:hover,
-.pw-design-actions-bottom .pw-delete-design-link:hover {
-    background-color: #f0f0f1;
-}
-
 /* Custom 3rd Level Menu (Design Library -> Tags) */
 .pw-menu-toggle {
-    float: right;
-    margin-right: 5px;
-    cursor: pointer;
-    transition: transform 0.2s;
-    color: rgba(240, 246, 252, 0.7);
+  float: right;
+  margin-right: 5px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  color: rgba(240, 246, 252, 0.7);
 }
-
 .pw-menu-toggle:hover {
-    color: #72aee6;
+  color: #72aee6;
 }
-
 li.pw-expanded .pw-menu-toggle {
-    transform: rotate(180deg);
+  transform: rotate(180deg);
 }
 
 ul.pw-admin-submenu {
-    display: none;
-    background-color: #1d2327; /* Darker background for 3rd level */
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    box-shadow: inset 0 4px 4px -4px rgba(0,0,0,0.15);
+  display: none;
+  background-color: #1d2327; /* Darker background for 3rd level */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  box-shadow: inset 0 4px 4px -4px rgba(0, 0, 0, 0.15);
 }
-
 ul.pw-admin-submenu li {
-    margin: 0;
+  margin: 0;
 }
-
 ul.pw-admin-submenu li a {
-    display: block;
-    padding: 5px 12px 5px 24px !important; /* Indent deeper */
-    color: rgba(240, 246, 252, 0.7);
-    text-decoration: none;
-    font-size: 13px;
+  display: block;
+  padding: 5px 12px 5px 24px !important; /* Indent deeper */
+  color: rgba(240, 246, 252, 0.7);
+  text-decoration: none;
+  font-size: 13px;
 }
-
-ul.pw-admin-submenu li a:hover,
-ul.pw-admin-submenu li a:focus {
-    color: #72aee6;
+ul.pw-admin-submenu li a:hover, ul.pw-admin-submenu li a:focus {
+  color: #72aee6;
 }
 
 /* Ensure the parent link doesn't mess up layout */
 #adminmenu li a[href="admin.php?page=pw-design-library"] {
-    position: relative;
-    padding-right: 30px; /* Space for the arrow */
+  position: relative;
+  padding-right: 30px; /* Space for the arrow */
+  /* Adjust toggle position */
 }
-
-/* Adjust toggle position */
 #adminmenu li a[href="admin.php?page=pw-design-library"] .pw-menu-toggle {
-    position: absolute;
-    right: 5px;
-    top: 50%;
-    margin-top: -10px; /* Center vertically (half of 20px dashicon) */
-    width: 20px;
-    height: 20px;
-    line-height: 20px;
-}
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  margin-top: -10px; /* Center vertically (half of 20px dashicon) */
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+}/*# sourceMappingURL=pw-admin-admin.css.map */
