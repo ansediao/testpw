@@ -127,8 +127,8 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
                 $design_tags = get_the_terms( $design_id, 'pw_design_tag' );
         ?>
                 <div class="pw-design-card" data-design-id="<?php echo esc_attr( $design_id ); ?>">
-                    <input type="checkbox" class="pw-design-checkbox" value="<?php echo esc_attr( $design_id ); ?>">
                     <div class="pw-design-thumbnail">
+                        <input type="checkbox" class="pw-design-checkbox" value="<?php echo esc_attr( $design_id ); ?>">
                         <?php if ( $design_thumbnail ) : ?>
                             <?php echo $design_thumbnail; ?>
                         <?php else : ?>

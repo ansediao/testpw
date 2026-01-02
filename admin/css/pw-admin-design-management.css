@@ -58,6 +58,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 .wrap .pw-design-grid .pw-design-card .pw-design-thumbnail {
+  position: relative;
   width: 100%;
   height: 150px;
   background-color: #f0f0f0;
@@ -69,6 +70,13 @@
   font-style: italic;
   color: #888;
   overflow: hidden;
+}
+.wrap .pw-design-grid .pw-design-card .pw-design-thumbnail .pw-design-checkbox {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  z-index: 10;
+  margin: 0;
 }
 .wrap .pw-design-grid .pw-design-card .pw-design-thumbnail img {
   max-width: 100%;
