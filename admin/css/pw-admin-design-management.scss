@@ -145,17 +145,15 @@
                     // Merging style from migrated code:
                     // Assuming we want the button look for the edit button
                     &.pw-edit-design-btn {
-                        background: #0073aa;
-                        color: white;
                         border: none;
-                        padding: 6px 10px;
-                        font-size: 12px;
+                
+                        font-size: 20px;
+                        background-color: unset;
+                        
                         
                         &:hover {
-                            background: #005a87;
-                            // Reset hover background from general rule if needed
-                            // But here general rule sets #f0f0f1, so we override it
-                            background-color: #005a87; 
+                            color: #dc3232;
+                          
                         }
 
                         &:focus {
@@ -163,18 +161,10 @@
                             outline-offset: 2px;
                         }
                         
-                        .dashicons {
-                            color: white; // Ensure icon is white on blue background
-                            font-size: 14px;
-                            width: 14px;
-                            height: 14px;
-                        }
+                        
                     }
 
-                    // Default hover for non-primary buttons (like delete link)
-                    &:not(.pw-edit-design-btn):hover {
-                        background-color: #f0f0f1;
-                    }
+                   
 
                     .dashicons {
                         font-size: 20px;
@@ -189,6 +179,7 @@
                 // Specific override for delete link if needed
                 .pw-delete-design-link {
                      color: #555;
+                     text-decoration: none;
                      &:hover .dashicons {
                          color: #dc3232; // Red for delete
                      }

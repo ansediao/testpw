@@ -117,32 +117,18 @@
 }
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-edit-design-btn.pw-edit-design-btn,
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-delete-design-link.pw-edit-design-btn {
-  background: #0073aa;
-  color: white;
   border: none;
-  padding: 6px 10px;
-  font-size: 12px;
+  font-size: 20px;
+  background-color: unset;
 }
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-edit-design-btn.pw-edit-design-btn:hover,
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-delete-design-link.pw-edit-design-btn:hover {
-  background: #005a87;
-  background-color: #005a87;
+  color: #dc3232;
 }
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-edit-design-btn.pw-edit-design-btn:focus,
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-delete-design-link.pw-edit-design-btn:focus {
   outline: 2px solid #0073aa;
   outline-offset: 2px;
-}
-.wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-edit-design-btn.pw-edit-design-btn .dashicons,
-.wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-delete-design-link.pw-edit-design-btn .dashicons {
-  color: white;
-  font-size: 14px;
-  width: 14px;
-  height: 14px;
-}
-.wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-edit-design-btn:not(.pw-edit-design-btn):hover,
-.wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-delete-design-link:not(.pw-edit-design-btn):hover {
-  background-color: #f0f0f1;
 }
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-edit-design-btn .dashicons,
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-delete-design-link .dashicons {
@@ -150,6 +136,7 @@
 }
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-delete-design-link {
   color: #555;
+  text-decoration: none;
 }
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-delete-design-link:hover .dashicons {
   color: #dc3232;
