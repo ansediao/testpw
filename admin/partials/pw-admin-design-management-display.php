@@ -13,10 +13,7 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
             <button class="button" id="pw-manage-category-btn">Manage Category</button>
         </div>
        
-        <div class="pw-design-filters" style="    display: flex
-;
-    gap: 10px;
-    align-items: center;" >
+        <div class="pw-design-filters">
             <form method="GET" action="">
                 <input type="hidden" name="page" value="<?php echo esc_attr( $_REQUEST['page'] ); ?>">
                 <input type="text" name="s" value="<?php echo esc_attr( $search_query ); ?>" placeholder="Search Designs">
@@ -162,109 +159,7 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
         <?php endif; ?>
     </div>
 
-    <style>
-        .pw-design-controls,
-        .pw-design-filters,
-        .pw-design-actions,
-        .pw-design-tabs,
-        .pw-design-bulk-actions,
-        .pw-design-grid {
-            margin-bottom: 20px;
-        }
 
-        .pw-design-actions a,
-        .pw-design-filters button,
-        .pw-design-bulk-actions button {
-            margin-right: 10px;
-        }
-
-        .pw-design-filters input,
-        .pw-design-filters select {
-            margin-right: 10px;
-            padding: 5px 8px;
-            border: 1px solid #c3c4c7;
-            box-shadow: 0 1px 1px rgba(0,0,0,.04);
-            border-radius: 4px;
-        }
-
-        .pw-design-filters .dashicons {
-            font-size: 20px;
-            line-height: 30px;
-            vertical-align: middle;
-            color: #888;
-        }
-
-        .pw-design-tabs .nav-tab {
-            margin-right: 5px;
-        }
-
-        .pw-design-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .pw-design-card {
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 15px;
-            text-align: center;
-            background-color: #fff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }
-
-        .pw-design-thumbnail {
-            width: 100%;
-            height: 150px;
-            background-color: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
-            border: 1px dashed #ccc;
-            font-style: italic;
-            color: #888;
-            overflow: hidden; /* Ensure image doesn't overflow */
-        }
-        .pw-design-thumbnail img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain; /* Scale image down to fit container */
-        }
-
-        .pw-design-name {
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .pw-design-actions-bottom {
-            margin-top: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .pw-design-actions-bottom .dashicons {
-            font-size: 20px;
-            cursor: pointer;
-            color: #555;
-        }
-        .pw-design-actions-bottom .dashicons:hover {
-            color: #0073aa;
-        }
-        
-        .pw-design-tags {
-            margin: 5px 0;
-            font-size: 12px;
-            color: #666;
-            min-height: 16px;
-        }
-        
-        .pw-tags-label {
-            font-weight: bold;
-            color: #333;
-        }
-    </style>
 </div>
 
 <!-- Filter Modal -->
@@ -327,63 +222,7 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
         </div>
     </div>
 </div>
-<style>
-.pw-modal-content h4, .pw-modal-content h5 {
-    margin-top: 0;
-    margin-bottom: 10px;
-}
-.pw-filter-search-field {
-    position: relative;
-    margin-bottom: 15px;
-}
-.pw-filter-search-field .dashicons {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #888;
-}
-.pw-filter-search-field .dashicons-search {
-    left: 8px;
-}
-.pw-filter-search-field .dashicons-no-alt {
-    right: 8px;
-    cursor: pointer;
-}
-.pw-filter-search-field input {
-    width: 100%;
-    padding-left: 30px;
-    padding-right: 30px;
-}
-.pw-filter-section {
-    margin-bottom: 15px;
-}
-.pw-filter-toggle {
-    cursor: pointer;
-    user-select: none;
-}
-.pw-filter-toggle::before {
-    content: '▼';
-    display: inline-block;
-    margin-right: 5px;
-    transition: transform 0.2s;
-}
-.pw-filter-toggle.collapsed::before {
-    transform: rotate(-90deg);
-}
-.pw-filter-options {
-    padding-left: 15px;
-    border-left: 1px solid #ddd;
-    margin-top: 10px;
-}
-.pw-filter-condition {
-    margin-top: 5px;
-    padding-left: 20px;
-}
-.pw-filter-condition select, .pw-filter-condition input {
-    width: 100%;
-    margin-top: 5px;
-}
-</style>
+
 
 <!-- Tag Modal -->
 <div class="modal" id="pw-tag-modal" aria-hidden="true">

@@ -1,0 +1,484 @@
+// Design Management Page Styles
+
+// Main Wrapper
+.wrap {
+    
+    // Design Controls Section
+    .pw-design-controls {
+        margin-bottom: 20px;
+
+        .pw-design-actions {
+            margin-bottom: 20px;
+            
+            a {
+                margin-right: 10px;
+            }
+        }
+
+        .pw-design-filters {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+
+            button {
+                margin-right: 10px;
+            }
+
+            input,
+            select {
+                margin-right: 10px;
+                padding: 5px 8px;
+                border: 1px solid #c3c4c7;
+                box-shadow: 0 1px 1px rgba(0,0,0,.04);
+                border-radius: 4px;
+            }
+
+            .dashicons {
+                font-size: 20px;
+                line-height: 30px;
+                vertical-align: middle;
+                color: #888;
+            }
+        }
+    }
+
+    // Design Tabs
+    .pw-design-tabs {
+        margin-bottom: 20px;
+
+        .nav-tab {
+            margin-right: 5px;
+        }
+    }
+
+    // Bulk Actions
+    .pw-design-bulk-actions {
+        margin-bottom: 20px;
+
+        button {
+            margin-right: 10px;
+        }
+    }
+
+    // Design Grid
+    .pw-design-grid {
+        margin-bottom: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+
+        .pw-design-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+
+            .pw-design-checkbox {
+                // Style for checkbox if needed
+            }
+
+            .pw-design-thumbnail {
+                width: 100%;
+                height: 150px;
+                background-color: #f0f0f0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 10px;
+                border: 1px dashed #ccc;
+                font-style: italic;
+                color: #888;
+                overflow: hidden;
+
+                img {
+                    max-width: 100%;
+                    max-height: 100%;
+                    object-fit: contain;
+                }
+            }
+
+            .pw-design-name {
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+
+            .pw-add-tag-button {
+                // Style for add tag button
+            }
+
+            .pw-design-tags {
+                margin: 5px 0;
+                font-size: 12px;
+                color: #666;
+                min-height: 16px;
+
+                .pw-tags-label {
+                    font-weight: bold;
+                    color: #333;
+                }
+            }
+
+            .pw-design-actions-bottom {
+                margin-top: 15px;
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+
+                .dashicons {
+                    font-size: 20px;
+                    cursor: pointer;
+                    color: #555;
+
+                    &:hover {
+                        color: #0073aa;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Modals
+.modal {
+    // Shared modal styles
+    .pw-modal-content {
+        h4, h5 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+    }
+
+    // Filter Modal Specifics
+    .pw-filter-search-field {
+        position: relative;
+        margin-bottom: 15px;
+
+        .dashicons {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+        }
+
+        .dashicons-search {
+            left: 8px;
+        }
+
+        .dashicons-no-alt {
+            right: 8px;
+            cursor: pointer;
+        }
+
+        input {
+            width: 100%;
+            padding-left: 30px;
+            padding-right: 30px;
+        }
+    }
+
+    .pw-filter-section {
+        margin-bottom: 15px;
+
+        .pw-filter-toggle {
+            cursor: pointer;
+            user-select: none;
+
+            &::before {
+                content: '▼';
+                display: inline-block;
+                margin-right: 5px;
+                transition: transform 0.2s;
+            }
+
+            &.collapsed::before {
+                transform: rotate(-90deg);
+            }
+        }
+
+        .pw-filter-options {
+            padding-left: 15px;
+            border-left: 1px solid #ddd;
+            margin-top: 10px;
+
+            .pw-filter-condition {
+                margin-top: 5px;
+                padding-left: 20px;
+
+                select,
+                input {
+                    width: 100%;
+                    margin-top: 5px;
+                }
+            }
+        }
+    }
+
+    // Form Fields (Shared across add/edit/settings modals)
+    .pw-form-field {
+        margin-bottom: 20px;
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        // Specific styling for image upload label
+        &.pw-image-upload-field {
+            label[for="pw-design-image"] {
+                border: 2px dashed #ccc;
+                border-radius: 8px;
+                padding: 40px;
+                text-align: center;
+                background: #fafafa;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: block;
+                font-weight: normal; // Reset from general label style
+
+                &:hover {
+                    border-color: #0073aa;
+                    background: #f0f8ff;
+                }
+
+                #pw-upload-placeholder {
+                    .dashicons {
+                        font-size: 48px;
+                        color: #999;
+                        display: block;
+                        margin-bottom: 15px;
+                        width: auto;
+                        height: auto;
+                    }
+                    p {
+                        margin: 0;
+                        color: #666;
+                        font-size: 16px;
+                        
+                        &:last-child {
+                            margin: 5px 0 0;
+                            color: #999;
+                            font-size: 14px;
+                        }
+                    }
+                }
+
+                #pw-image-preview {
+                    img {
+                        max-width: 100%;
+                        max-height: 200px;
+                        border-radius: 4px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    }
+                    p {
+                        margin: 10px 0 0;
+                        color: #666;
+                    }
+                    button {
+                        margin-top: 10px;
+                    }
+                }
+            }
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+        
+        small {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        // Checkbox/Toggle styling
+        .pw-toggle-switch {
+            display: flex;
+            align-items: center;
+
+            .pw-toggle-label {
+                position: relative;
+                display: inline-block;
+                width: 60px;
+                height: 30px;
+                background: #ccc;
+                border-radius: 15px;
+                cursor: pointer;
+                transition: background 0.3s;
+
+                .pw-toggle-slider {
+                    position: absolute;
+                    top: 3px;
+                    left: 3px;
+                    width: 24px;
+                    height: 24px;
+                    background: white;
+                    border-radius: 50%;
+                    transition: transform 0.3s;
+                }
+            }
+
+            .pw-toggle-text {
+                margin-left: 10px;
+                color: #666;
+            }
+        }
+    }
+
+    // Advanced Settings
+    .pw-advanced-settings {
+        border-top: 1px solid #eee;
+        padding-top: 25px;
+        margin-top: 25px;
+
+        h4 {
+            margin: 0 0 20px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .pw-tabs-nav, .pw-tab-nav {
+            display: flex;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+            border-radius: 4px 4px 0 0;
+
+            .pw-tab-btn {
+                flex: 1;
+                padding: 12px 20px;
+                border: none;
+                background: #f9f9f9;
+                cursor: pointer;
+                border-bottom: 3px solid transparent;
+                color: #666;
+                font-weight: 500;
+
+                &.active {
+                    background: #fff;
+                    border-bottom: 3px solid #007cba;
+                    color: #007cba;
+                    font-weight: 600;
+                }
+
+                &:first-child {
+                    border-radius: 4px 0 0 0;
+                }
+                &:last-child {
+                    border-radius: 0 4px 0 0;
+                }
+            }
+        }
+
+        .pw-tab-content {
+            min-height: 300px;
+            padding: 20px;
+            border: 1px solid #f0f0f0;
+            border-radius: 0 0 4px 4px;
+            background: #fff;
+
+            .pw-tab-panel {
+                display: none;
+                
+                &.active {
+                    display: block;
+                }
+            }
+        }
+        
+        // Form Row for side-by-side fields
+        .pw-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+    }
+    
+    // Manage Category List
+    .pw-category-list {
+        .pw-category-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background: #fff;
+
+            .pw-category-name-input {
+                flex: 1;
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                margin-right: 10px;
+                font-size: 14px;
+            }
+
+            .pw-category-char-count {
+                margin-right: 10px;
+                color: #666;
+                font-size: 12px;
+            }
+
+            .pw-category-design-count {
+                margin-right: 10px;
+                color: #0073aa;
+                font-size: 12px;
+                font-weight: 600;
+            }
+
+            button {
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 5px;
+                
+                &.pw-category-settings-btn {
+                    margin-right: 5px;
+                    .dashicons {
+                        color: #0073aa;
+                        font-size: 16px;
+                    }
+                }
+                
+                &.pw-category-delete-btn {
+                    .dashicons {
+                        color: #dc3232;
+                        font-size: 16px;
+                    }
+                }
+            }
+        }
+        
+        .pw-no-categories {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            
+            .dashicons {
+                font-size: 48px;
+                margin-bottom: 15px;
+                color: #ccc;
+                width: auto;
+                height: auto;
+            }
+        }
+    }
+}
