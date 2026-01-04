@@ -148,6 +148,57 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
                 </div>
             </div>
         </div>
+
+        <!-- Bulk Update Modal (Vue Controlled) -->
+        <div class="modal" :class="{ 'is-open': isBulkUpdateModalOpen }" id="pw-vue-bulk-update-modal" aria-hidden="true" v-show="isBulkUpdateModalOpen" style="display: none;" :style="{ display: isBulkUpdateModalOpen ? 'block' : 'none' }">
+            <div class="modal__overlay" tabindex="-1" @click="closeBulkUpdateModal">
+                <div class="modal__container" role="dialog" aria-modal="true" @click.stop>
+                    <header class="modal__header">
+                        <h2 class="modal__title">Bulk Update Designs</h2>
+                        <button class="modal__close" aria-label="Close modal" @click="closeBulkUpdateModal">&times;</button>
+                    </header>
+                    <div class="modal__content">
+                        <div class="pw-filter-search-field">
+                            <span class="dashicons dashicons-search"></span>
+                            <input type="text" v-model="updateFieldSearch" placeholder="Search the Field Name">
+                            <span v-if="updateFieldSearch" class="dashicons dashicons-no-alt" @click="updateFieldSearch = ''" style="cursor: pointer;"></span>
+                        </div>
+
+                        <div class="pw-filter-section">
+                            <h5 class="pw-filter-toggle">Selected Filter Field</h5>
+                            <div class="pw-filter-options">
+                                <div v-for="(field, index) in bulkUpdateFields" :key="index" class="pw-filter-item" style="border-bottom: 1px solid #eee; padding: 10px 0;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                        <label style="font-weight: bold;"><input type="checkbox" checked @change="removeBulkUpdateField(index)"> {{ field.label }}</label>
+                                    </div>
+                                    <div class="pw-filter-condition">
+                                        <input v-if="field.type === 'text'" type="text" v-model="field.value" class="regular-text" style="width:100%" placeholder="Enter new value">
+                                        <select v-if="field.type === 'select'" v-model="field.value" style="width:100%">
+                                            <option value="">Select {{ field.label }}</option>
+                                            <option v-for="opt in field.options" :value="opt.value">{{ opt.label }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div v-if="bulkUpdateFields.length === 0" style="color: #999; font-style: italic; padding: 10px;">--No Fields Selected--</div>
+                            </div>
+                        </div>
+
+                        <div class="pw-filter-section">
+                            <h5 class="pw-filter-toggle">Not Selected Filter Field</h5>
+                            <div class="pw-filter-options">
+                                <div v-for="field in notSelectedUpdateFields" :key="field.key" class="pw-filter-item-available" style="padding: 5px 0;">
+                                    <label><input type="checkbox" @change="addBulkUpdateField(field)"> {{ field.label }}</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <footer class="modal__footer">
+                        <button class="button" @click="closeBulkUpdateModal">Cancel</button>
+                        <button class="button button-primary" @click="performBulkUpdate">Update</button>
+                    </footer>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -316,101 +367,7 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
     </div>
 </div>
 
-<!-- Bulk Update Modal -->
-<div class="modal" id="pw-bulk-update-modal" aria-hidden="true">
-    <div class="modal__overlay" tabindex="-1">
-        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-bulk-update-modal-title" style="max-width: 800px;">
-            <header class="modal__header">
-                <h2 class="modal__title" id="pw-bulk-update-modal-title">Bulk Update Designs</h2>
-                <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
-            </header>
-            <div class="modal__content">
-                <form id="pw-bulk-update-form">
-                    <?php wp_nonce_field('pw_bulk_update_nonce', 'pw_bulk_update_nonce_field'); ?>
-                    
-                    <div class="pw-bulk-update-info" style="margin-bottom: 20px; padding: 15px; background: #f0f8ff; border: 1px solid #0073aa; border-radius: 4px;">
-                        <p style="margin: 0; color: #0073aa; font-weight: 600;">Selected Designs: <span id="pw-selected-count">0</span></p>
-                        <p style="margin: 5px 0 0; color: #666; font-size: 14px;">Changes will be applied to all selected designs. Leave fields empty to keep current values.</p>
-                    </div>
-                    
-                    <div class="pw-bulk-update-table" style="overflow-x: auto;">
-                        <table class="wp-list-table widefat fixed striped" style="width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th style="width: 200px;">Field</th>
-                                    <th>New Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Description</strong></td>
-                                    <td>
-                                        <textarea name="bulk_description" id="pw-bulk-description" rows="3" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="Enter new description for selected designs"></textarea>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Category</strong></td>
-                                    <td>
-                                        <select name="bulk_category" id="pw-bulk-category" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                                            <option value="">Select Category</option>
-                                            <?php
-                                            $categories = get_terms( array(
-                                                'taxonomy'   => 'pw_design_category',
-                                                'hide_empty' => false,
-                                            ) );
-                                            if ( ! empty( $categories ) && ! is_wp_error( $categories ) ) {
-                                                foreach ( $categories as $category ) {
-                                                    printf(
-                                                        '<option value="%s">%s</option>',
-                                                        esc_attr( $category->term_id ),
-                                                        esc_html( $category->name )
-                                                    );
-                                                }
-                                            }
-                                            ?>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Tags</strong></td>
-                                    <td>
-                                        <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 10px; background: #fff;">
-                                            <?php
-                                            $tags = get_terms( array(
-                                                'taxonomy' => 'pw_design_tag',
-                                                'hide_empty' => false,
-                                                'orderby' => 'name',
-                                                'order' => 'ASC'
-                                            ) );
-                                            if ( ! empty( $tags ) && ! is_wp_error( $tags ) ) {
-                                                foreach ( $tags as $tag ) {
-                                                    printf(
-                                                        '<label style="display: block; margin-bottom: 5px; cursor: pointer;"><input type="checkbox" name="bulk_tags[]" value="%s" style="margin-right: 8px;"> %s</label>',
-                                                        esc_attr( $tag->name ),
-                                                        esc_html( $tag->name )
-                                                    );
-                                                }
-                                            } else {
-                                                echo '<p style="color: #666; font-style: italic;">No tags available</p>';
-                                            }
-                                            ?>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <input type="hidden" name="selected_design_ids" id="pw-selected-design-ids" value="">
-                </form>
-            </div>
-            <footer class="modal__footer">
-                <button class="button" data-micromodal-close>Cancel</button>
-                <button type="submit" class="button button-primary" id="pw-bulk-update-submit" form="pw-bulk-update-form">Update Selected Designs</button>
-            </footer>
-        </div>
-    </div>
-</div>
+<!-- Bulk Update Modal Removed (Replaced by Vue Version) -->
 
 <!-- Add Category Modal -->
 <div class="modal" id="pw-add-category-modal" aria-hidden="true">

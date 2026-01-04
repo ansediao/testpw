@@ -191,6 +191,91 @@ const DesignApp = {
             }, 0);
         };
 
+        // --- Bulk Update Logic ---
+        const isBulkUpdateModalOpen = ref(false);
+        const updateFieldSearch = ref('');
+        const bulkUpdateFields = ref([]); // [{ key: 'name', label: 'Name', value: '' }]
+
+        // Define available fields for bulk update
+        const availableUpdateFieldsDef = [
+            { key: 'status', label: 'Status', type: 'select', options: [
+                { value: 'publish', label: 'Published' },
+                { value: 'draft', label: 'Draft' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'private', label: 'Private' }
+            ]},
+            { key: 'name', label: 'Name', type: 'text' }
+        ];
+
+        const triggerBulkUpdate = () => {
+            isBulkUpdateModalOpen.value = true;
+            updateFieldSearch.value = '';
+            bulkUpdateFields.value = [];
+        };
+
+        const closeBulkUpdateModal = () => {
+            isBulkUpdateModalOpen.value = false;
+        };
+
+        // Filter available fields based on search
+        const filteredUpdateFieldDefs = computed(() => {
+            if (!updateFieldSearch.value) return availableUpdateFieldsDef;
+            return availableUpdateFieldsDef.filter(f => f.label.toLowerCase().includes(updateFieldSearch.value.toLowerCase()));
+        });
+
+        const selectedUpdateKeys = computed(() => bulkUpdateFields.value.map(f => f.key));
+        
+        const notSelectedUpdateFields = computed(() => {
+            return filteredUpdateFieldDefs.value.filter(f => !selectedUpdateKeys.value.includes(f.key));
+        });
+
+        const addBulkUpdateField = (fieldDef) => {
+            bulkUpdateFields.value.push({
+                key: fieldDef.key,
+                label: fieldDef.label,
+                type: fieldDef.type,
+                options: fieldDef.options || [],
+                value: ''
+            });
+        };
+
+        const removeBulkUpdateField = (index) => {
+            bulkUpdateFields.value.splice(index, 1);
+        };
+
+        const performBulkUpdate = () => {
+            if (bulkUpdateFields.value.length === 0) {
+                alert('Please select at least one field to update.');
+                return;
+            }
+            if (!confirm(`Are you sure you want to update ${selectedDesignIds.value.length} designs?`)) return;
+
+            const formData = new FormData();
+            formData.append('action', 'pw_bulk_update_designs');
+            formData.append('nonce', window.pwDesignManagement.bulkUpdateNonce);
+            formData.append('selected_design_ids', selectedDesignIds.value.join(','));
+            formData.append('updates_json', JSON.stringify(bulkUpdateFields.value));
+
+            jQuery.ajax({
+                url: window.pwDesignManagement.ajaxUrl,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: (response) => {
+                    if (response.success) {
+                        alert(response.data.message);
+                        location.reload();
+                    } else {
+                        alert('Update Failed: ' + (response.data || 'Unknown error'));
+                    }
+                },
+                error: (xhr, status, error) => {
+                    alert('Server error: ' + error);
+                }
+            });
+        };
+
         return {
             designs,
             categories,
@@ -216,7 +301,17 @@ const DesignApp = {
             allSelected,
             toggleSelection,
             triggerEdit,
-            triggerAddTag
+            triggerAddTag,
+            // Bulk Update Exports
+            isBulkUpdateModalOpen,
+            updateFieldSearch,
+            bulkUpdateFields,
+            triggerBulkUpdate,
+            closeBulkUpdateModal,
+            performBulkUpdate,
+            addBulkUpdateField,
+            removeBulkUpdateField,
+            notSelectedUpdateFields
         };
     }
 };
