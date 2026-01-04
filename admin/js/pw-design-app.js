@@ -198,11 +198,9 @@ const DesignApp = {
 
         // Define available fields for bulk update
         const availableUpdateFieldsDef = [
-            { key: 'status', label: 'Status', type: 'select', options: [
+            { key: 'status', label: 'Status', type: 'toggle', options: [
                 { value: 'publish', label: 'Published' },
-                { value: 'draft', label: 'Draft' },
-                { value: 'pending', label: 'Pending' },
-                { value: 'private', label: 'Private' }
+                { value: 'draft', label: 'Draft' }
             ]},
             { key: 'name', label: 'Name', type: 'text' }
         ];

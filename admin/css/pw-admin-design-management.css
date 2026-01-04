@@ -142,6 +142,53 @@
   color: #dc3232;
 }
 
+#pw-design-app .pw-toggle-switch {
+  display: flex;
+  align-items: center;
+}
+#pw-design-app .pw-toggle-switch .pw-toggle-input:checked + .pw-toggle-label {
+  background: #4255ff !important;
+}
+#pw-design-app .pw-toggle-switch .pw-toggle-input:checked + .pw-toggle-label .pw-toggle-slider {
+  transform: translateX(20px);
+}
+#pw-design-app .pw-toggle-switch .pw-toggle-input:checked + .pw-toggle-label:hover {
+  background: #3344dd !important;
+}
+#pw-design-app .pw-toggle-switch .pw-toggle-label {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+  background: #ccc;
+  border-radius: 13px;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-bottom: 0;
+  vertical-align: middle;
+}
+#pw-design-app .pw-toggle-switch .pw-toggle-label:hover {
+  background: #bbb !important;
+}
+#pw-design-app .pw-toggle-switch .pw-toggle-label .pw-toggle-slider {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  content: "";
+  display: block;
+}
+#pw-design-app .pw-toggle-switch .pw-toggle-text {
+  margin-left: 10px;
+  color: #666;
+  font-size: 13px;
+}
+
 .modal .pw-modal-content h4, .modal .pw-modal-content h5 {
   margin-top: 0;
   margin-bottom: 10px;
@@ -337,46 +384,6 @@
   font-size: 12px;
   margin-top: 5px;
   display: block;
-}
-.modal .pw-form-field .pw-toggle-switch {
-  display: flex;
-  align-items: center;
-}
-.modal .pw-form-field .pw-toggle-switch .pw-toggle-input:checked + .pw-toggle-label {
-  background: #0073aa !important;
-}
-.modal .pw-form-field .pw-toggle-switch .pw-toggle-input:checked + .pw-toggle-label .pw-toggle-slider {
-  transform: translateX(30px);
-}
-.modal .pw-form-field .pw-toggle-switch .pw-toggle-input:checked + .pw-toggle-label:hover {
-  background: #005a87 !important;
-}
-.modal .pw-form-field .pw-toggle-switch .pw-toggle-label {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 30px;
-  background: #ccc;
-  border-radius: 15px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-.modal .pw-form-field .pw-toggle-switch .pw-toggle-label:hover {
-  background: #999 !important;
-}
-.modal .pw-form-field .pw-toggle-switch .pw-toggle-label .pw-toggle-slider {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 24px;
-  height: 24px;
-  background: white;
-  border-radius: 50%;
-  transition: transform 0.3s;
-}
-.modal .pw-form-field .pw-toggle-switch .pw-toggle-text {
-  margin-left: 10px;
-  color: #666;
 }
 .modal .pw-category-list .pw-category-item {
   display: flex;

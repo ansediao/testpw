@@ -177,6 +177,13 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
                                             <option value="">Select {{ field.label }}</option>
                                             <option v-for="opt in field.options" :value="opt.value">{{ opt.label }}</option>
                                         </select>
+                                        <div v-if="field.type === 'toggle'" class="pw-toggle-switch">
+                                            <input type="checkbox" v-model="field.value" :id="'toggle-' + index" class="pw-toggle-input" true-value="publish" false-value="draft" style="display: none;">
+                                            <label :for="'toggle-' + index" class="pw-toggle-label">
+                                                <span class="pw-toggle-slider"></span>
+                                            </label>
+                                            <span class="pw-toggle-text">{{ field.value === 'publish' ? 'Published' : (field.value === 'draft' ? 'Draft' : 'Select Status') }}</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div v-if="bulkUpdateFields.length === 0" style="color: #999; font-style: italic; padding: 10px;">--No Fields Selected--</div>
