@@ -445,4 +445,93 @@
     opacity: 1;
     max-height: 500px;
   }
+}
+#pw-vue-filter-modal .modal__container {
+  max-width: 500px;
+  width: 100%;
+}
+#pw-vue-filter-modal .pw-filter-search-field {
+  position: relative;
+  margin-bottom: 15px;
+}
+#pw-vue-filter-modal .pw-filter-search-field .dashicons-search {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+}
+#pw-vue-filter-modal .pw-filter-search-field .dashicons-no-alt {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+  cursor: pointer;
+}
+#pw-vue-filter-modal .pw-filter-search-field .dashicons-no-alt:hover {
+  color: #d63638;
+}
+#pw-vue-filter-modal .pw-filter-search-field input {
+  width: 100%;
+  padding: 8px 30px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+#pw-vue-filter-modal .pw-filter-section {
+  margin-bottom: 20px;
+}
+#pw-vue-filter-modal .pw-filter-section .pw-filter-toggle {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: #555;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+#pw-vue-filter-modal .pw-filter-section .pw-filter-options {
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+#pw-vue-filter-modal .pw-filter-section .pw-filter-options .pw-filter-item {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+#pw-vue-filter-modal .pw-filter-section .pw-filter-options .pw-filter-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+#pw-vue-filter-modal .pw-filter-section .pw-filter-options .pw-filter-item label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #333;
+}
+#pw-vue-filter-modal .pw-filter-section .pw-filter-options .pw-filter-item .pw-filter-condition {
+  display: flex;
+  gap: 10px;
+}
+#pw-vue-filter-modal .pw-filter-section .pw-filter-options .pw-filter-item .pw-filter-condition select, #pw-vue-filter-modal .pw-filter-section .pw-filter-options .pw-filter-item .pw-filter-condition input {
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 13px;
+}
+#pw-vue-filter-modal .pw-filter-section .pw-filter-options .pw-filter-item-available {
+  padding: 5px 0;
+}
+#pw-vue-filter-modal .pw-filter-section .pw-filter-options .pw-filter-item-available label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+#pw-vue-filter-modal .pw-filter-section .pw-filter-options .pw-filter-item-available label input {
+  margin-right: 8px;
+}
+#pw-vue-filter-modal .pw-filter-section .pw-filter-options .pw-filter-item-available label:hover {
+  color: #0073aa;
 }/*# sourceMappingURL=pw-admin-design-management.css.map */
