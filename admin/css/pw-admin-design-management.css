@@ -147,13 +147,13 @@
   align-items: center;
 }
 #pw-design-app .pw-toggle-switch .pw-toggle-input:checked + .pw-toggle-label {
-  background: #4255ff !important;
+  background: #2271b1 !important;
 }
 #pw-design-app .pw-toggle-switch .pw-toggle-input:checked + .pw-toggle-label .pw-toggle-slider {
-  transform: translateX(20px);
+  transform: translateX(24px);
 }
 #pw-design-app .pw-toggle-switch .pw-toggle-input:checked + .pw-toggle-label:hover {
-  background: #3344dd !important;
+  background: #135e96 !important;
 }
 #pw-design-app .pw-toggle-switch .pw-toggle-label {
   position: relative;
