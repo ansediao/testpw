@@ -75,6 +75,19 @@ add_action(
 );
 
 /**
+ * 修正 Tags 子菜单高亮问题
+ * 当访问 pw_design_tag 分类页面时，保持 Promoware 菜单展开
+ */
+add_filter( 'parent_file', 'pw_fix_tags_menu_highlight' );
+function pw_fix_tags_menu_highlight( $parent_file ) {
+	global $pagenow;
+	if ( 'edit-tags.php' === $pagenow && isset( $_GET['taxonomy'] ) && 'pw_design_tag' === $_GET['taxonomy'] ) {
+		return 'pw-dashboard';
+	}
+	return $parent_file;
+}
+
+/**
  * 顶级菜单页面：包含 Token 设置、产品导入、缓存管理
  */
 function pw_main_menu_page() {
