@@ -49,6 +49,15 @@ function pw_add_custom_menu() {
 		'pw_manage_designs_page'
 	);	
 
+	// Tags 子菜单
+	add_submenu_page(
+		'pw-dashboard',
+		'Tags',
+		'Tags',
+		$pw_design_capability_edit,
+		'edit-tags.php?taxonomy=pw_design_tag'
+	);	
+
 	
 }
 add_action( 'admin_menu', 'pw_add_custom_menu' );

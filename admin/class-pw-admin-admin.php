@@ -115,10 +115,6 @@ class Pw_Admin_Admin
         // 添加自动表格支持 (This is for another feature, keeping it)
         wp_enqueue_script('jspdf-autotable', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js', array('jspdf'), '3.5.29', true);
 
-        // 最后加载自定义脚本
-        $js_file = plugin_dir_url(__FILE__) . 'js/pw-admin-admin.js';
-        wp_enqueue_script($this->plugin_name, $js_file, array('jquery', 'jspdf'), $this->version, true);
-
         // 传递AJAX变量给管理脚本
         wp_localize_script($this->plugin_name, 'pw_admin_vars', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
