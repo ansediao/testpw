@@ -81,7 +81,6 @@ class Pw_Admin_Admin
         // 加载设计管理样式
         wp_enqueue_style('pw-admin-design-management', plugin_dir_url(__FILE__) . 'css/pw-admin-design-management.css', array(), $this->version, 'all');
 
-        wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/pw-admin-admin.css', array(), $this->version, 'all');
     }
 
     /**
