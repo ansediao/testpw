@@ -78,7 +78,9 @@ class Pw_Admin_Admin
         // 引入阿里图标库CSS
         wp_enqueue_style('pw-admin-iconfont', '//at.alicdn.com/t/c/font_4970780_pfyts3fzl6.css', array(), $this->version, 'all');
         
-       
+        // 加载设计管理样式
+        wp_enqueue_style('pw-admin-design-management', plugin_dir_url(__FILE__) . 'css/pw-admin-design-management.css', array(), $this->version, 'all');
+
         wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/pw-admin-admin.css', array(), $this->version, 'all');
     }
 
@@ -851,19 +853,36 @@ class Pw_Admin_Admin
             wp_send_json_error('请选择要更新的设计');
             return;
         }
-        
-        // 获取更新数据
-        $new_description = isset($_POST['bulk_description']) ? wp_kses_post($_POST['bulk_description']) : '';
-        $new_category = isset($_POST['bulk_category']) ? intval($_POST['bulk_category']) : 0;
-        $new_tags = isset($_POST['bulk_tags']) && is_array($_POST['bulk_tags']) ? array_map('sanitize_text_field', $_POST['bulk_tags']) : array();
+
+        // 解析更新数据
+        $updates = array();
+
+        // 优先尝试 JSON 格式 (Vue 前端提交)
+        if (isset($_POST['updates_json'])) {
+            $json = json_decode(stripslashes($_POST['updates_json']), true);
+            if (is_array($json)) {
+                foreach ($json as $field) {
+                    $updates[$field['key']] = $field['value'];
+                }
+            }
+        } 
+        // 兼容旧的表单提交方式
+        else {
+            if (isset($_POST['bulk_description'])) $updates['description'] = wp_kses_post($_POST['bulk_description']);
+            if (isset($_POST['bulk_category'])) $updates['category'] = intval($_POST['bulk_category']);
+            if (isset($_POST['bulk_tags'])) $updates['tags'] = $_POST['bulk_tags'];
+        }
+
+        if (empty($updates)) {
+            wp_send_json_error('没有提交任何更新内容');
+            return;
+        }
         
         $updated_count = 0;
         $errors = array();
         
         foreach ($design_ids as $design_id) {
-            if ($design_id <= 0) {
-                continue;
-            }
+            if ($design_id <= 0) continue;
             
             // 验证当前用户是否有权限编辑此设计
             if (!current_user_can('edit_post', $design_id)) {
@@ -871,49 +890,55 @@ class Pw_Admin_Admin
                 continue;
             }
             
-            // 检查是否为有效的设计文章
-            $post = get_post($design_id);
-            if (!$post || $post->post_type !== 'pw_design') {
-                $errors[] = 'ID: ' . $design_id . ' - 无效的设计';
-                continue;
+            $post_data = array('ID' => $design_id);
+            $has_post_update = false;
+
+            // 1. 更新标准文章字段 (Name/Title, Status, Description)
+            if (isset($updates['name']) && !empty($updates['name'])) {
+                $post_data['post_title'] = sanitize_text_field($updates['name']);
+                $has_post_update = true;
             }
-            
-            $update_data = array('ID' => $design_id);
-            $has_updates = false;
-            
-            // 更新描述
-            if (!empty($new_description)) {
-                $update_data['post_content'] = $new_description;
-                $has_updates = true;
+
+            if (isset($updates['description'])) {
+                $post_data['post_content'] = wp_kses_post($updates['description']);
+                $has_post_update = true;
             }
-            
-            // 更新文章数据
-            if ($has_updates) {
-                $result = wp_update_post($update_data);
+
+            if (isset($updates['status']) && !empty($updates['status'])) {
+                $valid_statuses = array('publish', 'draft', 'pending', 'private');
+                if (in_array($updates['status'], $valid_statuses)) {
+                    $post_data['post_status'] = sanitize_text_field($updates['status']);
+                    $has_post_update = true;
+                }
+            }
+
+            if ($has_post_update) {
+                $result = wp_update_post($post_data);
                 if (is_wp_error($result)) {
-                    $errors[] = 'ID: ' . $design_id . ' - 更新文章失败: ' . $result->get_error_message();
+                    $errors[] = 'ID: ' . $design_id . ' - 更新失败: ' . $result->get_error_message();
                     continue;
                 }
             }
-            
-            // 更新分类
-            if ($new_category > 0) {
-                $category_result = wp_set_post_terms($design_id, array($new_category), 'pw_design_category');
-                if (is_wp_error($category_result)) {
-                    $errors[] = 'ID: ' . $design_id . ' - 更新分类失败: ' . $category_result->get_error_message();
-                    continue;
+
+            // 2. 更新元数据 (Price)
+            if (isset($updates['price']) && $updates['price'] !== '') {
+                update_post_meta($design_id, '_pw_design_price', floatval($updates['price']));
+            }
+
+            // 3. 更新分类 (Taxonomy)
+            if (isset($updates['category']) && !empty($updates['category'])) {
+                $cat_id = intval($updates['category']);
+                if ($cat_id > 0) {
+                    wp_set_post_terms($design_id, array($cat_id), 'pw_design_category');
                 }
             }
             
-            // 更新标签
-            if (!empty($new_tags)) {
-                // 直接使用勾选的标签数组
-                $tag_result = wp_set_post_terms($design_id, $new_tags, 'pw_design_tag');
-                
-                if (is_wp_error($tag_result)) {
-                    $errors[] = 'ID: ' . $design_id . ' - 更新标签失败: ' . $tag_result->get_error_message();
-                    continue;
-                }
+            // 4. 更新标签 (Taxonomy)
+            if (isset($updates['tags'])) {
+                $tags = is_array($updates['tags']) ? $updates['tags'] : explode(',', $updates['tags']);
+                // sanitize tags
+                $tags = array_map('sanitize_text_field', $tags);
+                wp_set_post_terms($design_id, $tags, 'pw_design_tag');
             }
             
             $updated_count++;

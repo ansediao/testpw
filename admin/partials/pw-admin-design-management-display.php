@@ -13,10 +13,7 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
             <button class="button" id="pw-manage-category-btn">Manage Category</button>
         </div>
        
-        <div class="pw-design-filters" style="    display: flex
-;
-    gap: 10px;
-    align-items: center;" >
+        <div class="pw-design-filters">
             <form method="GET" action="">
                 <input type="hidden" name="page" value="<?php echo esc_attr( $_REQUEST['page'] ); ?>">
                 <input type="text" name="s" value="<?php echo esc_attr( $search_query ); ?>" placeholder="Search Designs">
@@ -54,336 +51,164 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
         <a href="?page=<?php echo esc_attr($_REQUEST['page']); ?>&tab=product-specific" class="nav-tab <?php echo ($selected_tab == 'product-specific') ? 'nav-tab-active' : ''; ?>">Product Specific</a>
     </div>
                     <br><br><br>
-    <div class="pw-design-bulk-actions">
-        <button class="button" id="pw-open-filter-modal">Filter</button>
-        <label><input type="checkbox" id="pw-select-all-designs"> Select All</label>
-        <button id="pw-delete-selected-designs" class="button button-danger" style="display:none;">Delete Selected</button>
-        <button id="pw-bulk-update-designs" class="button button-primary" style="display:none;">Bulk Update</button>
-    </div>
 
-    <div class="pw-design-grid">
-        <?php
-        $args = array(
-            'post_type'      => 'pw_design',
-            'posts_per_page' => -1, // Retrieve all posts
-            'post_status'    => array('publish'), // Include all statuses
-        );
-
-        if ( ! empty( $search_query ) ) {
-            $args['s'] = $search_query;
-        }
-        
-        if ( ! empty( $selected_category ) ) {
-            $args['tax_query'] = array(
-                array(
-                    'taxonomy' => 'pw_design_category',
-                    'field'    => 'slug',
-                    'terms'    => $selected_category,
-                ),
-            );
-        }
-        
-        // 根据标签筛选设计
-        if ( ! empty( $selected_tab ) && $selected_tab !== 'all' ) {
-            $tag_slug = '';
-            switch ( $selected_tab ) {
-                case 'universal':
-                    $tag_slug = 'universal';
-                    break;
-                case 'universal-main-view':
-                    $tag_slug = 'universal-main-view';
-                    break;
-                case 'product-specific':
-                    $tag_slug = 'product-specific';
-                    break;
-            }
-            
-            if ( ! empty( $tag_slug ) ) {
-                // 添加标签查询条件
-                if ( ! isset( $args['tax_query'] ) ) {
-                    $args['tax_query'] = array();
-                }
-                
-                // 如果已经有分类查询条件，则使用AND关系
-                if ( ! empty( $args['tax_query'] ) && !isset($args['tax_query']['relation']) ) {
-                    $args['tax_query']['relation'] = 'AND';
-                }
-                
-                $args['tax_query'][] = array(
-                    'taxonomy' => 'pw_design_tag',
-                    'field'    => 'slug',
-                    'terms'    => $tag_slug,
-                );
-            }
-        }
-        
-        $designs_query = new WP_Query( $args );
-
-        if ( $designs_query->have_posts() ) :
-            while ( $designs_query->have_posts() ) : $designs_query->the_post();
-                $design_id = get_the_ID();
-                $design_title = get_the_title();
-                $design_thumbnail = get_the_post_thumbnail( $design_id, 'medium', array( 'class' => 'pw-design-thumbnail-img' ) );
-                $edit_link = get_edit_post_link( $design_id );
-                $delete_link = get_delete_post_link( $design_id, true ); // Pass true to get link, not display it.
-                $design_categories = get_the_terms( $design_id, 'pw_design_category' );
-                $design_tags = get_the_terms( $design_id, 'pw_design_tag' );
-        ?>
-                <div class="pw-design-card" data-design-id="<?php echo esc_attr( $design_id ); ?>">
-                    <input type="checkbox" class="pw-design-checkbox" value="<?php echo esc_attr( $design_id ); ?>">
-                    <div class="pw-design-thumbnail">
-                        <?php if ( $design_thumbnail ) : ?>
-                            <?php echo $design_thumbnail; ?>
-                        <?php else : ?>
-                            Thumbnail Design
-                        <?php endif; ?>
-                    </div>
-                    <div class="pw-design-name"><?php echo esc_html( $design_title ); ?></div>
-                    <button class="button pw-add-tag-button" data-design-id="<?php echo esc_attr( $design_id ); ?>">Add Tag</button>
-                    <div class="pw-design-tags" data-design-id="<?php echo esc_attr( $design_id ); ?>">
-                        <?php
-                        $design_tags = wp_get_post_terms( $design_id, 'pw_design_tag', array( 'fields' => 'names' ) );
-                        if ( !empty( $design_tags ) && !is_wp_error( $design_tags ) ) {
-                            echo '<span class="pw-tags-label">Tags: </span>' . esc_html( implode( ' ', $design_tags ) );
-                        }
-                        ?>
-                    </div>
-                    <div class="pw-design-actions-bottom">
-                        <button type="button" class="pw-edit-design-btn" data-design-id="<?php echo esc_attr( $design_id ); ?>" title="Edit Design"><span class="dashicons dashicons-edit"></span></button>
-                        <a href="<?php echo esc_url( $delete_link ); ?>" title="Delete Design" class="pw-delete-design-link"><span class="dashicons dashicons-trash"></span></a>
-                    </div>
-                </div>
-            <?php
-            endwhile;
-            wp_reset_postdata(); // Restore original Post Data
-        else :
-            ?>
-            <p>No designs found.</p>
-        <?php endif; ?>
-    </div>
-
-    <style>
-        .pw-design-controls,
-        .pw-design-filters,
-        .pw-design-actions,
-        .pw-design-tabs,
-        .pw-design-bulk-actions,
-        .pw-design-grid {
-            margin-bottom: 20px;
-        }
-
-        .pw-design-actions a,
-        .pw-design-filters button,
-        .pw-design-bulk-actions button {
-            margin-right: 10px;
-        }
-
-        .pw-design-filters input,
-        .pw-design-filters select {
-            margin-right: 10px;
-            padding: 5px 8px;
-            border: 1px solid #c3c4c7;
-            box-shadow: 0 1px 1px rgba(0,0,0,.04);
-            border-radius: 4px;
-        }
-
-        .pw-design-filters .dashicons {
-            font-size: 20px;
-            line-height: 30px;
-            vertical-align: middle;
-            color: #888;
-        }
-
-        .pw-design-tabs .nav-tab {
-            margin-right: 5px;
-        }
-
-        .pw-design-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .pw-design-card {
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 15px;
-            text-align: center;
-            background-color: #fff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }
-
-        .pw-design-thumbnail {
-            width: 100%;
-            height: 150px;
-            background-color: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 10px;
-            border: 1px dashed #ccc;
-            font-style: italic;
-            color: #888;
-            overflow: hidden; /* Ensure image doesn't overflow */
-        }
-        .pw-design-thumbnail img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain; /* Scale image down to fit container */
-        }
-
-        .pw-design-name {
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .pw-design-actions-bottom {
-            margin-top: 15px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .pw-design-actions-bottom .dashicons {
-            font-size: 20px;
-            cursor: pointer;
-            color: #555;
-        }
-        .pw-design-actions-bottom .dashicons:hover {
-            color: #0073aa;
-        }
-        
-        .pw-design-tags {
-            margin: 5px 0;
-            font-size: 12px;
-            color: #666;
-            min-height: 16px;
-        }
-        
-        .pw-tags-label {
-            font-weight: bold;
-            color: #333;
-        }
-    </style>
-</div>
-
-<!-- Filter Modal -->
-<div class="modal" id="pw-filter-modal" aria-hidden="true">
-    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
-        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-filter-modal-title">
-            <header class="modal__header">
-                <h2 class="modal__title" id="pw-filter-modal-title">筛选条件</h2>
-                <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
-            </header>
-            <div class="modal__content">
-        <div class="pw-filter-search-field">
-            <span class="dashicons dashicons-search"></span>
-            <input type="text" id="pw-filter-name-search" placeholder="Name">
-            <span class="dashicons dashicons-no-alt"></span>
+    <div id="pw-design-app">
+        <div class="pw-design-bulk-actions">
+            <button class="button" @click="openFilterModal">Filter</button>
+            <label><input type="checkbox" v-model="allSelected"> Select All</label>
+            <button v-show="selectedDesignIds.length > 0" id="pw-delete-selected-designs" class="button button-danger" @click="triggerBulkDelete" style="display: none;" :style="{ display: selectedDesignIds.length > 0 ? 'inline-block' : 'none' }">Delete Selected</button>
+            <button v-show="selectedDesignIds.length > 0" id="pw-bulk-update-designs" class="button button-primary" @click="triggerBulkUpdate" style="display: none;" :style="{ display: selectedDesignIds.length > 0 ? 'inline-block' : 'none' }">Bulk Update</button>
         </div>
 
-        <div class="pw-filter-section">
-            <h5 class="pw-filter-toggle">Selected Filter Field</h5>
-            <div class="pw-filter-options">
-                <label><input type="checkbox" name="filter_field" value="product_name" checked> Product Name</label>
-                <div class="pw-filter-condition">
-                    <select name="product_name_condition">
-                        <option value="contains">contains</option>
-                        <option value="not_contains">does not contain</option>
-                    </select>
-                    <input type="text" name="product_name_value" placeholder="t-shirt">
+        <div class="pw-design-grid">
+            <div v-if="paginatedDesigns.length === 0">No designs found.</div>
+            <div v-for="design in paginatedDesigns" :key="design.id" class="pw-design-card" :data-design-id="design.id">
+                <div class="pw-design-thumbnail">
+                    <input type="checkbox" class="pw-design-checkbox" :value="design.id" :checked="selectedDesignIds.includes(design.id)" @change="toggleSelection(design.id)">
+                    <img v-if="design.thumbnail" :src="design.thumbnail" class="pw-design-thumbnail-img">
+                    <div v-else>Thumbnail Design</div>
+                </div>
+                <div class="pw-design-name">{{ design.name }}</div>
+                <button class="button pw-add-tag-button" :data-design-id="design.id" @click="triggerAddTag(design.id)">Add Tag</button>
+                <div class="pw-design-tags" :data-design-id="design.id">
+                    <span v-if="design.tags && design.tags.length" class="pw-tags-label">Tags: </span>
+                    {{ design.tags ? design.tags.join(' ') : '' }}
+                </div>
+                <div class="pw-design-actions-bottom">
+                    <button type="button" class="pw-edit-design-btn" :data-design-id="design.id" title="Edit Design" @click="triggerEdit(design.id)"><span class="dashicons dashicons-edit"></span></button>
+                    <a :href="design.delete_link" title="Delete Design" class="pw-delete-design-link" onclick="return confirm('Are you sure?');"><span class="dashicons dashicons-trash"></span></a>
                 </div>
             </div>
         </div>
 
-        <div class="pw-filter-section">
-            <h5 class="pw-filter-toggle">Not Selected Filter Field</h5>
-            <div class="pw-filter-options" style="display:none;">
-                <label><input type="checkbox" name="filter_field" value="category_name"> Category Name</label>
-                 <div class="pw-filter-condition" style="display:none;">
-                    <select name="category_name_condition">
-                        <option value="is">is</option>
-                        <option value="is_not">is not</option>
-                    </select>
-                     <select name="category_name_value">
-                        <option value="">Select Category</option>
-                        <?php
-                        if ( ! empty( $categories ) ) {
-                            foreach ( $categories as $category ) {
-                                printf( '<option value="%s">%s</option>', esc_attr( $category->slug ), esc_html( $category->name ) );
-                            }
-                        }
-                        ?>
-                    </select>
+        <!-- Pagination -->
+        <div class="pw-pagination" v-if="totalPages > 1" style="margin-top: 20px; text-align: center;">
+            <button class="button" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">Previous</button>
+            <span style="margin: 0 10px;">Page {{ currentPage }} of {{ totalPages }}</span>
+            <button class="button" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">Next</button>
+        </div>
+
+        <!-- Filter Modal (Vue Controlled) -->
+        <div class="modal" :class="{ 'is-open': isFilterModalOpen }" id="pw-vue-filter-modal" aria-hidden="true" v-show="isFilterModalOpen" style="display: none;" :style="{ display: isFilterModalOpen ? 'block' : 'none' }">
+            <div class="modal__overlay" tabindex="-1" @click="closeFilterModal">
+                <div class="modal__container" role="dialog" aria-modal="true" @click.stop>
+                    <header class="modal__header">
+                        <h2 class="modal__title">Filter Designs</h2>
+                        <button class="modal__close" aria-label="Close modal" @click="closeFilterModal">&times;</button>
+                    </header>
+                    <div class="modal__content">
+                        <div class="pw-filter-search-field">
+                            <span class="dashicons dashicons-search"></span>
+                            <input type="text" v-model="fieldSearch" placeholder="Search the Field Name">
+                            <span v-if="fieldSearch" class="dashicons dashicons-no-alt" @click="fieldSearch = ''" style="cursor: pointer;"></span>
+                        </div>
+
+                        <div class="pw-filter-section">
+                            <h5 class="pw-filter-toggle">Selected Filter Field</h5>
+                            <div class="pw-filter-options">
+                                <div v-for="(filter, index) in tempFilters" :key="index" class="pw-filter-item" style="border-bottom: 1px solid #eee; padding: 10px 0;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                        <label style="font-weight: bold;"><input type="checkbox" checked @change="removeFilterField(index)"> {{ filter.label }}</label>
+                                    </div>
+                                    <div class="pw-filter-condition" style="display: flex; gap: 10px;">
+                                        <select v-model="filter.operator" style="flex: 1;">
+                                            <option value="contains" v-if="filter.type === 'text'">contains</option>
+                                            <option value="not_contains" v-if="filter.type === 'text'">does not contain</option>
+                                            <option value="is" v-if="filter.type !== 'text'">is</option>
+                                            <option value="is_not" v-if="filter.type !== 'text'">is not</option>
+                                            <option value="gt" v-if="filter.type === 'number'">greater than</option>
+                                            <option value="lt" v-if="filter.type === 'number'">less than</option>
+                                        </select>
+                                        
+                                        <input v-if="filter.type !== 'select'" :type="filter.type" v-model="filter.value" :placeholder="filter.label" style="flex: 2;">
+                                        <select v-if="filter.type === 'select'" v-model="filter.value" style="flex: 2;">
+                                            <option value="">Select {{ filter.label }}</option>
+                                            <option v-for="opt in availableFieldsDef.find(f => f.key === filter.key).options" :value="opt.value">{{ opt.label }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div v-if="tempFilters.length === 0" style="color: #999; font-style: italic; padding: 10px;">--No Matching Fields--</div>
+                            </div>
+                        </div>
+
+                        <div class="pw-filter-section">
+                            <h5 class="pw-filter-toggle">Not Selected Filter Field</h5>
+                            <div class="pw-filter-options">
+                                <div v-for="field in notSelectedFields" :key="field.key" class="pw-filter-item-available" style="padding: 5px 0;">
+                                    <label><input type="checkbox" @change="addFilterField(field)"> {{ field.label }}</label>
+                                </div>
+                                <div v-if="notSelectedFields.length === 0" style="color: #999; font-style: italic; padding: 10px;">--No Matching Fields--</div>
+                            </div>
+                        </div>
+                    </div>
+                    <footer class="modal__footer">
+                        <button class="button" @click="clearFilters">Clear</button>
+                        <button class="button button-primary" @click="applyFilters">Confirm</button>
+                    </footer>
                 </div>
             </div>
         </div>
 
+        <!-- Bulk Update Modal (Vue Controlled) -->
+        <div class="modal" :class="{ 'is-open': isBulkUpdateModalOpen }" id="pw-vue-bulk-update-modal" aria-hidden="true" v-show="isBulkUpdateModalOpen" style="display: none;" :style="{ display: isBulkUpdateModalOpen ? 'block' : 'none' }">
+            <div class="modal__overlay" tabindex="-1" @click="closeBulkUpdateModal">
+                <div class="modal__container" role="dialog" aria-modal="true" @click.stop>
+                    <header class="modal__header">
+                        <h2 class="modal__title">Bulk Update Designs</h2>
+                        <button class="modal__close" aria-label="Close modal" @click="closeBulkUpdateModal">&times;</button>
+                    </header>
+                    <div class="modal__content">
+                        <div class="pw-filter-search-field">
+                            <span class="dashicons dashicons-search"></span>
+                            <input type="text" v-model="updateFieldSearch" placeholder="Search the Field Name">
+                            <span v-if="updateFieldSearch" class="dashicons dashicons-no-alt" @click="updateFieldSearch = ''" style="cursor: pointer;"></span>
+                        </div>
+
+                        <div class="pw-filter-section">
+                            <h5 class="pw-filter-toggle">Selected Filter Field</h5>
+                            <div class="pw-filter-options">
+                                <div v-for="(field, index) in bulkUpdateFields" :key="index" class="pw-filter-item" style="border-bottom: 1px solid #eee; padding: 10px 0;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                        <label style="font-weight: bold;"><input type="checkbox" checked @change="removeBulkUpdateField(index)"> {{ field.label }}</label>
+                                    </div>
+                                    <div class="pw-filter-condition">
+                                        <input v-if="field.type === 'text'" type="text" v-model="field.value" class="regular-text" style="width:100%" placeholder="Enter new value">
+                                        <select v-if="field.type === 'select'" v-model="field.value" style="width:100%">
+                                            <option value="">Select {{ field.label }}</option>
+                                            <option v-for="opt in field.options" :value="opt.value">{{ opt.label }}</option>
+                                        </select>
+                                        <div v-if="field.type === 'toggle'" class="pw-toggle-switch">
+                                            <input type="checkbox" v-model="field.value" :id="'toggle-' + index" class="pw-toggle-input" true-value="publish" false-value="draft" style="display: none;">
+                                            <label :for="'toggle-' + index" class="pw-toggle-label">
+                                                <span class="pw-toggle-slider"></span>
+                                            </label>
+                                            <span class="pw-toggle-text">{{ field.value === 'publish' ? 'Published' : (field.value === 'draft' ? 'Draft' : 'Select Status') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-if="bulkUpdateFields.length === 0" style="color: #999; font-style: italic; padding: 10px;">--No Fields Selected--</div>
+                            </div>
+                        </div>
+
+                        <div class="pw-filter-section">
+                            <h5 class="pw-filter-toggle">Not Selected Filter Field</h5>
+                            <div class="pw-filter-options">
+                                <div v-for="field in notSelectedUpdateFields" :key="field.key" class="pw-filter-item-available" style="padding: 5px 0;">
+                                    <label><input type="checkbox" @change="addBulkUpdateField(field)"> {{ field.label }}</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <footer class="modal__footer">
+                        <button class="button" @click="closeBulkUpdateModal">Cancel</button>
+                        <button class="button button-primary" @click="performBulkUpdate">Update</button>
+                    </footer>
+                </div>
             </div>
-            <footer class="modal__footer">
-                <button class="button" id="pw-filter-clear">Clear</button>
-                <button class="button button-primary" id="pw-filter-confirm">Confirm</button>
-            </footer>
         </div>
     </div>
 </div>
-<style>
-.pw-modal-content h4, .pw-modal-content h5 {
-    margin-top: 0;
-    margin-bottom: 10px;
-}
-.pw-filter-search-field {
-    position: relative;
-    margin-bottom: 15px;
-}
-.pw-filter-search-field .dashicons {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #888;
-}
-.pw-filter-search-field .dashicons-search {
-    left: 8px;
-}
-.pw-filter-search-field .dashicons-no-alt {
-    right: 8px;
-    cursor: pointer;
-}
-.pw-filter-search-field input {
-    width: 100%;
-    padding-left: 30px;
-    padding-right: 30px;
-}
-.pw-filter-section {
-    margin-bottom: 15px;
-}
-.pw-filter-toggle {
-    cursor: pointer;
-    user-select: none;
-}
-.pw-filter-toggle::before {
-    content: '▼';
-    display: inline-block;
-    margin-right: 5px;
-    transition: transform 0.2s;
-}
-.pw-filter-toggle.collapsed::before {
-    transform: rotate(-90deg);
-}
-.pw-filter-options {
-    padding-left: 15px;
-    border-left: 1px solid #ddd;
-    margin-top: 10px;
-}
-.pw-filter-condition {
-    margin-top: 5px;
-    padding-left: 20px;
-}
-.pw-filter-condition select, .pw-filter-condition input {
-    width: 100%;
-    margin-top: 5px;
-}
-</style>
+
 
 <!-- Tag Modal -->
 <div class="modal" id="pw-tag-modal" aria-hidden="true">
@@ -549,101 +374,7 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
     </div>
 </div>
 
-<!-- Bulk Update Modal -->
-<div class="modal" id="pw-bulk-update-modal" aria-hidden="true">
-    <div class="modal__overlay" tabindex="-1">
-        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-bulk-update-modal-title" style="max-width: 800px;">
-            <header class="modal__header">
-                <h2 class="modal__title" id="pw-bulk-update-modal-title">Bulk Update Designs</h2>
-                <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
-            </header>
-            <div class="modal__content">
-                <form id="pw-bulk-update-form">
-                    <?php wp_nonce_field('pw_bulk_update_nonce', 'pw_bulk_update_nonce_field'); ?>
-                    
-                    <div class="pw-bulk-update-info" style="margin-bottom: 20px; padding: 15px; background: #f0f8ff; border: 1px solid #0073aa; border-radius: 4px;">
-                        <p style="margin: 0; color: #0073aa; font-weight: 600;">Selected Designs: <span id="pw-selected-count">0</span></p>
-                        <p style="margin: 5px 0 0; color: #666; font-size: 14px;">Changes will be applied to all selected designs. Leave fields empty to keep current values.</p>
-                    </div>
-                    
-                    <div class="pw-bulk-update-table" style="overflow-x: auto;">
-                        <table class="wp-list-table widefat fixed striped" style="width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th style="width: 200px;">Field</th>
-                                    <th>New Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Description</strong></td>
-                                    <td>
-                                        <textarea name="bulk_description" id="pw-bulk-description" rows="3" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="Enter new description for selected designs"></textarea>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Category</strong></td>
-                                    <td>
-                                        <select name="bulk_category" id="pw-bulk-category" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                                            <option value="">Select Category</option>
-                                            <?php
-                                            $categories = get_terms( array(
-                                                'taxonomy'   => 'pw_design_category',
-                                                'hide_empty' => false,
-                                            ) );
-                                            if ( ! empty( $categories ) && ! is_wp_error( $categories ) ) {
-                                                foreach ( $categories as $category ) {
-                                                    printf(
-                                                        '<option value="%s">%s</option>',
-                                                        esc_attr( $category->term_id ),
-                                                        esc_html( $category->name )
-                                                    );
-                                                }
-                                            }
-                                            ?>
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Tags</strong></td>
-                                    <td>
-                                        <div style="max-height: 150px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 10px; background: #fff;">
-                                            <?php
-                                            $tags = get_terms( array(
-                                                'taxonomy' => 'pw_design_tag',
-                                                'hide_empty' => false,
-                                                'orderby' => 'name',
-                                                'order' => 'ASC'
-                                            ) );
-                                            if ( ! empty( $tags ) && ! is_wp_error( $tags ) ) {
-                                                foreach ( $tags as $tag ) {
-                                                    printf(
-                                                        '<label style="display: block; margin-bottom: 5px; cursor: pointer;"><input type="checkbox" name="bulk_tags[]" value="%s" style="margin-right: 8px;"> %s</label>',
-                                                        esc_attr( $tag->name ),
-                                                        esc_html( $tag->name )
-                                                    );
-                                                }
-                                            } else {
-                                                echo '<p style="color: #666; font-style: italic;">No tags available</p>';
-                                            }
-                                            ?>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <input type="hidden" name="selected_design_ids" id="pw-selected-design-ids" value="">
-                </form>
-            </div>
-            <footer class="modal__footer">
-                <button class="button" data-micromodal-close>Cancel</button>
-                <button type="submit" class="button button-primary" id="pw-bulk-update-submit" form="pw-bulk-update-form">Update Selected Designs</button>
-            </footer>
-        </div>
-    </div>
-</div>
+<!-- Bulk Update Modal Removed (Replaced by Vue Version) -->
 
 <!-- Add Category Modal -->
 <div class="modal" id="pw-add-category-modal" aria-hidden="true">
@@ -882,192 +613,102 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
     </div>
 </div>
 
-<!-- Edit Design Modal -->
-<div class="modal" id="modal-edit-design" aria-hidden="true">
-    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
-        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-edit-design-title" style="max-width: 1500px; width: 90vw;">
-            <header class="modal__header" style="border-bottom:1px solid #eee; background:#f8f9fa; margin-bottom:0; padding:20px 30px;">
-                <h2 class="modal__title" id="modal-edit-design-title" style="margin:0; color:#333;">Edit Design</h2>
-                <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
-            </header>
-            <div class="modal__content" style="padding:30px;">
-                <form id="edit-design-form">
-                    <input type="hidden" id="edit-design-id" name="design_id">
-                    
-                    <!-- Design Name -->
-                    <div class="pw-form-field" style="margin-bottom:25px;">
-                        <label for="edit-design-name" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Design Name</label>
-                        <input type="text" id="edit-design-name" name="design_name" required style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
-                    </div>
-                    
-                    <!-- Category -->
-                    <div class="pw-form-field" style="margin-bottom:25px;">
-                        <label for="edit-design-category" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Category</label>
-                        <select id="edit-design-category" name="design_category" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
-                            <option value="">Select Category</option>
-                            <?php
-                            $categories = get_terms(array(
-                                'taxonomy' => 'pw_design_category',
-                                'hide_empty' => false,
-                            ));
-                            if (!is_wp_error($categories)) {
-                                foreach ($categories as $category) {
-                                    echo '<option value="' . esc_attr($category->term_id) . '">' . esc_html($category->name) . '</option>';
-                                }
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    
-                    <!-- Enable Setting -->
-                     <div class="pw-form-field" style="margin-bottom:25px;">
-                         <label for="edit-design-enabled" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Enable Setting</label>
-                         <div class="pw-toggle-switch" style="display:flex; align-items:center;">
-                             <input type="checkbox" id="edit-design-enabled" name="design_enabled" class="pw-toggle-input" style="display:none;">
-                             <label for="edit-design-enabled" class="pw-toggle-label" style="position:relative; display:inline-block; width:60px; height:30px; background:#ccc; border-radius:15px; cursor:pointer; transition:background 0.3s;">
-                                 <span class="pw-toggle-slider" style="position:absolute; top:3px; left:3px; width:24px; height:24px; background:white; border-radius:50%; transition:transform 0.3s;"></span>
-                             </label>
-                             <span class="pw-toggle-text" style="margin-left:10px; color:#666;">Disabled</span>
-                         </div>
-                     </div>
-                     
-                     <!-- Advanced Settings (hidden by default) -->
-                     <div id="advanced-settings" class="pw-advanced-settings" style="display:none; border-top:1px solid #eee; padding-top:25px; margin-top:25px;">
-                         <h4 style="margin:0 0 20px 0; color:#333; font-size:16px;">Advanced Settings</h4>
-                         
-                         <!-- Tab Navigation -->
-                         <div class="pw-tabs-nav" style="display:flex; border-bottom:2px solid #f0f0f0; margin-bottom:20px; background:#f9f9f9; border-radius:4px 4px 0 0;">
-                             <button type="button" class="pw-tab-btn active" data-tab="initial-state" style="flex:1; padding:12px 20px; border:none; background:#fff; cursor:pointer; border-bottom:3px solid #007cba; color:#007cba; font-weight:600; border-radius:4px 0 0 0;">Initial State</button>
-                             <button type="button" class="pw-tab-btn" data-tab="operation-config" style="flex:1; padding:12px 20px; border:none; background:#f9f9f9; cursor:pointer; border-bottom:3px solid transparent; color:#666; font-weight:500;">Operation Config</button>
-                             <button type="button" class="pw-tab-btn" data-tab="price" style="flex:1; padding:12px 20px; border:none; background:#f9f9f9; cursor:pointer; border-bottom:3px solid transparent; color:#666; font-weight:500; border-radius:0 4px 0 0;">Price</button>
-                         </div>
-                         
-                         <!-- Tab Content -->
-                         <div class="pw-tab-content" style="min-height:300px; padding:20px; border:1px solid #f0f0f0; border-radius:0 0 4px 4px; background:#fff;">
-                             <!-- Initial State Tab -->
-                             <div id="tab-initial-state" class="pw-tab-panel active" style="display:block;">
-                                 <div class="pw-form-field" style="margin-bottom:20px;">
-                                     <label style="display:flex; align-items:center; cursor:pointer; margin-bottom:15px;">
-                                         <input type="checkbox" id="edit-design-exclude-export" name="design_exclude_export" value="1" style="margin-right:10px;">
-                                         <span style="font-weight:600; color:#333;">Exclude From Export</span>
-                                     </label>
-                                 </div>
-                                 
-                                 <div class="pw-form-field" style="margin-bottom:20px;">
-                                     <label for="edit-design-layer-depth" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Layer Depth</label>
-                                     <input type="number" id="edit-design-layer-depth" name="design_layer_depth" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" value="1" min="1">
-                                 </div>
-                                 
-                                 <div class="pw-form-field">
-                                     <label for="edit-design-scale-mode" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Scale Mode</label>
-                                     <select id="edit-design-scale-mode" name="design_scale_mode" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;">
-                                         <option value="fit">Fit</option>
-                                         <option value="fill">Fill</option>
-                                         <option value="stretch">Stretch</option>
-                                         <option value="none">None</option>
-                                     </select>
-                                 </div>
-                             </div>
-                             
-                             <!-- Operation Config Tab -->
-                             <div id="tab-operation-config" class="pw-tab-panel" style="display:none;">
-                                 <div class="pw-form-field" style="margin-bottom:20px;">
-                                     <label style="display:flex; align-items:center; cursor:pointer; margin-bottom:15px;">
-                                         <input type="checkbox" id="edit-design-stay-on-top" name="design_stay_on_top" value="1" style="margin-right:10px;">
-                                         <span style="font-weight:600; color:#333;">Stay On Top</span>
-                                     </label>
-                                 </div>
-                                 
-                                 <div class="pw-form-field" style="margin-bottom:20px;">
-                                     <div style="display:flex; align-items:center; justify-content:space-between;">
-                                         <span style="font-weight:600; color:#333;">Auto-Select</span>
-                                         <div class="pw-toggle-container" style="display:flex; align-items:center;">
-                                             <input type="checkbox" id="edit-design-auto-select" name="design_auto_select" value="1" style="display:none;">
-                                             <label for="edit-design-auto-select" class="pw-toggle-switch-small" style="position:relative; display:inline-block; width:40px; height:20px; background-color:#ccc; border-radius:20px; cursor:pointer; transition:background-color 0.3s;">
-                                                 <span class="pw-toggle-slider-small" style="position:absolute; top:2px; left:2px; width:16px; height:16px; background-color:white; border-radius:50%; transition:transform 0.3s;"></span>
-                                             </label>
-                                         </div>
-                                     </div>
-                                 </div>
-                                 
-                                 <div class="pw-form-row" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
-                                     <div class="pw-form-field">
-                                         <label style="display:flex; align-items:center; cursor:pointer;">
-                                             <input type="checkbox" id="edit-design-rotatable" name="design_rotatable" value="1" style="margin-right:10px;">
-                                             <span style="font-weight:600; color:#333; font-size:13px;">ROTATABLE</span>
-                                         </label>
-                                     </div>
-                                     <div class="pw-form-field">
-                                         <label style="display:flex; align-items:center; cursor:pointer;">
-                                             <input type="checkbox" id="edit-design-removable" name="design_removable" value="1" style="margin-right:10px;">
-                                             <span style="font-weight:600; color:#333; font-size:13px;">REMOVABLE</span>
-                                         </label>
-                                     </div>
-                                 </div>
-                                 
-                                 <div class="pw-form-row" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-bottom:20px;">
-                                     <div class="pw-form-field">
-                                         <label style="display:flex; align-items:center; cursor:pointer;">
-                                             <input type="checkbox" id="edit-design-movable" name="design_movable" value="1" style="margin-right:10px;">
-                                             <span style="font-weight:600; color:#333; font-size:13px;">MOVABLE</span>
-                                         </label>
-                                     </div>
-                                     <div class="pw-form-field">
-                                         <label style="display:flex; align-items:center; cursor:pointer;">
-                                             <input type="checkbox" id="edit-design-scalable" name="design_scalable" value="1" style="margin-right:10px;">
-                                             <span style="font-weight:600; color:#333; font-size:13px;">SCALABLE</span>
-                                         </label>
-                                     </div>
-                                 </div>
-                                 
-                                 <div class="pw-form-field" style="margin-bottom:20px;">
-                                     <label style="display:flex; align-items:center; cursor:pointer;">
-                                         <input type="checkbox" id="edit-design-proportional-scaling" name="design_proportional_scaling" value="1" style="margin-right:10px;">
-                                         <span style="font-weight:600; color:#333; font-size:13px;">ALLOW UNPROPORTIONAL SCALING</span>
-                                     </label>
-                                 </div>
-                                 
-                                 <div class="pw-form-row" style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-                                     <div class="pw-form-field">
-                                         <label for="edit-design-scale-by" style="display:block; margin-bottom:8px; font-weight:600; color:#333; font-size:13px;">SCALE BY</label>
-                                         <select id="edit-design-scale-by" name="design_scale_by" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:13px;">
-                                             <option value="factor">Factor</option>
-                                             <option value="percentage">Percentage</option>
-                                             <option value="pixels">Pixels</option>
-                                         </select>
-                                     </div>
-                                     <div class="pw-form-field">
-                                         <label for="edit-design-min-scale-limit" style="display:block; margin-bottom:8px; font-weight:600; color:#333; font-size:13px;">Min Scale Limit</label>
-                                         <input type="number" id="edit-design-min-scale-limit" name="design_min_scale_limit" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; font-size:13px;" value="0.2" min="0" max="10" step="0.1">
-                                     </div>
-                                 </div>
-                             </div>
-                             
-                             <!-- Price Tab -->
-                             <div id="tab-price" class="pw-tab-panel" style="display:none;">
-                                 <div class="pw-form-field" style="margin-bottom:20px;">
-                                     <label for="edit-design-price" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">Price</label>
-                                     <input type="number" id="edit-design-price" name="design_price" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" value="0" min="0" step="0.01">
-                                 </div>
-                                 
-                                 <div class="pw-form-field">
-                                     <label for="edit-design-sku" style="display:block; margin-bottom:8px; font-weight:600; color:#333;">SKU</label>
-                                     <input type="text" id="edit-design-sku" name="design_sku" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px;" placeholder="Enter SKU">
-                                 </div>
-                             </div>
-                         </div>
-                     </div>
-                </form>
-            </div>
-            <footer class="modal__footer" style="border-top:1px solid #eee; padding:20px 30px; margin-top:0;">
-                <button class="button" data-micromodal-close>Cancel</button>
-                <button type="submit" class="button button-primary" id="save-design-changes" form="edit-design-form">Save Changes</button>
-            </footer>
-        </div>
-    </div>
-</div>
-
 <?php
+// 1. Prepare Data for Vue
+$designs_data = array();
+$categories_data = array();
+
+// Use existing query parameters from the file
+$args = array(
+    'post_type'      => 'pw_design',
+    'posts_per_page' => -1, // Retrieve all posts
+    'post_status'    => array('publish'), // Include all statuses
+);
+
+if ( ! empty( $search_query ) ) {
+    $args['s'] = $search_query;
+}
+
+if ( ! empty( $selected_category ) ) {
+    $args['tax_query'] = array(
+        array(
+            'taxonomy' => 'pw_design_category',
+            'field'    => 'slug',
+            'terms'    => $selected_category,
+        ),
+    );
+}
+
+// Check tags
+if ( ! empty( $selected_tab ) && $selected_tab !== 'all' ) {
+    $tag_slug = '';
+    switch ( $selected_tab ) {
+        case 'universal': $tag_slug = 'universal'; break;
+        case 'universal-main-view': $tag_slug = 'universal-main-view'; break;
+        case 'product-specific': $tag_slug = 'product-specific'; break;
+    }
+    
+    if ( ! empty( $tag_slug ) ) {
+        if ( ! isset( $args['tax_query'] ) ) $args['tax_query'] = array();
+        if ( ! empty( $args['tax_query'] ) && !isset($args['tax_query']['relation']) ) $args['tax_query']['relation'] = 'AND';
+        $args['tax_query'][] = array(
+            'taxonomy' => 'pw_design_tag',
+            'field'    => 'slug',
+            'terms'    => $tag_slug,
+        );
+    }
+}
+
+$designs_query = new WP_Query( $args );
+
+if ( $designs_query->have_posts() ) {
+    while ( $designs_query->have_posts() ) {
+        $designs_query->the_post();
+        $d_id = get_the_ID();
+        
+        $cats = get_the_terms( $d_id, 'pw_design_category' );
+        $cat_names = $cats && !is_wp_error($cats) ? wp_list_pluck($cats, 'name') : array();
+        $cat_slugs = $cats && !is_wp_error($cats) ? wp_list_pluck($cats, 'slug') : array();
+        
+        $tgs = get_the_terms( $d_id, 'pw_design_tag' );
+        $tag_names = $tgs && !is_wp_error($tgs) ? wp_list_pluck($tgs, 'name') : array();
+
+        $thumb_url = get_the_post_thumbnail_url($d_id, 'medium');
+
+        $price = get_post_meta($d_id, '_pw_design_price', true);
+
+        $designs_data[] = array(
+            'id' => $d_id,
+            'name' => get_the_title(),
+            'thumbnail' => $thumb_url,
+            'delete_link' => get_delete_post_link( $d_id ),
+            'category' => !empty($cat_slugs) ? $cat_slugs[0] : '',
+            'categories' => $cat_names,
+            'tags' => $tag_names,
+            'price' => $price,
+            'date' => get_the_date('Y-m-d'),
+        );
+    }
+    wp_reset_postdata();
+}
+
+$all_cats = get_terms( array('taxonomy' => 'pw_design_category', 'hide_empty' => false) );
+if ( ! empty( $all_cats ) && ! is_wp_error( $all_cats ) ) {
+    foreach ( $all_cats as $c ) {
+        $categories_data[] = array(
+            'slug' => $c->slug,
+            'name' => $c->name
+        );
+    }
+}
+
+// 2. Enqueue Vue and App
+wp_enqueue_script('vue', 'https://unpkg.com/vue@3/dist/vue.global.prod.js', array(), '3.0.0', true);
+wp_enqueue_script('pw-design-app', plugin_dir_url(__FILE__) . '../js/pw-design-app.js', array('vue', 'jquery'), '1.0.0', true);
+wp_localize_script('pw-design-app', 'pw_designs_data', $designs_data);
+wp_localize_script('pw-design-app', 'pw_categories_data', $categories_data);
+
+
 // 加载Micromodal.js
 wp_enqueue_script(
     'micromodal',
@@ -1076,15 +717,6 @@ wp_enqueue_script(
     '0.4.10',
     true
 );
-
-// 暂时禁用分类管理脚本，避免与简化脚本冲突
-// wp_enqueue_script(
-//     'pw-admin-category-management',
-//     plugin_dir_url(__FILE__) . '../js/pw-admin-category-management.js',
-//     array('jquery'),
-//     '1.0.0',
-//     true
-// );
 
 // 加载简化的模态框处理脚本
 wp_enqueue_script(
