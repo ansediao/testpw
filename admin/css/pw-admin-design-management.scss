@@ -133,6 +133,7 @@
                 align-items: center;
 
                 .pw-edit-design-btn,
+                .pw-custom-design-btn,
                 .pw-delete-design-link {
                     display: inline-flex;
                     align-items: center;
@@ -144,7 +145,8 @@
                     
                     // Merging style from migrated code:
                     // Assuming we want the button look for the edit button
-                    &.pw-edit-design-btn {
+                    &.pw-edit-design-btn,
+                    &.pw-custom-design-btn {
                         border: none;
                 
                         font-size: 20px;

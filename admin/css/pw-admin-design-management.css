@@ -106,6 +106,7 @@
   align-items: center;
 }
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-edit-design-btn,
+.wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-custom-design-btn,
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-delete-design-link {
   display: inline-flex;
   align-items: center;
@@ -116,16 +117,19 @@
   cursor: pointer;
 }
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-edit-design-btn.pw-edit-design-btn,
+.wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-custom-design-btn.pw-custom-design-btn,
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-delete-design-link.pw-edit-design-btn {
   border: none;
   font-size: 20px;
   background-color: unset;
 }
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-edit-design-btn.pw-edit-design-btn:hover,
+.wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-custom-design-btn.pw-custom-design-btn:hover,
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-delete-design-link.pw-edit-design-btn:hover {
   color: #dc3232;
 }
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-edit-design-btn.pw-edit-design-btn:focus,
+.wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-custom-design-btn.pw-custom-design-btn:focus,
 .wrap .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-delete-design-link.pw-edit-design-btn:focus {
   outline: 2px solid #0073aa;
   outline-offset: 2px;

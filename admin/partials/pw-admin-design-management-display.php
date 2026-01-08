@@ -76,6 +76,14 @@ $selected_tab      = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] )
                 </div>
                 <div class="pw-design-actions-bottom">
                     <button type="button" class="pw-edit-design-btn" :data-design-id="design.id" title="Edit Design" @click="triggerEdit(design.id)"><span class="dashicons dashicons-edit"></span></button>
+                    
+                    <button type="button" class="pw-custom-design-btn" :data-design-id="design.id" title="Custom Action">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> 
+                           <rect x="4" y="8" width="12" height="12" fill="red" stroke="#333333" stroke-width="2" stroke-linejoin="round"/> 
+                           <path d="M4 8L10 4H22L16 8 M22 4V16L16 20" stroke="#333333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/> 
+                        </svg>
+                    </button>
+                    
                     <a :href="design.delete_link" title="Delete Design" class="pw-delete-design-link" onclick="return confirm('Are you sure?');"><span class="dashicons dashicons-trash"></span></a>
                 </div>
             </div>
