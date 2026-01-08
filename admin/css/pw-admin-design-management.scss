@@ -127,10 +127,13 @@
 
             .pw-design-actions-bottom {
                 margin-top: 15px;
-                display: flex;
+                
                 justify-content: center;
                 gap: 10px;
-                align-items: center;
+                 display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+            
+                width: 100%;
 
                 .pw-edit-design-btn,
                 .pw-custom-design-btn,
