@@ -78,6 +78,10 @@ class Pw_Admin {
 		$this->set_locale();
 		$this->register_custom_post_types();
 		$this->init_api_class();
+
+		// Day 1：加载 modules/ 目录下的模块入口（当前仅为占位 index.php，不改变现有行为）
+		$this->load_modules();
+
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 
@@ -112,6 +116,11 @@ class Pw_Admin {
 		 * of the plugin.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-pw-admin-i18n.php';
+
+		/**
+		 * 模块加载器：扫描 modules/ 目录。
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-pwca-module-loader.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
@@ -283,6 +292,25 @@ class Pw_Admin {
 		// Initialize Promowares API class early to ensure REST routes are registered
 		$promowares_api = new Pw_Admin_Promowares_Api();
 		$promowares_api->register_ajax_hooks();
+	}
+
+	/**
+	 * 加载插件模块（modules/ 目录）
+	 *
+	 * Day 1：仅 include 各模块 index.php，不注册额外钩子，不改变现有行为。
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 */
+	private function load_modules() {
+		$modules_path = plugin_dir_path( dirname( __FILE__ ) ) . 'modules/';
+
+		if ( ! is_dir( $modules_path ) ) {
+			return;
+		}
+
+		$module_loader = new Pwca_Module_Loader( $modules_path );
+		$module_loader->load();
 	}
 
 	/**
