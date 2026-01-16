@@ -1,0 +1,313 @@
+// @import "../../../public/css/variables";
+// @import "../../../public/css/mixins";
+
+body.wp-admin {
+	#adminmenu .wp-submenu a[href="admin.php?page=pw-dashboard"] {
+		display: none !important;
+	}
+}
+
+.pwca-admin-dashboard {
+	&__section {
+		margin-top: 24px;
+		padding: 16px;
+		background: #fff;
+		border: 1px solid #dcdcde;
+		border-radius: 6px;
+	}
+
+	&__section-title {
+		margin: 0 0 12px 0;
+		font-size: 16px;
+	}
+
+	&__sub-title {
+		margin: 0 0 12px 0;
+		font-size: 14px;
+	}
+
+	&__token-row {
+		display: flex;
+		gap: 12px;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+
+	&__token-status {
+		margin-top: 10px;
+	}
+
+	&__field {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	&__label {
+		min-width: 90px;
+	}
+
+	&__select {
+		min-width: 220px;
+	}
+
+	&__progress {
+		position: relative;
+		width: 100%;
+		height: 30px;
+		background-color: #f1f1f1;
+		margin-top: 12px;
+		border-radius: 4px;
+		overflow: hidden;
+	}
+
+	&__progress-bar {
+		width: 0;
+		height: 100%;
+		background-color: #4caf50;
+		transition: width 0.2s ease;
+	}
+
+	&__progress-text {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #fff;
+		font-weight: 600;
+		text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+	}
+
+	&__cache-status {
+		background: #f9f9f9;
+		padding: 15px;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		margin-bottom: 15px;
+	}
+
+	&__cache-actions {
+		margin-top: 12px;
+	}
+
+	&__row {
+		display: flex;
+		gap: 12px;
+		align-items: center;
+		margin-bottom: 12px;
+		flex-wrap: wrap;
+	}
+
+	&__input {
+		width: 220px;
+	}
+
+	&__result {
+		margin-top: 12px;
+	}
+
+	&__tabs {
+		margin-top: 12px;
+	}
+
+	&__tab-content {
+		margin-top: 16px;
+	}
+
+	&__pane-title {
+		margin: 0 0 16px 0;
+	}
+
+	&__stats {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 16px;
+		margin-bottom: 20px;
+	}
+
+	&__stat-card {
+		position: relative;
+		background: #fff;
+		border: 1px solid #e5e5e5;
+		border-radius: 8px;
+		padding: 16px;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+	}
+
+	&__stat-value {
+		font-size: 22px;
+		font-weight: 700;
+	}
+
+	&__stat-label {
+		margin-top: 8px;
+		color: #666;
+	}
+
+	&__stat-icon {
+		position: absolute;
+		top: 16px;
+		right: 16px;
+		font-size: 28px;
+		width: 28px;
+		height: 28px;
+		color: #888;
+	}
+
+	&__nav {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 16px;
+	}
+
+	&__nav-item {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+		text-decoration: none;
+		padding: 14px 16px;
+		background: #fff;
+		border: 1px solid #e5e5e5;
+		border-radius: 8px;
+		color: #1d2327;
+		transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+		&:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+		}
+	}
+
+	&__nav-label {
+		font-weight: 600;
+	}
+
+	&__status-table {
+		width: 100%;
+		border-collapse: collapse;
+		margin-top: 16px;
+
+		th,
+		td {
+			padding: 12px 15px;
+			border: 1px solid #ddd;
+			text-align: left;
+		}
+
+		th {
+			background-color: #f5f5f5;
+			font-weight: 700;
+		}
+
+		tr:nth-child(even) {
+			background-color: #f9f9f9;
+		}
+	}
+
+	.pwca-status--ok {
+		color: #2ecc71;
+		font-weight: 700;
+	}
+
+	.pwca-status--fail {
+		color: #e74c3c;
+		font-weight: 700;
+	}
+
+	&__product-request {
+		max-width: 800px;
+		margin: 20px auto;
+		background: #fff;
+		border-radius: 8px;
+		padding: 25px;
+		box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+	}
+
+	&__product-request-intro {
+		text-align: center;
+		margin-bottom: 20px;
+		color: #666;
+	}
+
+	&__product-request-instruction {
+		text-align: center;
+		font-weight: 700;
+		margin-bottom: 20px;
+		color: #555;
+	}
+
+	&__form-field {
+		display: flex;
+		gap: 12px;
+		align-items: flex-start;
+		margin-bottom: 16px;
+
+		label {
+			width: 120px;
+			padding-top: 8px;
+			font-weight: 600;
+		}
+
+		textarea,
+		input[type="url"] {
+			flex: 1;
+			padding: 10px;
+			border: 1px solid #ddd;
+			border-radius: 4px;
+			background-color: #f9f9f9;
+		}
+	}
+
+	&__image-upload {
+		flex: 1;
+	}
+
+	&__image-preview {
+		margin-top: 12px;
+		text-align: center;
+
+		img {
+			max-width: 100%;
+			max-height: 180px;
+			border-radius: 4px;
+			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+		}
+	}
+
+	&__form-submit {
+		text-align: center;
+		margin-top: 18px;
+	}
+
+	&__support-cards {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+		gap: 20px;
+		margin-top: 20px;
+	}
+
+	&__support-card {
+		background: #fff;
+		border: 1px solid #ddd;
+		border-radius: 5px;
+		padding: 20px;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	}
+
+	@media (max-width: 782px) {
+		&__form-field {
+			flex-direction: column;
+
+			label {
+				width: 100%;
+				padding-top: 0;
+			}
+		}
+
+		&__input {
+			width: 100%;
+		}
+	}
+}
+

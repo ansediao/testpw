@@ -130,7 +130,6 @@ class Pw_Admin {
 		/**
 		 * Additional admin-area functionality split into cohesive modules.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/pw-admin-dashboard.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/pw-admin-promowares-integration.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/pw-admin-woocommerce-enhancements.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/pw-admin-design-admin.php';
