@@ -132,7 +132,6 @@ class Pw_Admin {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/pw-admin-promowares-integration.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/pw-admin-woocommerce-enhancements.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/pw-admin-design-admin.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing
@@ -180,35 +179,8 @@ class Pw_Admin {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
-		// Register AJAX handlers
-		$this->loader->add_action( 'wp_ajax_pw_add_category', $plugin_admin, 'handle_add_category' );
-		$this->loader->add_action( 'wp_ajax_nopriv_pw_add_category', $plugin_admin, 'handle_add_category' );
-		$this->loader->add_action( 'wp_ajax_pw_get_category_settings', $plugin_admin, 'handle_get_category_settings' );
-		$this->loader->add_action( 'wp_ajax_nopriv_pw_get_category_settings', $plugin_admin, 'handle_get_category_settings' );
-		$this->loader->add_action( 'wp_ajax_pw_update_category_settings', $plugin_admin, 'handle_update_category_settings' );
-		$this->loader->add_action( 'wp_ajax_nopriv_pw_update_category_settings', $plugin_admin, 'handle_update_category_settings' );
-		$this->loader->add_action( 'wp_ajax_pw_delete_category', $plugin_admin, 'handle_delete_category' );
-		$this->loader->add_action( 'wp_ajax_nopriv_pw_delete_category', $plugin_admin, 'handle_delete_category' );
-		
-		// Register design management AJAX handlers
-		$this->loader->add_action( 'wp_ajax_pw_add_design', $plugin_admin, 'handle_add_design' );
-		$this->loader->add_action( 'wp_ajax_nopriv_pw_add_design', $plugin_admin, 'handle_add_design' );
-		$this->loader->add_action( 'wp_ajax_pw_get_design_tags', $plugin_admin, 'handle_get_design_tags' );
-		$this->loader->add_action( 'wp_ajax_nopriv_pw_get_design_tags', $plugin_admin, 'handle_get_design_tags' );
-		$this->loader->add_action( 'wp_ajax_pw_save_design_tags', $plugin_admin, 'handle_save_design_tags' );
-		$this->loader->add_action( 'wp_ajax_nopriv_pw_save_design_tags', $plugin_admin, 'handle_save_design_tags' );
-		
 		// Register product request form handler
 		$this->loader->add_action( 'wp_ajax_pw_submit_product_request', $plugin_admin, 'handle_product_request_submission' );
-		
-		// Register bulk delete designs handler
-		$this->loader->add_action( 'wp_ajax_pw_bulk_delete_designs', $plugin_admin, 'handle_bulk_delete_designs' );
-		
-		// Register bulk update designs handler
-		$this->loader->add_action( 'wp_ajax_pw_bulk_update_designs', $plugin_admin, 'handle_bulk_update_designs' );
-
-		$this->loader->add_action( 'add_meta_boxes_pw_design', $plugin_admin, 'register_pw_design_price_metabox' );
-		$this->loader->add_action( 'save_post_pw_design', $plugin_admin, 'save_pw_design_price_meta' );
 
 	}
 

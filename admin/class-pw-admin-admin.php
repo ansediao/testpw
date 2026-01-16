@@ -78,9 +78,6 @@ class Pw_Admin_Admin
         // 引入阿里图标库CSS
         wp_enqueue_style('pw-admin-iconfont', '//at.alicdn.com/t/c/font_4970780_pfyts3fzl6.css', array(), '01', 'all');
         
-        // 加载设计管理样式
-        wp_enqueue_style('pw-admin-design-management', plugin_dir_url(__FILE__) . 'css/pw-admin-design-management.css', array(), $this->version, 'all');
-
     }
 
     /**

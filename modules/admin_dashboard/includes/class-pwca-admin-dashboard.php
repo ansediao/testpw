@@ -22,7 +22,6 @@ final class Pwca_Admin_Dashboard {
 	public function register() {
 		add_action( 'admin_menu', array( $this, 'register_menu_pages' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-		add_filter( 'parent_file', array( $this, 'fix_tags_menu_highlight' ) );
 	}
 
 	public function register_menu_pages() {
@@ -47,25 +46,6 @@ final class Pwca_Admin_Dashboard {
 			'read',
 			'pw-dashboard-settings',
 			array( $this, 'render_settings_page' )
-		);
-
-		$design_capability = $this->get_design_edit_capability();
-
-		add_submenu_page(
-			'pw-dashboard',
-			'Design Library',
-			'Design Library',
-			$design_capability,
-			'pw-design-library',
-			'pw_manage_designs_page'
-		);
-
-		add_submenu_page(
-			'pw-dashboard',
-			'Tags',
-			'Tags',
-			$design_capability,
-			'edit-tags.php?taxonomy=pw_design_tag'
 		);
 	}
 
@@ -100,21 +80,6 @@ final class Pwca_Admin_Dashboard {
 		$this->render_view( 'settings-page.php', array( 'view_model' => $view_model ) );
 	}
 
-	public function fix_tags_menu_highlight( $parent_file ) {
-		global $pagenow;
-
-		if ( 'edit-tags.php' !== $pagenow ) {
-			return $parent_file;
-		}
-
-		$taxonomy = isset( $_GET['taxonomy'] ) ? sanitize_text_field( wp_unslash( $_GET['taxonomy'] ) ) : '';
-		if ( 'pw_design_tag' !== $taxonomy ) {
-			return $parent_file;
-		}
-
-		return 'pw-dashboard';
-	}
-
 	private function is_woocommerce_active() {
 		if ( class_exists( 'WooCommerce' ) ) {
 			return true;
@@ -122,15 +87,6 @@ final class Pwca_Admin_Dashboard {
 
 		$active_plugins = apply_filters( 'active_plugins', get_option( 'active_plugins', array() ) );
 		return in_array( 'woocommerce/woocommerce.php', (array) $active_plugins, true );
-	}
-
-	private function get_design_edit_capability() {
-		$post_type_object = get_post_type_object( 'pw_design' );
-		if ( $post_type_object && isset( $post_type_object->cap, $post_type_object->cap->edit_posts ) ) {
-			return $post_type_object->cap->edit_posts;
-		}
-
-		return 'edit_posts';
 	}
 
 	private function should_load_assets( $hook ) {
