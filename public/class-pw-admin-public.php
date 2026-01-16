@@ -78,9 +78,6 @@ class Pw_Admin_Public
 
         // 添加购物车重定向功能
         add_action('template_redirect', array($this, 'custom_cart_redirect_based_on_product_meta'));
-
-        // 添加支付页面重定向功能
-        add_action('template_redirect', array($this, 'custom_checkout_redirect_based_on_product_meta'));
     }
 
     /**
@@ -124,10 +121,6 @@ class Pw_Admin_Public
         }
 
         // 添加自定义结账页面样式
-        if (is_page('custom-checkout') || is_checkout()) {
-            wp_enqueue_style('pwca-custom-checkout', plugin_dir_url(__FILE__) . 'css/pwca-custom-checkout.css', array(), $this->version, 'all');
-        }
-
         // 添加自定义购物车页面样式
     }
 
@@ -289,58 +282,5 @@ class Pw_Admin_Public
         }
     }
 
-    /**
-     * 检查购物车产品中是否包含特定的 meta key，如果包含则重定向到自定义支付页面
-     *
-     * 如果购物车中有任何产品的 post meta 'pw_isSyncProduct' 的值为 '1'，
-     * 则将用户从标准支付页面重定向到 /custom-checkout/。
-     *
-     * @since    1.0.0
-     */
-    public function custom_checkout_redirect_based_on_product_meta()
-    {
-        // 1. 仅在标准支付页面执行，并排除 AJAX 请求
-        if (! is_checkout() || wp_doing_ajax()) {
-            return;
-        }
-
-        // 2. 确保 WooCommerce 功能可用
-        if (! function_exists('WC') || ! WC()->cart) {
-            return;
-        }
-
-        // 3. 定义要检查的 meta key 和 value，以及重定向的目标 URL
-        $meta_key_to_check   = 'pw_isSyncProduct';
-        $meta_value_to_check = '1';
-        $redirect_url        = home_url('/custom-checkout/'); // 自定义支付页面的路径
-        $should_redirect = false;
-
-        // 4. 遍历购物车中的所有商品
-        foreach (WC()->cart->get_cart() as $cart_item) {
-            // 获取产品 ID ($cart_item['variation_id'] 可能是 0)
-            $product_id = $cart_item['product_id'];
-
-            // 获取产品的 meta 值
-            $meta_value = get_post_meta($product_id, $meta_key_to_check, true);
-
-            // 5. 检查 meta 值是否匹配
-            if ($meta_value === $meta_value_to_check) {
-                $should_redirect = true;
-                break; // 找到一个匹配项就足够了，跳出循环以提高效率
-            }
-        }
-
-        // 6. 如果需要重定向，并且当前页面不是目标页面（防止无限循环）
-        if ($should_redirect) {
-            global $wp;
-            // 获取当前页面的完整 URL
-            $current_url = home_url(add_query_arg([], $wp->request));
-
-            // 比较当前 URL 和目标 URL，如果不同则安全重定向
-            if (rtrim($current_url, '/') !== rtrim($redirect_url, '/')) {
-                wp_safe_redirect($redirect_url);
-                exit();
-            }
-        }
-    }
+ 
 }

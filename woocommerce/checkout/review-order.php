@@ -53,7 +53,7 @@ defined( 'ABSPATH' ) || exit;
             </div>
             
             <!-- 运费（未选择前不显示；忽略历史会话，严格前端控制显示） -->
-            <div class="pwca-order-shipping" style="display:none;">
+            <div class="pwca-order-shipping">
                 <div class="pwca-shipping-row"></div>
             </div>
            
@@ -71,59 +71,10 @@ defined( 'ABSPATH' ) || exit;
         
         <!-- 右侧配送方式选择区域 -->
         <div class="pwca-shipping-section">
-            
+            <div class="pwca-calculate-shipping-container">
+                <button type="button" class="button pwca-calculate-shipping-btn" id="pwca-calculate-shipping"><?php echo esc_html__( 'Calculate Shipping', 'woocommerce' ); ?></button>
+                <div id="pwca-shipping-options"></div>
+            </div>
         </div>
     </div>
 </div>
-
-<script type="text/javascript">
-jQuery(document).ready(function($) {
-    // 注意：总计区域由 WooCommerce 的 wc fragments 更新，包含运费
-    // 我们只负责左侧自定义运费行的显示与内容
-
-    // 更新左侧订单区域的运费显示
-    function updatePwcaShippingRow(service, cost) {
-        var html = '' +
-            '<label class="pwca-selected-shipping">' +
-                '<input type="radio" checked disabled /> ' +
-                '<span class="pwca-shipping-name">' + (service || '') + '</span>' +
-            '</label>' +
-            '<div class="pwca-shipping-freight"><strong>Freight:</strong> ' + (parseFloat(cost || 0).toFixed(2)) + '$</div>';
-        $('.pwca-order-shipping .pwca-shipping-row').html(html);
-        $('.pwca-order-shipping').show();
-    }
-
-    // 响应自定义运费选项变更（来源于 pw-admin.php 中生成的 pwca_shipping_option 单选）
-    $(document).on('change', 'input[name="pwca_shipping_option"]', function() {
-        var $opt = $(this);
-        var service = $opt.data('service');
-        var cost = parseFloat($opt.data('cost')) || 0;
-        updatePwcaShippingRow(service, cost);
-    });
-
-    // 点击“计算运费”按钮后，默认选中并显示第一个选项（通讯成功后 pw-admin.php 会渲染表格）
-    $(document).on('click', '#pwca-calculate-shipping', function() {
-        setTimeout(function() {
-            var $first = $('input[name="pwca_shipping_option"]:checked').first();
-            if ($first.length) {
-                var service = $first.data('service');
-                var cost = parseFloat($first.data('cost')) || 0;
-                updatePwcaShippingRow(service, cost);
-            }
-        }, 300);
-    });
-
-    // Woo 更新完成后，确保如果 session 已有运费则显示该块
-    $(document.body).on('updated_checkout', function() {
-        // 只有在本次会话中选择过运费（通讯成功）才显示运费块
-        if (window.pwcaHasSelectedShipping) {
-            var hasRow = $('.pwca-order-shipping .pwca-shipping-row').text().trim().length > 0;
-            if (hasRow) {
-                $('.pwca-order-shipping').show();
-            }
-        } else {
-            $('.pwca-order-shipping').hide();
-        }
-    });
-});
-</script>

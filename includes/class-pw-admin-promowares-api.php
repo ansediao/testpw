@@ -407,6 +407,44 @@ class Pw_Admin_Promowares_Api
         return $this->hardcoded_token;
     }
 
+    public static function calculate_shipping_options($country_code, $weight, $shipping_method = 'PK1792')
+    {
+        $token = get_option('pw_api_token', '');
+        if (empty($token)) {
+            return new WP_Error('missing_token', 'API token is required');
+        }
+
+        $api_url = 'https://dev.promowares.com/api/v1/shipping/calculate';
+
+        $request_data = array(
+            'country_code' => (string) $country_code,
+            'weight' => (string) $weight,
+            'shipping_method' => (string) $shipping_method,
+        );
+
+        $response = wp_remote_post($api_url, array(
+            'headers' => array(
+                'Authorization' => $token,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ),
+            'body' => wp_json_encode($request_data),
+            'timeout' => 15,
+        ));
+
+        if (is_wp_error($response)) {
+            return $response;
+        }
+
+        $body = wp_remote_retrieve_body($response);
+        $decoded = json_decode($body, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return new WP_Error('json_error', 'Invalid JSON response: ' . json_last_error_msg());
+        }
+
+        return $decoded;
+    }
+
     /**
      * Get custom templates data for a specific product.
      *

@@ -1,0 +1,203 @@
+@import 'variables';
+@import 'mixins';
+
+.checkout.woocommerce-checkout {
+	display: grid;
+	grid-template-columns: 65% 35%;
+	grid-template-rows: auto 1fr;
+	grid-template-areas:
+		"customer heading"
+		"customer order";
+	gap: 20px;
+
+	#customer_details {
+		grid-area: customer;
+		align-self: start;
+
+		> div {
+			float: unset;
+			width: 100%;
+		}
+	}
+
+	#order_review_heading {
+		grid-area: heading;
+		display: none;
+	}
+
+	#order_review {
+		grid-area: order;
+		align-self: start;
+	}
+}
+
+.pwca-checkout-review-container {
+	padding: 10px;
+	background-color: #F7F7F7;
+}
+
+.pwca-order-summary {
+	.pwca-order-title {
+		font-size: 18px;
+	}
+
+	.pwca-order-item {
+		border-bottom: 1px solid #E5E5E5;
+		padding-bottom: 10px;
+	}
+
+	.pwca-order-subtotal {
+		padding: 10px 0;
+		border-bottom: 1px solid #E5E5E5;
+	}
+
+	.pwca-order-total {
+		padding: 10px 0;
+	}
+}
+
+.pwca-order-shipping {
+	display: none;
+
+	&.is-visible {
+		display: block;
+	}
+}
+
+.pwca-shipping-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 10px;
+	background: #fff;
+	border: 1px solid #ddd;
+
+	th,
+	td {
+		padding: 12px 8px;
+		text-align: left;
+		border-bottom: 1px solid #ddd;
+	}
+
+	th {
+		background: #f8f9fa;
+		font-weight: 600;
+		color: #333;
+	}
+
+	tr:hover {
+		background: #f8f9fa;
+	}
+
+	input[type="radio"] {
+		margin: 0;
+		cursor: pointer;
+	}
+
+	td:first-child {
+		text-align: center;
+		width: 60px;
+	}
+
+	td:last-child {
+		font-weight: 600;
+		color: #007cba;
+	}
+
+	tr.pwca-selected {
+		background-color: #F0F8FF;
+	}
+}
+
+.pwca-calculate-shipping-container {
+	padding: 10px 0;
+	border-bottom: 1px solid #e0e0e0;
+	margin-bottom: 15px;
+}
+
+.pwca-calculate-shipping-btn {
+	background: #007cba;
+	color: #fff;
+	border: none;
+	padding: 8px 16px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 14px;
+	transition: all 0.3s ease;
+
+	&:hover {
+		background: #005a87;
+	}
+
+	&:disabled,
+	&.disabled {
+		background: #ccc;
+		cursor: not-allowed;
+	}
+
+	&.loading {
+		position: relative;
+		padding-right: 30px;
+	}
+
+	&.loading:after {
+		content: "";
+		position: absolute;
+		right: 10px;
+		top: 50%;
+		width: 12px;
+		height: 12px;
+		margin-top: -6px;
+		border: 2px solid #ffffff;
+		border-top: 2px solid transparent;
+		border-radius: 50%;
+		animation: pwca-spin 1s linear infinite;
+	}
+}
+
+@keyframes pwca-spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+.pwca-shipping-updating {
+	background: #f0f8ff;
+	border: 1px solid #007cba;
+	padding: 8px 12px;
+	margin: 10px 0;
+	border-radius: 4px;
+	color: #007cba;
+	font-size: 14px;
+	text-align: center;
+}
+
+.pwca-woocommerce-message {
+	background: #d4edda;
+	border: 1px solid #c3e6cb;
+	color: #155724;
+	padding: 10px 15px;
+	margin: 10px 0;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.woocommerce-checkout {
+	#place_order.pwca-pay-disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+}
+
+.woocommerce-checkout {
+	#shipping_method,
+	.shipping-calculator-form,
+	.woocommerce-shipping-methods,
+	.woocommerce-shipping-methods li,
+	.shipping-calculator-button {
+		display: none !important;
+	}
+}
+
