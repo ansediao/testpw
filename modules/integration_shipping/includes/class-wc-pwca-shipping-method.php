@@ -57,11 +57,11 @@ if ( class_exists( 'WC_Shipping_Method' ) && ! class_exists( 'WC_Pwca_Shipping_M
 			$cost = floatval( $selected_cost );
 
 			return array(
-				'id'       => $this->id . '_' . $this->instance_id,
-				'label'    => 'Shipping Options: ' . (string) $selected_service,
-				'cost'     => $cost,
-				'taxes'    => '',
-				'calc_tax' => 'per_order',
+				'id'        => $this->id . '_' . $this->instance_id,
+				'label'     => 'Shipping Options: ' . (string) $selected_service,
+				'cost'      => $cost,
+				'taxes'     => '',
+				'calc_tax'  => 'per_order',
 				'meta_data' => array(
 					'pwca_shipping_service' => (string) $selected_service,
 					'pwca_shipping_cost'    => $cost,
@@ -71,11 +71,11 @@ if ( class_exists( 'WC_Shipping_Method' ) && ! class_exists( 'WC_Pwca_Shipping_M
 
 		private function get_placeholder_rate() {
 			return array(
-				'id'       => $this->id . '_' . $this->instance_id,
-				'label'    => 'Shipping Options: Please calculate shipping',
-				'cost'     => 0,
-				'taxes'    => '',
-				'calc_tax' => 'per_order',
+				'id'        => $this->id . '_' . $this->instance_id,
+				'label'     => 'Shipping Options: Please calculate shipping',
+				'cost'      => 0,
+				'taxes'     => '',
+				'calc_tax'  => 'per_order',
 				'meta_data' => array(
 					'pwca_shipping_service' => 'Not selected',
 					'pwca_shipping_cost'    => 0,

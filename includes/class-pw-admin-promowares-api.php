@@ -190,6 +190,50 @@ class Pw_Admin_Promowares_Api
         return isset($data['data']) ? $data['data'] : false;
     }
 
+    public function send_product_inquiry($product_id, $first_name, $last_name, $email, $phone, $message, $token = null)
+    {
+        $auth_token = $token ?: $this->hardcoded_token;
+        if (empty($auth_token)) {
+            return new WP_Error('missing_token', 'API token is required');
+        }
+        
+        $payload = array(
+            'email' => (string)$email,
+            'first_name' => (string)$first_name,
+            'last_name' => (string)$last_name,
+            'message' => (string)$message,
+            'product_id' => (int)$product_id,
+            'tel' => (string)$phone,
+        );
+        
+        $response = wp_remote_post($this->api_base_url . 'plugin/inquiry', array(
+            'headers' => array(
+                'Authorization' => $auth_token,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ),
+            'body' => wp_json_encode($payload),
+            'timeout' => 10,
+        ));
+        
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        
+        $response_code = wp_remote_retrieve_response_code($response);
+        if ($response_code !== 200) {
+            return new WP_Error('http_error', 'Promowares API HTTP Error: ' . $response_code);
+        }
+        
+        $body = wp_remote_retrieve_body($response);
+        $decoded = json_decode($body, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return array();
+        }
+        
+        return $decoded;
+    }
+
     /**
      * Handle AJAX proxy API requests to Promowares API.
      * 

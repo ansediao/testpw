@@ -90,21 +90,6 @@ function run_pw_admin()
 }
 run_pw_admin();
 
-// 注册Action Scheduler hooks
-function pw_admin_register_action_scheduler_hooks()
-{
-    // 处理单个产品导入
-    add_action('import_single_product', 'import_single_product');
-
-    // 处理组合产品组导入
-    add_action('import_composite_product_group', 'import_composite_product_group');
-
-    // 处理容器规则
-    add_action('process_container_rules', 'process_container_rules');
-}
-add_action('init', 'pw_admin_register_action_scheduler_hooks');
-
-// 确保admin类中的函数可以被Action Scheduler调用
 require_once plugin_dir_path(__FILE__) . 'admin/class-pw-admin-admin.php';
 
 // function mytheme_enqueue_styles()

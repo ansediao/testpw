@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Checkout_Shipping {
+final class Pwca_Integration_Shipping_Shipping {
 	public function register() {
 		add_action( 'woocommerce_shipping_init', array( $this, 'init_shipping_method' ) );
 		add_filter( 'woocommerce_shipping_methods', array( $this, 'register_shipping_method' ) );
@@ -34,8 +34,8 @@ final class Pwca_Front_Checkout_Shipping {
 			return;
 		}
 
-		$zones    = WC_Shipping_Zones::get_zones();
-		$zone_ids = array_map( 'intval', array_keys( $zones ) );
+		$zones      = WC_Shipping_Zones::get_zones();
+		$zone_ids   = array_map( 'intval', array_keys( $zones ) );
 		$zone_ids[] = 0;
 
 		foreach ( $zone_ids as $zone_id ) {
@@ -118,3 +118,4 @@ final class Pwca_Front_Checkout_Shipping {
 		return $rates;
 	}
 }
+

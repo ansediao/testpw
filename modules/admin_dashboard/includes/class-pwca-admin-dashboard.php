@@ -134,17 +134,19 @@ final class Pwca_Admin_Dashboard {
 			);
 		}
 
-		if ( ! function_exists( 'schedule_product_import' ) ) {
+		if ( ! class_exists( 'Pwca_Integration_Promowares' ) ) {
+			return array(
+				array( 'type' => 'error', 'text' => 'Promowares 同步模块不可用' ),
+			);
+		}
+
+		if ( ! method_exists( 'Pwca_Integration_Promowares', 'schedule_product_import' ) ) {
 			return array(
 				array( 'type' => 'error', 'text' => '产品导入功能不可用' ),
 			);
 		}
 
-		schedule_product_import();
-
-		return array(
-			array( 'type' => 'success', 'text' => '产品导入已开始' ),
-		);
+		return Pwca_Integration_Promowares::schedule_product_import();
 	}
 
 	private function get_settings_page_view_model() {

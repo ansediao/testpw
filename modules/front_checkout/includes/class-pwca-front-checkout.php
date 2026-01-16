@@ -22,8 +22,6 @@ final class Pwca_Front_Checkout {
 		require_once $this->module_path . '/includes/class-pwca-front-checkout-assets.php';
 		require_once $this->module_path . '/includes/class-pwca-front-checkout-redirect.php';
 		require_once $this->module_path . '/includes/class-pwca-front-checkout-template-override.php';
-		require_once $this->module_path . '/includes/class-pwca-front-checkout-shipping.php';
-		require_once $this->module_path . '/includes/class-pwca-front-checkout-shipping-ajax.php';
 	}
 
 	private function register() {
@@ -32,12 +30,9 @@ final class Pwca_Front_Checkout {
 		( new Pwca_Front_Checkout_Assets( $context, $this->module_path, $this->module_url ) )->register();
 		( new Pwca_Front_Checkout_Redirect( $context ) )->register();
 		( new Pwca_Front_Checkout_Template_Override( $this->get_plugin_root_path() ) )->register();
-		( new Pwca_Front_Checkout_Shipping() )->register();
-		( new Pwca_Front_Checkout_Shipping_Ajax() )->register();
 	}
 
 	private function get_plugin_root_path() {
 		return untrailingslashit( dirname( dirname( $this->module_path ) ) );
 	}
 }
-

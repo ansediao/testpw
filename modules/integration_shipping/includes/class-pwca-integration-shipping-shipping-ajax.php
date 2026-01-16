@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Checkout_Shipping_Ajax {
+final class Pwca_Integration_Shipping_Shipping_Ajax {
 	public function register() {
 		add_action( 'wp_ajax_pwca_get_shipping_options', array( $this, 'get_shipping_options' ) );
 		add_action( 'wp_ajax_nopriv_pwca_get_shipping_options', array( $this, 'get_shipping_options' ) );

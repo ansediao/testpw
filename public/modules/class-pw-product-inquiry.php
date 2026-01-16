@@ -289,44 +289,18 @@ class Pw_Product_Inquiry {
         $pw_id = get_post_meta($product_id, 'pw_id', true);
         
         if (empty($pw_id)) {
-            error_log('PW Inquiry: Missing pw_id for product ' . $product_id);
             return;
         }
-
-        $api_url = 'https://dev.promowares.com/api/v1/plugin/inquiry';
         
-        // Try to get token from options, fallback to the provided token
-        $token = get_option('pw_api_token');
-        
-
-        $body = array(
-            'email' => $email,
-            'first_name' => $first_name,
-            'last_name' => $last_name,
-            'message' => $message,
-            'product_id' => (int)$pw_id,
-            'tel' => $phone
+        $api = new Pw_Admin_Promowares_Api();
+        $api->send_product_inquiry(
+            (int)$pw_id,
+            (string)$first_name,
+            (string)$last_name,
+            (string)$email,
+            (string)$phone,
+            (string)$message
         );
-
-        $response = wp_remote_post($api_url, array(
-            'headers' => array(
-                'Authorization' => $token,
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'Accept-Encoding' => 'gzip, deflate, br',
-                'Connection' => 'keep-alive',
-                'User-Agent' => 'PostmanRuntime-ApipostRuntime/1.1.0'
-            ),
-            'body' => wp_json_encode($body),
-            'timeout' => 10,
-            'blocking' => true
-        ));
-        
-        if (is_wp_error($response)) {
-            error_log('PW Inquiry API Error: ' . $response->get_error_message());
-        } elseif (wp_remote_retrieve_response_code($response) !== 200) {
-            error_log('PW Inquiry API Failed: ' . wp_remote_retrieve_response_code($response) . ' ' . wp_remote_retrieve_body($response));
-        }
     }
 
     /**

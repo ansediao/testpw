@@ -25,7 +25,6 @@ final class Pwca_Front_Checkout_Assets {
 		}
 
 		$this->enqueue_styles();
-		$this->enqueue_scripts();
 	}
 
 	private function enqueue_styles() {
@@ -35,57 +34,5 @@ final class Pwca_Front_Checkout_Assets {
 		}
 
 		wp_enqueue_style( 'pwca-custom-checkout', $this->module_url . 'assets/scss/pwca-custom-checkout.css', array(), filemtime( $css_path ), 'all' );
-	}
-
-	private function enqueue_scripts() {
-		wp_enqueue_script( 'pwca-checkout-shipping', $this->module_url . 'assets/js/pwca-checkout-shipping.js', array( 'jquery' ), '1.0.0', true );
-
-		$selected = $this->get_selected_shipping_from_session();
-		wp_localize_script(
-			'pwca-checkout-shipping',
-			'pwcaCheckoutShipping',
-			array(
-				'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
-				'nonce'           => wp_create_nonce( 'pwca_shipping_nonce' ),
-				'selectedService' => $selected['service'],
-				'selectedCost'    => $selected['cost'],
-				'i18n'            => array(
-					'calculateShipping'          => __( 'Calculate Shipping', 'woocommerce' ),
-					'calculating'                => __( 'Calculating...', 'woocommerce' ),
-					'shippingOptionsTitle'       => __( 'Shipping Options', 'woocommerce' ),
-					'unableToLoadOptions'        => __( 'Unable to load shipping options. Please try again.', 'woocommerce' ),
-					'failedToCalculateShipping'  => __( 'Failed to calculate shipping costs', 'woocommerce' ),
-					'errorCalculatingShipping'   => __( 'Error occurred while calculating shipping', 'woocommerce' ),
-					'updatingShipping'           => __( 'Updating shipping cost...', 'woocommerce' ),
-					'failedToUpdateShippingCost' => __( 'Failed to update shipping cost', 'woocommerce' ),
-					'errorUpdatingShippingCost'  => __( 'Error updating shipping cost', 'woocommerce' ),
-					'days'                       => __( 'days', 'woocommerce' ),
-				),
-			)
-		);
-	}
-
-	private function get_selected_shipping_from_session() {
-		if ( ! function_exists( 'WC' ) || ! WC()->session ) {
-			return array(
-				'service' => '',
-				'cost'    => null,
-			);
-		}
-
-		$cost    = WC()->session->get( 'pwca_selected_shipping_cost' );
-		$service = WC()->session->get( 'pwca_selected_shipping_service' );
-
-		if ( $cost === null || $cost === false || ! $service ) {
-			return array(
-				'service' => '',
-				'cost'    => null,
-			);
-		}
-
-		return array(
-			'service' => (string) $service,
-			'cost'    => floatval( $cost ),
-		);
 	}
 }
