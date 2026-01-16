@@ -12,14 +12,11 @@
 
 // Load modular components
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cdn-loader.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cart-handler.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-inquiry.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-composite-products.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-auxiliary-functions.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-template-handler.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cart-admin-actions.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-canvas-inquiry.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pwca-cart-quantity-handler.php';
 // Load partial components
 require_once plugin_dir_path(__FILE__) . 'partials/pw-product-cart-handler.php';
 
@@ -92,14 +89,11 @@ class Pw_Admin_Public
     private function initialize_modules()
     {
         new Pw_CDN_Loader();
-        new Pw_Cart_Handler();
         new Pw_Product_Inquiry();
         new Pw_Composite_Products();
         new Pw_Auxiliary_Functions();
         new Pw_Template_Handler();
-        new Pw_Cart_Admin_Actions();
         new Pw_Canvas_Inquiry();
-        new Pwca_Cart_Quantity_Handler();
 
         // 之前php 实现的 产品页模块
         // new Pw_Product_Customization();
@@ -135,11 +129,6 @@ class Pw_Admin_Public
         }
 
         // 添加自定义购物车页面样式
-        if (is_page('custom-cart')) {
-            wp_enqueue_style('pwca-custom-cart', plugin_dir_url(__FILE__) . 'css/pwca-custom-cart.css', array(), $this->version, 'all');
-            wp_enqueue_style('pw-gradient-modal', plugin_dir_url(__FILE__) . 'css/pw-gradient-modal.css', array(), $this->version, 'all');
-            wp_enqueue_style('pwca-cart-modal', plugin_dir_url(__FILE__) . 'css/pwca-cart-modal.css', array(), $this->version, 'all');
-        }
     }
 
     /**
@@ -162,41 +151,6 @@ class Pw_Admin_Public
             wp_enqueue_script('wc-add-to-cart');
         }
 
-        if (is_page('custom-cart') || (function_exists('is_cart') && is_cart())) {
-            wp_enqueue_script('micromodal', 'https://unpkg.com/micromodal/dist/micromodal.min.js', array(), '0.4.10', true);
-            wp_enqueue_script('pwca-cart-modal', plugin_dir_url(__FILE__) . 'js/pwca-cart-modal.js', array('jquery'), $this->version, true);
-        }
-        
-        // 添加内联脚本处理购物车图片
-        $script = '
-            (function($) {
-                // 处理购物车中的自定义图片
-                function processCartImages() {
-                    $(".custom-product-image").each(function() {
-                        var container = $(this);
-                        var imageUrl = container.data("image-url");
-                        if (imageUrl) {
-                            container(\'<img src="\' + imageUrl + \'" alt="定制设计" style="max-width: 100px; height: auto; display: block; border: 1px solid #ddd; padding: 5px; background: #fff;">\');
-                        }
-                    });
-                }
-
-                // 初始处理
-                processCartImages();
-
-                // 监听购物车更新事件
-                $(document.body).on("updated_cart_totals", function() {
-                    processCartImages();
-                });
-
-                // 监听结账页面更新
-                $(document.body).on("updated_checkout", function() {
-                    processCartImages();
-                });
-            })(jQuery);
-        ';
-
-        wp_add_inline_script($this->plugin_name, $script);
     }
 
     /**

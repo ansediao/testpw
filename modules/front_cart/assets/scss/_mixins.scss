@@ -1,0 +1,184 @@
+/**
+ * SCSS 混合器集中定义文件
+ * 用于复用常见样式模式
+ */
+
+// 按钮基础样式混合器
+// 使用位置：所有按钮组件
+// 参数：无
+@mixin canvas-button-base {
+  padding: $canvas-spacing-sm $canvas-spacing-md;
+  border-radius: $canvas-border-radius;
+  border: none;
+  cursor: pointer;
+  font-family: $canvas-font-family;
+  font-size: $canvas-font-size-base;
+  transition: all $canvas-transition-base $canvas-ease;
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba($canvas-primary-color, 0.2);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// 弹性居中布局混合器
+// 使用位置：需要居中对齐的容器
+// 参数：无
+@mixin canvas-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 弹性垂直居中混合器
+// 使用位置：需要垂直居中的容器
+// 参数：无
+@mixin canvas-flex-center-vertical {
+  display: flex;
+  align-items: center;
+}
+
+// 弹性水平居中混合器
+// 使用位置：需要水平居中的容器
+// 参数：无
+@mixin canvas-flex-center-horizontal {
+  display: flex;
+  justify-content: center;
+}
+
+// 文本截断混合器
+// 使用位置：需要截断文本的元素
+// 参数：$lines - 截断行数（默认1行）
+@mixin canvas-text-truncate($lines: 1) {
+  @if $lines == 1 {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  } @else {
+    display: -webkit-box;
+    -webkit-line-clamp: $lines;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+// 面板基础样式混合器
+// 使用位置：所有面板组件
+// 参数：$shadow - 阴影级别（sm, md, lg）
+@mixin canvas-panel-base($shadow: md) {
+  background-color: $canvas-bg-color;
+  border: 1px solid $canvas-border-color;
+  border-radius: $canvas-border-radius;
+  
+  @if $shadow == sm {
+    box-shadow: $canvas-shadow-sm;
+  } @else if $shadow == md {
+    box-shadow: $canvas-shadow-md;
+  } @else if $shadow == lg {
+    box-shadow: $canvas-shadow-lg;
+  }
+}
+
+// 输入框基础样式混合器
+// 使用位置：所有输入框组件
+// 参数：无
+@mixin canvas-input-base {
+  padding: $canvas-spacing-sm $canvas-spacing-md;
+  border: 1px solid $canvas-border-color;
+  border-radius: $canvas-border-radius;
+  font-family: $canvas-font-family;
+  font-size: $canvas-font-size-base;
+  transition: border-color $canvas-transition-base $canvas-ease;
+  
+  &:focus {
+    outline: none;
+    border-color: $canvas-primary-color;
+    box-shadow: 0 0 0 3px rgba($canvas-primary-color, 0.1);
+  }
+  
+  &:disabled {
+    background-color: $canvas-bg-secondary;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  &::placeholder {
+    color: $canvas-secondary-color;
+    opacity: 0.7;
+  }
+}
+
+// 绝对定位居中混合器
+// 使用位置：需要绝对定位居中的元素
+// 参数：$direction - 居中方向（both, horizontal, vertical）
+@mixin canvas-absolute-center($direction: both) {
+  position: absolute;
+  
+  @if $direction == both {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  } @else if $direction == horizontal {
+    left: 50%;
+    transform: translateX(-50%);
+  } @else if $direction == vertical {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+// 清除浮动混合器
+// 使用位置：包含浮动元素的容器
+// 参数：无
+@mixin canvas-clearfix {
+  &::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
+
+// 响应式字体大小混合器
+// 使用位置：需要响应式字体的元素
+// 参数：$min-size, $max-size - 最小和最大字体大小
+@mixin canvas-responsive-font($min-size: 14px, $max-size: 18px) {
+  font-size: $min-size;
+  
+  @media (min-width: 768px) {
+    font-size: calc(#{$min-size} + (#{$max-size} - #{$min-size}) * ((100vw - 768px) / (1200 - 768)));
+  }
+  
+  @media (min-width: 1200px) {
+    font-size: $max-size;
+  }
+}
+
+// 滚动条样式混合器
+// 使用位置：需要自定义滚动条的容器
+// 参数：$width - 滚动条宽度
+@mixin canvas-scrollbar($width: 8px) {
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $width;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: $canvas-bg-secondary;
+    border-radius: $canvas-border-radius-sm;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $canvas-border-color;
+    border-radius: $canvas-border-radius-sm;
+    
+    &:hover {
+      background: $canvas-secondary-color;
+    }
+  }
+}
+
