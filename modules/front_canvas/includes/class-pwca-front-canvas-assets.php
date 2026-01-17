@@ -80,12 +80,11 @@ final class Pwca_Front_Canvas_Assets {
 	}
 
 	private function enqueue_local_styles() {
-		$this->enqueue_style_if_readable( 'pwca-front-canvas-onlinedesign', 'assets/scss/pwca-onlinedesign.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-front-canvas-operation-panel', 'assets/scss/operation-panel.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-front-canvas-layers-panel', 'assets/scss/layers-panel.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-front-canvas-inquiry-modal', 'assets/scss/pwca-inquiry-modal.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-front-canvas-print-method-modal', 'assets/scss/pwca-print-method-modal.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-front-canvas-group-print-method-modal', 'assets/scss/pwca-group-print-method-modal.css', array() );
+		$this->enqueue_style_if_readable(
+			'pwca-front-canvas-onlinedesign',
+			'assets/scss/pwca-front-canvas.css',
+			array( 'pwca-vendor-layui', 'pwca-vendor-icons' )
+		);
 	}
 
 	private function enqueue_local_scripts() {
