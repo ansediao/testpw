@@ -63,7 +63,6 @@ final class Pwca_Front_Canvas_Assets {
 		wp_enqueue_style( 'pwca-vendor-icons', '//at.alicdn.com/t/c/font_4970780_pfyts3fzl6.css', array(), null );
 
 		wp_enqueue_script( 'pwca-vendor-layui', 'https://unpkg.com/layui@2.11.5/dist/layui.js', array(), '2.11.5', true );
-		wp_enqueue_script( 'pwca-vendor-micromodal', 'https://unpkg.com/micromodal/dist/micromodal.min.js', array(), '0.4.10', true );
 		wp_enqueue_script( 'pwca-vendor-vue', 'https://unpkg.com/vue@3/dist/vue.global.js', array(), '3', true );
 		wp_enqueue_script( 'pwca-vendor-vue-demi', 'https://unpkg.com/vue-demi@0.14.7/lib/index.iife.js', array( 'pwca-vendor-vue' ), '0.14.7', true );
 		wp_enqueue_script( 'pwca-vendor-pinia', 'https://unpkg.com/pinia@2/dist/pinia.iife.js', array( 'pwca-vendor-vue-demi' ), '2', true );
@@ -230,7 +229,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-header-controls',
 			$this->module_url . 'assets/js/design/components/header-controls.js',
-			array( 'pwca-front-canvas-store-index', 'pwca-front-canvas-events', 'pwca-vendor-micromodal' ),
+			array( 'pwca-front-canvas-store-index', 'pwca-front-canvas-events' ),
 			$this->module_path . '/assets/js/design/components/header-controls.js'
 		);
 		wp_script_add_data( 'pwca-front-canvas-header-controls', 'type', 'module' );

@@ -1,15 +1,64 @@
 <script>
 // Inquiry Modal JavaScript
 document.addEventListener('DOMContentLoaded', function() {
-    // 初始化 MicroModal
-    if (typeof MicroModal !== 'undefined') {
-        MicroModal.init({
-            disableScroll: true,
-            disableFocus: false,
-            awaitCloseAnimation: false,
-            debugMode: false
+    const inquiryModal = document.getElementById('pwca-inquiry-modal');
+    const inquiryForm = document.getElementById('pwca-inquiry-form');
+    const body = document.body;
+    let previousBodyOverflow = '';
+
+    function openInquiryModal() {
+        if (!inquiryModal) {
+            return;
+        }
+        previousBodyOverflow = body.style.overflow || '';
+        inquiryModal.classList.add('is-open');
+        inquiryModal.setAttribute('aria-hidden', 'false');
+        body.classList.add('modal-open');
+
+        const firstInput = inquiryModal.querySelector('input, textarea, button');
+        if (firstInput) {
+            try {
+                firstInput.focus();
+            } catch (e) {}
+        }
+    }
+
+    function closeInquiryModal() {
+        if (!inquiryModal) {
+            return;
+        }
+        inquiryModal.classList.remove('is-open');
+        inquiryModal.setAttribute('aria-hidden', 'true');
+        body.classList.remove('modal-open');
+        body.style.overflow = previousBodyOverflow || '';
+    }
+
+    // Overlay & close buttons
+    if (inquiryModal) {
+        const overlay = inquiryModal.querySelector('.pwca-inquiry-modal__overlay');
+        if (overlay) {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay && overlay.hasAttribute('data-micromodal-close')) {
+                    closeInquiryModal();
+                }
+            });
+        }
+
+        const closeTriggers = inquiryModal.querySelectorAll('[data-micromodal-close]');
+        closeTriggers.forEach(function(el) {
+            el.addEventListener('click', function(e) {
+                e.preventDefault();
+                closeInquiryModal();
+            });
         });
     }
+
+    // ESC 关闭
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && inquiryModal && inquiryModal.classList.contains('is-open')) {
+            closeInquiryModal();
+        }
+    });
     
     // Inquiry 按钮点击事件
     const inquiryBtn = document.getElementById('pwca-inquiry-btn');
@@ -27,16 +76,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // 打开弹窗
-            if (typeof MicroModal !== 'undefined') {
-                MicroModal.show('pwca-inquiry-modal');
-            } else {
-                console.error('MicroModal not loaded');
-            }
+            openInquiryModal();
         });
     }
     
     // 表单提交处理
-    const inquiryForm = document.getElementById('pwca-inquiry-form');
     if (inquiryForm) {
         inquiryForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -94,9 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // 延迟关闭弹窗
                     setTimeout(() => {
-                        if (typeof MicroModal !== 'undefined') {
-                            MicroModal.close('pwca-inquiry-modal');
-                        }
+                        closeInquiryModal();
                     }, 2000);
                 } else {
                     showMessage(data.message || 'An error occurred. Please try again.', 'error');

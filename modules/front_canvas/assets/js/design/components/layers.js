@@ -347,7 +347,11 @@ const layersApp = Vue.createApp({
         const newGroupName = Vue.ref('');
         const selectedLayerForAssign = Vue.ref(null);
         const selectedPrintMethodId = Vue.ref(printMethodStore.selectedPrintMethodId);
-        const activeTab = Vue.ref('color');        
+        const activeTab = Vue.ref('color');
+
+        // 弹窗开关状态
+        const isPrintMethodModalOpen = Vue.ref(false);
+        const isGroupPrintMethodModalOpen = Vue.ref(false);
 
         // 图层组印刷方式修改相关数据
         const selectedGroupForPrintMethod = Vue.ref(null);
@@ -1297,14 +1301,8 @@ const layersApp = Vue.createApp({
             const currentMethod = printMethodStore.getLayerPrintMethod(layer.id);
             selectedPrintMethodId.value = currentMethod ? currentMethod.id : printMethodStore.selectedPrintMethodId;
             activeTab.value = 'color';
-            
-            // 使用 MicroModal 显示弹窗
-            if (typeof MicroModal !== 'undefined') {
-                MicroModal.show('pwca-print-method-modal');
-            } else {
-                // 备用方案：使用原有的弹窗方式
-                alert('请选择印刷方式。');
-            }
+
+            isPrintMethodModalOpen.value = true;
         };
 
         const assignLayerToPrintMethod = () => {
@@ -1422,11 +1420,9 @@ const layersApp = Vue.createApp({
                 }
             }
 
-            // 关闭 MicroModal 弹窗
-            if (typeof MicroModal !== 'undefined') {
-                MicroModal.close('pwca-print-method-modal');
-            } else {
-            }
+            // 关闭弹窗并重置状态
+            isPrintMethodModalOpen.value = false;
+            selectedLayerForAssign.value = null;
         };
 
         // 获取打印方式对应的颜色
@@ -1632,13 +1628,13 @@ const layersApp = Vue.createApp({
                 selectedGroupPrintMethodId.value = null;
             }
 
-            // 使用 MicroModal 显示弹窗
-            if (typeof MicroModal !== 'undefined') {
-                MicroModal.show('pwca-group-print-method-modal');
-            } else {
-                // 备用方案：使用原有的弹窗方式
-                alert('请选择新的印刷方式。');
-            }
+            isGroupPrintMethodModalOpen.value = true;
+        };
+
+        const closeGroupPrintMethodModal = () => {
+            isGroupPrintMethodModalOpen.value = false;
+            selectedGroupForPrintMethod.value = null;
+            selectedGroupPrintMethodId.value = null;
         };
 
         // 确认修改图层组印刷方式
@@ -1732,9 +1728,7 @@ const layersApp = Vue.createApp({
             }
 
             // 关闭弹窗
-            if (typeof MicroModal !== 'undefined') {
-                MicroModal.close('pwca-group-print-method-modal');
-            }
+            closeGroupPrintMethodModal();
 
             // 触发自定义事件通知其他组件
             const event = new CustomEvent('pwcaGroupPrintMethodChanged', {
@@ -1748,9 +1742,7 @@ const layersApp = Vue.createApp({
 
             // 显示成功消息
 
-            // 清理状态
-            selectedGroupForPrintMethod.value = null;
-            selectedGroupPrintMethodId.value = null;
+            // 清理状态（closeGroupPrintMethodModal 中已处理部分状态）
             
             // 检查当前选中的图层是否在受影响的图层中，如果是则更新蒙版画布显示
             if (store.activeObjectId) {
@@ -1790,7 +1782,11 @@ const layersApp = Vue.createApp({
             newGroupName,
             selectedLayerForAssign,
             selectedPrintMethodId,
-            activeTab,            
+            activeTab,
+
+            // 弹窗状态
+            isPrintMethodModalOpen,
+            isGroupPrintMethodModalOpen,
 
             // 图层组印刷方式修改相关数据
             selectedGroupForPrintMethod,
@@ -1848,6 +1844,7 @@ const layersApp = Vue.createApp({
 
             // 图层组印刷方式修改方法
             showGroupPrintMethodDialog,
+            closeGroupPrintMethodModal,
             confirmGroupPrintMethodChange
         };
     }
@@ -1880,12 +1877,6 @@ const mountApp = () => {
 
             layersApp.mount('#layers-box');
             isAppMounted = true;
-
-            // 初始化 MicroModal
-            if (typeof MicroModal !== 'undefined') {
-                MicroModal.init();
-            } else {
-            }
         } catch (error) {
             // 挂载失败
         }

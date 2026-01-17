@@ -303,8 +303,7 @@ const HeaderControls = {
 
             } else {
                 // Design tab logic
-                // If the modal is open, we might want to close it, but MicroModal handles that.
-                // We just set the state to active.
+                // 仅更新状态，具体弹窗关闭由各自组件负责处理。
             }
             
             // Dispatch event for compatibility

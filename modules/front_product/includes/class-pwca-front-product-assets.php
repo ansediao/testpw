@@ -68,7 +68,6 @@ final class Pwca_Front_Product_Assets {
 		wp_enqueue_style( 'pwca-vendor-layui', 'https://unpkg.com/layui@2.11.5/dist/css/layui.css', array(), '2.11.5' );
 
 		wp_enqueue_script( 'pwca-vendor-layui', 'https://unpkg.com/layui@2.11.5/dist/layui.js', array(), '2.11.5', true );
-		wp_enqueue_script( 'pwca-vendor-micromodal', 'https://unpkg.com/micromodal/dist/micromodal.min.js', array(), '0.4.10', true );
 		wp_enqueue_script( 'pwca-vendor-vue', 'https://unpkg.com/vue@3/dist/vue.global.js', array(), '3', true );
 		wp_enqueue_script( 'pwca-vendor-axios', 'https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js', array(), '1.6.0', true );
 		wp_enqueue_script( 'pwca-vendor-fabric', 'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js', array(), '5.3.0', true );

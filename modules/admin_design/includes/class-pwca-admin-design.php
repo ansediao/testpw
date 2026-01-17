@@ -126,14 +126,6 @@ final class Pwca_Admin_Design {
 		);
 
 		wp_enqueue_script(
-			'pwca-micromodal',
-			'https://unpkg.com/micromodal/dist/micromodal.min.js',
-			array(),
-			'0.4.10',
-			true
-		);
-
-		wp_enqueue_script(
 			'pwca-admin-design-app',
 			$this->module_url . 'assets/js/pwca-admin-design-app.js',
 			array( 'pwca-vue' ),
@@ -144,7 +136,7 @@ final class Pwca_Admin_Design {
 		wp_enqueue_script(
 			'pwca-admin-design-modals',
 			$this->module_url . 'assets/js/pwca-admin-design-modals.js',
-			array( 'jquery', 'pwca-micromodal' ),
+			array( 'jquery' ),
 			null,
 			true
 		);
