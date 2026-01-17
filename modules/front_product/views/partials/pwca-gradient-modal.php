@@ -8,13 +8,13 @@
  * @subpackage Public/Partials
  * @since 1.0.0
  */
-
+ 
 // 防止直接访问
 if (!defined('ABSPATH')) {
     exit;
 }
 ?>
-
+ 
 <div id="gradient-color-modal" class="pwca-gradient-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:9999; align-items:center; justify-content:center;">
     <div class="pwca-gradient-modal-content" style="background:#fff; border-radius:8px; max-width:400px; width:90vw; padding:1rem; position:relative;">
         <button id="close-gradient-color-modal" class="pwca-gradient-modal-close" style="position:absolute; right:0.5rem; top:0.5rem; background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
@@ -65,7 +65,7 @@ if (!defined('ABSPATH')) {
         <button id="applyGradientColor" class="btn btn-inquiry" style="width:100%;">应用渐变色</button>
     </div>
 </div>
-
+ 
 <style>
     .pwca-gradient-modal .color-option {
         position: relative;
@@ -100,7 +100,7 @@ if (!defined('ABSPATH')) {
         }
     }
 </style>
-
+ 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // 渐变色弹窗组件初始化
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const gradientColor1 = document.getElementById('gradientColor1');
     const gradientColor2 = document.getElementById('gradientColor2');
     const gradientDirection = document.getElementById('gradientDirection');
-
+ 
     if (gradientColorModal && closeGradientColorModal && applyGradientColorBtn && gradientColor1 && gradientColor2 && gradientDirection) {
         // 标记是否已经初始化过颜色选择事件
         let colorSelectionInitialized = false;
@@ -516,3 +516,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+

@@ -1,7 +1,7 @@
 // MicroModal 打印方法选择对话框样式 SCSS 源文件
 // 导入变量和混合器
-@import 'variables';
-@import 'mixins';
+@import '_variables';
+@import '_mixins';
 
 /*
   PW Canvas 打印方法选择对话框样式
@@ -289,3 +289,4 @@
         }
     }
 }
+

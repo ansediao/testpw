@@ -2,7 +2,7 @@
  * Canvas 管理器
  * 用于管理 Fabric.js Canvas 实例，将其与 Vue 响应式系统隔离
  */
-
+ 
 class CanvasManager {
     constructor() {
         // 使用 WeakMap 存储 Canvas 实例，避免内存泄漏
@@ -11,7 +11,7 @@ class CanvasManager {
         this._canvasMap = {};
         this._activeCanvasId = null;
     }
-
+ 
     /**
      * 创建并注册 Canvas 实例
      * @param {string} canvasId - Canvas DOM 元素 ID
@@ -23,12 +23,12 @@ class CanvasManager {
         if (typeof fabric === 'undefined') {
             throw new Error('Fabric.js 未加载');
         }
-
+ 
         const canvasElement = document.getElementById(canvasId);
         if (!canvasElement) {
             throw new Error(`Canvas 元素未找到: ${canvasId}`);
         }
-
+ 
         // 创建 Fabric Canvas 实例
         const canvas = new fabric.Canvas(canvasId, {
             backgroundColor: 'transparent',
@@ -36,17 +36,17 @@ class CanvasManager {
             preserveObjectStacking: true,
             ...options
         });
-
+ 
         // 存储 Canvas 实例到普通对象，不进入响应式系统
         this._canvasMap[viewId] = canvas;
         
         // 将 Canvas 实例与 DOM 元素关联
         canvasElement.__fabricCanvas = canvas;
         canvasElement.__viewId = viewId;
-
+ 
         return canvas;
     }
-
+ 
     /**
      * 获取 Canvas 实例
      * @param {string} viewId - 视图 ID
@@ -56,7 +56,7 @@ class CanvasManager {
         const targetViewId = viewId || this._activeCanvasId || 'default';
         return this._canvasMap[targetViewId] || null;
     }
-
+ 
     /**
      * 获取当前激活的 Canvas 实例
      * @returns {fabric.Canvas|null} Canvas 实例
@@ -64,7 +64,7 @@ class CanvasManager {
     getActiveCanvas() {
         return this.getCanvas(this._activeCanvasId);
     }
-
+ 
     /**
      * 设置激活的 Canvas
      * @param {string} viewId - 视图 ID
@@ -72,7 +72,7 @@ class CanvasManager {
     setActiveCanvas(viewId) {
         this._activeCanvasId = viewId;
     }
-
+ 
     /**
      * 获取当前激活的视图 ID
      * @returns {string|null} 当前激活的视图 ID
@@ -80,7 +80,7 @@ class CanvasManager {
     getCurrentViewId() {
         return this._activeCanvasId;
     }
-
+ 
     /**
      * 销毁 Canvas 实例
      * @param {string} viewId - 视图 ID
@@ -102,14 +102,14 @@ class CanvasManager {
                 delete element.__fabricCanvas;
                 delete element.__viewId;
             });
-
+ 
             // 如果销毁的是当前激活的 Canvas，重置激活状态
             if (this._activeCanvasId === viewId) {
                 this._activeCanvasId = null;
             }
         }
     }
-
+ 
     /**
      * 销毁所有 Canvas 实例
      */
@@ -120,7 +120,7 @@ class CanvasManager {
         this._canvasMap = {};
         this._activeCanvasId = null;
     }
-
+ 
     /**
      * 获取所有视图 ID
      * @returns {string[]} 视图 ID 数组
@@ -128,7 +128,7 @@ class CanvasManager {
     getViewIds() {
         return Object.keys(this._canvasMap);
     }
-
+ 
     /**
      * 获取所有 Canvas ID
      * @returns {string[]} Canvas ID 数组
@@ -136,7 +136,7 @@ class CanvasManager {
     getAllCanvasIds() {
         return Object.keys(this._canvasMap);
     }
-
+ 
     /**
      * 检查 Canvas 是否存在
      * @param {string} viewId - 视图 ID
@@ -145,7 +145,7 @@ class CanvasManager {
     hasCanvas(viewId) {
         return !!this._canvasMap[viewId];
     }
-
+ 
     /**
      * 导出 Canvas 为数据
      * @param {string} viewId - 视图 ID
@@ -157,10 +157,10 @@ class CanvasManager {
         if (!canvas) {
             throw new Error(`Canvas 未找到: ${viewId}`);
         }
-
+ 
         return canvas.toDataURL(options.format || 'png', options.quality || 1);
     }
-
+ 
     /**
      * 获取 Canvas 状态（序列化数据）
      * @param {string} viewId - 视图 ID
@@ -171,7 +171,7 @@ class CanvasManager {
         if (!canvas) {
             return null;
         }
-
+ 
         return {
             objects: canvas.toJSON(),
             width: canvas.width,
@@ -180,7 +180,7 @@ class CanvasManager {
             viewportTransform: canvas.viewportTransform
         };
     }
-
+ 
     /**
      * 从状态恢复 Canvas
      * @param {string} viewId - 视图 ID
@@ -191,7 +191,7 @@ class CanvasManager {
         if (!canvas || !state) {
             return false;
         }
-
+ 
         try {
             // 清除现有内容
             canvas.clear();
@@ -216,12 +216,13 @@ class CanvasManager {
         }
     }
 }
-
+ 
 // 创建全局 Canvas 管理器实例
 const canvasManager = new CanvasManager();
-
+ 
 // 暴露到全局
 window.CanvasManager = canvasManager;
-
+ 
 // 兼容旧代码的导出（注释掉以避免在非模块环境中的语法错误）
 // export { CanvasManager, canvasManager };
+

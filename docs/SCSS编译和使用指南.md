@@ -25,11 +25,11 @@ $radius: 4px;
 ## 文件结构
 
 ```
-public/css/
-├── _variables.scss     # 变量集中定义文件
+modules/*/assets/scss/
+├── _variables.scss     # 变量集中定义文件（每个模块可维护一份；front_canvas 的变量常作为共享基准）
 ├── _mixins.scss        # 混合器集中定义文件
-├── layers-panel.scss   # 图层面板样式源文件
-├── layers-panel.css    # 图层面板编译后的CSS文件
+├── layers-panel.scss   # 样式源文件（示例：front_canvas）
+├── layers-panel.css    # 编译后的 CSS（运行时入队加载）
 └── 其他样式文件...
 ```
 
@@ -72,13 +72,13 @@ $component-specific-var: value;
 npm install -g sass
 
 # 编译单个文件
-sass public/css/layers-panel.scss public/css/layers-panel.css
+sass modules/front_canvas/assets/scss/layers-panel.scss modules/front_canvas/assets/scss/layers-panel.css
 
 # 监听文件变化自动编译
-sass --watch public/css/layers-panel.scss:public/css/layers-panel.css
+sass --watch modules/front_canvas/assets/scss/layers-panel.scss:modules/front_canvas/assets/scss/layers-panel.css
 
 # 编译所有 SCSS 文件
-sass public/css/:public/css/ --no-source-map
+sass modules/front_canvas/assets/scss/:modules/front_canvas/assets/scss/ --no-source-map
 ```
 
 #### 使用 VS Code 扩展

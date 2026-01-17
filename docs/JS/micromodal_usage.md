@@ -2,7 +2,7 @@
 
 ## 项目中的MicroModal引入
 - 前台和后台都已引入 `https://unpkg.com/micromodal/dist/micromodal.min.js`
-- 位置：`public/modules/class-pw-cdn-loader.php` 第62行
+- 位置：`modules/front_canvas/includes/class-pwca-front-canvas-assets.php` 与 `modules/front_product/includes/class-pwca-front-product-assets.php` 的 vendor 资源入队处
 
 ## 使用规范
 - 所有弹窗逻辑都应使用MicroModal.js而不是自定义模态框

@@ -6,7 +6,7 @@ Mask（遮罩）系统是PW Canvas中用于显示打印区域边界和处理分�
 ## 核心组件
 
 ### 1. DOM 结构
-**位置**: `public/partials/canvas-design_area.php:649-650`
+**位置**: `modules/front_canvas/views/partials/canvas-design_area.php:649-650`
 ```html
 <div class="canvas-wrapper" id="maskWrapper-${view.id}" style="z-index:40; pointer-events: none; display: none;">
     <canvas id="maskCanvas-${view.id}"></canvas>
@@ -19,7 +19,7 @@ Mask（遮罩）系统是PW Canvas中用于显示打印区域边界和处理分�
 - `display: none` - 默认隐藏状态
 
 ### 2. 初始化逻辑
-**位置**: `public/partials/canvas-design_area.php:880-961`
+**位置**: `modules/front_canvas/views/partials/canvas-design_area.php:880-961`
 
 **函数**: `initializeMaskCanvas(canvasId, view, store)`
 
@@ -47,7 +47,7 @@ const printAreaMask = new fabric.Path(maskPath, {
 ## 控制逻辑
 
 ### 1. 分组图层遮罩控制
-**位置**: `public/js/main/layers-sync.js`
+**位置**: `modules/front_canvas/assets/js/main/layers-sync.js`
 
 **函数**: `controlMaskCanvasFromMain(objectId)`
 
@@ -65,7 +65,7 @@ const printAreaMask = new fabric.Path(maskPath, {
 - 两个功能可以同时工作，提供不同层次的视觉限制
 
 ### 2. 图层面板控制
-**位置**: `public/js/design/components/layers.js:1173-1185`
+**位置**: `modules/front_canvas/assets/js/design/components/layers.js:1173-1185`
 
 **函数**: `controlMaskCanvasVisibility(layerId)`
 
@@ -76,7 +76,7 @@ const printAreaMask = new fabric.Path(maskPath, {
 - 图层操作时 (line 1482, 1781)
 
 ### 3. Fabric.js clipPath 功能
-**位置**: `public/js/main/layers-sync.js`
+**位置**: `modules/front_canvas/assets/js/main/layers-sync.js`
 
 **函数**: `controlMainWrapperDisplayArea()`
 
@@ -168,7 +168,7 @@ if (width > 0 && height > 0) {
 ## 图像合成逻辑
 
 ### 1. 多层Canvas合成
-**位置**: `public/js/main/capture.js`
+**位置**: `modules/front_canvas/assets/js/main/capture.js`
 
 **函数**: `captureMultiLayerCanvasWithMask(canvasLayers, view)`
 
@@ -196,7 +196,7 @@ if (hasContent) {
 ```
 
 ### 2. PDF导出支持
-**位置**: `public/js/main/capture.js`
+**位置**: `modules/front_canvas/assets/js/main/capture.js`
 
 **函数**: `captureViewForPDF(viewId)`
 
@@ -308,9 +308,9 @@ console.log('已应用测试clipPath');
 6. 验证clipPath应用：`mainCanvas.clipPath`
 
 ## 相关文件
-- `public/partials/canvas-design_area.php` - 遮罩初始化和DOM结构
-- `public/js/main/layers-sync.js` - 遮罩控制、clipPath 实现
-- `public/js/main/capture.js` - 多层画布合成与截图逻辑
-- `public/js/design/components/layers.js` - 图层面板遮罩控制
-- `public/js/stores/canvas-store.js` - 状态管理支持
-- `public/js/canvas-manager.js` - Canvas实例管理，支持clipPath功能
+- `modules/front_canvas/views/partials/canvas-design_area.php` - 遮罩初始化和DOM结构
+- `modules/front_canvas/assets/js/main/layers-sync.js` - 遮罩控制、clipPath 实现
+- `modules/front_canvas/assets/js/main/capture.js` - 多层画布合成与截图逻辑
+- `modules/front_canvas/assets/js/design/components/layers.js` - 图层面板遮罩控制
+- `modules/front_canvas/assets/js/design/stores/index.js` - 状态管理支持
+- `modules/front_canvas/assets/js/canvas-manager.js` - Canvas 实例管理，支持 clipPath 功能

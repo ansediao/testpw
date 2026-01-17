@@ -3,7 +3,7 @@ const { createApp, ref, computed, onMounted, reactive, watch, nextTick } = windo
 // Ensure Pinia is available or wait for it? 
 // The init script in template-canvas-display.php creates Pinia. 
 // We should import it from the shared store file if possible, or use the global one.
-// The file public/js/design/stores/index.js exports pinia instance.
+// The file modules/front_canvas/assets/js/design/stores/index.js exports pinia instance.
 import { useCanvasStore, pinia } from '../stores/index.js';
 
 // Get useRefHistory from VueUse

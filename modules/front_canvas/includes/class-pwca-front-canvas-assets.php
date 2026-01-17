@@ -83,6 +83,8 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_style_if_readable( 'pwca-front-canvas-operation-panel', 'assets/scss/operation-panel.css', array() );
 		$this->enqueue_style_if_readable( 'pwca-front-canvas-layers-panel', 'assets/scss/layers-panel.css', array() );
 		$this->enqueue_style_if_readable( 'pwca-front-canvas-inquiry-modal', 'assets/scss/pwca-inquiry-modal.css', array() );
+		$this->enqueue_style_if_readable( 'pwca-front-canvas-print-method-modal', 'assets/scss/pwca-print-method-modal.css', array() );
+		$this->enqueue_style_if_readable( 'pwca-front-canvas-group-print-method-modal', 'assets/scss/pwca-group-print-method-modal.css', array() );
 	}
 
 	private function enqueue_local_scripts() {
@@ -130,9 +132,9 @@ final class Pwca_Front_Canvas_Assets {
 
 		$this->enqueue_script_if_readable(
 			'pwca-canvas-manager',
-			$this->plugin_root_url . 'public/js/canvas-manager.js',
+			$this->module_url . 'assets/js/canvas-manager.js',
 			array( 'pwca-vendor-fabric' ),
-			$this->plugin_root_path . '/public/js/canvas-manager.js'
+			$this->module_path . '/assets/js/canvas-manager.js'
 		);
 
 		$this->enqueue_script_if_readable(
