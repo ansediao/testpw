@@ -555,3 +555,46 @@
         }
     }
 }
+
+// 渐变色弹窗颜色选项样式
+.pwca-gradient-modal {
+    .color-option {
+        position: relative;
+    }
+
+    .color-option:hover {
+        border-color: $canvas-primary-color !important;
+        transform: scale(1.05);
+    }
+
+    .color-option.selected {
+        border-color: $canvas-primary-color !important;
+        border-width: 3px !important;
+    }
+
+    .color-option.selected::after {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #ffffff;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .pwca-gradient-modal {
+        .gradient-colors-container {
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+        }
+
+        .color-option {
+            width: 35px !important;
+            height: 35px !important;
+        }
+    }
+}

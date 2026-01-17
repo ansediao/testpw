@@ -129,7 +129,19 @@ final class Pwca_Front_Product_Assets {
 	}
 
 	private function enqueue_main_script() {
-		$this->enqueue_script_if_readable( 'pwca-product-main', $this->module_url . 'assets/js/product/main.js', array( 'pwca-product-component-custom-colors' ), $this->module_path . '/assets/js/product/main.js' );
+		$this->enqueue_script_if_readable(
+			'pwca-product-main',
+			$this->module_url . 'assets/js/product/main.js',
+			array( 'pwca-product-component-custom-colors' ),
+			$this->module_path . '/assets/js/product/main.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-product-gradient-modal',
+			$this->module_url . 'assets/js/product/gradient-modal.js',
+			array( 'pwca-product-main' ),
+			$this->module_path . '/assets/js/product/gradient-modal.js'
+		);
 	}
 
 	private function enqueue_style_if_readable( $handle, $relative_path, $deps ) {

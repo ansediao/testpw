@@ -75,6 +75,8 @@ final class Pwca_Front_Canvas_Assets {
 		wp_enqueue_script( 'pwca-vendor-three', 'https://unpkg.com/three@0.128.0/build/three.min.js', array(), '0.128.0', true );
 		wp_enqueue_script( 'pwca-vendor-three-orbit', 'https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js', array( 'pwca-vendor-three' ), '0.128.0', true );
 		wp_enqueue_script( 'pwca-vendor-three-gltf', 'https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js', array( 'pwca-vendor-three' ), '0.128.0', true );
+
+		wp_enqueue_script( 'pwca-vendor-listjs', 'https://cdnjs.cloudflare.com/ajax/libs/list.js/2.3.1/list.min.js', array(), '2.3.1', true );
 	}
 
 	private function enqueue_local_styles() {
@@ -179,6 +181,13 @@ final class Pwca_Front_Canvas_Assets {
 		);
 
 		$this->enqueue_script_if_readable(
+			'pwca-product-gradient-modal',
+			$this->plugin_root_url . 'modules/front_product/assets/js/product/gradient-modal.js',
+			array( 'pwca-front-canvas-color-utils' ),
+			$this->plugin_root_path . '/modules/front_product/assets/js/product/gradient-modal.js'
+		);
+
+		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-capture',
 			$this->module_url . 'assets/js/main/capture.js',
 			array( 'pwca-front-canvas-color-utils' ),
@@ -211,6 +220,13 @@ final class Pwca_Front_Canvas_Assets {
 			$this->module_url . 'assets/js/main/events.js',
 			array( 'pwca-front-canvas-universal-preview' ),
 			$this->module_path . '/assets/js/main/events.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-operation-panel-scripts',
+			$this->module_url . 'assets/js/main/operation-panel-scripts.js',
+			array( 'pwca-front-canvas-events', 'pwca-vendor-listjs' ),
+			$this->module_path . '/assets/js/main/operation-panel-scripts.js'
 		);
 
 		$this->enqueue_design_modules();

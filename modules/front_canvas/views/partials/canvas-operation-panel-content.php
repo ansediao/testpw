@@ -1598,5 +1598,4 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
     <?php include __DIR__ . '/canvas-operation-panel-footer.php'; ?>
 </div>
 
-<?php include __DIR__ . '/canvas-operation-panel-scripts.php'; ?>
 <?php include __DIR__ . '/canvas-operation-panel-inquiry-modal.php'; ?>
