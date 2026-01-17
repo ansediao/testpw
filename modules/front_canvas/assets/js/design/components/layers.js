@@ -1305,6 +1305,11 @@ const layersApp = Vue.createApp({
             isPrintMethodModalOpen.value = true;
         };
 
+        const closePrintMethodModal = () => {
+            isPrintMethodModalOpen.value = false;
+            selectedLayerForAssign.value = null;
+        };
+
         const assignLayerToPrintMethod = () => {
             if (!selectedLayerForAssign.value || !selectedPrintMethodId.value) {
                 alert('请选择一个打印方法');
@@ -1834,6 +1839,7 @@ const layersApp = Vue.createApp({
             createGroup,
             showGroupAssignDialog,
             assignLayerToPrintMethod,
+            closePrintMethodModal,
             removeFromGroup,
             toggleGroup,
             toggleGroupExpand,

@@ -972,7 +972,13 @@ window.applyGradientToView = function(view, startColor, endColor, direction) {
             <!-- 颜色状态将在这里显示 -->
         </div>
 
-        <?php include_once plugin_dir_path(__FILE__) . 'pwca-gradient-modal.php'; ?>
+        <?php
+        // 复用前台产品模块的渐变色弹窗视图
+        $gradient_modal_path = dirname( dirname( dirname( __DIR__ ) ) ) . '/front_product/views/partials/pwca-gradient-modal.php';
+        if ( is_readable( $gradient_modal_path ) ) {
+            include_once $gradient_modal_path;
+        }
+        ?>
 
         <div id="custom-color-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:9999; align-items:center; justify-content:center;">
             <div style="background:#fff; border-radius:8px; max-width:300px; width:90vw; padding:1rem; position:relative;">
