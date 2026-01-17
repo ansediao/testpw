@@ -10,11 +10,6 @@
  * @subpackage Pw_Admin/public
  */
 
-// Load modular components
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-canvas-inquiry.php';
-
-
-
 /**
  * The public-facing functionality of the plugin.
  *
@@ -57,35 +52,8 @@ class Pw_Admin_Public
         $this->plugin_name = $plugin_name;
         $this->version = $version;
 
-        // Initialize all modular components
-        $this->initialize_modules();
-
-        // 添加重写规则
-        add_action('init', array($this, 'add_pw_canvas_rewrite_rules'));
-
-        // 注册查询变量
-        add_filter('query_vars', array($this, 'add_pw_canvas_query_vars'));
-
         // 添加购物车重定向功能
         add_action('template_redirect', array($this, 'custom_cart_redirect_based_on_product_meta'));
-    }
-
-    /**
-     * Initialize all modular components
-     */
-    private function initialize_modules()
-    {
-        new Pw_Canvas_Inquiry();
-
-        // 之前php 实现的 产品页模块
-        // new Pw_Product_Customization();
-        // new Pw_Accessory_Selector();
-        // new Pw_Quantity_Discount();
-        // new Pw_Price_Calculator();
-        // new Pw_Api_Data_Display();
-        // new Pw_Product_Options();
-        // new Pw_Product_Action_Buttons();
-        // new Pw_Custom_Templates();
     }
 
     /**
@@ -119,63 +87,6 @@ class Pw_Admin_Public
             wp_enqueue_script('wc-add-to-cart');
         }
 
-    }
-
-    /**
-     * 添加自定义重写规则
-     * 
-     * @since    1.0.0
-     */
-    public function add_pw_canvas_rewrite_rules()
-    {
-        add_rewrite_rule(
-            '^pwcanvas/?$',
-            'index.php?pw_canvas=1',
-            'top'
-        );
-
-        // 仅在插件激活时刷新重写规则
-        if (get_option('pw_canvas_flush_rewrite') != true) {
-            flush_rewrite_rules();
-            update_option('pw_canvas_flush_rewrite', true);
-        }
-    }
-
-    /**
-     * 添加自定义查询变量
-     * 
-     * @since    1.0.0
-     * @param    array    $vars    查询变量数组
-     * @return   array             修改后的查询变量数组
-     */
-    public function add_pw_canvas_query_vars($vars)
-    {
-        $vars[] = 'pw_canvas';
-        return $vars;
-    }
-
-    /**
-     * Handle canvas request
-     * 
-     * @since    1.0.0
-     */
-    public function pw_canvas_handle_request()
-    {
-        // 检查查询变量
-        if (get_query_var('pw_canvas') == 1) {
-            include(plugin_dir_path(__FILE__) . 'partials/template-canvas-display.php');
-            exit; // 阻止 WordPress 加载默认模板
-        }
-
-        // 保留原有逻辑作为备用
-        global $wp;
-        $current_url = home_url($wp->request);
-        $target_path = '/pwcanvas/';
-
-        if (untrailingslashit($current_url) === untrailingslashit(home_url($target_path))) {
-            include(plugin_dir_path(__FILE__) . 'partials/template-canvas-display.php');
-            exit; // 阻止 WordPress 加载默认模板
-        }
     }
 
     /**

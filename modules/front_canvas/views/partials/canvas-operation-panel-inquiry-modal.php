@@ -74,22 +74,26 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
             
+            const appEl = document.getElementById('app');
+            const restBaseUrl = appEl && appEl.dataset && appEl.dataset.restUrl ? String(appEl.dataset.restUrl) : '';
+            const restEndpoint = restBaseUrl ? restBaseUrl.replace(/\/?$/, '/') + 'pwca/v1/inquiry' : '/wp-json/pwca/v1/inquiry';
+
             // 发送REST API请求
-            fetch('/wp-json/pwca/v1/inquiry', {
+            fetch(restEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(requestData)
             })
-            .then(response =&gt; response.json())
-            .then(data =&gt; {
+            .then(response => response.json())
+            .then(data => {
                 if (data.success) {
                     showMessage(data.message || 'Your inquiry has been sent successfully!', 'success');
                     inquiryForm.reset();
                     
                     // 延迟关闭弹窗
-                    setTimeout(() =&gt; {
+                    setTimeout(() => {
                         if (typeof MicroModal !== 'undefined') {
                             MicroModal.close('pwca-inquiry-modal');
                         }
@@ -98,11 +102,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     showMessage(data.message || 'An error occurred. Please try again.', 'error');
                 }
             })
-            .catch(error =&gt; {
+            .catch(error => {
                 console.error('Error:', error);
                 showMessage('Network error. Please try again.', 'error');
             })
-            .finally(() =&gt; {
+            .finally(() => {
                 // 恢复提交按钮
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
@@ -122,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const requiredFields = inquiryForm.querySelectorAll('[required]');
         let isValid = true;
         
-        requiredFields.forEach(field =&gt; {
+        requiredFields.forEach(field => {
             if (!field.value.trim()) {
                 field.classList.add('pwca-form-input--error');
                 isValid = false;
@@ -133,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 验证邮箱格式
         const emailField = document.getElementById('inquiry_email');
-        if (emailField.value &amp;&amp; !isValidEmail(emailField.value)) {
+        if (emailField.value && !isValidEmail(emailField.value)) {
             emailField.classList.add('pwca-form-input--error');
             isValid = false;
         }
@@ -149,16 +153,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 实时验证
     const formInputs = inquiryForm.querySelectorAll('.pwca-form-input, .pwca-form-textarea');
-    formInputs.forEach(input =&gt; {
+    formInputs.forEach(input => {
         input.addEventListener('blur', function() {
-            if (this.hasAttribute('required') &amp;&amp; !this.value.trim()) {
+            if (this.hasAttribute('required') && !this.value.trim()) {
                 this.classList.add('pwca-form-input--error');
             } else {
                 this.classList.remove('pwca-form-input--error');
             }
             
             // 特殊处理邮箱验证
-            if (this.type === 'email' &amp;&amp; this.value &amp;&amp; !isValidEmail(this.value)) {
+            if (this.type === 'email' && this.value && !isValidEmail(this.value)) {
                 this.classList.add('pwca-form-input--error');
             }
         });
