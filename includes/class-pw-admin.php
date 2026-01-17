@@ -125,9 +125,6 @@ class Pw_Admin {
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-pw-admin-admin.php';
-
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/pw-admin-woocommerce-enhancements.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing
@@ -169,15 +166,6 @@ class Pw_Admin {
 	 * @access   private
 	 */
 	private function define_admin_hooks() {
-
-		$plugin_admin = new Pw_Admin_Admin( $this->get_plugin_name(), $this->get_version() );
-
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
-
-		// Register product request form handler
-		$this->loader->add_action( 'wp_ajax_pw_submit_product_request', $plugin_admin, 'handle_product_request_submission' );
-
 	}
 
 	/**

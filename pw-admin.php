@@ -90,8 +90,6 @@ function run_pw_admin()
 }
 run_pw_admin();
 
-require_once plugin_dir_path(__FILE__) . 'admin/class-pw-admin-admin.php';
-
 // function mytheme_enqueue_styles()
 // {
 //     // Check if ‘wc-cart-fragments’ script is already enqueued or registered
@@ -101,58 +99,6 @@ require_once plugin_dir_path(__FILE__) . 'admin/class-pw-admin-admin.php';
 //     }
 // }
 // add_action('wp_enqueue_scripts', 'mytheme_enqueue_styles');
-// 在后台产品列表中隐藏系统生成的“– Group”分组产品
-add_action('pre_get_posts', function ($query) {
-    if (!is_admin() || !$query->is_main_query()) {
-        return;
-    }
-
-    if ($query->get('post_type') !== 'product') {
-        return;
-    }
-
-    global $wpdb;
-    $group_post_ids = $wpdb->get_col(
-        $wpdb->prepare(
-            "SELECT pm.post_id FROM {$wpdb->postmeta} pm WHERE pm.meta_key = %s AND pm.meta_value = %s",
-            'pw_is_composite_group',
-            '1'
-        )
-    );
-
-    if (!empty($group_post_ids)) {
-        $existing = (array) $query->get('post__not_in');
-        $query->set('post__not_in', array_unique(array_merge($existing, array_map('intval', $group_post_ids))));
-    }
-});
-
-add_action('manage_product_posts_custom_column', function ($column, $post_id) {
-    if ($column === 'name') {
-        $product = wc_get_product($post_id);
-        // if ($cross_ids = $product->get_cross_sell_ids()) {
-        //     echo '<div class="cross-sells-tooltip">▲ ' . count($cross_ids) . ' sub-products
-        //         <div class="tooltip">' . implode(
-        //         '<br>',
-        //         array_map('get_the_title', $cross_ids)
-        //     ) . '</div>
-        //         </div>';
-        // }
-        $all_ids = get_post_meta($post_id, 'pw_composite_all_product_ids', true);
-        if (is_array($all_ids) && !empty($all_ids)) {
-            $child_ids = array_values(array_diff(array_map('intval', $all_ids), array($post_id)));
-            if (!empty($child_ids)) {
-                echo '<div class="cross-sells-tooltip">▲ ' . count($child_ids) . ' sub-products
-                    <div class="tooltip">' . implode(
-                    '<br>',
-                    array_map(function ($cid) {
-                        return '<i class="iconfont icon-xiaji"></i> ' . get_the_title($cid);
-                    }, $child_ids)
-                ) . '</div>
-                    </div>';
-            }
-        }
-    }
-}, 20, 2);
 
 
 
