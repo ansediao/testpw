@@ -300,6 +300,14 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 <?php
 
+// Check if this is a synchronized product
+$pw_isSyncProduct = get_post_meta($product_id, 'pw_isSyncProduct', true);
+$api_product_id = get_post_meta($product_id, 'pw_id', true);
 
+// Initialize view container
+echo '<div class="pw-view-switcher-container" id="pw-view-switcher-container">';
+echo '</div>';
+
+?>
 
 

@@ -167,9 +167,16 @@ final class Pwca_Front_Canvas_Assets {
 		);
 
 		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-preview-init',
+			$this->module_url . 'assets/js/main/preview-init.js',
+			array( 'pwca-front-canvas-preview' ),
+			$this->module_path . '/assets/js/main/preview-init.js'
+		);
+
+		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-layers-sync',
 			$this->module_url . 'assets/js/main/layers-sync.js',
-			array( 'pwca-front-canvas-preview' ),
+			array( 'pwca-front-canvas-preview-init' ),
 			$this->module_path . '/assets/js/main/layers-sync.js'
 		);
 
@@ -220,6 +227,41 @@ final class Pwca_Front_Canvas_Assets {
 			$this->module_url . 'assets/js/main/events.js',
 			array( 'pwca-front-canvas-universal-preview' ),
 			$this->module_path . '/assets/js/main/events.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-dynamic-toolbar',
+			$this->module_url . 'assets/js/main/dongtai-toolbar.js',
+			array( 'pwca-front-canvas-events' ),
+			$this->module_path . '/assets/js/main/dongtai-toolbar.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-tab-text',
+			$this->module_url . 'assets/js/main/tab-text.js',
+			array( 'pwca-front-canvas-dynamic-toolbar' ),
+			$this->module_path . '/assets/js/main/tab-text.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-tab-image',
+			$this->module_url . 'assets/js/main/tab-image.js',
+			array( 'pwca-front-canvas-dynamic-toolbar' ),
+			$this->module_path . '/assets/js/main/tab-image.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-customization-area',
+			$this->module_url . 'assets/js/main/customization-area.js',
+			array( 'pwca-front-canvas-events' ),
+			$this->module_path . '/assets/js/main/customization-area.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-inquiry-modal',
+			$this->module_url . 'assets/js/main/inquiry-modal.js',
+			array( 'pwca-front-canvas-events' ),
+			$this->module_path . '/assets/js/main/inquiry-modal.js'
 		);
 
 		$this->enqueue_script_if_readable(

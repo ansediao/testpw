@@ -20,7 +20,7 @@
         </div>
 
         <!-- 高级搜索行 (默认隐藏) -->
-        <div class="advanced-search-row" id="advanced-search-row" style="display: none;">
+        <div class="advanced-search-row" id="advanced-search-row">
             <div class="advanced-search-field">
                 <label>Folder</label>
                 <select id="filter-operator" class="filter-operator">
@@ -71,7 +71,7 @@
                 foreach ($designs as $design) {
                     echo '<div class="design-item">';
                     if (has_post_thumbnail($design->ID)) {
-                        echo '<img src="' . get_the_post_thumbnail_url($design->ID, 'thumbnail') . '" alt="' . esc_attr($design->post_title) . '" onclick="addDesignToCanvas(' . $design->ID . ')" style="cursor: pointer;">';
+                        echo '<img src="' . get_the_post_thumbnail_url($design->ID, 'thumbnail') . '" alt="' . esc_attr($design->post_title) . '" class="pwca-design-thumbnail" data-design-id="' . esc_attr($design->ID) . '">';
                     }
                     echo '</div>';
                 }

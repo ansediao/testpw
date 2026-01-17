@@ -348,7 +348,7 @@ const HeaderControls = {
         }
     },
     template: `
-        <div class="header_right_content" style="display: contents;">
+        <div class="header_right_content">
             <div id="history-controls" class="history-controls">
                 <div v-for="view in store.views" :key="view.id" v-show="view.id === store.activeViewId" class="history-btn-group">
                     <button 
@@ -364,7 +364,7 @@ const HeaderControls = {
                             padding: '0 5px' 
                         }"
                     >
-                        <i class="iconfont icon-houtui" style="font-size: 20px;"></i>
+                        <i class="iconfont icon-houtui"></i>
                     </button>
                     <button 
                         :id="'forward-' + view.id" 
@@ -379,7 +379,7 @@ const HeaderControls = {
                             padding: '0 5px' 
                         }"
                     >
-                        <i class="iconfont icon-Icon-forward" style="font-size: 20px;"></i>
+                        <i class="iconfont icon-Icon-forward"></i>
                     </button>
                 </div>
             </div>

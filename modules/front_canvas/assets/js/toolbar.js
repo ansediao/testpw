@@ -755,8 +755,8 @@ function updateDynamicToolbar(obj) {
             cropControl.innerHTML = `
             <label class="tab_control_title">Crop：</label>
             <button id="startCrop">Start</button>
-            <button id="applyCrop" style="display: none;">Done</button>
-            <button id="cancelCrop" style="display: none;">Esc</button>
+            <button id="applyCrop" class="pwca-crop-apply">Done</button>
+            <button id="cancelCrop" class="pwca-crop-cancel">Esc</button>
           `;
             tempContainer.appendChild(cropControl);
 
@@ -1007,7 +1007,7 @@ function addDesignToCanvas(designId) {
     }
     
     // 获取设计图片的 URL
-    const designImg = document.querySelector(`.design-item img[onclick="addDesignToCanvas(${designId})"]`);
+    const designImg = document.querySelector('.design-item img[data-design-id="' + designId + '"]');
     if (designImg) {
         const imageUrl = designImg.src;
         fabric.Image.fromURL(imageUrl, function (img) {
@@ -1066,6 +1066,23 @@ document.addEventListener('keydown', function (e) {
     if ((e.key === 'Delete' || e.key === 'Backspace') && activeCanvas.getActiveObject()) {
         activeCanvas.remove(activeCanvas.getActiveObject());
     }
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const designThumbnails = document.querySelectorAll('.design-item .pwca-design-thumbnail');
+    if (!designThumbnails.length) {
+        return;
+    }
+
+    designThumbnails.forEach(function (img) {
+        img.addEventListener('click', function () {
+            const designId = img.getAttribute('data-design-id');
+            if (!designId) {
+                return;
+            }
+            addDesignToCanvas(designId);
+        });
+    });
 });
 
 function recordDesignUsage(meta) {

@@ -556,10 +556,94 @@
     }
 }
 
-// 渐变色弹窗颜色选项样式
+// 渐变色弹窗样式
 .pwca-gradient-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+
+    &.is-open {
+        display: flex;
+    }
+
+    .pwca-gradient-modal-content {
+        background: #fff;
+        border-radius: 8px;
+        max-width: 400px;
+        width: 90vw;
+        padding: 1rem;
+        position: relative;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .pwca-gradient-modal-close {
+        position: absolute;
+        right: 0.5rem;
+        top: 0.5rem;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .pwca-gradient-modal-title {
+        margin-top: 0;
+    }
+
+    .gradient-colors-container {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .gradient-colors-column {
+        flex: 1;
+    }
+
+    .gradient-colors-label {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .color-options {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .gradient-direction-row {
+        margin-bottom: 1rem;
+    }
+
+    .gradient-direction-label {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .gradient-direction-select {
+        width: 100%;
+        padding: 0.5rem;
+    }
+
+    .pwca-gradient-apply-btn {
+        width: 100%;
+    }
+
     .color-option {
         position: relative;
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        cursor: pointer;
+        border: 2px solid #ddd;
+        transition: border-color 0.2s;
     }
 
     .color-option:hover {

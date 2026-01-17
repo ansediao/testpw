@@ -12,6 +12,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let colorSelectionInitialized = false;
 
+    function initializeSwatchBackgrounds() {
+        const options = document.querySelectorAll('.gradient-colors-container .color-option');
+        options.forEach(function (option) {
+            const color = option.getAttribute('data-color');
+            if (color) {
+                option.style.backgroundColor = color;
+            }
+        });
+    }
+
     function clearAllColorSelections() {
         const allColorOptions = document.querySelectorAll('.gradient-colors-container .color-option');
         allColorOptions.forEach(option => {
@@ -69,6 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.showGradientModal = function() {
         gradientColorModal.style.display = 'flex';
+        initializeSwatchBackgrounds();
         handleColorSelection();
 
         if (typeof window.lastGradientColors !== 'undefined' && window.lastGradientColors) {
