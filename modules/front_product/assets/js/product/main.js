@@ -77,6 +77,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Get product ID
     const productId = mountPoint.dataset.productId;
+    const pwId = mountPoint.dataset.pwId;
+    const restApiUrl = mountPoint.dataset.restApiUrl;
+    const nonce = mountPoint.dataset.restNonce;
+
+    if (pwId && restApiUrl && nonce) {
+        window.pwProductConfig = {
+            pwId,
+            productId: Number(productId) || 0,
+            restApiUrl,
+            nonce
+        };
+        window.pwProductData = null;
+    }
 
     // Check if all modules are loaded
     const modulesLoaded = {

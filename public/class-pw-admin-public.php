@@ -11,14 +11,7 @@
  */
 
 // Load modular components
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-cdn-loader.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-product-inquiry.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-composite-products.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-auxiliary-functions.php';
-require_once plugin_dir_path(__FILE__) . 'modules/class-pw-template-handler.php';
 require_once plugin_dir_path(__FILE__) . 'modules/class-pw-canvas-inquiry.php';
-// Load partial components
-require_once plugin_dir_path(__FILE__) . 'partials/pw-product-cart-handler.php';
 
 
 
@@ -67,9 +60,6 @@ class Pw_Admin_Public
         // Initialize all modular components
         $this->initialize_modules();
 
-        // Add custom hook for modular components
-        add_action('woocommerce_product_meta_end', array($this, 'trigger_pw_custom_product_hook'), 100);
-
         // 添加重写规则
         add_action('init', array($this, 'add_pw_canvas_rewrite_rules'));
 
@@ -85,11 +75,6 @@ class Pw_Admin_Public
      */
     private function initialize_modules()
     {
-        new Pw_CDN_Loader();
-        new Pw_Product_Inquiry();
-        new Pw_Composite_Products();
-        new Pw_Auxiliary_Functions();
-        new Pw_Template_Handler();
         new Pw_Canvas_Inquiry();
 
         // 之前php 实现的 产品页模块
@@ -110,16 +95,6 @@ class Pw_Admin_Public
      */
     public function enqueue_styles()
     {
-
-        // Add canvas CSS to product pages with timestamp to prevent caching
-        if (is_product()) {
-            //产品页 颜色选择模块
-            wp_enqueue_style('pw-canvas-css', plugin_dir_url(__FILE__) . 'css/pw-canvas.css', array(), microtime(true), 'all');
-            
-            // 渐变模态样式
-            wp_enqueue_style('pw-gradient-modal', plugin_dir_url(__FILE__) . 'css/pw-gradient-modal.css', array(), $this->version, 'all');
-        }
-
         // 添加自定义结账页面样式
         // 添加自定义购物车页面样式
     }
@@ -144,30 +119,6 @@ class Pw_Admin_Public
             wp_enqueue_script('wc-add-to-cart');
         }
 
-    }
-
-    /**
-     * 触发自定义产品钩子
-     * 在 woocommerce_after_single_product_summary 后触发，允许其他代码挂载自定义内容
-     * 
-     * @since    1.0.0
-     */
-    public function trigger_pw_custom_product_hook()
-    {
-        global $product;
-
-        // 确保在产品页面且产品对象存在
-        if (is_product() && is_a($product, 'WC_Product')) {
-            /**
-             * 自定义产品钩子
-             * 
-             * 允许其他插件或主题在产品详情页面添加自定义内容
-             * 
-             * @param WC_Product $product 当前产品对象
-             * @param int $product_id 产品ID
-             */
-            do_action('pw_admin_single_product_custom_content', $product, $product->get_id());
-        }
     }
 
     /**
