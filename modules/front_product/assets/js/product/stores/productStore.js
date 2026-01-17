@@ -1,9 +1,29 @@
 /**
  * Product Store - Shared state management
- * Using Pinia for state management with Composition API
  */
 
-const useProductStore = Pinia.defineStore('product', () => {
+(() => {
+    const proxyRefs = Vue.proxyRefs || ((objectWithRefs) => {
+        return new Proxy(objectWithRefs, {
+            get(target, key, receiver) {
+                const value = Reflect.get(target, key, receiver);
+                if (value && value.__v_isRef) {
+                    return value.value;
+                }
+                return value;
+            },
+            set(target, key, newValue, receiver) {
+                const existingValue = Reflect.get(target, key, receiver);
+                if (existingValue && existingValue.__v_isRef && !(newValue && newValue.__v_isRef)) {
+                    existingValue.value = newValue;
+                    return true;
+                }
+                return Reflect.set(target, key, newValue, receiver);
+            }
+        });
+    });
+
+    const createProductStore = () => {
     // State
     const productId = Vue.ref(null);
     const productData = Vue.ref(null);
@@ -776,8 +796,7 @@ const useProductStore = Pinia.defineStore('product', () => {
         }
     };
 
-    // Return state, getters, and actions
-    return {
+    return proxyRefs({
         // State
         productId,
         productData,
@@ -857,8 +876,16 @@ const useProductStore = Pinia.defineStore('product', () => {
         setQuantityDiscounts,
         fetchProductData,
         addToCart
+    });
     };
-});
 
-// Export for module usage
-window.useProductStore = useProductStore;
+    let storeInstance = null;
+    const useProductStore = () => {
+        if (!storeInstance) {
+            storeInstance = createProductStore();
+        }
+        return storeInstance;
+    };
+
+    window.useProductStore = useProductStore;
+})();

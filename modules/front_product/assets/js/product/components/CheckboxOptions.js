@@ -4,10 +4,6 @@
  * 提供两个复选框：Buy Sample 和 Blank Product
  */
 
-
-// 修复 Pinia store 引入和 Vue 3 组件写法
-
-// 1. 确保 Vue 和 Pinia API 正确获取
 const { ref, onMounted, watch } = Vue;
 
 
@@ -25,7 +21,6 @@ const CheckboxOptions = {
         </div>
     `,
     setup() {
-        // 2. 访问 Pinia store
         const store = useProductStore();
 
         // 4. 方法

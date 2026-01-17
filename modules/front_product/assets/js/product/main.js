@@ -1,5 +1,5 @@
 /**
- * Vue 3 + Pinia Application Initializer
+ * Vue 3 Application Initializer
  * Product page main entry file - initialization only
  */
 
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Canvas功能资源已通过CDN加载器加载，无需重复加载
 
     // Check if required dependencies are loaded
-    if (typeof Vue === 'undefined' || typeof Pinia === 'undefined') {
+    if (typeof Vue === 'undefined') {
         return;
     }
 
@@ -118,7 +118,6 @@ document.addEventListener('DOMContentLoaded', function () {
 function initializeModularApp(productId) {
 
     const { createApp } = Vue;
-    const pinia = Pinia.createPinia();
 
     const App = {
         name: 'ProductApp',
@@ -191,7 +190,6 @@ function initializeModularApp(productId) {
     };
 
     const app = createApp(App);
-    app.use(pinia);
     
     // 全局注册QuantityDiscountSlider组件
     if (window.QuantityDiscountSlider) {
@@ -205,7 +203,6 @@ function initializeModularApp(productId) {
 function initializeBasicApp(productId, modulesLoaded) {
 
     const { createApp } = Vue;
-    const pinia = Pinia.createPinia();
 
     const components = {};
     if (modulesLoaded.checkboxOptions && window.CheckboxOptions) {
@@ -225,7 +222,7 @@ function initializeBasicApp(productId, modulesLoaded) {
         data() {
             return {
                 productId: productId,
-                message: 'Basic Vue + Pinia app (modules not available)'
+                message: 'Basic Vue app (modules not available)'
             };
         },
         mounted() {
@@ -252,6 +249,5 @@ function initializeBasicApp(productId, modulesLoaded) {
         `
     });
 
-    app.use(pinia);
     app.mount('#vue-dynamic-product-area');
 }

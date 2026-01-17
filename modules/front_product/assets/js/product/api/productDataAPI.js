@@ -1,6 +1,6 @@
 /**
  * 产品数据 API 模块
- * 使用 axios 从 REST API 获取数据，供 Vue 和 Pinia 使用
+ * 使用 axios 从 REST API 获取数据，供 Vue 使用
  */
 window.ProductDataAPI = {
     /**

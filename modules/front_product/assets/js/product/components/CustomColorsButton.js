@@ -61,7 +61,7 @@ window.CustomColorsButton = {
     setup() {
         const selectedButton = Vue.ref(null);
         const selectedColor = Vue.ref('#3498DB');
-        const canvasStore = (typeof Pinia !== 'undefined' && Pinia.useCanvasStore) ? Pinia.useCanvasStore() : null;
+        const canvasStore = (typeof window.useCanvasStore === 'function') ? window.useCanvasStore() : null;
         const productStore = (typeof window.useProductStore !== 'undefined') ? window.useProductStore() : null;
         
         // 新增状态管理

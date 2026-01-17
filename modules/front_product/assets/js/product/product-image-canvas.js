@@ -222,7 +222,7 @@
     }
 
     /**
-     * 从 Pinia store 中获取图层图片URL
+     * 从产品 store 中获取图层图片URL
      * @returns {Object} 包含 baseImageUrl 和 overlayImageUrl 的对象
      */
     function getLayerImages() {
