@@ -266,11 +266,19 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-operation-panel-scripts',
 			$this->module_url . 'assets/js/main/operation-panel-scripts.js',
-			array( 'pwca-front-canvas-events', 'pwca-vendor-listjs' ),
+			array( 'pwca-front-canvas-events', 'pwca-vendor-listjs', 'pwca-front-canvas-multi-view-init' ),
 			$this->module_path . '/assets/js/main/operation-panel-scripts.js'
 		);
 
 		$this->enqueue_design_modules();
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-multi-view-init',
+			$this->module_url . 'assets/js/canvas/multi-view-init.js',
+			array( 'pwca-front-canvas-design-main', 'pwca-front-canvas-core-init' ),
+			$this->module_path . '/assets/js/canvas/multi-view-init.js'
+		);
+
 		$this->enqueue_page_bootstrap();
 	}
 
