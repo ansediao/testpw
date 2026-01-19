@@ -1,0 +1,328 @@
+@charset "UTF-8";
+/**
+ * 购物车设计预览弹窗样式
+ * 
+ * @package    Pw_Admin
+ * @subpackage Pw_Admin/public/css
+ * @author     PW Canvas Team
+ */
+.pwca-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.pwca-modal.pwca-modal-open {
+  opacity: 1;
+  visibility: visible;
+}
+.pwca-modal.pwca-modal-open .pwca-modal-container {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.pwca-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+}
+
+.pwca-modal-container {
+  position: relative;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 1200px;
+  height: 800px;
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.9);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.pwca-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 60px;
+  border-bottom: 1px solid #dee2e6;
+  background: #f8f9fa;
+  flex-shrink: 0;
+}
+
+.pwca-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333333;
+}
+
+.pwca-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+.pwca-modal-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333333;
+}
+.pwca-modal-close:focus {
+  outline: 2px solid #007cba;
+  outline-offset: 2px;
+}
+
+.pwca-modal-body {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.pwca-modal-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  z-index: 10;
+}
+.pwca-modal-loading p {
+  margin: 16px 0 0 0;
+  color: #6c757d;
+  font-size: 16px;
+}
+
+.pwca-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007cba;
+  border-radius: 50%;
+  animation: pwca-spin 1s linear infinite;
+}
+
+@keyframes pwca-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.pwca-modal-content {
+  width: 100%;
+  height: 100%;
+}
+.pwca-modal-content #pwca-modal-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.pwca-image-preview-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  padding: 20px;
+  box-sizing: border-box;
+}
+.pwca-image-preview-container .pwca-preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  -o-object-fit: contain;
+     object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: white;
+}
+
+.pwca-modal-error {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  z-index: 10;
+}
+.pwca-modal-error p {
+  margin: 0 0 16px 0;
+  color: #dc3545;
+  font-size: 16px;
+}
+
+.pwca-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  height: 70px;
+  border-top: 1px solid #dee2e6;
+  background: #f8f9fa;
+  flex-shrink: 0;
+}
+
+.pwca-btn, .pwca-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+}
+.pwca-btn:focus, .pwca-retry-btn:focus {
+  outline: 2px solid #007cba;
+  outline-offset: 2px;
+}
+.pwca-btn.pwca-btn-primary, .pwca-retry-btn {
+  background: #007cba;
+  border-color: #007cba;
+  color: white;
+}
+.pwca-btn.pwca-btn-primary:hover, .pwca-retry-btn:hover {
+  background: #005a87;
+  border-color: #005a87;
+  color: white;
+  text-decoration: none;
+}
+.pwca-btn.pwca-btn-secondary, .pwca-btn-secondary.pwca-retry-btn {
+  background: white;
+  border-color: #dee2e6;
+  color: #333333;
+}
+.pwca-btn.pwca-btn-secondary:hover, .pwca-btn-secondary.pwca-retry-btn:hover {
+  background: #f8f9fa;
+  border-color: #c1c9d0;
+}
+
+.pwca-modal-body-lock {
+  overflow: hidden;
+}
+
+@media (max-width: 1280px) {
+  .pwca-modal-container {
+    width: 95vw;
+    height: 85vh;
+  }
+}
+@media (max-width: 768px) {
+  .pwca-modal-container {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    max-width: none;
+    max-height: none;
+  }
+  .pwca-modal-header {
+    padding: 0 16px;
+    height: 50px;
+  }
+  .pwca-modal-title {
+    font-size: 16px;
+  }
+  .pwca-modal-footer {
+    padding: 12px 16px;
+    height: 60px;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  .pwca-modal-footer .pwca-btn, .pwca-modal-footer .pwca-retry-btn {
+    width: 100%;
+  }
+}
+@media (max-width: 480px) {
+  .pwca-modal-header {
+    padding: 0 12px;
+  }
+  .pwca-modal-footer {
+    padding: 12px;
+  }
+}
+@media (prefers-contrast: high) {
+  .pwca-modal-container {
+    border: 2px solid #333333;
+  }
+  .pwca-modal-header,
+  .pwca-modal-footer {
+    border-color: #333333;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pwca-modal,
+  .pwca-modal-container,
+  .pwca-btn,
+  .pwca-retry-btn,
+  .pwca-modal-close {
+    transition: none;
+  }
+  .pwca-spinner {
+    animation: none;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .pwca-modal-container {
+    background: #2d3748;
+    color: #e2e8f0;
+  }
+  .pwca-modal-header,
+  .pwca-modal-footer {
+    background: #1a202c;
+    border-color: #4a5568;
+  }
+  .pwca-modal-title {
+    color: #e2e8f0;
+  }
+  .pwca-modal-loading,
+  .pwca-modal-error {
+    background: #2d3748;
+  }
+  .pwca-btn-secondary {
+    background: #4a5568;
+    border-color: #718096;
+    color: #e2e8f0;
+  }
+  .pwca-btn-secondary:hover {
+    background: #718096;
+  }
+}/*# sourceMappingURL=pwca-cart-modal.css.map */
+

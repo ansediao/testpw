@@ -1,0 +1,193 @@
+/**
+ * Product Price Info Component Styles
+ */
+
+.product-price-info {
+    background: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 15px 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.price-section {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.price-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.price-item:last-child {
+    margin-bottom: 0;
+}
+
+.price-label {
+    font-weight: 500;
+    color: #333;
+    font-size: 14px;
+}
+
+.price-value {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.price-value.unit-price {
+    color: #666;
+}
+
+.price-value.total-price {
+    color: #2c5aa0;
+    font-size: 18px;
+}
+
+.shipping-section {
+    margin-top: 15px;
+}
+
+.shipping-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.shipping-item:last-child {
+    margin-bottom: 0;
+}
+
+.shipping-label {
+    font-weight: 500;
+    color: #555;
+    font-size: 13px;
+}
+
+.shipping-value {
+    color: #777;
+    font-size: 13px;
+    font-style: italic;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .product-price-info {
+        padding: 15px;
+        margin: 10px 0;
+    }
+    
+    .price-item,
+    .shipping-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .price-value,
+    .shipping-value {
+        align-self: flex-end;
+    }
+}
+
+/* 加载状态样式 */
+.product-price-info.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.product-price-info.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #ccc;
+    border-top-color: #2c5aa0;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 折扣相关样式 */
+.price-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.original-price {
+    font-size: 14px;
+    color: #999;
+    text-decoration: line-through;
+    font-weight: 400;
+}
+
+.price-value.discounted {
+    color: #27ae60;
+    font-weight: 700;
+}
+
+.discount-badge {
+    background: #27ae60;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.discount-summary {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #e8f5e8;
+    background: #f0f8f0;
+    margin: 10px -20px -20px -20px;
+    padding: 15px 20px;
+    border-radius: 0 0 8px 8px;
+}
+
+.discount-item {
+    margin-bottom: 0;
+}
+
+.discount-item .price-label {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+.savings-amount {
+    color: #27ae60;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+/* 响应式设计更新 */
+@media (max-width: 768px) {
+    .price-display {
+        justify-content: flex-start;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+    }
+    
+    .discount-summary {
+        margin: 10px -15px -15px -15px;
+        padding: 12px 15px;
+    }
+}

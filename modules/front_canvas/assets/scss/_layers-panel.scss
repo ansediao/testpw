@@ -1,0 +1,517 @@
+// 图层面板样式 SCSS 源文件
+// 导入变量和混合器
+@import 'variables';
+@import 'mixins';
+
+// 导入 MicroModal 弹窗样式
+@import 'pwca-group-print-method-modal';
+@import 'pwca-print-method-modal';
+@import 'pwca-inquiry-modal';
+
+// 图层面板特有变量
+// 按钮尺寸 - 用于图层面板中的操作按钮
+$layer-btn-size: 24px;
+
+// 移动端按钮尺寸 - 用于响应式设计中的触摸友好按钮
+$layer-btn-size-mobile: 28px;
+
+// 按钮边距 - 用于按钮之间的间距
+$layer-btn-margin: 2px;
+
+// 控制区域间距 - 用于图层控制按钮组之间的间距
+$layer-controls-gap: 4px;
+
+// 图层面板特有颜色（已检查变量文件，以下颜色未定义）
+// 灰色系列 - 用于图层面板的中性色调
+$color-gray-100: #f3f4f6; // 用于按钮悬停背景
+$color-gray-200: #e5e7eb; // 用于禁用状态边框
+$color-gray-300: #d1d5db; // 用于默认边框
+$color-gray-400: #9ca3af; // 用于禁用状态文字
+$color-gray-600: #374151; // 用于图标颜色
+$color-gray-900: #f9fafb; // 用于禁用状态背景
+
+// 蓝色系列 - 用于复制按钮
+$color-blue-600: #2563eb; // 用于复制按钮悬停边框
+$color-blue-50: #dbeafe; // 用于复制按钮悬停背景
+
+// 红色系列 - 用于删除按钮
+$color-red-600: #dc2626; // 用于删除按钮悬停边框
+$color-red-50: #fef2f2; // 用于删除按钮悬停背景
+
+/*
+  SCSS 样式严格按照 HTML 结构嵌套
+  根选择器: .layers-box
+  整合现有变量和新增样式结构
+*/
+
+.layers-box {
+    height: inherit;
+    .layers-panel {
+        height: inherit;
+        .layers-list {
+            height: inherit;
+            overflow-y: auto;
+
+            // --- 通用图层项定义 ---
+            // .layer-item 会同时出现在顶层和 .layer-group 内部
+            .layer-item {
+                display: flex;
+                padding: 5px;
+                border: 1px solid #d7d7d7;
+                background-color: #fff;
+                transition: background-color 0.2s;
+                position: relative;
+                margin-bottom: 10px;
+
+                // &.ungrouped {} /* 可以为未分组项添加特定样式 */
+                // &.grouped {}  /* 可以为已分组项添加特定样式 */
+
+                &.active {
+                    background-color: #dbeafe;
+                }
+
+                .layer-icon {
+                    width: 40px;
+                    height: 40px;
+                    margin-right: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 3px;
+                    background: #f9fafb;
+                    border: 1px solid #d1d5db;
+                    overflow: hidden;
+
+                    .layer-text-icon {
+                        font-weight: 600;
+                        font-size: 16px;
+                        color: #374151;
+                    }
+                    .layer-thumbnail {
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+                }
+
+                .layer-info {
+                    flex: 1;
+                    min-width: 0;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+
+                    .layer-name {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+
+                        .layer-type {
+                            border-radius: 4px;
+                            background-color: #f2f2f2;
+                            font-size: 14px;
+                            color: #303236;
+                            padding: 5px;
+                        }
+
+                        .layer-controls {
+                            display: flex;
+                            gap: $layer-controls-gap;
+                            align-items: center;
+
+                            // .layer-btn 样式在下方通用部分定义
+                        }
+                    }
+
+                    .layer-actions {
+                        .assign-btn {
+                            padding: 2px 6px;
+                            font-size: 11px;
+                            background: #11bbf5;
+                            border-radius: 3px;
+                            cursor: pointer;
+                            color: #fff;
+                            transition: all 0.2s;
+                            border: unset;
+
+                            &:hover {
+                                background: #0ea5db;
+                                transform: translateY(-1px);
+                            }
+
+                            // 禁用状态样式
+                            &.disabled {
+                                opacity: 0.5;
+                                cursor: not-allowed;
+                                background-color: #f5f5f5;
+                                color: #999;
+                                border: 1px solid #ddd;
+                                pointer-events: none;
+
+                                &:hover {
+                                    background-color: #f5f5f5;
+                                    color: #999;
+                                    transform: none;
+                                }
+
+                                i {
+                                    color: #999;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                &.grouped {
+                    .layer-xiaji-icon {
+                        font-size: 24px;
+                    }
+                }
+            }
+
+            // --- 图层组定义 ---
+            .layer-group {
+                margin-bottom: 8px;
+                background: #fff;
+                .group-header {
+                    background: #fff;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+
+                    .expand-icon {
+                        margin-right: 8px;
+                        font-size: 12px;
+                        color: #6b7280;
+                        transition: transform 0.2s;
+                        user-select: none;
+                    }
+
+                    .group-name {
+                        font-weight: 500;
+                        color: #374151;
+                        padding: 8px;
+                        border: 1px solid #d7d7d7;
+                        margin-bottom: 8px;
+                    }
+
+                    .group-actions {
+                        display: flex;
+                        padding: 8px;
+                        // .layer-btn 样式在下方通用部分定义
+                        .group-actions-buttonBox {
+                            display: flex;
+                            gap: 4px;
+                            margin-left: auto;
+                            .group-copy {
+                                color: #11bbf5;
+                            }
+                        }
+                    }
+                }
+
+                .group-content {
+                    ;
+                    // 此处包含的 .layer-item 会自动应用上面的 .layer-item 样式
+                }
+            }
+
+            // --- 通用控件按钮定义 (作用于 .layer-controls 和 .group-actions) ---
+            .layer-btn {
+                @include canvas-button-base;
+                padding: 4px 6px;
+                border: none;
+                background: transparent;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                transition: background-color 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: $layer-btn-size;
+                height: $layer-btn-size;
+                margin: 0 $layer-btn-margin;
+                border: 1px solid $color-gray-300;
+                background-color: $canvas-bg-color;
+
+                &:hover {
+                    background: #e5e7eb;
+                    border-color: $color-gray-400;
+                    transform: translateY(-1px);
+                }
+
+                i {
+                    font-size: 12px;
+                    color: $color-gray-600;
+                }
+
+                // 特定的删除按钮悬停效果
+                &.delete {
+                    color: #dc2626;
+                    border-color: $canvas-error-color;
+                    &:hover {
+                        background: #fecaca;
+                        border-color: $color-red-600;
+                    }
+
+                    i {
+                        color: $canvas-error-color;
+                    }
+                }
+
+                &.layer-copy {
+                    color: #11bbf5;
+                    border-color: $canvas-primary-color;
+
+                    &:hover {
+                        background-color: $color-blue-50;
+                        border-color: $color-blue-600;
+                    }
+
+                    i {
+                        color: $canvas-primary-color;
+                    }
+
+                    &.disabled {
+                        color: #11bbf5;
+                        opacity: 0.4;
+                        cursor: not-allowed;
+                        background-color: $color-gray-900;
+                        border-color: $color-gray-200;
+                        pointer-events: none;
+
+                        &:hover {
+                            background-color: $color-gray-900;
+                            border-color: $color-gray-200;
+                            transform: none;
+                        }
+
+                        i {
+                            color: $color-gray-400;
+                        }
+                    }
+                }
+
+                // 禁用状态样式
+                &.disabled {
+                    opacity: 0.4;
+                    cursor: not-allowed;
+                    background-color: $color-gray-900;
+                    border-color: $color-gray-200;
+                    pointer-events: none;
+
+                    &:hover {
+                        background-color: $color-gray-900;
+                        border-color: $color-gray-200;
+                        transform: none;
+                    }
+
+                    i {
+                        color: $color-gray-400;
+                    }
+                }
+
+                // 图层组印刷方式修改按钮样式
+                &.pwca-group-print-method {
+                    color: #f59e0b;
+                    border-color: #f59e0b;
+                    background-color: #fef3c7;
+
+                    &:hover {
+                        background-color: #fde68a;
+                        border-color: #d97706;
+                        transform: translateY(-1px);
+                    }
+
+                    i {
+                        color: #f59e0b;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*
+  打印方法对话框 (Print Method Dialog) 的 SCSS 样式
+  根选择器: .print-method-dialog-overlay
+  整合到图层面板样式文件中
+*/
+
+.print-method-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+
+    .print-method-dialog {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        min-width: 500px;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+
+        .dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+
+            // h3 标签的样式继承自父级或浏览器默认
+            h3 {
+                margin: 0; // 重置浏览器默认的 margin
+                font-size: 18px;
+                font-weight: 600;
+                color: #333;
+            }
+
+            .close-btn {
+                background: none;
+                border: none;
+                font-size: 20px;
+                cursor: pointer;
+                color: #666;
+                padding: 0;
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                line-height: 1; // 确保 "×" 居中
+
+                &:hover {
+                    color: #333;
+                }
+            }
+        }
+
+        .print-methods {
+            margin: 30px 30px 0;
+            border-bottom: 1px solid #d7d7d7;
+
+            // .method-row {
+            //     display: flex;
+            //     gap: 12px;
+            //     margin-bottom: 12px;
+
+            //     &:last-child {
+            //         margin-bottom: 0;
+            //     }
+            // }
+            .method-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr); /* 创建三列等宽布局 */
+                padding-bottom: 30px;
+                .method-option {
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    cursor: pointer;
+                    transition: all 0.2s;
+
+                    input[type="radio"] {
+                        margin-right: 8px;
+                        accent-color: #2196f3; // 控制选中时单选框的颜色
+
+                        &:checked + .method-label {
+                            color: #2196f3;
+                            font-weight: 500;
+                        }
+                    }
+
+                    .method-label {
+                        font-size: 14px;
+                        color: #333;
+                    }
+                }
+            }
+        }
+
+        .method-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-top: 20px;
+            margin-bottom: 20px;
+
+            .tab {
+                padding: 12px 20px;
+                cursor: pointer;
+                border-bottom: 2px solid transparent;
+                transition: all 0.2s;
+                font-size: 14px;
+                color: #666;
+
+                &:hover {
+                    color: #333;
+                    background: #f8f9fa;
+                }
+
+                &.active {
+                    color: #2196f3;
+                    border-bottom-color: #2196f3;
+                    background: #f8f9fa;
+                }
+            }
+        }
+
+        .tab-content {
+            min-height: 100px;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 4px;
+
+            // .color-content {} /* 内容区域内的具体样式 */
+        }
+        .pwca-combination-print-method-options {
+            display: flex;
+            flex-direction: column;
+            width: fit-content;
+            margin: auto;
+        }
+
+        .dialog-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+
+            .save-btn {
+                background: #e74f4c;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: background-color 0.2s;
+            }
+        }
+    }
+}
+
+// 响应式设计
+@media(max-width: 768px) {
+    .layer-btn {
+        width: $layer-btn-size-mobile;
+        height: $layer-btn-size-mobile;
+
+        i {
+            font-size: 14px;
+        }
+    }
+}

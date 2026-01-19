@@ -1,0 +1,23 @@
+@charset "UTF-8";
+/**
+ * SCSS 变量集中定义文件
+ * 定义新变量前请先检查是否已存在相同或相似变量
+ * 每个变量必须包含使用说明注释
+ */
+/**
+ * SCSS 混合器集中定义文件
+ * 用于复用常见样式模式
+ */
+body.wp-admin .pwca-admin-orders-production-pdf {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+body.wp-admin .pwca-admin-orders-production-pdf .spinner {
+  float: none;
+  margin: 0;
+}
+body.wp-admin .pwca-admin-orders-production-pdf__status {
+  color: #1d2327;
+}/*# sourceMappingURL=pwca-admin-orders-production-pdf.css.map */

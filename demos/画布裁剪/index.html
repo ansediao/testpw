@@ -1,0 +1,39 @@
+<!-- 引入Fabric.js库 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.7.18/fabric.js"></script>
+
+<!-- 画布容器 -->
+<canvas id="canvas" width="500" height="500"></canvas>
+
+<script>
+  // 创建画布实例
+  var canvas = new fabric.Canvas('canvas', {
+      imageSmoothingEnabled: false  // 禁用图像平滑，保持像素清晰
+  });
+
+  // 加载裁剪模板图片
+  fabric.Image.fromURL('https://pwfiles.939666.xyz/t-shirt/color.png', function(template) {
+
+      // 加载要裁剪的图片
+      fabric.Image.fromURL('https://images.unsplash.com/photo-1756142007526-a34f10dc36bc?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+          function(content) {
+              // 添加模板图片到画布
+              canvas.add(template);
+
+              // 添加内容图片到画布
+              canvas.add(content);
+
+              // 渲染画布
+              canvas.renderAll();
+          },
+          {
+              globalCompositeOperation: 'source-in',  // 只在模板区域内显示
+              top: -300,   // 垂直偏移
+              left: -400   // 水平偏移
+          }
+      );
+
+  }, {
+      width: 200,   // 模板图片宽度
+      height: 200   // 模板图片高度
+  });
+</script>

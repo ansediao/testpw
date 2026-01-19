@@ -1,0 +1,20 @@
+@import "../../../front_canvas/assets/scss/_variables";
+@import "../../../front_canvas/assets/scss/_mixins";
+
+body.wp-admin {
+	.pwca-admin-orders-production-pdf {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		margin-top: 10px;
+
+		.spinner {
+			float: none;
+			margin: 0;
+		}
+
+		&__status {
+			color: #1d2327;
+		}
+	}
+}

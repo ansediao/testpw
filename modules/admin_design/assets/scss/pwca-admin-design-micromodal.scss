@@ -1,0 +1,102 @@
+.modal {
+	display: none;
+}
+
+.modal.is-open {
+	display: block;
+}
+
+.modal__overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 100000;
+	pointer-events: auto;
+}
+
+.modal__container {
+	background-color: #fff;
+	padding: 30px;
+	max-width: 90vw;
+	max-height: 90vh;
+	border-radius: 8px;
+	overflow-y: auto;
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+	position: relative;
+	animation: pwcaFadeInScale 0.2s ease-out;
+	pointer-events: auto;
+}
+
+@keyframes pwcaFadeInScale {
+	from {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.modal__header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	border-bottom: 1px solid #eee;
+	padding-bottom: 15px;
+}
+
+.modal__title {
+	margin: 0;
+	font-size: 1.5em;
+	color: #333;
+}
+
+.modal__close {
+	background: none;
+	border: none;
+	font-size: 24px;
+	cursor: pointer;
+	color: #666;
+	padding: 0;
+	width: 30px;
+	height: 30px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	&:hover {
+		color: #000;
+	}
+}
+
+.modal-open {
+	overflow: hidden;
+}
+
+@media (max-width: 768px) {
+	.modal__container {
+		margin: 10px;
+		padding: 20px;
+		max-width: calc(100vw - 20px);
+	}
+}
+
+.wp-admin .modal__container {
+	background: #fff;
+	border: 1px solid #ccd0d4;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.wp-admin .modal__header {
+	border-bottom: 1px solid #ccd0d4;
+	background: #f9f9f9;
+	margin: -30px -30px 20px -30px;
+	padding: 20px 30px;
+	border-radius: 8px 8px 0 0;
+}
+

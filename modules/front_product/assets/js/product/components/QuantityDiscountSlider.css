@@ -1,0 +1,165 @@
+/* Quantity Discount Slider Styles */
+.quantity-discount-slider {
+    margin-top: 20px;
+    padding: 15px 0;
+}
+
+.slider-container {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.slider-track {
+    position: relative;
+    height: 4px;
+    background-color: #e0e0e0;
+    border-radius: 2px;
+    margin: 30px 0;
+}
+
+/* 当前位置指示器 */
+.current-position-indicator {
+    position: absolute;
+    top: -35px;
+    transform: translateX(-50%);
+    z-index: 10;
+}
+
+.quantity-bubble {
+    background-color: #2c3e50;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    position: relative;
+}
+
+.quantity-bubble::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #2c3e50;
+}
+
+/* 折扣刻度点 */
+.discount-tier {
+    position: absolute;
+    top: -8px;
+    transform: translateX(-50%);
+    cursor: pointer;
+    z-index: 5;
+}
+
+.tier-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #bdc3c7;
+    border: 3px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.discount-tier:hover .tier-dot {
+    background-color: #3498db;
+    transform: scale(1.1);
+}
+
+.discount-tier.active .tier-dot {
+    background-color: #27ae60;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.3);
+}
+
+.tier-quantity {
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: #7f8c8d;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.discount-tier.active .tier-quantity {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+/* 当前折扣显示 */
+.current-discount {
+    text-align: left;
+    background-color: #f8f9fa;
+}
+
+.discount-label {
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+.discount-value {
+    color: #27ae60;
+    font-size: 16px;
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .quantity-discount-slider {
+        margin-top: 15px;
+        padding: 10px 0;
+    }
+
+    .slider-track {
+        margin: 25px 0;
+    }
+
+    .quantity-bubble {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .tier-dot {
+        width: 14px;
+        height: 14px;
+    }
+
+    .tier-quantity {
+        font-size: 11px;
+        top: 20px;
+    }
+
+    .current-discount {
+        padding: 8px;
+    }
+
+    .discount-label {
+        font-size: 13px;
+    }
+
+    .discount-value {
+        font-size: 14px;
+    }
+}
+
+/* 动画效果 */
+.current-position-indicator {
+    transition: left 0.3s ease;
+}
+
+.tier-dot {
+    transition: all 0.2s ease;
+}
+
+.discount-tier:active .tier-dot {
+    transform: scale(0.95);
+}

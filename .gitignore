@@ -1,0 +1,11 @@
+LICENSE.txt
+README.txt
+SuperClaude
+.serena/cache/
+acli.exe
+.claude/
+# .kiro/
+.trae/documents/
+.trae/documents-old/
+.serena/
+*.code-workspace

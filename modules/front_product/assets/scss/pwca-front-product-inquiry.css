@@ -1,0 +1,115 @@
+@charset "UTF-8";
+/**
+ * SCSS 变量集中定义文件
+ * 定义新变量前请先检查是否已存在相同或相似变量
+ * 每个变量必须包含使用说明注释
+ */
+/**
+ * SCSS 混合器集中定义文件
+ * 用于复用常见样式模式
+ */
+.pwca-product-inquiry {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+.pwca-product-inquiry__row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 25px;
+  gap: 20px;
+}
+.pwca-product-inquiry__row label {
+  flex: 0 0 150px;
+  font-weight: 500;
+  color: #999;
+  font-size: 16px;
+  text-align: left;
+  margin: 0;
+}
+.pwca-product-inquiry__row input[type=text],
+.pwca-product-inquiry__row input[type=email],
+.pwca-product-inquiry__row input[type=tel] {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: inherit;
+  background-color: #fff;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+.pwca-product-inquiry__row input[type=text]:focus,
+.pwca-product-inquiry__row input[type=email]:focus,
+.pwca-product-inquiry__row input[type=tel]:focus {
+  outline: none;
+  border-color: #007cba;
+}
+.pwca-product-inquiry__row textarea {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: inherit;
+  background-color: #fff;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 120px;
+}
+.pwca-product-inquiry__row textarea:focus {
+  outline: none;
+  border-color: #007cba;
+}
+.pwca-product-inquiry__row--textarea {
+  align-items: flex-start;
+}
+.pwca-product-inquiry__row--textarea label {
+  padding-top: 12px;
+}
+.pwca-product-inquiry__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 30px;
+}
+.pwca-product-inquiry__submit {
+  background-color: #00bcd4 !important;
+  color: white !important;
+  border: none !important;
+  padding: 12px 30px !important;
+  border-radius: 6px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: background-color 0.3s ease !important;
+  text-transform: none !important;
+}
+.pwca-product-inquiry__submit:hover {
+  background-color: #00acc1 !important;
+}
+.pwca-product-inquiry__required {
+  color: #e74c3c;
+}
+
+@media (max-width: 768px) {
+  .pwca-product-inquiry__row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .pwca-product-inquiry__row label {
+    flex: none;
+    width: 100%;
+  }
+  .pwca-product-inquiry__row input[type=text],
+  .pwca-product-inquiry__row input[type=email],
+  .pwca-product-inquiry__row input[type=tel],
+  .pwca-product-inquiry__row textarea {
+    width: 100%;
+  }
+  .pwca-product-inquiry__row--textarea label {
+    padding-top: 0;
+  }
+}/*# sourceMappingURL=pwca-front-product-inquiry.css.map */

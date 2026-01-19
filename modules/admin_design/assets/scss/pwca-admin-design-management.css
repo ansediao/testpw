@@ -1,0 +1,196 @@
+.pwca-admin-design .pw-design-controls {
+  margin-bottom: 20px;
+}
+.pwca-admin-design .pw-design-controls .pw-design-actions {
+  margin-bottom: 20px;
+}
+.pwca-admin-design .pw-design-controls .pw-design-actions .button {
+  margin-right: 10px;
+}
+.pwca-admin-design .pw-design-controls .pw-design-filters {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.pwca-admin-design .pw-design-controls .pw-design-filters input,
+.pwca-admin-design .pw-design-controls .pw-design-filters select {
+  margin-right: 10px;
+  padding: 5px 8px;
+  border: 1px solid #c3c4c7;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+}
+.pwca-admin-design .pw-design-controls .pw-design-filters .dashicons {
+  font-size: 20px;
+  line-height: 30px;
+  vertical-align: middle;
+  color: #888;
+}
+.pwca-admin-design .pw-design-tabs {
+  margin-bottom: 20px;
+}
+.pwca-admin-design .pw-design-tabs .nav-tab {
+  margin: 0;
+}
+.pwca-admin-design .pw-design-bulk-actions {
+  margin-bottom: 20px;
+}
+.pwca-admin-design .pw-design-bulk-actions .button {
+  margin-right: 10px;
+}
+.pwca-admin-design .pw-design-grid {
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+.pwca-admin-design .pw-design-grid .pw-design-card {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 15px;
+  text-align: center;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.pwca-admin-design .pw-design-grid .pw-design-card .pw-design-thumbnail {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #f8f8f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pwca-admin-design .pw-design-grid .pw-design-card .pw-design-thumbnail .pw-design-checkbox {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+}
+.pwca-admin-design .pw-design-grid .pw-design-card .pw-design-thumbnail .pw-design-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+.pwca-admin-design .pw-design-grid .pw-design-card .pw-design-name {
+  margin-top: 10px;
+  font-weight: 600;
+}
+.pwca-admin-design .pw-design-grid .pw-design-card .pw-design-actions-bottom {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.pwca-admin-design .pw-design-grid .pw-design-card .pw-design-actions-bottom button,
+.pwca-admin-design .pw-design-grid .pw-design-card .pw-design-actions-bottom a {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+.pwca-admin-design .pw-design-grid .pw-design-card .pw-design-actions-bottom .dashicons {
+  font-size: 18px;
+  line-height: 18px;
+  width: 18px;
+  height: 18px;
+  color: #555;
+}
+.pwca-admin-design .pw-design-grid .pw-design-card .pw-design-actions-bottom .pw-delete-design-link .dashicons {
+  color: #d63638;
+}
+.pwca-admin-design .pw-pagination {
+  margin-top: 20px;
+  text-align: center;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.pwca-admin-design .pwca-upload-field .pwca-upload-label {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+  background: #fafafa;
+  cursor: pointer;
+  display: block;
+  transition: all 0.2s ease;
+}
+.pwca-admin-design .pwca-upload-field .pwca-upload-label:hover {
+  border-color: #0073aa;
+  background: #f0f8ff;
+}
+.pwca-admin-design .pwca-upload-field #pw-image-preview {
+  display: none;
+}
+.pwca-admin-design .pwca-upload-field #pw-image-preview img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.pwca-admin-design .pwca-upload-field input[type=file] {
+  display: none;
+}
+.pwca-admin-design .pwca-edit-design-modal {
+  max-width: 1200px;
+  width: 90vw;
+}
+.pwca-admin-design .pwca-manage-category-modal {
+  max-width: 600px;
+  max-height: 80vh;
+}
+.pwca-admin-design .pw-category-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  background: #fff;
+}
+.pwca-admin-design .pw-category-item .pw-category-name-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+.pwca-admin-design .pw-category-item .pw-category-settings-btn,
+.pwca-admin-design .pw-category-item .pw-category-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.pwca-admin-design .pw-category-item .pw-category-settings-btn .dashicons {
+  color: #0073aa;
+}
+.pwca-admin-design .pw-category-item .pw-category-delete-btn .dashicons {
+  color: #d63638;
+}
+.pwca-admin-design .pwca-tag-modal-body {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+.pwca-admin-design .pwca-checkbox-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+}/*# sourceMappingURL=pwca-admin-design-management.css.map */

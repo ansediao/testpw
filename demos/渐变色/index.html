@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Base图层渐变色上色功能演示</title>
+    <!-- 引入 Tailwind CSS 用于样式设计 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Fabric.js 库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen p-4">
+    <div class="max-w-7xl mx-auto">
+      <header class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">
+          Base图层渐变色上色功能演示
+        </h1>
+        <p class="text-gray-600">演示Base图层像素边界检测和渐变色上色功能</p>
+      </header>
+
+      <main class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <!-- 左侧：控制面板 -->
+        <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg">
+          <h2 class="text-xl font-bold mb-4 text-gray-800">控制面板</h2>
+
+          <!-- Base图层信息 -->
+          <div class="mb-6">
+            <h3 class="font-semibold mb-2 text-gray-700">Base图层信息</h3>
+            <div class="bg-gray-50 p-3 rounded-lg text-sm">
+              <p>
+                名称:
+                <span id="baseLayerName" class="font-medium">Base Layer</span>
+              </p>
+              <p>
+                尺寸:
+                <span id="baseLayerSize" class="font-medium">800x600</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- 渐变方向控制 -->
+          <div class="mb-6">
+            <h3 class="font-semibold mb-2 text-gray-700">渐变方向</h3>
+            <div class="grid grid-cols-2 gap-2 mb-3">
+              <button
+                data-direction="right"
+                class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 active"
+              >
+                从左到右
+              </button>
+              <button
+                data-direction="bottom"
+                class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200"
+              >
+                从上到下
+              </button>
+            </div>
+          </div>
+
+          <!-- 渐变颜色选择 -->
+          <div class="mb-6">
+            <h3 class="font-semibold mb-2 text-gray-700">渐变颜色</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm text-gray-600 block mb-1">起始颜色</label>
+                <div class="flex items-center gap-2">
+                  <input
+                    type="color"
+                    id="startColor"
+                    class="w-10 h-10 rounded cursor-pointer"
+                    value="#3b82f6"
+                  />
+                  <input
+                    type="text"
+                    id="startColorHex"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                    value="#3b82f6"
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="text-sm text-gray-600 block mb-1">结束颜色</label>
+                <div class="flex items-center gap-2">
+                  <input
+                    type="color"
+                    id="endColor"
+                    class="w-10 h-10 rounded cursor-pointer"
+                    value="#ef4444"
+                  />
+                  <input
+                    type="text"
+                    id="endColorHex"
+                    class="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                    value="#ef4444"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 预设渐变色 -->
+          <div class="mb-6">
+            <h3 class="font-semibold mb-2 text-gray-700">预设渐变色</h3>
+            <div class="grid grid-cols-3 gap-2">
+              <div
+                class="gradient-preview"
+                data-start="#3b82f6"
+                data-end="#ef4444"
+                style="background: linear-gradient(to right, #3b82f6, #ef4444);"
+              ></div>
+              <div
+                class="gradient-preview"
+                data-start="#10b981"
+                data-end="#f59e0b"
+                style="background: linear-gradient(to right, #10b981, #f59e0b);"
+              ></div>
+              <div
+                class="gradient-preview"
+                data-start="#8b5cf6"
+                data-end="#ec4899"
+                style="background: linear-gradient(to right, #8b5cf6, #ec4899);"
+              ></div>
+              <div
+                class="gradient-preview"
+                data-start="#ef4444"
+                data-end="#ffffff"
+                style="background: linear-gradient(to right, #ef4444, #ffffff);"
+              ></div>
+              <div
+                class="gradient-preview"
+                data-start="#3b82f6"
+                data-end="#1f2937"
+                style="background: linear-gradient(to right, #3b82f6, #1f2937);"
+              ></div>
+              <div
+                class="gradient-preview"
+                data-start="#10b981"
+                data-end="#ffffff"
+                style="background: linear-gradient(to right, #10b981, #ffffff);"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧：主画布 -->
+        <div class="lg:col-span-3 bg-white p-6 rounded-xl shadow-lg">
+          <h2 class="text-xl font-bold mb-4 text-gray-800">Base图层</h2>
+          <p class="text-gray-600 mb-4">显示Base图层，可应用渐变色并查看效果</p>
+          <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+            <canvas id="baseCanvas" width="800" height="600"></canvas>
+          </div>
+        </div>
+      </main>
+
+      <!-- 上色原理说明模块 -->
+      <section class="mt-12 w-full bg-white py-10 px-6 rounded-xl shadow-lg">
+        <div class="max-w-7xl mx-auto">
+          <h2 class="text-2xl font-bold text-gray-800 mb-4">上色原理说明</h2>
+          <div class="prose max-w-none text-gray-600">
+            <p>
+              本演示展示了如何使用 Fabric.js 渐变覆盖层技术结合智能裁剪功能对 Base 图层进行精确的渐变色上色处理，其核心原理如下：
+            </p>
+
+            <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-3">核心技术流程</h3>
+            <ul class="list-disc pl-5 space-y-3">
+              <li>
+                <strong>渐变对象创建：</strong>
+                使用 Fabric.js 的 <code>fabric.Gradient</code> 类创建线性渐变对象，支持自定义起始和结束颜色，采用像素单位确保精确控制。
+              </li>
+              <li>
+                <strong>渐变坐标计算：</strong>
+                根据选择的渐变方向（从左到右、从上到下），动态计算渐变的起始坐标和结束坐标，确保渐变效果在不同尺寸下都能正确显示。
+              </li>
+              <li>
+                <strong>智能裁剪覆盖层：</strong>
+                创建一个与 Base 图层完全重合的 <code>fabric.Rect</code> 矩形对象，关键是设置 <code>globalCompositeOperation: 'source-in'</code> 属性，
+                实现智能裁剪效果，使渐变色只在 Base 图层的非透明像素区域显示。
+              </li>
+              <li>
+                <strong>图层位置同步：</strong>
+                覆盖层矩形的位置、尺寸、缩放比例、旋转角度和透明度都与 Base 图层保持完全一致，确保视觉效果精确匹配。
+              </li>
+              <li>
+                <strong>图层顺序管理：</strong>
+                通过 <code>sendToBack()</code> 和 <code>bringForward()</code> 精确控制图层顺序，确保 Base 图层作为裁剪模板在前，
+                渐变覆盖层紧随其后，而 Overlay Layer 始终保持在最上层。
+              </li>
+              <li>
+                <strong>动态更新机制：</strong>
+                当用户更改渐变颜色或方向时，自动移除旧的渐变覆盖层，重新计算并生成新的覆盖层，提供流畅的实时预览体验。
+              </li>
+            </ul>
+
+            <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-3">裁剪技术原理</h3>
+            <div class="bg-blue-50 p-4 rounded-lg mb-4">
+              <p class="mb-2">
+                <strong>globalCompositeOperation: 'source-in' 的工作原理：</strong>
+              </p>
+              <ul class="list-disc pl-5 space-y-1 text-sm">
+                <li><strong>Base 图层：</strong>作为裁剪模板，定义了可显示的区域范围</li>
+                <li><strong>渐变覆盖层：</strong>设置为 'source-in' 模式，只在 Base 图层已有像素的区域显示</li>
+                <li><strong>透明区域：</strong>PNG 图片的透明部分不会显示任何渐变色</li>
+                <li><strong>边缘处理：</strong>自动处理半透明边缘，保持原图的平滑效果</li>
+              </ul>
+            </div>
+
+            <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-3">技术优势</h3>
+            <div class="grid md:grid-cols-2 gap-4 mt-4">
+              <div class="bg-green-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-green-800 mb-2">性能优势</h4>
+                <ul class="text-sm space-y-1">
+                  <li>• 利用 Fabric.js 原生渐变功能，避免像素级操作</li>
+                  <li>• GPU 加速的 Canvas 渲染，流畅的实时预览</li>
+                  <li>• 内存友好的图层管理机制</li>
+                </ul>
+              </div>
+              <div class="bg-purple-50 p-4 rounded-lg">
+                <h4 class="font-semibold text-purple-800 mb-2">功能优势</h4>
+                <ul class="text-sm space-y-1">
+                  <li>• 精确的形状裁剪，完美贴合原图轮廓</li>
+                  <li>• 非破坏性编辑，保护原始图像数据</li>
+                  <li>• 支持复杂透明度和半透明效果</li>
+                </ul>
+              </div>
+            </div>
+
+            <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-3">扩展性说明</h3>
+            <p class="mt-4">
+              <strong>支持的渐变方向：</strong>
+              目前支持"从左到右"和"从上到下"两种线性渐变方向。系统采用模块化设计，
+              可以通过扩展 <code>getLinearGradientCoords()</code> 函数轻松添加更多方向（如对角线渐变、径向渐变等）。
+            </p>
+
+            <p class="mt-3">
+              <strong>未来扩展可能：</strong>
+              该架构支持扩展为径向渐变、多色渐变、渐变动画效果等高级功能，
+              同时保持代码的简洁性和可维护性。
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+                  // --- 来自你的 API 的数据 ---
+                  const apiResponse = {
+                      "layer_config": {
+                          "layers": [
+                              {
+                                  "created_at": "2025-08-08 09:27:52", "custom_view_id": 1, "deleted_at": null, "id": 2,
+                                  "layer_data": {
+                                      "content": {"backgroundColor": "#ffffff", "fontColor": "string", "fontFamily": "string", "imageURL": "https://pwfiles.939666.xyz/t-shirt/color.png", "opacity": 100, "text": "string"},
+                                      "controls": {"deletable": false, "exportable": true, "movable": false, "rotatable": false, "scalable": false, "visibility": true},
+                                      "dimensions": {"contentArea": {"height": 600, "width": 800}, "layerSize": {"height": 600, "width": 800}, "physicalSize": {"height": 15, "width": 20}},
+                                      "position": {"anchorPoint": "top-left", "coordinates": {"unit": "px", "x": 0, "y": 0}, "rotation": 0, "zIndex": {"locked": true, "value": 1}}
+                                  },
+                                  "name": "Base Layer", "sort_order": 1, "status": 1, "type": "image", "updated_at": "2025-08-08 09:27:52"
+                              },
+                              {
+                                  "created_at": "2025-08-08 09:27:52", "custom_view_id": 1, "deleted_at": null, "id": 3,
+                                  "layer_data": {
+                                      "content": {"backgroundColor": "#ffffff", "fontColor": "string", "fontFamily": "string", "imageURL": "https://pwfiles.939666.xyz/t-shirt/details.png", "opacity": 100, "text": "string"},
+                                      "controls": {"deletable": false, "exportable": true, "movable": false, "rotatable": false, "scalable": false, "visibility": true},
+                                      "dimensions": {"contentArea": {"height": 600, "width": 800}, "layerSize": {"height": 600, "width": 800}, "physicalSize": {"height": 15, "width": 20}},
+                                      "position": {"anchorPoint": "top-left", "coordinates": {"unit": "px", "x": 0, "y": 0}, "rotation": 0, "zIndex": {"locked": true, "value": 2}}
+                                  },
+                                  "name": "Overlay Layer", "sort_order": 2, "status": 1, "type": "image", "updated_at": "2025-08-08 09:27:52"
+                              }
+                          ]
+                      }
+                  };
+
+                  /**
+                   * 将 API 中的 anchorPoint 字符串转换为 Fabric.js 的 originX 和 originY。
+                   * @param {string} anchorPoint - 例如 "top-left", "center"。
+                   * @returns {{originX: string, originY: string}} Fabric.js 的原点对象。
+                   */
+                  function getOriginFromAnchorPoint(anchorPoint) {
+                      const [y, x] = anchorPoint.split('-');
+                      const originMap = {
+                          top: 'top',
+                          center: 'center',
+                          bottom: 'bottom',
+                          left: 'left',
+                          right: 'right',
+                      };
+                      // 如果 anchorPoint 是 "center"，则 x 将是 undefined
+                      return {
+                          originX: originMap[x || 'center'],
+                          originY: originMap[y]
+                      };
+                  }
+
+                  /**
+                   * 辅助函数，用于从图层数据对象创建一个 Fabric.js 对象。
+                   * 它返回一个 Promise，该 Promise 会解析为 Fabric 对象。
+                   * @param {object} layer - 来自 API 的单个图层对象。
+                   * @returns {Promise<fabric.Object|null>} 一个 Promise，如果图层无法创建，则解析为 fabric 对象或 null。
+                   */
+                  function createFabricObjectFromLayer(layer) {
+                      return new Promise((resolve, reject) => {
+                          const data = layer.layer_data;
+                          const controls = data.controls;
+                          const position = data.position;
+
+                          switch (layer.type) {
+                              case 'image':
+                                  if (!data.content.imageURL) {
+                                      console.warn(`因缺少 imageURL，正在跳过图片图层 "${layer.name}"。`);
+                                      resolve(null);
+                                      return;
+                                  }
+
+                                  fabric.Image.fromURL(data.content.imageURL, (img) => {
+                                      const origins = getOriginFromAnchorPoint(position.anchorPoint || 'top-left');
+
+                                      // 获取画布尺寸
+                                      const canvasWidth = data.dimensions.contentArea.width;
+                                      const canvasHeight = data.dimensions.contentArea.height;
+
+                                      // 如果图片比画布大，需要缩放
+                                      let scaleX = 1;
+                                      let scaleY = 1;
+
+                                      if (img.width > canvasWidth) {
+                                          scaleX = canvasWidth / img.width;
+                                      }
+
+                                      if (img.height > canvasHeight) {
+                                          scaleY = canvasHeight / img.height;
+                                      }
+
+                                      // 取较小的缩放比例，确保图片完全在画布内
+                                      const scale = Math.min(scaleX, scaleY);
+
+                                      // 计算缩放后的尺寸
+                                      const scaledWidth = img.width * scale;
+                                      const scaledHeight = img.height * scale;
+
+                                      // 计算居中位置
+                                      const centerX = (canvasWidth - scaledWidth) / 2;
+                                      const centerY = (canvasHeight - scaledHeight) / 2;
+
+                                      img.set({
+                                          left: centerX,
+                                          top: centerY,
+                                          angle: position.rotation,
+                                          originX: origins.originX,
+                                          originY: origins.originY,
+                                          scaleX: scale,
+                                          scaleY: scale,
+                                          opacity: data.content.opacity / 100,
+                                          selectable: controls.movable,
+                                          evented: controls.movable,
+                                          lockRotation: !controls.rotatable,
+                                          lockScalingX: !controls.scalable,
+                                          lockScalingY: !controls.scalable,
+                                          hasControls: controls.movable && controls.scalable,
+                                          hasBorders: controls.movable,
+                                          name: layer.name
+                                      });
+                                      resolve(img);
+                                  }, { crossOrigin: 'anonymous' });
+                                  break;
+
+                              default:
+                                  console.warn(`未知的图层类型: "${layer.type}" (图层名: "${layer.name}")。`);
+                                  resolve(null);
+                                  break;
+                          }
+                      });
+                  }
+
+                  // 全局变量
+                  let baseCanvas = null;
+                  let baseLayerImage = null;
+                  let currentGradient = {
+                      direction: 'right', // 渐变方向
+                      startColor: '#3b82f6', // 起始颜色
+                      endColor: '#ef4444' // 结束颜色
+                  };
+                  let originalBaseLayerImageData = null; // 保存原始Base图层的图像数据
+                  let overlayLayerObject = null; // 保存Overlay图层对象
+
+
+
+
+      function getLinearGradientCoords(direction, width, height) {
+          const coordsMap = {
+              right: { x1: 0, y1: 0, x2: width, y2: 0 },
+              bottom: { x1: 0, y1: 0, x2: 0, y2: height }
+          };
+
+          return coordsMap[direction] || coordsMap.right;
+      }
+
+
+            function applyGradientToBaseLayer(gradientConfig) {
+                if (!baseLayerImage) {
+                    console.warn('Base图层未准备好');
+                    return;
+                }
+
+                // 获取Base图层对象
+                const baseLayerObject = baseCanvas.getObjects().find(obj => obj.name === 'Base Layer');
+                if (!baseLayerObject) {
+                    console.warn('Base图层对象未找到');
+                    return;
+                }
+
+                // 移除旧的渐变覆盖层（如果存在）
+                const existingOverlay = baseCanvas.getObjects().find(obj => obj.name === 'Base Gradient Overlay');
+                if (existingOverlay) {
+                    baseCanvas.remove(existingOverlay);
+                }
+
+                // 创建渐变对象
+                const coords = getLinearGradientCoords(gradientConfig.direction, baseLayerImage.width, baseLayerImage.height);
+                const gradient = new fabric.Gradient({
+                    type: 'linear',
+                    gradientUnits: 'pixels',
+                    coords: coords,
+                    colorStops: [
+                        { offset: 0, color: gradientConfig.startColor },
+                        { offset: 1, color: gradientConfig.endColor }
+                    ]
+                });
+
+                // 创建一个矩形作为渐变覆盖层，使用裁剪功能
+                const overlayRect = new fabric.Rect({
+                    left: baseLayerObject.left,
+                    top: baseLayerObject.top,
+                    width: baseLayerImage.width,
+                    height: baseLayerImage.height,
+                    originX: baseLayerObject.originX,
+                    originY: baseLayerObject.originY,
+                    scaleX: baseLayerObject.scaleX,
+                    scaleY: baseLayerObject.scaleY,
+                    angle: baseLayerObject.angle,
+                    fill: gradient,
+                    selectable: false,
+                    evented: false,
+                    opacity: baseLayerObject.opacity,
+                    globalCompositeOperation: 'source-in', // 关键：只在Base图层非透明区域显示
+                    name: 'Base Gradient Overlay'
+                });
+
+                // 添加新的渐变覆盖层
+                baseCanvas.add(overlayRect);
+                
+                // 确保Base图层在渐变覆盖层之前（作为裁剪模板）
+                baseCanvas.sendToBack(baseLayerObject);
+                baseCanvas.bringForward(overlayRect);
+
+                // 如果有 Overlay Layer，确保它在最上层
+                if (overlayLayerObject) {
+                    baseCanvas.bringToFront(overlayLayerObject);
+                }
+
+                baseCanvas.renderAll();
+            }
+
+                  // --- 脚本执行 ---
+                  document.addEventListener('DOMContentLoaded', async () => {
+                      // 初始化画布
+                      baseCanvas = new fabric.Canvas('baseCanvas', {
+                          width: 800,
+                          height: 600,
+                      });
+
+                      // 按排序顺序渲染所有图层
+                      const sortedLayers = [...apiResponse.layer_config.layers].sort((a, b) => a.sort_order - b.sort_order);
+
+                      for (const layer of sortedLayers) {
+                          const fabricObject = await createFabricObjectFromLayer(layer);
+                          if (fabricObject) {
+                              baseCanvas.add(fabricObject);
+
+                              // 保存Base图层图像引用
+                              if (layer.name === 'Base Layer') {
+                                  baseLayerImage = fabricObject._element;
+                                  document.getElementById('baseLayerName').textContent = layer.name;
+                                  document.getElementById('baseLayerSize').textContent =
+                                      `${layer.layer_data.dimensions.layerSize.width}x${layer.layer_data.dimensions.layerSize.height}`;
+                              }
+
+                              // 保存Overlay图层对象引用
+                              if (layer.name === 'Overlay Layer') {
+                                  overlayLayerObject = fabricObject;
+                              }
+                          }
+                      }
+
+                      // 确保Overlay图层在最上面
+                      if (overlayLayerObject) {
+                          baseCanvas.bringToFront(overlayLayerObject);
+                      }
+
+                      baseCanvas.renderAll();
+
+
+                      // 渐变方向选择
+                      document.querySelectorAll('button[data-direction]').forEach(btn => {
+                          btn.addEventListener('click', function() {
+                              // 移除其他按钮的激活状态
+                              document.querySelectorAll('button[data-direction]').forEach(b => {
+                                  b.classList.remove('bg-blue-500', 'text-white', 'active');
+                                  b.classList.add('bg-gray-200', 'text-gray-700');
+                              });
+
+                              // 添加当前按钮的激活状态
+                              this.classList.remove('bg-gray-200', 'text-gray-700');
+                              this.classList.add('bg-blue-500', 'text-white', 'active');
+
+                              // 更新渐变方向
+                              currentGradient.direction = this.getAttribute('data-direction');
+
+                              // 应用渐变
+                              applyGradientToBaseLayer(currentGradient);
+                          });
+                      });
+
+                      // 颜色选择器同步
+                      document.getElementById('startColor').addEventListener('input', function() {
+                          document.getElementById('startColorHex').value = this.value;
+                          currentGradient.startColor = this.value;
+                          applyGradientToBaseLayer(currentGradient);
+                      });
+
+                      document.getElementById('endColor').addEventListener('input', function() {
+                          document.getElementById('endColorHex').value = this.value;
+                          currentGradient.endColor = this.value;
+                          applyGradientToBaseLayer(currentGradient);
+                      });
+
+                      // 颜色HEX输入同步
+                      document.getElementById('startColorHex').addEventListener('input', function() {
+                          document.getElementById('startColor').value = this.value;
+                          currentGradient.startColor = this.value;
+                          applyGradientToBaseLayer(currentGradient);
+                      });
+
+                      document.getElementById('endColorHex').addEventListener('input', function() {
+                          document.getElementById('endColor').value = this.value;
+                          currentGradient.endColor = this.value;
+                          applyGradientToBaseLayer(currentGradient);
+                      });
+
+                      // 预设渐变色选择
+                      document.querySelectorAll('.gradient-preview').forEach(preview => {
+                          preview.addEventListener('click', function() {
+                              const startColor = this.getAttribute('data-start');
+                              const endColor = this.getAttribute('data-end');
+
+                              document.getElementById('startColor').value = startColor;
+                              document.getElementById('startColorHex').value = startColor;
+                              document.getElementById('endColor').value = endColor;
+                              document.getElementById('endColorHex').value = endColor;
+
+                              currentGradient.startColor = startColor;
+                              currentGradient.endColor = endColor;
+
+                              applyGradientToBaseLayer(currentGradient);
+                          });
+                      });
+
+                      // 初始应用渐变色
+                      applyGradientToBaseLayer(currentGradient);
+                  });
+    </script>
+
+    <style>
+      .gradient-preview {
+          height: 40px;
+          border-radius: 0.5rem;
+          cursor: pointer;
+          border: 2px solid #e5e7eb;
+          transition: all 0.2s ease-in-out;
+      }
+
+      .gradient-preview:hover {
+          transform: scale(1.05);
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .active {
+          background-color: #3b82f6 !important;
+          color: white !important;
+      }
+    </style>
+  </body>
+</html>
