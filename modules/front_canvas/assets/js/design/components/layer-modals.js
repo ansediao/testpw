@@ -2,13 +2,28 @@
 // 包含打印方法选择对话框和图层组印刷方式修改弹窗的HTML模板
 
 export const layerModalsTemplate = `
-    <!-- 打印方法选择对话框 - 使用 MicroModal 标准结构 -->
-    <div class="pwca-print-method-modal modal micromodal-slide" id="pwca-print-method-modal" aria-hidden="true">
-        <div class="pwca-print-method-modal__overlay modal__overlay" tabindex="-1" data-micromodal-close>
+    <!-- 打印方法选择对话框 -->
+    <div
+        class="pwca-print-method-modal modal micromodal-slide"
+        id="pwca-print-method-modal"
+        :class="{ 'is-open': isPrintMethodModalOpen }"
+        :aria-hidden="!isPrintMethodModalOpen"
+    >
+        <div
+            class="pwca-print-method-modal__overlay modal__overlay"
+            tabindex="-1"
+            data-micromodal-close
+            @click.self="closePrintMethodModal"
+        >
             <div class="pwca-print-method-modal__container modal__container" role="dialog" aria-modal="true" aria-labelledby="pwca-print-method-title">
                 <header class="pwca-print-method-modal__header modal__header">
                     <h2 class="pwca-print-method-modal__title modal__title" id="pwca-print-method-title">Print Method Setting</h2>
-                    <button class="pwca-print-method-modal__close modal__close" aria-label="Close modal" data-micromodal-close></button>
+                    <button
+                        class="pwca-print-method-modal__close modal__close"
+                        aria-label="Close modal"
+                        data-micromodal-close
+                        @click="closePrintMethodModal"
+                    ></button>
                 </header>
                 <main class="pwca-print-method-modal__content modal__content">
                     <div class="pwca-print-methods">
@@ -73,7 +88,11 @@ export const layerModalsTemplate = `
                     </div>
                 </main>
                 <footer class="pwca-print-method-modal__footer modal__footer">
-                    <button class="pwca-print-method-modal__btn modal__btn" data-micromodal-close>取消</button>
+                    <button
+                        class="pwca-print-method-modal__btn modal__btn"
+                        data-micromodal-close
+                        @click="closePrintMethodModal"
+                    >取消</button>
                     <button class="pwca-print-method-modal__btn pwca-print-method-modal__btn--primary modal__btn modal__btn-primary" @click="assignLayerToPrintMethod">Save</button>
                 </footer>
             </div>
@@ -81,12 +100,27 @@ export const layerModalsTemplate = `
     </div>
     
     <!-- 图层组印刷方式修改弹窗 -->
-    <div class="pwca-group-print-modal modal micromodal-slide" id="pwca-group-print-method-modal" aria-hidden="true">
-        <div class="pwca-group-print-modal__overlay modal__overlay" tabindex="-1" data-micromodal-close>
+    <div
+        class="pwca-group-print-modal modal micromodal-slide"
+        id="pwca-group-print-method-modal"
+        :class="{ 'is-open': isGroupPrintMethodModalOpen }"
+        :aria-hidden="!isGroupPrintMethodModalOpen"
+    >
+        <div
+            class="pwca-group-print-modal__overlay modal__overlay"
+            tabindex="-1"
+            data-micromodal-close
+            @click.self="closeGroupPrintMethodModal"
+        >
             <div class="pwca-group-print-modal__container modal__container" role="dialog" aria-modal="true" aria-labelledby="pwca-group-print-method-title">
                 <header class="pwca-group-print-modal__header modal__header">
                     <h2 class="pwca-group-print-modal__title modal__title" id="pwca-group-print-method-title">修改图层组印刷方式</h2>
-                    <button class="pwca-group-print-modal__close modal__close" aria-label="Close modal" data-micromodal-close></button>
+                    <button
+                        class="pwca-group-print-modal__close modal__close"
+                        aria-label="Close modal"
+                        data-micromodal-close
+                        @click="closeGroupPrintMethodModal"
+                    ></button>
                 </header>
                 <main class="pwca-group-print-modal__content modal__content">
                     <div class="pwca-group-info" v-if="selectedGroupForPrintMethod">
@@ -128,7 +162,11 @@ export const layerModalsTemplate = `
                     </div>
                 </main>
                 <footer class="pwca-group-print-modal__footer modal__footer">
-                    <button class="pwca-group-print-modal__btn modal__btn" data-micromodal-close>取消</button>
+                    <button
+                        class="pwca-group-print-modal__btn modal__btn"
+                        data-micromodal-close
+                        @click="closeGroupPrintMethodModal"
+                    >取消</button>
                     <button class="pwca-group-print-modal__btn pwca-group-print-modal__btn--primary modal__btn modal__btn-primary" @click="confirmGroupPrintMethodChange">确认修改</button>
                 </footer>
             </div>

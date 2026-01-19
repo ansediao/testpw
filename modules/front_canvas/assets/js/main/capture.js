@@ -171,9 +171,13 @@ function captureCanvasById(fabricCanvas) {
 function closeMultiViewPreview() {
     const modal = document.getElementById('multi-view-preview-modal');
     if (modal) {
-        if (typeof MicroModal !== 'undefined') { try { MicroModal.close('multi-view-preview-modal'); } catch (e) {} }
-        modal.style.display = 'none'; modal.classList.remove('is-open');
-        setTimeout(() => { if (modal.parentNode) { modal.remove(); } }, 100);
+        modal.style.display = 'none';
+        modal.classList.remove('is-open');
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.remove();
+            }
+        }, 100);
     }
 }
 

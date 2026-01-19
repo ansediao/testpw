@@ -41,12 +41,26 @@ window.CustomColorsButton = {
             </div>
             
             <!-- Custom Color Modal -->
-            <div id="pw-custom-color-modal" class="modal micromodal-slide" aria-hidden="true">
-                <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+            <div
+                id="pw-custom-color-modal"
+                :class="['modal', 'micromodal-slide', { 'is-open': isColorModalOpen }]"
+                :aria-hidden="!isColorModalOpen"
+            >
+                <div
+                    class="modal__overlay"
+                    tabindex="-1"
+                    data-micromodal-close
+                    @click.self="closeColorModal"
+                >
                     <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-custom-color-modal-title">
                         <header>
                             <h2 class="modal__title" id="pw-custom-color-modal-title">Select Custom Color</h2>
-                            <button class="modal__close" aria-label="Close modal" data-micromodal-close>&times;</button>
+                            <button
+                                class="modal__close"
+                                aria-label="Close modal"
+                                data-micromodal-close
+                                @click="closeColorModal"
+                            >&times;</button>
                         </header>
                         <main class="modal__content">
                             <input type="color" id="customColorPicker" v-model="selectedColor" @input="onColorInput" />
@@ -63,6 +77,7 @@ window.CustomColorsButton = {
         const selectedColor = Vue.ref('#3498DB');
         const canvasStore = (typeof window.useCanvasStore === 'function') ? window.useCanvasStore() : null;
         const productStore = (typeof window.useProductStore !== 'undefined') ? window.useProductStore() : null;
+        const isColorModalOpen = Vue.ref(false);
         
         // 新增状态管理
         const showCustomColorStatus = Vue.ref(false);
@@ -82,12 +97,12 @@ window.CustomColorsButton = {
         
         // 打开自定义颜色弹窗
         const openColorModal = () => {
-            MicroModal.show('pw-custom-color-modal');
+            isColorModalOpen.value = true;
         };
         
         // 关闭自定义颜色弹窗
         const closeColorModal = () => {
-            MicroModal.close('pw-custom-color-modal');
+            isColorModalOpen.value = false;
         };
         
         // 处理Gradient按钮点击 - 销毁Canvas，恢复原始图片，在原始图片上添加文字
@@ -537,6 +552,7 @@ window.CustomColorsButton = {
             selectedColor,
             isButtonClickable,
             isCustomColorsDisabled,
+            isColorModalOpen,
             selectCustomColor,
             openColorModal,
             closeColorModal,

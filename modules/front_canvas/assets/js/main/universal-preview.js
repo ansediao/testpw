@@ -52,10 +52,42 @@ async function showUniversalViewPreview(views) {
     setTimeout(() => {
         const modal = document.getElementById('universal-view-preview-modal');
         if (!modal) return;
-        if (typeof MicroModal !== 'undefined') {
-            try { MicroModal.init({ disableScroll: true, disableFocus: false, awaitCloseAnimation: false, debugMode: false }); } catch (e) {}
-            try { MicroModal.show('universal-view-preview-modal'); } catch (e) { modal.style.display = 'flex'; modal.classList.add('is-open'); }
-        } else { modal.style.display = 'flex'; modal.classList.add('is-open'); }
+
+        const overlay = modal.querySelector('.modal__overlay');
+        const closeButton = modal.querySelector('.modal__close');
+
+        const close = () => {
+            modal.classList.remove('is-open');
+            modal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            document.removeEventListener('keydown', onKeyDown);
+        };
+
+        const onKeyDown = (event) => {
+            if (event.key === 'Escape') {
+                close();
+            }
+        };
+
+        if (overlay) {
+            overlay.addEventListener('click', (event) => {
+                if (event.target === overlay) {
+                    close();
+                }
+            });
+        }
+
+        if (closeButton) {
+            closeButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                close();
+            });
+        }
+
+        document.body.classList.add('modal-open');
+        modal.style.display = 'flex';
+        modal.classList.add('is-open');
+        document.addEventListener('keydown', onKeyDown);
     }, 10);
     const viewImages = await window.generateUniversalViewImages(views);
     const thumbnailList = document.querySelector('#universal-view-preview-modal .thumbnail-list');

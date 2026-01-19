@@ -303,8 +303,7 @@ const HeaderControls = {
 
             } else {
                 // Design tab logic
-                // If the modal is open, we might want to close it, but MicroModal handles that.
-                // We just set the state to active.
+                // 仅更新状态，具体弹窗关闭由各自组件负责处理。
             }
             
             // Dispatch event for compatibility
@@ -348,67 +347,7 @@ const HeaderControls = {
             default: '#'
         }
     },
-    template: `
-        <div class="header_right_content" style="display: contents;">
-            <div id="history-controls" class="history-controls">
-                <div v-for="view in store.views" :key="view.id" v-show="view.id === store.activeViewId" class="history-btn-group">
-                    <button 
-                        :id="'backward-' + view.id" 
-                        class="history-btn" 
-                        :disabled="!getCanUndo(view.id)"
-                        @click="handleUndo(view.id)"
-                        :style="{ 
-                            color: getCanUndo(view.id) ? '#000' : '#ccc', 
-                            background: 'none', 
-                            border: 'none', 
-                            cursor: getCanUndo(view.id) ? 'pointer' : 'default', 
-                            padding: '0 5px' 
-                        }"
-                    >
-                        <i class="iconfont icon-houtui" style="font-size: 20px;"></i>
-                    </button>
-                    <button 
-                        :id="'forward-' + view.id" 
-                        class="history-btn" 
-                        :disabled="!getCanRedo(view.id)"
-                        @click="handleRedo(view.id)"
-                        :style="{ 
-                            color: getCanRedo(view.id) ? '#000' : '#ccc', 
-                            background: 'none', 
-                            border: 'none', 
-                            cursor: getCanRedo(view.id) ? 'pointer' : 'default', 
-                            padding: '0 5px' 
-                        }"
-                    >
-                        <i class="iconfont icon-Icon-forward" style="font-size: 20px;"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="design-switch-btn-box">
-                <!-- Tab Button 1: Principle -->
-                <button 
-                    class="design-switch-btn" 
-                    :class="{ active: activeTab === 'viewDesign' }" 
-                    @click="switchTab('viewDesign')"
-                    data-tab="viewDesign">
-                    Design
-                </button>
-                <!-- Tab Button 2: Logic -->
-                <button 
-                    class="design-switch-btn" 
-                    id="renderBtn"
-                    :class="{ active: activeTab === 'viewMockup' }" 
-                    @click="switchTab('viewMockup')"
-                    data-tab="viewMockup">
-                    Mockups
-                </button>
-            </div>    
-            <button id="generatePdfBtn" @click="generatePdf">PDF</button>
-            <a :href="productLink" class="close-btn" title="返回产品页">
-                X
-            </a>
-        </div>
-    `
+    template: '#pwca-header-controls-template'
 };
 
 // Auto-mount logic

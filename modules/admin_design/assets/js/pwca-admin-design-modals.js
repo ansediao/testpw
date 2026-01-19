@@ -46,26 +46,67 @@
 		}
 	}
 
+	const pwcaToggleBodyScroll = (disable) => {
+		if (!document || !document.body) return
+		if (disable) {
+			document.body.classList.add('modal-open')
+		} else {
+			document.body.classList.remove('modal-open')
+		}
+	}
+
+	let pwcaActiveModalId = null
+
 	const showModal = (id) => {
-		if (!window.MicroModal) return
-		window.MicroModal.show(id)
+		const modal = document.getElementById(id)
+		if (!modal) return
+		pwcaActiveModalId = id
+		modal.classList.add('is-open')
+		modal.setAttribute('aria-hidden', 'false')
+		pwcaToggleBodyScroll(true)
+
+		const focusable = modal.querySelector(
+			'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+		)
+		if (focusable) {
+			try {
+				focusable.focus()
+			} catch {
+			}
+		}
 	}
 
 	const closeModal = (id) => {
-		if (!window.MicroModal) return
-		window.MicroModal.close(id)
+		const targetId = id || pwcaActiveModalId
+		if (!targetId) return
+		const modal = document.getElementById(targetId)
+		if (!modal) return
+		modal.classList.remove('is-open')
+		modal.setAttribute('aria-hidden', 'true')
+		pwcaToggleBodyScroll(false)
+		if (!id || id === pwcaActiveModalId) {
+			pwcaActiveModalId = null
+		}
 	}
 
+	// 暴露公共方法，便于其他脚本复用
+	window.pwcaAdminShowModal = showModal
+	window.pwcaAdminCloseModal = closeModal
+
 	const initMicroModal = () => {
-		if (!window.MicroModal) return
-		try {
-			window.MicroModal.init({
-				disableScroll: true,
-				awaitCloseAnimation: false,
-				awaitOpenAnimation: false,
-			})
-		} catch {
-		}
+		document.addEventListener('click', (event) => {
+			const trigger = event.target.closest('[data-micromodal-close]')
+			if (!trigger) return
+			const modal = trigger.closest('.modal')
+			if (!modal || !modal.id) return
+			closeModal(modal.id)
+		})
+
+		document.addEventListener('keydown', (event) => {
+			if (event.key !== 'Escape') return
+			if (!pwcaActiveModalId) return
+			closeModal(pwcaActiveModalId)
+		})
 	}
 
 	const bindCategoryFilterAutoSubmit = () => {
