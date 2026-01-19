@@ -110,6 +110,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</button>
 			</div>
 		</footer>
+		<?php
+		$templates_view = $module_path . '/views/partials/canvas-templates.php';
+		if ( is_readable( $templates_view ) ) {
+			include $templates_view;
+		}
+		?>
 	</div>
 	<?php wp_footer(); ?>
 </body>

@@ -1,125 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    let designCategoriesList = null;
-
-    function initializeListJS() {
-        if (typeof List !== 'undefined') {
-            const options = {
-                valueNames: ['name'],
-                searchClass: 'search',
-            };
-
-            designCategoriesList = new List('design-categories-list', options);
-            setupSearchFunctionality();
-        } else {
-            setTimeout(initializeListJS, 100);
-        }
-    }
-
-    initializeListJS();
-
-    function setupSearchFunctionality() {
-        const filterToggleBtn = document.getElementById('filter-toggle-btn');
-        const advancedSearchRow = document.getElementById('advanced-search-row');
-        const quickSearchInput = document.getElementById('quick-search-input');
-        const advancedSearchInput = document.getElementById('advanced-search-input');
-        const filterOperator = document.getElementById('filter-operator');
-
-        if (!filterToggleBtn || !advancedSearchRow || !quickSearchInput || !advancedSearchInput || !filterOperator) {
-            return;
-        }
-
-        filterToggleBtn.addEventListener('click', () => {
-            const isVisible = advancedSearchRow.style.display !== 'none';
-            advancedSearchRow.style.display = isVisible ? 'none' : 'block';
-
-            if (isVisible) {
-                advancedSearchInput.value = '';
-                applyAdvancedFilter();
-            }
-        });
-
-        quickSearchInput.addEventListener('input', (e) => {
-            if (!designCategoriesList) {
-                return;
-            }
-
-            const searchTerm = e.target.value.toLowerCase().trim();
-
-            if (searchTerm === '') {
-                designCategoriesList.filter();
-                return;
-            }
-
-            designCategoriesList.filter((item) => {
-                const nameElement = item.elm.querySelector('.name');
-                const categoryName = nameElement ? nameElement.textContent.toLowerCase().trim() : '';
-                return categoryName.includes(searchTerm);
-            });
-        });
-
-        function applyAdvancedFilter() {
-            if (!designCategoriesList) {
-                return;
-            }
-
-            const searchTerm = advancedSearchInput.value.toLowerCase();
-            const operator = filterOperator.value;
-
-            if (searchTerm === '') {
-                designCategoriesList.filter();
-                return;
-            }
-
-            designCategoriesList.filter((item) => {
-                const nameElement = item.elm.querySelector('.name');
-                const categoryName = nameElement ? nameElement.textContent.toLowerCase().trim() : '';
-
-                switch (operator) {
-                    case 'is':
-                        return categoryName === searchTerm;
-                    case 'isnot':
-                        return categoryName !== searchTerm;
-                    case 'contains':
-                        return categoryName.includes(searchTerm);
-                    case 'notcontains':
-                        return !categoryName.includes(searchTerm);
-                    default:
-                        return true;
-                }
-            });
-        }
-
-        advancedSearchInput.addEventListener('input', applyAdvancedFilter);
-        filterOperator.addEventListener('change', applyAdvancedFilter);
-    }
-
-    const categoryItems = document.querySelectorAll('.category-item');
-    const contentSheji = document.querySelector('.content-sheji');
-
-    if (categoryItems.length && contentSheji) {
-        categoryItems.forEach((item) => {
-            item.addEventListener('click', () => {
-                categoryItems.forEach((i) => i.classList.remove('active'));
-                item.classList.add('active');
-                contentSheji.classList.add('active');
-            });
-        });
-    }
-
-    const backButtons = document.querySelectorAll('.back-button');
-    backButtons.forEach((button) => {
-        button.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const categoryItem = button.closest('.category-item');
-            if (categoryItem && contentSheji) {
-                categoryItem.classList.remove('active');
-                contentSheji.classList.remove('active');
-            }
-        });
-    });
-});
-
-document.addEventListener('DOMContentLoaded', () => {
     window.canvasInitTextUI = function () {
         try {
             const textInputBtn = document.getElementById('text_input');
@@ -135,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tabs = document.querySelectorAll('.tab');
     const contentPanes = document.querySelectorAll('.content-pane');
-    const colorSwatches = document.querySelectorAll('.color-swatch');
 
     tabs.forEach((tab) => {
         tab.addEventListener('click', () => {
@@ -162,7 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (tab.id === 'tab-pianquan') {
                 try {
-                    if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
+                    if (
+                        window.CanvasManager &&
+                        typeof window.CanvasManager.getViewIds === 'function'
+                    ) {
                         const viewIds = window.CanvasManager.getViewIds();
                         viewIds.forEach((viewId) => {
                             const canvas = window.CanvasManager.getCanvas(viewId);
@@ -196,7 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 try {
-                    if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
+                    if (
+                        window.CanvasManager &&
+                        typeof window.CanvasManager.getViewIds === 'function'
+                    ) {
                         const viewIds = window.CanvasManager.getViewIds();
                         viewIds.forEach((viewId) => {
                             const canvas = window.CanvasManager.getCanvas(viewId);
@@ -215,7 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const activeCanvas =
-                    window.CanvasManager && typeof window.CanvasManager.getActiveCanvas === 'function'
+                    window.CanvasManager &&
+                    typeof window.CanvasManager.getActiveCanvas === 'function'
                         ? window.CanvasManager.getActiveCanvas()
                         : window.canvas || window.fabricCanvas;
 
@@ -235,13 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
-        });
-    });
-
-    colorSwatches.forEach((swatch) => {
-        swatch.addEventListener('click', () => {
-            colorSwatches.forEach((s) => s.classList.remove('selected'));
-            swatch.classList.add('selected');
         });
     });
 
