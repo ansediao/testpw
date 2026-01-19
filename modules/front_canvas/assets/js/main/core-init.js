@@ -132,7 +132,11 @@ function getActiveCanvasElements() {
             mainCanvas: document.getElementById(`mainCanvas-${store.activeViewId}`)
         };
     }
-    return { colorCanvas: document.getElementById('colorLayer'), shadowCanvas: document.getElementById('shadowLayer'), mainCanvas: document.getElementById('mainCanvas') };
+    return {
+        colorCanvas: document.getElementById('colorLayer'),
+        shadowCanvas: document.getElementById('shadowLayer'),
+        mainCanvas: document.getElementById('mainCanvas')
+    };
 }
 
 function getActiveCanvasContexts() {
@@ -144,6 +148,25 @@ function getActiveCanvasContexts() {
 }
 
 let canvas = null;
+
+function getActiveCanvas() {
+    if (window.CanvasManager && typeof window.CanvasManager.getActiveCanvas === 'function') {
+        const managedCanvas = window.CanvasManager.getActiveCanvas();
+        if (managedCanvas) {
+            return managedCanvas;
+        }
+    }
+
+    const store = window.useCanvasStore && window.useCanvasStore();
+    if (store && store.activeViewId) {
+        const canvasElement = document.getElementById(`mainCanvas-${store.activeViewId}`);
+        if (canvasElement && canvasElement.__fabricCanvas) {
+            return canvasElement.__fabricCanvas;
+        }
+    }
+
+    return canvas || window.canvas || window.fabricCanvas || null;
+}
 
 function setGlobalCanvas(fabricCanvas) {
     canvas = fabricCanvas;

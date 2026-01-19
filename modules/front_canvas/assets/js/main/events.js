@@ -26,10 +26,14 @@ function addCanvasEventListeners(fabricCanvas) {
     let alertTargetObject = null;
    
     fabricCanvas.on('object:modified', (e) => {
-        if (typeof window.updatePreviewCanvas === 'function') window.updatePreviewCanvas();
-        
+        if (typeof window.updatePreviewCanvas === 'function') {
+            window.updatePreviewCanvas();
+        }
+
         if (needsAlertOnRelease && alertTargetObject) {
-            showPrintMethodBindingAlert(e.target);
+            if (typeof window.showPrintMethodBindingAlert === 'function') {
+                window.showPrintMethodBindingAlert(e.target);
+            }
             needsAlertOnRelease = false;
             alertTargetObject = null;
         }

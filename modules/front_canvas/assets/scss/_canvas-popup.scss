@@ -1,0 +1,68 @@
+body.wpcanvas {
+    .popup-modal {
+        display: none;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+
+        .modal-box {
+            background: #fff;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90vw;
+            max-height: 80vh;
+            overflow: auto;
+            position: relative;
+
+            #close-reviews-modal {
+                position: absolute;
+                right: 1rem;
+                top: 1rem;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+
+            .popup_header {
+                p {
+                    padding: 10px;
+                    margin: unset;
+                    font-family: "Arial-BoldMT", "Arial Bold", "Arial", sans-serif;
+                    font-weight: 700;
+                    font-style: normal;
+                    font-size: 18px;
+                    color: #303236;
+                    border-bottom: 1px solid #ccc;
+                }
+            }
+
+            .popup_body {
+                padding: 2rem;
+
+                #review-tabs {
+                    display: flex;
+                    margin-bottom: 1rem;
+
+                    .review-tab {
+                        cursor: pointer;
+                        padding: 0.5rem 1rem;
+
+                        &.active {
+                            cursor: pointer;
+                            padding: 0.5rem 1rem;
+                            border-bottom: 2px solid #000;
+                            font-weight: 600;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,7 +1,6 @@
 <!-- 设计内容 (隐藏) -->
 <div id="content-sheji" class="content-pane">
-    <!-- List.js CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/list.js/2.3.1/list.min.js"></script>
+    
 
     <div class="search-filter-container">
         <!-- 快速搜索输入框 -->
@@ -21,7 +20,7 @@
         </div>
 
         <!-- 高级搜索行 (默认隐藏) -->
-        <div class="advanced-search-row" id="advanced-search-row" style="display: none;">
+        <div class="advanced-search-row" id="advanced-search-row">
             <div class="advanced-search-field">
                 <label>Folder</label>
                 <select id="filter-operator" class="filter-operator">
@@ -35,107 +34,7 @@
         </div>
     </div>
 
-    <style>
-        .search-filter-container {
-            padding: 16px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-
-        .quick-search-row {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .search-input-wrapper {
-            flex: 1;
-            position: relative;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            pointer-events: none;
-        }
-
-        .search,
-        .advanced-search-input {
-            width: 100%;
-            padding: 12px 12px 12px 44px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 16px;
-            background: white;
-            box-sizing: border-box;
-        }
-
-        .search:focus,
-        .advanced-search-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
-
-        .filter-toggle-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 20px;
-            background: #22d3ee;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .filter-toggle-btn:hover {
-            background: #0891b2;
-        }
-
-        .advanced-search-row {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .advanced-search-field {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .advanced-search-field label {
-            font-weight: 500;
-            color: #374151;
-            min-width: 100px;
-        }
-
-        .filter-operator {
-            padding: 8px 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 6px;
-            background: white;
-            font-size: 14px;
-            min-width: 120px;
-        }
-
-        .filter-operator:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
-
-        .advanced-search-input {
-            flex: 1;
-            padding: 8px 12px;
-            margin: 0;
-        }
-    </style>
+    
 
     <hr>
     <?php
@@ -172,7 +71,7 @@
                 foreach ($designs as $design) {
                     echo '<div class="design-item">';
                     if (has_post_thumbnail($design->ID)) {
-                        echo '<img src="' . get_the_post_thumbnail_url($design->ID, 'thumbnail') . '" alt="' . esc_attr($design->post_title) . '" onclick="addDesignToCanvas(' . $design->ID . ')" style="cursor: pointer;">';
+                        echo '<img src="' . get_the_post_thumbnail_url($design->ID, 'thumbnail') . '" alt="' . esc_attr($design->post_title) . '" class="pwca-design-thumbnail" data-design-id="' . esc_attr($design->ID) . '">';
                     }
                     echo '</div>';
                 }

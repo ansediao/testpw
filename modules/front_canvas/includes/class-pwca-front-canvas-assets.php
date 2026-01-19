@@ -75,15 +75,16 @@ final class Pwca_Front_Canvas_Assets {
 		wp_enqueue_script( 'pwca-vendor-three', 'https://unpkg.com/three@0.128.0/build/three.min.js', array(), '0.128.0', true );
 		wp_enqueue_script( 'pwca-vendor-three-orbit', 'https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js', array( 'pwca-vendor-three' ), '0.128.0', true );
 		wp_enqueue_script( 'pwca-vendor-three-gltf', 'https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js', array( 'pwca-vendor-three' ), '0.128.0', true );
+
+		wp_enqueue_script( 'pwca-vendor-listjs', 'https://cdnjs.cloudflare.com/ajax/libs/list.js/2.3.1/list.min.js', array(), '2.3.1', true );
 	}
 
 	private function enqueue_local_styles() {
-		$this->enqueue_style_if_readable( 'pwca-front-canvas-onlinedesign', 'assets/scss/pwca-onlinedesign.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-front-canvas-operation-panel', 'assets/scss/operation-panel.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-front-canvas-layers-panel', 'assets/scss/layers-panel.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-front-canvas-inquiry-modal', 'assets/scss/pwca-inquiry-modal.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-front-canvas-print-method-modal', 'assets/scss/pwca-print-method-modal.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-front-canvas-group-print-method-modal', 'assets/scss/pwca-group-print-method-modal.css', array() );
+		$this->enqueue_style_if_readable(
+			'pwca-front-canvas-onlinedesign',
+			'assets/scss/pwca-front-canvas.css',
+			array( 'pwca-vendor-layui', 'pwca-vendor-icons' )
+		);
 	}
 
 	private function enqueue_local_scripts() {
@@ -165,9 +166,16 @@ final class Pwca_Front_Canvas_Assets {
 		);
 
 		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-preview-init',
+			$this->module_url . 'assets/js/main/preview-init.js',
+			array( 'pwca-front-canvas-preview' ),
+			$this->module_path . '/assets/js/main/preview-init.js'
+		);
+
+		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-layers-sync',
 			$this->module_url . 'assets/js/main/layers-sync.js',
-			array( 'pwca-front-canvas-preview' ),
+			array( 'pwca-front-canvas-preview-init' ),
 			$this->module_path . '/assets/js/main/layers-sync.js'
 		);
 
@@ -176,6 +184,13 @@ final class Pwca_Front_Canvas_Assets {
 			$this->module_url . 'assets/js/main/color-utils.js',
 			array( 'pwca-front-canvas-layers-sync' ),
 			$this->module_path . '/assets/js/main/color-utils.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-product-gradient-modal',
+			$this->plugin_root_url . 'modules/front_product/assets/js/product/gradient-modal.js',
+			array( 'pwca-front-canvas-color-utils' ),
+			$this->plugin_root_path . '/modules/front_product/assets/js/product/gradient-modal.js'
 		);
 
 		$this->enqueue_script_if_readable(
@@ -213,7 +228,78 @@ final class Pwca_Front_Canvas_Assets {
 			$this->module_path . '/assets/js/main/events.js'
 		);
 
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-dynamic-toolbar',
+			$this->module_url . 'assets/js/main/dongtai-toolbar.js',
+			array( 'pwca-front-canvas-events' ),
+			$this->module_path . '/assets/js/main/dongtai-toolbar.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-tab-text',
+			$this->module_url . 'assets/js/main/tab-text.js',
+			array( 'pwca-front-canvas-dynamic-toolbar' ),
+			$this->module_path . '/assets/js/main/tab-text.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-tab-image',
+			$this->module_url . 'assets/js/main/tab-image.js',
+			array( 'pwca-front-canvas-dynamic-toolbar' ),
+			$this->module_path . '/assets/js/main/tab-image.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-customization-area',
+			$this->module_url . 'assets/js/main/customization-area.js',
+			array( 'pwca-front-canvas-events' ),
+			$this->module_path . '/assets/js/main/customization-area.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-inquiry-modal',
+			$this->module_url . 'assets/js/main/inquiry-modal.js',
+			array( 'pwca-front-canvas-events' ),
+			$this->module_path . '/assets/js/main/inquiry-modal.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-operation-panel-design-search',
+			$this->module_url . 'assets/js/main/operation-panel-design-search.js',
+			array( 'pwca-front-canvas-events', 'pwca-vendor-listjs' ),
+			$this->module_path . '/assets/js/main/operation-panel-design-search.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-operation-panel-tabs',
+			$this->module_url . 'assets/js/main/operation-panel-tabs.js',
+			array( 'pwca-front-canvas-events' ),
+			$this->module_path . '/assets/js/main/operation-panel-tabs.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-operation-panel-reviews',
+			$this->module_url . 'assets/js/main/operation-panel-reviews.js',
+			array( 'pwca-front-canvas-events' ),
+			$this->module_path . '/assets/js/main/operation-panel-reviews.js'
+		);
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-operation-panel-colors',
+			$this->module_url . 'assets/js/main/operation-panel-colors.js',
+			array( 'pwca-front-canvas-events', 'pwca-front-canvas-multi-view-init' ),
+			$this->module_path . '/assets/js/main/operation-panel-colors.js'
+		);
+
 		$this->enqueue_design_modules();
+
+		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-multi-view-init',
+			$this->module_url . 'assets/js/canvas/multi-view-init.js',
+			array( 'pwca-front-canvas-design-main', 'pwca-front-canvas-core-init' ),
+			$this->module_path . '/assets/js/canvas/multi-view-init.js'
+		);
+
 		$this->enqueue_page_bootstrap();
 	}
 
