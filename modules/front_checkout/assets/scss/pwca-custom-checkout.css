@@ -1,0 +1,184 @@
+.checkout.woocommerce-checkout {
+  display: grid;
+  grid-template-columns: 65% 35%;
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "customer heading" "customer order";
+  gap: 20px;
+}
+.checkout.woocommerce-checkout #customer_details {
+  grid-area: customer;
+  align-self: start;
+}
+.checkout.woocommerce-checkout #customer_details > div {
+  float: unset;
+  width: 100%;
+}
+.checkout.woocommerce-checkout #order_review_heading {
+  grid-area: heading;
+  display: none;
+}
+.checkout.woocommerce-checkout #order_review {
+  grid-area: order;
+  align-self: start;
+}
+
+.pwca-checkout-review-container {
+  padding: 10px;
+  background-color: #F7F7F7;
+}
+
+.pwca-order-summary .pwca-order-title {
+  font-size: 18px;
+}
+.pwca-order-summary .pwca-order-item {
+  border-bottom: 1px solid #E5E5E5;
+  padding-bottom: 10px;
+}
+.pwca-order-summary .pwca-order-subtotal {
+  padding: 10px 0;
+  border-bottom: 1px solid #E5E5E5;
+}
+.pwca-order-summary .pwca-order-total {
+  padding: 10px 0;
+}
+
+.pwca-order-shipping {
+  display: none;
+}
+.pwca-order-shipping.is-visible {
+  display: block;
+}
+
+.pwca-shipping-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background: #fff;
+  border: 1px solid #ddd;
+}
+.pwca-shipping-table th,
+.pwca-shipping-table td {
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+.pwca-shipping-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+.pwca-shipping-table tr:hover {
+  background: #f8f9fa;
+}
+.pwca-shipping-table input[type=radio] {
+  margin: 0;
+  cursor: pointer;
+}
+.pwca-shipping-table td:first-child {
+  text-align: center;
+  width: 60px;
+}
+.pwca-shipping-table td:last-child {
+  font-weight: 600;
+  color: #007cba;
+}
+.pwca-shipping-table tr.pwca-selected {
+  background-color: #F0F8FF;
+}
+
+.pwca-calculate-shipping-container {
+  padding: 10px 0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 15px;
+}
+
+.pwca-calculate-shipping-btn {
+  background: #007cba;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+.pwca-calculate-shipping-btn:hover {
+  background: #005a87;
+}
+.pwca-calculate-shipping-btn:disabled, .pwca-calculate-shipping-btn.disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+.pwca-calculate-shipping-btn.loading {
+  position: relative;
+  padding-right: 30px;
+}
+.pwca-calculate-shipping-btn.loading:after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  border: 2px solid #ffffff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: pwca-spin 1s linear infinite;
+}
+
+@keyframes pwca-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.pwca-shipping-updating {
+  background: #f0f8ff;
+  border: 1px solid #007cba;
+  padding: 8px 12px;
+  margin: 10px 0;
+  border-radius: 4px;
+  color: #007cba;
+  font-size: 14px;
+  text-align: center;
+}
+
+.pwca-woocommerce-message {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+  padding: 10px 15px;
+  margin: 10px 0;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.woocommerce-checkout #place_order.pwca-pay-disabled {
+  opacity: 0.6;
+  filter: grayscale(1);
+  cursor: not-allowed;
+  pointer-events: none;
+  background-color: #cccccc;
+  border-color: #cccccc;
+  color: #666666;
+}
+.woocommerce-checkout #place_order:disabled {
+  opacity: 0.6;
+  filter: grayscale(1);
+  cursor: not-allowed;
+  pointer-events: none;
+  background-color: #cccccc;
+  border-color: #cccccc;
+  color: #666666;
+}
+
+.woocommerce-checkout #shipping_method,
+.woocommerce-checkout .shipping-calculator-form,
+.woocommerce-checkout .woocommerce-shipping-methods,
+.woocommerce-checkout .woocommerce-shipping-methods li,
+.woocommerce-checkout .shipping-calculator-button {
+  display: none !important;
+}/*# sourceMappingURL=pwca-custom-checkout.css.map */

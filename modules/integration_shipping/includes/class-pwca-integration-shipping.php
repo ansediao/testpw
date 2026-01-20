@@ -22,6 +22,7 @@ final class Pwca_Integration_Shipping {
 		require_once $this->module_path . '/includes/class-pwca-integration-shipping-assets.php';
 		require_once $this->module_path . '/includes/class-pwca-integration-shipping-shipping.php';
 		require_once $this->module_path . '/includes/class-pwca-integration-shipping-shipping-ajax.php';
+		require_once $this->module_path . '/includes/class-pwca-integration-shipping-checkout-validation.php';
 	}
 
 	private function register() {
@@ -30,6 +31,7 @@ final class Pwca_Integration_Shipping {
 		( new Pwca_Integration_Shipping_Assets( $context, $this->module_path, $this->module_url ) )->register();
 		( new Pwca_Integration_Shipping_Shipping() )->register();
 		( new Pwca_Integration_Shipping_Shipping_Ajax() )->register();
+		( new Pwca_Integration_Shipping_Checkout_Validation( $context ) )->register();
 	}
 }
 

@@ -187,7 +187,22 @@
 .woocommerce-checkout {
 	#place_order.pwca-pay-disabled {
 		opacity: 0.6;
+		filter: grayscale(1);
 		cursor: not-allowed;
+		pointer-events: none;
+		background-color: #cccccc;
+		border-color: #cccccc;
+		color: #666666;
+	}
+
+	#place_order:disabled {
+		opacity: 0.6;
+		filter: grayscale(1);
+		cursor: not-allowed;
+		pointer-events: none;
+		background-color: #cccccc;
+		border-color: #cccccc;
+		color: #666666;
 	}
 }
 

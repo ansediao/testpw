@@ -2,7 +2,8 @@
 	const settings = window.pwcaCheckoutShipping || {};
 	const state = {
 		selectedService: settings.selectedService || '',
-		selectedCost: typeof settings.selectedCost === 'number' ? settings.selectedCost : null
+		selectedCost: typeof settings.selectedCost === 'number' ? settings.selectedCost : null,
+		hasCalculatedShipping: false
 	};
 
 	const selectors = {
@@ -23,6 +24,7 @@
 			return;
 		}
 		$btn.prop('disabled', !enabled);
+		$btn.attr('aria-disabled', enabled ? 'false' : 'true');
 		$btn.toggleClass('pwca-pay-disabled', !enabled);
 	};
 
@@ -58,6 +60,11 @@
 		return billingValid && shippingValid;
 	};
 
+	const updatePayButtonState = () => {
+		const enabled = state.hasCalculatedShipping && validateRequiredFields();
+		setPayButtonEnabled(enabled);
+	};
+
 	const updateShippingButtonState = () => setShippingButtonEnabled(validateRequiredFields());
 
 	const hideWooCommerceShippingSelector = () => {
@@ -81,6 +88,15 @@
 	const hideShippingRow = () => {
 		$(selectors.shippingRow).empty();
 		$(selectors.shippingRowContainer).removeClass('is-visible');
+	};
+
+	const resetShippingSelection = () => {
+		state.hasCalculatedShipping = false;
+		setSelectedState('', null);
+		hideShippingRow();
+		$(selectors.shippingOptions).hide().empty();
+		$(selectors.calculateButton).show();
+		updatePayButtonState();
 	};
 
 	const setCalculateButtonLoading = (loading) => {
@@ -174,7 +190,8 @@
 
 			setSelectedState(service, cost);
 			showShippingRow(service, cost);
-			setPayButtonEnabled(true);
+			state.hasCalculatedShipping = true;
+			updatePayButtonState();
 
 			$('body').trigger('update_checkout');
 			setTimeout(() => $('body').trigger('update_checkout'), 500);
@@ -195,16 +212,7 @@
 	};
 
 	const initFromSession = () => {
-		if (state.selectedService && typeof state.selectedCost === 'number') {
-			setSelectedState(state.selectedService, state.selectedCost);
-			showShippingRow(state.selectedService, state.selectedCost);
-			setPayButtonEnabled(true);
-			$(selectors.calculateButton).hide();
-			return;
-		}
-		setSelectedState('', null);
-		hideShippingRow();
-		setPayButtonEnabled(false);
+		resetShippingSelection();
 	};
 
 	$(document).ready(function () {
@@ -213,15 +221,22 @@
 
 		initFromSession();
 		updateShippingButtonState();
+		updatePayButtonState();
 
 		$(selectors.requiredFields).on('change keyup input', function () {
 			updateShippingButtonState();
+			if (state.hasCalculatedShipping) {
+				resetShippingSelection();
+				return;
+			}
+			updatePayButtonState();
 		});
 
 		$(document.body).on('updated_checkout', function () {
 			hideWooCommerceShippingSelector();
 			ensureSingleCalculateContainer();
 			updateShippingButtonState();
+			updatePayButtonState();
 		});
 
 		$(document).ajaxComplete(function () {
@@ -236,7 +251,7 @@
 			}
 
 			setCalculateButtonLoading(true);
-			$(selectors.shippingOptions).hide().empty();
+			resetShippingSelection();
 
 			try {
 				const result = await fetchShippingOptions();
