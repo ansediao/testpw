@@ -85,6 +85,13 @@ final class Pwca_Front_Canvas_Assets {
 			'assets/scss/pwca-front-canvas.css',
 			array( 'pwca-vendor-layui', 'pwca-vendor-icons' )
 		);
+
+		$this->enqueue_plugin_style_if_readable(
+			'pwca-gradient-modal',
+			$this->plugin_root_url . 'modules/front_product/assets/scss/pw-gradient-modal.css',
+			$this->plugin_root_path . '/modules/front_product/assets/scss/pw-gradient-modal.css',
+			array( 'pwca-front-canvas-onlinedesign' )
+		);
 	}
 
 	private function enqueue_local_scripts() {
@@ -354,6 +361,14 @@ final class Pwca_Front_Canvas_Assets {
 		}
 
 		wp_enqueue_style( $handle, $this->module_url . ltrim( $relative_path, '/' ), $deps, filemtime( $css_path ), 'all' );
+	}
+
+	private function enqueue_plugin_style_if_readable( $handle, $src, $path_for_version, $deps ) {
+		if ( ! is_readable( $path_for_version ) ) {
+			return;
+		}
+
+		wp_enqueue_style( $handle, $src, $deps, filemtime( $path_for_version ), 'all' );
 	}
 
 	private function enqueue_script_if_readable( $handle, $src, $deps, $path_for_version ) {

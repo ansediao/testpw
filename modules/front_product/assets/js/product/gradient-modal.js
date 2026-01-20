@@ -5,8 +5,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const gradientColor1 = document.getElementById('gradientColor1');
     const gradientColor2 = document.getElementById('gradientColor2');
     const gradientDirection = document.getElementById('gradientDirection');
+    const gradientColorModalOverlay = gradientColorModal ? gradientColorModal.querySelector('.modal__overlay') : null;
 
-    if (!gradientColorModal || !closeGradientColorModal || !applyGradientColorBtn || !gradientColor1 || !gradientColor2 || !gradientDirection) {
+    if (!gradientColorModal || !gradientColorModalOverlay || !closeGradientColorModal || !applyGradientColorBtn || !gradientColor1 || !gradientColor2 || !gradientDirection) {
         return;
     }
 
@@ -78,7 +79,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.showGradientModal = function() {
-        gradientColorModal.style.display = 'flex';
+        gradientColorModal.classList.add('is-open');
+        gradientColorModal.setAttribute('aria-hidden', 'false');
         initializeSwatchBackgrounds();
         handleColorSelection();
 
@@ -114,7 +116,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.hideGradientModal = function() {
         clearAllColorSelections();
         colorSelectionInitialized = false;
-        gradientColorModal.style.display = 'none';
+        gradientColorModal.classList.remove('is-open');
+        gradientColorModal.setAttribute('aria-hidden', 'true');
     };
 
     const gradientColorBtn = document.querySelector('.action-buttons .btn:first-child');
@@ -129,8 +132,8 @@ document.addEventListener('DOMContentLoaded', function() {
         window.hideGradientModal();
     });
 
-    gradientColorModal.addEventListener('click', function(e) {
-        if (e.target === gradientColorModal) {
+    gradientColorModalOverlay.addEventListener('click', function(e) {
+        if (e.target === gradientColorModalOverlay) {
             window.hideGradientModal();
         }
     });
