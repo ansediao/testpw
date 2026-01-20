@@ -397,18 +397,36 @@ final class Pwca_Admin_Design {
 	public function handle_save_design_tags() {
 		$nonce = $this->get_post_text( 'nonce' );
 		$this->verify_nonce_or_exit( $nonce, 'pw_add_design_nonce', '安全验证失败' );
-		$this->require_capability_or_exit( 'edit_posts' );
 
 		$design_id = $this->get_post_int( 'design_id' );
-		if ( $design_id <= 0 ) {
-			wp_send_json_error( '无效的设计ID' );
+		$design    = $this->get_design_post_or_exit( $design_id );
+		if ( ! current_user_can( 'edit_post', $design->ID ) ) {
+			wp_send_json_error( '权限不足' );
 		}
 
 		$tags_raw = isset( $_POST['tags'] ) ? wp_unslash( $_POST['tags'] ) : array();
-		$tags = is_array( $tags_raw ) ? array_map( 'intval', $tags_raw ) : array();
+		if ( is_array( $tags_raw ) ) {
+			$tags = array_map( 'intval', $tags_raw );
+		} else {
+			$raw = sanitize_text_field( (string) $tags_raw );
+			if ( '' === $raw ) {
+				$tags = array();
+			} else {
+				$tags = array_map( 'intval', explode( ',', $raw ) );
+			}
+		}
 
-		wp_set_object_terms( $design_id, $tags, 'pw_design_tag' );
-		wp_send_json_success( '标签保存成功' );
+		$result = wp_set_object_terms( $design_id, $tags, 'pw_design_tag' );
+		if ( is_wp_error( $result ) ) {
+			wp_send_json_error( '标签保存失败: ' . $result->get_error_message() );
+		}
+
+		wp_send_json_success(
+			array(
+				'message' => '标签保存成功',
+				'tags'    => array_values( array_filter( array_map( 'intval', (array) $result ) ) ),
+			)
+		);
 	}
 
 	public function handle_bulk_delete_designs() {

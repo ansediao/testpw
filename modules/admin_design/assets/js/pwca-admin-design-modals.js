@@ -13,6 +13,13 @@
 		const body = new URLSearchParams()
 		Object.entries(data).forEach(([key, value]) => {
 			if (value === undefined || value === null) return
+			if (Array.isArray(value)) {
+				value.forEach((item) => {
+					if (item === undefined || item === null) return
+					body.append(`${key}[]`, String(item))
+				})
+				return
+			}
 			body.append(key, String(value))
 		})
 
@@ -97,6 +104,7 @@
 		document.addEventListener('click', (event) => {
 			const trigger = event.target.closest('[data-micromodal-close]')
 			if (!trigger) return
+			if (trigger.classList.contains('modal__overlay') && trigger !== event.target) return
 			const modal = trigger.closest('.modal')
 			if (!modal || !modal.id) return
 			closeModal(modal.id)
