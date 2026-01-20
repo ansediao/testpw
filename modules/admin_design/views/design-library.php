@@ -452,9 +452,9 @@ $data_payload = array(
 					<div class="pw-form-field">
 						<label for="pw-settings-category-type">Category Type</label>
 						<select id="pw-settings-category-type" name="category_type">
-							<option value="general">General</option>
+							<option value="universal">Universal</option>
+							<option value="main_view">Main View</option>
 							<option value="product">Product</option>
-							<option value="style">Style</option>
 						</select>
 					</div>
 
