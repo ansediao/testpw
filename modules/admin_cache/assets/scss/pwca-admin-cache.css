@@ -1,0 +1,52 @@
+.pwca-admin-cache__section {
+  margin-top: 24px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #dcdcde;
+  border-radius: 6px;
+}
+.pwca-admin-cache__section-title {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+}
+.pwca-admin-cache__sub-title {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+}
+.pwca-admin-cache__cache-status {
+  background: #f9f9f9;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+.pwca-admin-cache__cache-actions {
+  margin-top: 12px;
+}
+.pwca-admin-cache__row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.pwca-admin-cache__input {
+  width: 220px;
+}
+.pwca-admin-cache__result {
+  margin-top: 12px;
+}
+.pwca-admin-cache__cache-test-details {
+  margin-top: 12px;
+}
+.pwca-admin-cache__cache-test-details p {
+  margin: 4px 0;
+}
+@media (max-width: 782px) {
+  .pwca-admin-cache__row {
+    flex-direction: column;
+  }
+  .pwca-admin-cache__input {
+    width: 100%;
+  }
+}
