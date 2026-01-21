@@ -48,7 +48,19 @@
         echo '<div id="design-categories-list" class="content-sheji">';
         echo '<div class="list">';
         foreach ($categories as $category) {
-            echo '<div class="category-item">';
+            $raw_type      = get_term_meta($category->term_id, 'category_type', true);
+            $category_type = is_string($raw_type) ? $raw_type : '';
+
+            // 规范化分类类型：默认视为 universal
+            if ($category_type === '') {
+                $category_type = 'universal';
+            } elseif ($category_type === 'general') {
+                $category_type = 'universal';
+            } elseif (! in_array($category_type, array('universal', 'main_view', 'product'), true)) {
+                $category_type = 'universal';
+            }
+
+            echo '<div class="category-item" data-category-type="' . esc_attr($category_type) . '">';
             echo '<div class="category-item-header">';
             // 统一显示图片在标题上面
             echo '<div class="category_name name">' . '<img src="' . MY_PLUGIN_URL . 'assets/images/icons/design.svg" alt="Designs ICON">' . esc_html($category->name) . '</div>';
