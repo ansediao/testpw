@@ -2164,4 +2164,91 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+#content-pianquan #img_origin_controls #dropZone {
+  border: 2px dashed #ccc;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 10px;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+#content-pianquan #img_origin_controls #dropZone.pwca-dropzone--hover {
+  background: #f0f0f0;
+}
+#content-pianquan #img_origin_controls #dropZone.pwca-dropzone--uploading {
+  background: #f0f0f0;
+}
+#content-pianquan #img_origin_controls #imageInput {
+  display: none;
+}
+#content-pianquan #img_origin_controls .pwca-add-image-btn {
+  margin-top: 10px;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+#content-pianquan #img_origin_controls .pwca-uploaded-images-list {
+  margin-top: 20px;
+}
+#content-pianquan #img_origin_controls .pwca-uploaded-images-title {
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+#content-pianquan #img_origin_controls .pwca-uploaded-images-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+#content-pianquan #img_origin_controls .pwca-uploaded-image-card {
+  position: relative;
+  width: 70px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#content-pianquan #img_origin_controls .pwca-uploaded-image {
+  width: 60px;
+  height: 60px;
+  -o-object-fit: cover;
+     object-fit: cover;
+  cursor: pointer;
+  margin-top: 6px;
+}
+#content-pianquan #img_origin_controls .pwca-uploaded-image-delete {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 14px;
+  line-height: 18px;
+  padding: 0;
+  cursor: pointer;
+}
+#content-pianquan #img_origin_controls .pwca-uploaded-image-info {
+  width: 100%;
+  padding: 6px 6px 8px;
+  font-size: 11px;
+  color: #374151;
+  line-height: 1.25;
+  word-break: break-word;
+}
+#content-pianquan #img_origin_controls .pwca-uploaded-images-empty {
+  color: #888;
 }/*# sourceMappingURL=pwca-front-canvas.css.map */

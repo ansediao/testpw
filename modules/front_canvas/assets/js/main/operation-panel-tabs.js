@@ -61,6 +61,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (typeof window.updateDynamicToolbar === 'function') {
                         window.updateDynamicToolbar(null);
                     }
+
+                    if (typeof window.pwcaInitImageTab === 'function') {
+                        window.pwcaInitImageTab();
+                    }
                 } catch (err) {
                     console.warn('点击图片选项卡时重置失败:', err);
                 }

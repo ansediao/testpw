@@ -9,3 +9,5 @@ acli.exe
 .trae/documents-old/
 .serena/
 *.code-workspace
+old/
+*.zip
