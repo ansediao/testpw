@@ -25,6 +25,9 @@ final class Pwca_Front_Cart_Handler {
 		add_action( 'wp_ajax_pw_cart_blank_state', array( $this, 'cart_blank_state' ) );
 		add_action( 'wp_ajax_nopriv_pw_cart_blank_state', array( $this, 'cart_blank_state' ) );
 
+		add_action( 'wp_ajax_pw_get_cart_canvas_state', array( $this, 'get_cart_canvas_state' ) );
+		add_action( 'wp_ajax_nopriv_pw_get_cart_canvas_state', array( $this, 'get_cart_canvas_state' ) );
+
 		add_filter( 'woocommerce_get_item_data', array( $this, 'display_custom_product_image' ), 10, 2 );
 		add_filter( 'woocommerce_order_item_name', array( $this, 'display_custom_image_in_order' ), 10, 2 );
 		add_filter( 'woocommerce_display_item_meta', array( $this, 'display_cart_images_properly' ), 10, 3 );
@@ -209,6 +212,54 @@ final class Pwca_Front_Cart_Handler {
 				'cart_empty'      => $total === 0,
 				'all_blank'       => (int) $state['blank'] > 0 && (int) $state['non_blank'] === 0,
 				'all_non_blank'   => (int) $state['non_blank'] > 0 && (int) $state['blank'] === 0,
+			)
+		);
+	}
+
+	public function get_cart_canvas_state() {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			wp_send_json_error( 'Cart is unavailable' );
+		}
+
+		$cart_item_key = isset( $_POST['cart_key'] ) ? sanitize_text_field( wp_unslash( $_POST['cart_key'] ) ) : '';
+		if ( $cart_item_key === '' ) {
+			wp_send_json_error( 'Invalid cart item' );
+		}
+
+		// 使用与添加定制产品相同的安全校验
+		$nonce = isset( $_POST['security'] ) ? sanitize_text_field( wp_unslash( $_POST['security'] ) ) : '';
+		if ( $nonce === '' || ! wp_verify_nonce( $nonce, 'custom-product-nonce' ) ) {
+			wp_send_json_error( 'Security verification failed' );
+		}
+
+		$cart_item = WC()->cart->get_cart_item( $cart_item_key );
+		if ( ! $cart_item ) {
+			wp_send_json_error( 'Cart item does not exist' );
+		}
+
+		$custom_data = isset( $cart_item['custom_data'] ) && is_array( $cart_item['custom_data'] ) ? $cart_item['custom_data'] : array();
+		if ( ! isset( $custom_data['canvas_state'] ) ) {
+			wp_send_json_error( 'Canvas state not found for this cart item' );
+		}
+
+		$raw_state = $custom_data['canvas_state'];
+
+		if ( is_array( $raw_state ) ) {
+			$canvas_state = $raw_state;
+		} else {
+			$decoded = json_decode( (string) $raw_state, true );
+			if ( ! is_array( $decoded ) ) {
+				wp_send_json_error( 'Invalid canvas state data' );
+			}
+			$canvas_state = $decoded;
+		}
+
+		$product_id = isset( $cart_item['product_id'] ) ? (int) $cart_item['product_id'] : 0;
+
+		wp_send_json_success(
+			array(
+				'canvas_state' => $canvas_state,
+				'product_id'   => $product_id,
 			)
 		);
 	}
@@ -601,6 +652,12 @@ final class Pwca_Front_Cart_Handler {
 
 		if ( ! empty( $saved['saved_view_images_meta'] ) ) {
 			$custom_data['view_images'] = $saved['saved_view_images_meta'];
+		}
+
+		// 画布完整状态（多视图、图层、图层组等），由前端 CanvasStateManager 提交
+		$canvas_state_raw = $this->get_post_string( 'pw_canvas_state' );
+		if ( $canvas_state_raw !== '' ) {
+			$custom_data['canvas_state'] = $canvas_state_raw;
 		}
 
 		return array( 'custom_data' => $custom_data );

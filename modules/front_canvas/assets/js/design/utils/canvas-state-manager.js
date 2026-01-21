@@ -1114,6 +1114,54 @@ class CanvasStateManager {
             return false;
         }
     }
+
+    /**
+     * 使用外部状态覆盖当前存储状态
+     * 通常用于从服务器或购物车中恢复特定订单的画布状态
+     * @param {object} externalState - 外部提供的完整状态对象
+     * @returns {boolean} 是否应用成功
+     */
+    loadExternalState(externalState) {
+        if (!this.initialized || !this.storage) {
+            ErrorHandler.logWarning('未初始化，无法应用外部画布状态');
+            return false;
+        }
+
+        if (!externalState || typeof externalState !== 'object') {
+            ErrorHandler.logWarning('外部画布状态无效，必须是对象');
+            return false;
+        }
+
+        try {
+            // 深拷贝以避免修改原始对象
+            const cloned = JSON.parse(JSON.stringify(externalState));
+
+            // 确保 productId 与当前产品一致
+            if (!cloned.productId || String(cloned.productId) !== String(this.productId)) {
+                cloned.productId = this.productId || this.getProductIdFromUrl() || '';
+            }
+
+            // 确保版本号存在
+            if (!cloned.version) {
+                cloned.version = CURRENT_VERSION;
+            }
+
+            // 通过迁移函数补全缺失字段
+            const migrated = this.migrateState(cloned);
+
+            // 验证外部状态结构是否有效
+            const validation = DataValidator.validatePersistedState(migrated);
+            if (!validation.valid) {
+                ErrorHandler.logError(ErrorTypes.INVALID_STATE, '外部画布状态数据验证失败', validation.errors);
+                return false;
+            }
+
+            return this._updateState(migrated);
+        } catch (error) {
+            ErrorHandler.logError(ErrorTypes.MIGRATION_ERROR, '应用外部画布状态失败', error);
+            return false;
+        }
+    }
     
     /**
      * 验证视图状态数据的有效性
