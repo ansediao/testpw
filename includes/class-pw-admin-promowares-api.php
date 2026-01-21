@@ -690,7 +690,10 @@ class Pw_Admin_Promowares_Api
         // 检查缓存数据（启用缓存检查，通过 updated_at 判断）
         $cached_data = $this->get_cached_product_data($product_id);
         if ($cached_data !== false) {
-            return new WP_REST_Response($cached_data, 200);
+            $response = new WP_REST_Response($cached_data, 200);
+            $response->header('X-PW-Cache', 'HIT');
+
+            return $response;
         }
 
         $aggregated_data = array();
@@ -805,7 +808,10 @@ class Pw_Admin_Promowares_Api
         
         $this->save_cached_product_data($product_id, $cache_data);
 
-        return new WP_REST_Response($aggregated_data, 200);
+        $response = new WP_REST_Response($aggregated_data, 200);
+        $response->header('X-PW-Cache', 'MISS');
+
+        return $response;
     }
 
     /**

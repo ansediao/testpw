@@ -154,15 +154,15 @@ final class Pwca_Admin_Dashboard {
 		$current_tab = $this->get_current_tab();
 
 		return array(
-			'ajax_url'           => admin_url( 'admin-ajax.php' ),
-			'rest_product_base'  => trailingslashit( rest_url( 'pw/v1/product-data' ) ),
-			'save_token_nonce'   => wp_create_nonce( 'pw_save_token_nonce' ),
-			'clear_cache_nonce'  => wp_create_nonce( 'pw_clear_cache_nonce' ),
-			'cache_status_nonce' => wp_create_nonce( 'pw_cache_status_nonce' ),
+			'ajax_url'              => admin_url( 'admin-ajax.php' ),
+			'rest_product_base'     => trailingslashit( rest_url( 'pw/v1/product-data' ) ),
+			'save_token_nonce'      => wp_create_nonce( 'pw_save_token_nonce' ),
+			'clear_cache_nonce'     => wp_create_nonce( 'pw_clear_cache_nonce' ),
+			'cache_status_nonce'    => wp_create_nonce( 'pw_cache_status_nonce' ),
 			'product_request_nonce' => wp_create_nonce( 'pw_product_request_nonce' ),
-			'current_tab'        => $current_tab,
-			'tabs'               => $this->get_tabs(),
-			'settings'           => $this->get_settings_view_model( $current_tab ),
+			'current_tab'           => $current_tab,
+			'tabs'                  => $this->get_tabs(),
+			'settings'              => $this->get_settings_view_model( $current_tab ),
 		);
 	}
 

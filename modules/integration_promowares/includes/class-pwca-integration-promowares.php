@@ -33,8 +33,6 @@ final class Pwca_Integration_Promowares {
 	public function register() {
 		add_action( 'wp_ajax_check_import_progress', array( $this, 'handle_check_import_progress' ) );
 		add_action( 'wp_ajax_pw_save_token', array( $this, 'handle_save_token' ) );
-		add_action( 'wp_ajax_pw_clear_product_cache', array( $this, 'handle_clear_product_cache' ) );
-		add_action( 'wp_ajax_pw_get_cache_status', array( $this, 'handle_get_cache_status' ) );
 
 		add_action( 'import_single_product', array( $this, 'import_single_product' ) );
 		add_action( 'import_composite_product_group', array( $this, 'import_composite_product_group' ) );
@@ -108,86 +106,7 @@ final class Pwca_Integration_Promowares {
 		wp_send_json_error( 'Token保存失败' );
 	}
 
-	public function handle_clear_product_cache() {
-		if ( ! $this->verify_ajax_nonce( 'pw_clear_cache_nonce', 'nonce' ) ) {
-			wp_send_json_error( '安全验证失败' );
-			return;
-		}
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( '权限不足' );
-			return;
-		}
-
-		$api        = $this->get_api_client();
-		$product_id = isset( $_POST['product_id'] ) ? (int) $_POST['product_id'] : 0;
-
-		if ( $product_id > 0 ) {
-			$result = $api->clear_cached_product_data( $product_id );
-			if ( $result ) {
-				wp_send_json_success(
-					array(
-						'message' => "产品 ID {$product_id} 的缓存已清除",
-					)
-				);
-				return;
-			}
-
-			wp_send_json_error( "清除产品 ID {$product_id} 的缓存失败" );
-			return;
-		}
-
-		$cleared_count = $api->clear_all_cached_product_data();
-		wp_send_json_success(
-			array(
-				'message' => "已清除 {$cleared_count} 个产品的缓存数据",
-			)
-		);
-	}
-
-	public function handle_get_cache_status() {
-		if ( ! $this->verify_ajax_nonce( 'pw_cache_status_nonce', 'nonce' ) ) {
-			wp_send_json_error( '安全验证失败' );
-			return;
-		}
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( '权限不足' );
-			return;
-		}
-
-		global $wpdb;
-
-		$cache_count = (int) $wpdb->get_var(
-			"SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key = '_pw_aggregated_data_cache'"
-		);
-
-		$expired_count = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$wpdb->postmeta} pm1
-				INNER JOIN {$wpdb->postmeta} pm2 ON pm1.post_id = pm2.post_id
-				WHERE pm1.meta_key = '_pw_aggregated_data_cache'
-				AND pm2.meta_key = '_pw_aggregated_data_cache_time'
-				AND pm2.meta_value < %d",
-				time() - 30 * 60
-			)
-		);
-
-		$latest_cache = $wpdb->get_var(
-			"SELECT MAX(meta_value) FROM {$wpdb->postmeta} WHERE meta_key = '_pw_aggregated_data_cache_time'"
-		);
-
-		$latest_cache_time = $latest_cache ? date( 'Y-m-d H:i:s', (int) $latest_cache ) : '无';
-
-		wp_send_json_success(
-			array(
-				'total_cached'         => (int) $cache_count,
-				'expired_count'        => (int) $expired_count,
-				'latest_cache_time'    => $latest_cache_time,
-				'cache_expiry_minutes' => 30,
-			)
-		);
-	}
+	
 
 	public function import_single_product( $product ) {
 		if ( ! is_array( $product ) ) {

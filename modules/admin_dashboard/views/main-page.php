@@ -90,35 +90,29 @@ $messages           = isset( $view_model['messages'] ) && is_array( $view_model[
 	<section class="pwca-admin-dashboard__section pwca-admin-dashboard__section--cache">
 		<h2 class="pwca-admin-dashboard__section-title">产品数据缓存管理</h2>
 
-		<div class="pwca-admin-dashboard__cache-status">
-			<h3 class="pwca-admin-dashboard__sub-title">缓存状态</h3>
-			<div class="pwca-admin-dashboard__cache-info" id="pwca-cache-info">
-				<p><strong>总缓存数量:</strong> <span id="pwca-total-cached">加载中...</span></p>
-				<p><strong>过期缓存数量:</strong> <span id="pwca-expired-count">加载中...</span></p>
-				<p><strong>最近更新时间:</strong> <span id="pwca-latest-cache-time">加载中...</span></p>
-				<p><strong>缓存有效期:</strong> <span id="pwca-cache-expiry">30分钟</span></p>
-			</div>
-			<button type="button" id="pwca-refresh-cache-status" class="button">刷新状态</button>
+		<div class="pwca-admin-dashboard__cache-status" id="pwca-cache-status">
+			<p><strong>总缓存数：</strong><span id="pwca-cache-total">-</span></p>
+			<p><strong>过期缓存数：</strong><span id="pwca-cache-expired">-</span></p>
+			<p><strong>最近更新时间：</strong><span id="pwca-cache-last-updated">-</span></p>
+			<p><strong>缓存有效期：</strong><span id="pwca-cache-ttl">-</span></p>
 		</div>
 
 		<div class="pwca-admin-dashboard__cache-actions">
-			<h3 class="pwca-admin-dashboard__sub-title">缓存操作</h3>
-
 			<div class="pwca-admin-dashboard__row">
-				<input type="number" id="pwca-specific-product-id" placeholder="输入产品ID (可选)" class="pwca-admin-dashboard__input">
-				<button type="button" id="pwca-clear-specific-cache" class="button">清除指定产品缓存</button>
+				<input
+					type="text"
+					id="pwca-cache-product-id"
+					class="regular-text pwca-admin-dashboard__input"
+					placeholder="输入产品 PW ID（留空则清除所有缓存）"
+				/>
+				<button type="button" class="button" id="pwca-clear-cache">清除缓存</button>
+				<button type="button" class="button" id="pwca-refresh-cache-status">刷新状态</button>
 			</div>
-
 			<div class="pwca-admin-dashboard__row">
-				<button type="button" id="pwca-clear-all-cache" class="button button-secondary">清除所有缓存</button>
+				<button type="button" class="button" id="pwca-test-cache">缓存性能测试</button>
+				<span class="pwca-admin-dashboard__cache-test-result" id="pwca-cache-test-result"></span>
 			</div>
-
-			<div class="pwca-admin-dashboard__row">
-				<input type="number" id="pwca-test-product-id" placeholder="输入产品ID进行测试" class="pwca-admin-dashboard__input">
-				<button type="button" id="pwca-test-cache" class="button">测试缓存功能</button>
-			</div>
-
-			<div class="pwca-admin-dashboard__result" id="pwca-cache-operation-result"></div>
+			<div class="pwca-admin-dashboard__result" id="pwca-cache-result" aria-live="polite"></div>
 		</div>
 	</section>
 </div>

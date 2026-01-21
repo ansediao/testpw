@@ -378,6 +378,19 @@ export const useCanvasStore = defineStore('canvas', {
             this.setProductDataError(null);
             try {
                 const response = await axios.get(`/wp-json/pw/v1/product-data/${pwId}`);
+
+                try {
+                    const headerValue =
+                        response &&
+                        response.headers &&
+                        (response.headers['x-pw-cache'] || response.headers['X-PW-Cache']);
+                    if (headerValue && String(headerValue).toUpperCase() === 'HIT') {
+                        // eslint-disable-next-line no-console
+                        console.info('[PW Canvas] 使用缓存的产品数据', { pwId });
+                    }
+                } catch (e) {
+                }
+
                 this.setProductData(response.data);
                 // 从产品数据中提取视图信息
                 // this.extractViewsFromProductData(response.data);

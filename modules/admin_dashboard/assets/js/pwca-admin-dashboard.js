@@ -163,147 +163,164 @@
 		updateProgress()
 	}
 
+	
+
 	const initCacheManagement = () => {
-		const cacheInfo = document.getElementById('pwca-cache-info')
-		const totalCached = document.getElementById('pwca-total-cached')
-		const expiredCount = document.getElementById('pwca-expired-count')
-		const latestCacheTime = document.getElementById('pwca-latest-cache-time')
-		const cacheExpiry = document.getElementById('pwca-cache-expiry')
-		const refreshButton = document.getElementById('pwca-refresh-cache-status')
-		const specificIdInput = document.getElementById('pwca-specific-product-id')
-		const clearSpecificButton = document.getElementById('pwca-clear-specific-cache')
-		const clearAllButton = document.getElementById('pwca-clear-all-cache')
-		const testIdInput = document.getElementById('pwca-test-product-id')
-		const testButton = document.getElementById('pwca-test-cache')
-		const resultContainer = document.getElementById('pwca-cache-operation-result')
+		const cacheStatusBox = document.getElementById('pwca-cache-status')
+		const cacheTotal = document.getElementById('pwca-cache-total')
+		const cacheExpired = document.getElementById('pwca-cache-expired')
+		const cacheLastUpdated = document.getElementById('pwca-cache-last-updated')
+		const cacheTtl = document.getElementById('pwca-cache-ttl')
 
-		if (!refreshButton || !clearSpecificButton || !clearAllButton) return
+		const productIdInput = document.getElementById('pwca-cache-product-id')
+		const clearCacheButton = document.getElementById('pwca-clear-cache')
+		const refreshStatusButton = document.getElementById('pwca-refresh-cache-status')
+		const cacheResult = document.getElementById('pwca-cache-result')
+		const cacheTestButton = document.getElementById('pwca-test-cache')
+		const cacheTestResult = document.getElementById('pwca-cache-test-result')
 
-		const loadCacheStatus = async () => {
+		if (!cacheStatusBox || !cacheResult || !clearCacheButton || !refreshStatusButton) {
+			return
+		}
+
+		const setStatusLoading = (loading) => {
+			cacheStatusBox.classList.toggle('is-loading', loading)
+		}
+
+		const fetchCacheStatus = async () => {
+			if (!ajaxUrl || !cacheStatusNonce) {
+				return
+			}
+
+			setStatusLoading(true)
+			cacheResult.innerHTML = ''
+
 			try {
-				const response = await postUrlEncoded({
+				const data = await postUrlEncoded({
 					action: 'pw_get_cache_status',
 					nonce: cacheStatusNonce,
 				})
 
-				if (!response?.success) {
-					if (cacheInfo) setNotice(cacheInfo, 'error', `加载缓存状态失败: ${response?.data || '未知错误'}`)
+				if (!data || !data.success || !data.data) {
+					setNotice(cacheResult, 'error', String(data?.data || '获取缓存状态失败'))
 					return
 				}
 
-				if (totalCached) totalCached.textContent = String(response.data.total_cached ?? '')
-				if (expiredCount) expiredCount.textContent = String(response.data.expired_count ?? '')
-				if (latestCacheTime) latestCacheTime.textContent = String(response.data.latest_cache_time ?? '')
-				if (cacheExpiry) cacheExpiry.textContent = `${String(response.data.cache_expiry_minutes ?? 30)}分钟`
-			} catch {
-				if (cacheInfo) setNotice(cacheInfo, 'error', '加载缓存状态失败: 网络错误')
+				const status = data.data
+				if (cacheTotal) cacheTotal.textContent = String(status.total || 0)
+				if (cacheExpired) cacheExpired.textContent = String(status.expired || 0)
+				if (cacheLastUpdated) cacheLastUpdated.textContent = String(status.last_updated || 'N/A')
+				if (cacheTtl) cacheTtl.textContent = String(status.ttl || 'N/A')
+			} catch (error) {
+				setNotice(cacheResult, 'error', `获取缓存状态失败: ${error instanceof Error ? error.message : '未知错误'}`)
+			} finally {
+				setStatusLoading(false)
 			}
 		}
 
-		const clearCache = async (productId) => {
-			if (!resultContainer) return
+		const clearCache = async () => {
+			if (!ajaxUrl || !clearCacheNonce) {
+				return
+			}
+
+			const productIdRaw = productIdInput ? productIdInput.value.trim() : ''
+			const productId = productIdRaw !== '' ? productIdRaw : null
+
+			cacheResult.innerHTML = ''
+			clearCacheButton.disabled = true
 
 			try {
-				const payload = {
+				const data = await postUrlEncoded({
 					action: 'pw_clear_product_cache',
 					nonce: clearCacheNonce,
-				}
+					product_id: productId,
+				})
 
-				if (productId) payload.product_id = productId
-
-				const response = await postUrlEncoded(payload)
-				if (response?.success) {
-					const message = response?.data?.message ? String(response.data.message) : '操作成功'
-					setNotice(resultContainer, 'success', message)
-					await loadCacheStatus()
+				if (!data) {
+					setNotice(cacheResult, 'error', '清除缓存失败: 未知错误')
 					return
 				}
 
-				setNotice(resultContainer, 'error', `操作失败: ${response?.data || '未知错误'}`)
-			} catch {
-				setNotice(resultContainer, 'error', '操作失败: 网络错误')
+				if (data.success) {
+					setNotice(cacheResult, 'success', String(data.data || '缓存已清除'))
+					fetchCacheStatus()
+				} else {
+					setNotice(cacheResult, 'error', String(data.data || '清除缓存失败'))
+				}
+			} catch (error) {
+				setNotice(cacheResult, 'error', `清除缓存失败: ${error instanceof Error ? error.message : '未知错误'}`)
+			} finally {
+				clearCacheButton.disabled = false
 			}
 		}
 
-		refreshButton.addEventListener('click', loadCacheStatus)
+		const runCacheTest = async () => {
+			if (!restProductBase) return
 
-		clearSpecificButton.addEventListener('click', async () => {
-			if (!specificIdInput) return
-			const value = specificIdInput.value.trim()
-			if (!value) {
-				window.alert('请输入产品ID')
-				return
-			}
-			await clearCache(value)
-			specificIdInput.value = ''
-		})
+			const pwId = (productIdInput && productIdInput.value.trim()) || 'test'
+			if (!pwId) return
 
-		clearAllButton.addEventListener('click', async () => {
-			const confirmed = window.confirm('确定要清除所有产品缓存吗？')
-			if (!confirmed) return
-			await clearCache('')
-		})
+			cacheTestResult.textContent = '测试中...'
+			cacheTestResult.classList.remove('is-success', 'is-error')
 
-		const testCache = async () => {
-			if (!resultContainer || !testIdInput || !testIdInput.value.trim()) {
-				window.alert('请输入产品ID')
-				return
-			}
-
-			const productId = testIdInput.value.trim()
-			resultContainer.innerHTML = ''
-			resultContainer.appendChild(buildNotice('info', '正在测试缓存功能...'))
-
-			const url = `${restProductBase}${encodeURIComponent(productId)}`
-
-			const fetchJson = async () => {
+			const measureRequest = async (label) => {
+				const url = `${restProductBase}${encodeURIComponent(pwId)}`
 				const start = performance.now()
-				const response = await fetch(url, { credentials: 'same-origin' })
-				const data = await response.json()
-				const timeMs = Math.round(performance.now() - start)
-				return { data, timeMs }
+				let ok = false
+				let responseStatus = 0
+
+				try {
+					const response = await fetch(url, { credentials: 'same-origin' })
+					responseStatus = response.status
+					ok = response.ok
+					await response.json()
+				} catch {
+				}
+
+				const duration = performance.now() - start
+				return { label, duration, ok, status: responseStatus }
 			}
 
 			try {
-				const first = await fetchJson()
-				const second = await fetchJson()
+				const first = await measureRequest('首次请求')
+				const second = await measureRequest('第二次请求')
 
-				const wrapper = document.createElement('div')
-				wrapper.appendChild(buildNotice('success', '缓存测试结果'))
+				const lines = []
+				lines.push(`${first.label}: ${first.ok ? '成功' : '失败'} (${first.status}), 耗时 ${first.duration.toFixed(1)}ms`)
+				lines.push(`${second.label}: ${second.ok ? '成功' : '失败'} (${second.status}), 耗时 ${second.duration.toFixed(1)}ms`)
 
-				const details = document.createElement('div')
-				details.className = 'pwca-admin-dashboard__cache-test-details'
+				const faster = first.duration && second.duration
+					? (first.duration / second.duration).toFixed(2)
+					: 'N/A'
 
-				const line1 = document.createElement('p')
-				line1.innerHTML = `<strong>第一次调用 (API):</strong> ${first.timeMs}ms`
-				const line2 = document.createElement('p')
-				line2.innerHTML = `<strong>第二次调用 (缓存):</strong> ${second.timeMs}ms`
+				lines.push(`第二次请求速度约为第一次的 ${faster} 倍`)
 
-				const improvement = first.timeMs > 0 ? (((first.timeMs - second.timeMs) / first.timeMs) * 100).toFixed(1) : '0'
-				const line3 = document.createElement('p')
-				line3.innerHTML = `<strong>性能提升:</strong> ${improvement}%`
-
-				const consistent = JSON.stringify(first.data) === JSON.stringify(second.data)
-				const line4 = document.createElement('p')
-				line4.innerHTML = `<strong>数据一致性:</strong> ${consistent ? '✓ 通过' : '✗ 失败'}`
-
-				details.appendChild(line1)
-				details.appendChild(line2)
-				details.appendChild(line3)
-				details.appendChild(line4)
-				wrapper.appendChild(details)
-
-				resultContainer.innerHTML = ''
-				resultContainer.appendChild(wrapper)
-				await loadCacheStatus()
+				cacheTestResult.textContent = lines.join(' | ')
+				cacheTestResult.classList.add('is-success')
 			} catch {
-				setNotice(resultContainer, 'error', '缓存测试失败')
+				cacheTestResult.textContent = '测试失败: 请求异常'
+				cacheTestResult.classList.add('is-error')
 			}
 		}
 
-		if (testButton) testButton.addEventListener('click', testCache)
+		refreshStatusButton.addEventListener('click', (event) => {
+			event.preventDefault()
+			fetchCacheStatus()
+		})
 
-		loadCacheStatus()
+		clearCacheButton.addEventListener('click', (event) => {
+			event.preventDefault()
+			clearCache()
+		})
+
+		if (cacheTestButton && cacheTestResult) {
+			cacheTestButton.addEventListener('click', (event) => {
+				event.preventDefault()
+				runCacheTest()
+			})
+		}
+
+		fetchCacheStatus()
 	}
 
 	const initSettingsTab = () => {

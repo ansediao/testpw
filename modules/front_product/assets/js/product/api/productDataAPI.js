@@ -17,6 +17,18 @@ window.ProductDataAPI = {
                     'X-WP-Nonce': config.nonce
                 }
             });
+
+            try {
+                const headerValue =
+                    response &&
+                    response.headers &&
+                    (response.headers['x-pw-cache'] || response.headers['X-PW-Cache']);
+                if (headerValue && String(headerValue).toUpperCase() === 'HIT') {
+                    // eslint-disable-next-line no-console
+                    console.info('[PW Product] 使用缓存的产品数据', { pwId });
+                }
+            } catch (e) {
+            }
             
             return response.data;
         } catch (error) {
