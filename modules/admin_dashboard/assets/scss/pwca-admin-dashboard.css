@@ -62,6 +62,29 @@ body.wp-admin #adminmenu .wp-submenu a[href="admin.php?page=pw-dashboard"] {
   font-weight: 600;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
 }
+.pwca-admin-dashboard__cache-status {
+  background: #f9f9f9;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+.pwca-admin-dashboard__cache-actions {
+  margin-top: 12px;
+}
+.pwca-admin-dashboard__row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.pwca-admin-dashboard__input {
+  width: 220px;
+}
+.pwca-admin-dashboard__result {
+  margin-top: 12px;
+}
 .pwca-admin-dashboard__tabs {
   margin-top: 12px;
 }
@@ -227,5 +250,8 @@ body.wp-admin #adminmenu .wp-submenu a[href="admin.php?page=pw-dashboard"] {
   .pwca-admin-dashboard__form-field label {
     width: 100%;
     padding-top: 0;
+  }
+  .pwca-admin-dashboard__input {
+    width: 100%;
   }
 }/*# sourceMappingURL=pwca-admin-dashboard.css.map */

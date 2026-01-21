@@ -21,9 +21,6 @@ final class Pwca_Admin_Cache {
 	}
 
 	public function register() {
-		add_action( 'admin_menu', array( $this, 'register_menu_page' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-
 		add_action( 'wp_ajax_pw_clear_product_cache', array( $this, 'handle_clear_product_cache' ) );
 		add_action( 'wp_ajax_pw_get_cache_status', array( $this, 'handle_get_cache_status' ) );
 	}
@@ -86,11 +83,7 @@ final class Pwca_Admin_Cache {
 		if ( $product_id > 0 ) {
 			$result = $api->clear_cached_product_data( $product_id );
 			if ( $result ) {
-				wp_send_json_success(
-					array(
-						'message' => "产品 ID {$product_id} 的缓存已清除",
-					)
-				);
+				wp_send_json_success( "产品 ID {$product_id} 的缓存已清除" );
 				return;
 			}
 
@@ -99,11 +92,7 @@ final class Pwca_Admin_Cache {
 		}
 
 		$cleared_count = $api->clear_all_cached_product_data();
-		wp_send_json_success(
-			array(
-				'message' => "已清除 {$cleared_count} 个产品的缓存数据",
-			)
-		);
+		wp_send_json_success( "已清除 {$cleared_count} 个产品的缓存数据" );
 	}
 
 	public function handle_get_cache_status() {
@@ -142,10 +131,10 @@ final class Pwca_Admin_Cache {
 
 		wp_send_json_success(
 			array(
-				'total_cached'         => (int) $cache_count,
-				'expired_count'        => (int) $expired_count,
-				'latest_cache_time'    => $latest_cache_time,
-				'cache_expiry_minutes' => 30,
+				'total'        => (int) $cache_count,
+				'expired'      => (int) $expired_count,
+				'last_updated' => $latest_cache_time,
+				'ttl'          => 30,
 			)
 		);
 	}

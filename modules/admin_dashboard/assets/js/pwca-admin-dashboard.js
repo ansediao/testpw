@@ -3,7 +3,10 @@
 	if (!root) return
 
 	const ajaxUrl = root.dataset.ajaxUrl || ''
+	const restProductBase = root.dataset.restProductBase || ''
 	const saveTokenNonce = root.dataset.saveTokenNonce || ''
+	const clearCacheNonce = root.dataset.clearCacheNonce || ''
+	const cacheStatusNonce = root.dataset.cacheStatusNonce || ''
 	const productRequestNonce = root.dataset.productRequestNonce || ''
 
 	const buildNotice = (type, message) => {
@@ -162,6 +165,164 @@
 
 	
 
+	const initCacheManagement = () => {
+		const cacheStatusBox = document.getElementById('pwca-cache-status')
+		const cacheTotal = document.getElementById('pwca-cache-total')
+		const cacheExpired = document.getElementById('pwca-cache-expired')
+		const cacheLastUpdated = document.getElementById('pwca-cache-last-updated')
+		const cacheTtl = document.getElementById('pwca-cache-ttl')
+
+		const productIdInput = document.getElementById('pwca-cache-product-id')
+		const clearCacheButton = document.getElementById('pwca-clear-cache')
+		const refreshStatusButton = document.getElementById('pwca-refresh-cache-status')
+		const cacheResult = document.getElementById('pwca-cache-result')
+		const cacheTestButton = document.getElementById('pwca-test-cache')
+		const cacheTestResult = document.getElementById('pwca-cache-test-result')
+
+		if (!cacheStatusBox || !cacheResult || !clearCacheButton || !refreshStatusButton) {
+			return
+		}
+
+		const setStatusLoading = (loading) => {
+			cacheStatusBox.classList.toggle('is-loading', loading)
+		}
+
+		const fetchCacheStatus = async () => {
+			if (!ajaxUrl || !cacheStatusNonce) {
+				return
+			}
+
+			setStatusLoading(true)
+			cacheResult.innerHTML = ''
+
+			try {
+				const data = await postUrlEncoded({
+					action: 'pw_get_cache_status',
+					nonce: cacheStatusNonce,
+				})
+
+				if (!data || !data.success || !data.data) {
+					setNotice(cacheResult, 'error', String(data?.data || '获取缓存状态失败'))
+					return
+				}
+
+				const status = data.data
+				if (cacheTotal) cacheTotal.textContent = String(status.total || 0)
+				if (cacheExpired) cacheExpired.textContent = String(status.expired || 0)
+				if (cacheLastUpdated) cacheLastUpdated.textContent = String(status.last_updated || 'N/A')
+				if (cacheTtl) cacheTtl.textContent = String(status.ttl || 'N/A')
+			} catch (error) {
+				setNotice(cacheResult, 'error', `获取缓存状态失败: ${error instanceof Error ? error.message : '未知错误'}`)
+			} finally {
+				setStatusLoading(false)
+			}
+		}
+
+		const clearCache = async () => {
+			if (!ajaxUrl || !clearCacheNonce) {
+				return
+			}
+
+			const productIdRaw = productIdInput ? productIdInput.value.trim() : ''
+			const productId = productIdRaw !== '' ? productIdRaw : null
+
+			cacheResult.innerHTML = ''
+			clearCacheButton.disabled = true
+
+			try {
+				const data = await postUrlEncoded({
+					action: 'pw_clear_product_cache',
+					nonce: clearCacheNonce,
+					product_id: productId,
+				})
+
+				if (!data) {
+					setNotice(cacheResult, 'error', '清除缓存失败: 未知错误')
+					return
+				}
+
+				if (data.success) {
+					setNotice(cacheResult, 'success', String(data.data || '缓存已清除'))
+					fetchCacheStatus()
+				} else {
+					setNotice(cacheResult, 'error', String(data.data || '清除缓存失败'))
+				}
+			} catch (error) {
+				setNotice(cacheResult, 'error', `清除缓存失败: ${error instanceof Error ? error.message : '未知错误'}`)
+			} finally {
+				clearCacheButton.disabled = false
+			}
+		}
+
+		const runCacheTest = async () => {
+			if (!restProductBase) return
+
+			const pwId = (productIdInput && productIdInput.value.trim()) || 'test'
+			if (!pwId) return
+
+			cacheTestResult.textContent = '测试中...'
+			cacheTestResult.classList.remove('is-success', 'is-error')
+
+			const measureRequest = async (label) => {
+				const url = `${restProductBase}${encodeURIComponent(pwId)}`
+				const start = performance.now()
+				let ok = false
+				let responseStatus = 0
+
+				try {
+					const response = await fetch(url, { credentials: 'same-origin' })
+					responseStatus = response.status
+					ok = response.ok
+					await response.json()
+				} catch {
+				}
+
+				const duration = performance.now() - start
+				return { label, duration, ok, status: responseStatus }
+			}
+
+			try {
+				const first = await measureRequest('首次请求')
+				const second = await measureRequest('第二次请求')
+
+				const lines = []
+				lines.push(`${first.label}: ${first.ok ? '成功' : '失败'} (${first.status}), 耗时 ${first.duration.toFixed(1)}ms`)
+				lines.push(`${second.label}: ${second.ok ? '成功' : '失败'} (${second.status}), 耗时 ${second.duration.toFixed(1)}ms`)
+
+				const faster = first.duration && second.duration
+					? (first.duration / second.duration).toFixed(2)
+					: 'N/A'
+
+				lines.push(`第二次请求速度约为第一次的 ${faster} 倍`)
+
+				cacheTestResult.textContent = lines.join(' | ')
+				cacheTestResult.classList.add('is-success')
+			} catch {
+				cacheTestResult.textContent = '测试失败: 请求异常'
+				cacheTestResult.classList.add('is-error')
+			}
+		}
+
+		refreshStatusButton.addEventListener('click', (event) => {
+			event.preventDefault()
+			fetchCacheStatus()
+		})
+
+		clearCacheButton.addEventListener('click', (event) => {
+			event.preventDefault()
+			clearCache()
+		})
+
+		if (cacheTestButton && cacheTestResult) {
+			cacheTestButton.addEventListener('click', (event) => {
+				event.preventDefault()
+				runCacheTest()
+			})
+		}
+
+		fetchCacheStatus()
+	}
+
 	const initSettingsTab = () => {
 		const reconnectButton = document.getElementById('pwca-reconnect-button')
 		if (reconnectButton) {
@@ -240,6 +401,7 @@
 
 	initTokenConnect()
 	initImportProgress()
+	initCacheManagement()
 	initSettingsTab()
 	initProductRequest()
 })()
