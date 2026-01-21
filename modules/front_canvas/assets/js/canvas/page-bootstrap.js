@@ -17,6 +17,21 @@ const getSettings = () => {
   return settings;
 };
 
+// 标记是否为从购物车进入的编辑模式：URL 中同时包含 edit=true 与 cart_key
+(() => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const isEdit = params.get('edit') === 'true' || params.get('edit') === '1';
+    const cartKey = params.get('cart_key');
+    window.pwcaCanvasEditFromCart = !!(isEdit && cartKey);
+    if (window.pwcaCanvasEditFromCart) {
+      window.pwcaCartKeyForCanvasEdit = cartKey;
+    }
+  } catch (e) {
+    window.pwcaCanvasEditFromCart = false;
+  }
+})();
+
 const onReady = (handler) => {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', handler, { once: true });
@@ -226,6 +241,41 @@ const buildViewImagesPayload = async (previewContainerExists) => {
   return viewImagesPayload;
 };
 
+/**
+ * 从购物车获取当前行项目的完整画布状态
+ * 仅在编辑模式下（edit=true 且具有 cart_key）使用
+ */
+const fetchCartCanvasState = async (cartKey, settings) => {
+  if (!cartKey || !settings || !settings.ajaxUrl) {
+    return null;
+  }
+
+  const body = new URLSearchParams();
+  body.set('action', 'pw_get_cart_canvas_state');
+  body.set('cart_key', String(cartKey));
+  body.set('security', String(settings.ajaxNonce || ''));
+
+  try {
+    const response = await fetch(settings.ajaxUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      body: body.toString(),
+      credentials: 'same-origin',
+    });
+
+    const json = await response.json();
+    if (json && json.success && json.data && json.data.canvas_state) {
+      return json.data.canvas_state;
+    }
+    return null;
+  } catch (e) {
+    console.error('从购物车获取画布状态失败:', e);
+    return null;
+  }
+};
+
 const addCustomizedProductToCart = async () => {
   const settings = getSettings();
   const productId = Number(settings.productId || 0);
@@ -257,6 +307,20 @@ const addCustomizedProductToCart = async () => {
     return;
   }
 
+  // 在提交前尽量保存并获取当前产品的完整画布状态
+  let canvasStateJson = '';
+  try {
+    if (window.canvasStateManager && typeof window.canvasStateManager.saveAllViewStates === 'function') {
+      window.canvasStateManager.saveAllViewStates();
+      const state = window.canvasStateManager.getState();
+      if (state) {
+        canvasStateJson = JSON.stringify(state);
+      }
+    }
+  } catch (e) {
+    console.warn('保存画布状态到购物车时发生错误，将继续提交但不携带画布状态:', e);
+  }
+
   const body = new URLSearchParams();
   body.set('action', 'add_customized_product_to_cart');
   body.set('product_id', String(productId));
@@ -275,6 +339,9 @@ const addCustomizedProductToCart = async () => {
   body.set('pw_design_fee_total', String(designFeeTotal));
   body.set('pw_designs', JSON.stringify(designs));
   body.set('pw_view_print_methods', JSON.stringify(viewPrintMethods));
+  if (canvasStateJson) {
+    body.set('pw_canvas_state', canvasStateJson);
+  }
 
   try {
     const response = await fetch(settings.ajaxUrl, {
@@ -479,9 +546,71 @@ const generateMultiViewPDF = async (productName, store) => {
   }
 };
 
+const initCartEditCanvasState = async () => {
+  const settings = getSettings();
+  if (!settings || !settings.isEdit) {
+    return;
+  }
+
+  const cartKey = window.pwcaCartKeyForCanvasEdit || (() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('cart_key') || '';
+    } catch (e) {
+      return '';
+    }
+  })();
+
+  if (!cartKey) {
+    return;
+  }
+
+  const externalState = await fetchCartCanvasState(cartKey, settings);
+  if (!externalState) {
+    return;
+  }
+
+  // 将外部状态挂到全局，供 CanvasStateManager / CanvasStateIntegration 使用
+  window.pwcaInitialCanvasState = externalState;
+
+  // 等待 CanvasStateIntegration 就绪后应用外部状态
+  const waitForIntegration = () =>
+    new Promise((resolve) => {
+      if (
+        window.canvasStateIntegration &&
+        typeof window.canvasStateIntegration.applyExternalState === 'function' &&
+        typeof window.canvasStateIntegration.isInitialized === 'function' &&
+        window.canvasStateIntegration.isInitialized()
+      ) {
+        resolve(window.canvasStateIntegration);
+        return;
+      }
+
+      const handler = (event) => {
+        if (event && event.detail && event.detail.integration) {
+          resolve(event.detail.integration);
+        } else {
+          resolve(window.canvasStateIntegration || null);
+        }
+      };
+      document.addEventListener('canvasStateIntegrationReady', handler, { once: true });
+    });
+
+  try {
+    const integration = await waitForIntegration();
+    if (integration && typeof integration.applyExternalState === 'function') {
+      await integration.applyExternalState(externalState);
+    }
+  } catch (e) {
+    console.error('应用购物车画布状态失败:', e);
+  }
+};
+
 onReady(() => {
   initColorSwitchButtons();
   initFetchProductData();
+  // 如果是从购物车进入的编辑模式，尝试恢复对应行项目的完整画布状态
+  initCartEditCanvasState();
 
   const addToCartBtn = document.getElementById('addToCartBtn');
   if (addToCartBtn) {

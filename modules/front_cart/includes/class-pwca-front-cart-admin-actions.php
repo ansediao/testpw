@@ -118,10 +118,10 @@ final class Pwca_Front_Cart_Admin_Actions {
 		$is_design  = $added_from === 'design';
 		$is_product = $added_from === 'product';
 
-		$html = '<div class="pwca-cart-admin-actions" data-cart-key="' . esc_attr( $cart_item_key ) . '">';
+		$html = '<div class=\"pwca-cart-admin-actions\" data-cart-key=\"' . esc_attr( $cart_item_key ) . '\">';
 		$html .= $this->build_duplicate_link( $cart_item_key, $product_id, $variation_id, $is_product );
-		$html .= $this->build_edit_link( $product_id, $is_design, $is_product );
-		$html .= '<div class="pwca-cart-admin-message" aria-live="polite"></div>';
+		$html .= $this->build_edit_link( $product_id, $cart_item_key, $is_design, $is_product );
+		$html .= '<div class=\"pwca-cart-admin-message\" aria-live=\"polite\"></div>';
 		$html .= '</div>';
 
 		return $html;
@@ -135,24 +135,25 @@ final class Pwca_Front_Cart_Admin_Actions {
 		return '<button type="button" class="pwca-cart-admin-action pwca-cart-duplicate" data-cart-key="' . esc_attr( $cart_item_key ) . '" data-product-id="' . esc_attr( $product_id ) . '" data-variation-id="' . esc_attr( $variation_id ) . '">' . esc_html__( 'Duplicate', 'pw-admin' ) . '</button>';
 	}
 
-	private function build_edit_link( $product_id, $is_design, $is_product ) {
+	private function build_edit_link( $product_id, $cart_item_key, $is_design, $is_product ) {
 		if ( $is_design && $product_id ) {
 			$url = add_query_arg(
 				array(
 					'product_id' => $product_id,
 					'edit'       => 'true',
+					'cart_key'   => $cart_item_key,
 				),
 				home_url( '/pwcanvas/' )
 			);
 
-			return '<a class="pwca-cart-admin-action pwca-cart-edit" href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Edit', 'pw-admin' ) . '</a>';
+			return '<a class=\"pwca-cart-admin-action pwca-cart-edit\" href=\"' . esc_url( $url ) . '\" target=\"_blank\" rel=\"noopener noreferrer\">' . esc_html__( 'Edit', 'pw-admin' ) . '</a>';
 		}
 
 		if ( $is_product && $product_id ) {
-			return '<a class="pwca-cart-admin-action pwca-cart-edit" href="' . esc_url( get_permalink( $product_id ) ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Edit', 'pw-admin' ) . '</a>';
+			return '<a class=\"pwca-cart-admin-action pwca-cart-edit\" href=\"' . esc_url( get_permalink( $product_id ) ) . '\" target=\"_blank\" rel=\"noopener noreferrer\">' . esc_html__( 'Edit', 'pw-admin' ) . '</a>';
 		}
 
-		return '<button type="button" class="pwca-cart-admin-action pwca-cart-edit" disabled>' . esc_html__( 'Edit', 'pw-admin' ) . '</button>';
+		return '<button type=\"button\" class=\"pwca-cart-admin-action pwca-cart-edit\" disabled>' . esc_html__( 'Edit', 'pw-admin' ) . '</button>';
 	}
 
 	private function get_cart_item_or_error( $cart_item_key ) {

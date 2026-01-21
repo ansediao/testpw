@@ -76,9 +76,17 @@ class CanvasStateIntegration {
                 ErrorHandler.logWarning('CanvasStateManager 初始化失败，状态持久化功能将被禁用');
                 return;
             }
+
+            // 如果处于“从购物车编辑”模式，则初始状态由外部数据驱动，
+            // 在此阶段跳过从本地存储恢复，后续通过 applyExternalState 处理。
+            const skipInitialRestore = typeof window !== 'undefined' && window.pwcaCanvasEditFromCart === true;
             
-            // 2. 尝试恢复已保存的状态
-            await this._restoreAllViewStates();
+            // 2. 尝试恢复已保存的状态（非购物车编辑模式）
+            if (!skipInitialRestore) {
+                await this._restoreAllViewStates();
+            } else {
+                ErrorHandler.logInfo('检测到购物车编辑模式，初始画布状态将由外部数据恢复，跳过本地存储恢复');
+            }
             
             // 3. 设置画布事件监听
             this._setupCanvasEventListeners();
@@ -449,6 +457,38 @@ class CanvasStateIntegration {
         }
     }
     
+    /**
+     * 使用外部状态（例如来自购物车的状态）覆盖当前画布状态并恢复到画布与 Store
+     * @param {object} externalState - 外部提供的完整状态对象
+     */
+    async applyExternalState(externalState) {
+        try {
+            if (!externalState || typeof externalState !== 'object') {
+                ErrorHandler.logWarning('applyExternalState: 外部状态无效，必须是对象');
+                return;
+            }
+
+            if (!canvasStateManager.isInitialized()) {
+                const ok = canvasStateManager.init();
+                if (!ok) {
+                    ErrorHandler.logWarning('applyExternalState: CanvasStateManager 初始化失败，无法应用外部状态');
+                    return;
+                }
+            }
+
+            const loaded = canvasStateManager.loadExternalState(externalState);
+            if (!loaded) {
+                ErrorHandler.logError('RESTORE_ERROR', 'applyExternalState: 加载外部画布状态失败');
+                return;
+            }
+
+            // 使用新的状态恢复所有视图
+            await this._restoreAllViewStates();
+        } catch (error) {
+            ErrorHandler.logError('RESTORE_ERROR', '应用外部画布状态失败', error);
+        }
+    }
+
     /**
      * 检查是否已初始化
      * @returns {boolean}
