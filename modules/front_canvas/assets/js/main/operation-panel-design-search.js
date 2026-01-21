@@ -123,4 +123,81 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    /**
+     * 根据当前视图 ID 与分类的 Category Type 控制前台可见性：
+     * - universal/general：所有视图可见
+     * - main_view：仅在 main_view 视图下可见
+     * - product：暂时与 universal 一致（后续可在此扩展按产品/视图精细控制）
+     */
+    const setupCategoryViewFilter = () => {
+        const categoryNodes = document.querySelectorAll('.category-item');
+        if (!categoryNodes.length) {
+            return;
+        }
+
+        const applyVisibility = (activeViewId) => {
+            const viewId = activeViewId || '';
+            categoryNodes.forEach((item) => {
+                const rawType = item.getAttribute('data-category-type') || 'universal';
+                let type = rawType;
+                if (type === 'general' || type === '') {
+                    type = 'universal';
+                }
+
+                // 默认全部显示
+                let shouldShow = true;
+
+                if (type === 'main_view') {
+                    // 仅 main_view 视图显示
+                    shouldShow = viewId === 'main_view' || viewId === '' || viewId === null;
+                }
+
+                // 目前 product 类型按 universal 处理，保留扩展点
+                // if (type === 'product') { ... }
+
+                item.style.display = shouldShow ? '' : 'none';
+            });
+        };
+
+        const waitForStore = () => {
+            if (typeof window.useCanvasStore === 'function') {
+                try {
+                    const store = window.useCanvasStore();
+                    if (store) {
+                        // 初次应用
+                        applyVisibility(store.activeViewId);
+
+                        // 监听视图切换
+                        if (typeof store.$subscribe === 'function') {
+                            store.$subscribe((mutation, state) => {
+                                if (mutation.storeId === 'canvas') {
+                                    applyVisibility(state.activeViewId);
+                                }
+                            });
+                        }
+
+                        return;
+                    }
+                } catch (e) {
+                    // 安静失败，使用下面的退化逻辑
+                }
+            }
+
+            // 如果 Pinia 还未准备好，继续等待
+            window.setTimeout(waitForStore, 150);
+        };
+
+        // 启动等待 Pinia store 的逻辑
+        waitForStore();
+
+        // 退化：若一段时间后仍无 store，则按单视图(main_view)处理
+        window.setTimeout(() => {
+            if (typeof window.useCanvasStore !== 'function') {
+                applyVisibility('main_view');
+            }
+        }, 1500);
+    };
+
+    setupCategoryViewFilter();
 });
