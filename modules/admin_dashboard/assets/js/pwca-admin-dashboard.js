@@ -102,9 +102,7 @@
 					response &&
 					response.code === 200 &&
 					response.message === 'success' &&
-					response.data &&
-					response.data.user_id === 1 &&
-					String(response.data.team) === '1'
+					response.data
 
 				if (!isValid) {
 					setNotice(statusContainer, 'error', '验证失败: 无效的响应格式')
