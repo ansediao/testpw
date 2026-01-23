@@ -17,8 +17,18 @@ td.product-subtotal {
     }
 }
 td.product-name {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    > a,
+    > a.woocommerce-LoopProduct-link,
+    > a.woocommerce-loop-product__link {
+        order: 1;
+    }
     
     .variation {
+        order: 2;
         dd {
             p {
                 margin: 0;
@@ -26,10 +36,63 @@ td.product-name {
         }
        
     }
+
+    .pwca-cart-admin-actions {
+        order: 3;
+        margin-top: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .pwca-cart-admin-action {
+        display: inline-flex;
+        align-items: center;
+        font-size: 12px;
+        line-height: 1.2;
+        color: #007cba;
+        text-decoration: underline;
+        background: transparent;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+    }
+
+    .pwca-cart-admin-action:hover:not(:disabled):not([disabled]) {
+        color: #005a87;
+        text-decoration: underline;
+    }
+
+    .pwca-cart-admin-action:disabled,
+    .pwca-cart-admin-action[disabled] {
+        color: #999;
+        opacity: 0.6;
+        cursor: not-allowed;
+        text-decoration: none;
+    }
 }
 dd.variation-Color {
     display: flex;
     align-items: center;
+}
+
+tr.pwca-design-row {
+    
+
+    .product-thumbnail {
+        
+
+        img {
+            width: 100% !important;
+            height: auto !important;
+           
+        }
+    }
+
+    .pwca-design-row-title {
+        
+    }
 }
 
 td.product-design {

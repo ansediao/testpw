@@ -129,10 +129,10 @@ final class Pwca_Front_Cart_Admin_Actions {
 
 	private function build_duplicate_link( $cart_item_key, $product_id, $variation_id, $disabled ) {
 		if ( $disabled ) {
-			return '<button type="button" class="pwca-cart-admin-action pwca-cart-duplicate" disabled>' . esc_html__( 'Duplicate', 'pw-admin' ) . '</button>';
+			return '<button type="button" class="pwca-cart-admin-action pwca-cart-duplicate" disabled>' . esc_html__( 'Copy', 'pw-admin' ) . '</button>';
 		}
 
-		return '<button type="button" class="pwca-cart-admin-action pwca-cart-duplicate" data-cart-key="' . esc_attr( $cart_item_key ) . '" data-product-id="' . esc_attr( $product_id ) . '" data-variation-id="' . esc_attr( $variation_id ) . '">' . esc_html__( 'Duplicate', 'pw-admin' ) . '</button>';
+		return '<button type="button" class="pwca-cart-admin-action pwca-cart-duplicate" data-cart-key="' . esc_attr( $cart_item_key ) . '" data-product-id="' . esc_attr( $product_id ) . '" data-variation-id="' . esc_attr( $variation_id ) . '">' . esc_html__( 'Copy', 'pw-admin' ) . '</button>';
 	}
 
 	private function build_edit_link( $product_id, $cart_item_key, $is_design, $is_product ) {
