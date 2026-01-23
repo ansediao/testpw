@@ -213,12 +213,12 @@
         // DOM 加载完成后执行
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() {
-                handleEditMode();
+                // handleEditMode();
                 handleViewMode();
                 ensureViewInitialized();
             });
         } else {
-            handleEditMode();
+            // handleEditMode();
             handleViewMode();
             ensureViewInitialized();
         }
