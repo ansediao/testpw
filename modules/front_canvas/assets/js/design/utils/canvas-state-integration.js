@@ -83,7 +83,7 @@ class CanvasStateIntegration {
             
             // 2. 尝试恢复已保存的状态（非购物车编辑模式）
             if (!skipInitialRestore) {
-                await this._restoreAllViewStates();
+                // await this._restoreAllViewStates();
             } else {
                 ErrorHandler.logInfo('检测到购物车编辑模式，初始画布状态将由外部数据恢复，跳过本地存储恢复');
             }

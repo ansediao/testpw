@@ -989,7 +989,7 @@ function createViewContainers(views, store) {
         return new Promise((resolve) => {
             setTimeout(async () => {
                 await initializeMultiLayerCanvases(view, store);
-                await initializeMaskCanvas(`maskCanvas-${view.id}`, view, store);
+                // await initializeMaskCanvas(`maskCanvas-${view.id}`, view, store);
                 resolve();
             }, 100);
         });
