@@ -2251,4 +2251,13 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
 }
 #content-pianquan #img_origin_controls .pwca-uploaded-images-empty {
   color: #888;
+}
+
+/* 文本选项卡样式 */
+.pwca-textarea-add-text {
+  width: 80%;
+}
+
+.pwca-add-text-btn {
+  display: block;
 }/*# sourceMappingURL=pwca-front-canvas.css.map */
