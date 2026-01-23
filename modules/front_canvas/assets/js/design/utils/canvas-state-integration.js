@@ -40,6 +40,27 @@ class CanvasStateIntegration {
          * @type {Array<Function>}
          */
         this.storeWatchers = [];
+
+        /**
+         * 当前画布状态恢复模式
+         * - 'none': 不从持久化状态自动恢复
+         * - 'local': 使用本地存储的状态（基于 URL edit 参数）
+         * - 'external': 使用外部状态（例如购物车编辑）
+         * @type {'none'|'local'|'external'}
+         */
+        this.restoreMode = 'none';
+
+        /**
+         * 是否为购物车编辑模式（edit=true 且存在 cart_key）
+         * @type {boolean}
+         */
+        this.isEditFromCart = false;
+
+        /**
+         * URL 是否显式处于编辑模式（edit=true / edit=1）
+         * @type {boolean}
+         */
+        this.isEditModeFromUrl = false;
         
         /**
          * 防抖定时器
@@ -80,6 +101,7 @@ class CanvasStateIntegration {
             // 如果处于“从购物车编辑”模式，则初始状态由外部数据驱动，
             // 在此阶段跳过从本地存储恢复，后续通过 applyExternalState 处理。
             const isEditFromCart = typeof window !== 'undefined' && window.pwcaCanvasEditFromCart === true;
+            this.isEditFromCart = isEditFromCart;
 
             // 仅当 URL 中显式包含 edit=true / edit=1 时才允许自动从本地存储恢复画布状态
             let isEditModeFromUrl = false;
@@ -92,15 +114,27 @@ class CanvasStateIntegration {
             } catch (e) {
                 isEditModeFromUrl = false;
             }
+            this.isEditModeFromUrl = isEditModeFromUrl;
 
-            const skipInitialRestore = !isEditModeFromUrl || isEditFromCart;
-
-            // 2. 尝试恢复已保存的状态（仅在编辑模式且非购物车编辑模式下）
-            if (!skipInitialRestore) {
-                await this._restoreAllViewStates();
-            } else if (isEditFromCart) {
+            // 根据 URL 与购物车编辑状态确定当前恢复模式
+            if (isEditFromCart) {
+                // 购物车编辑：使用外部状态，先清理本地旧数据以避免混用
+                this.restoreMode = 'external';
+                try {
+                    if (typeof canvasStateManager.clearProductState === 'function') {
+                        canvasStateManager.clearProductState();
+                    }
+                } catch (e) {
+                    ErrorHandler.logWarning('清理本地画布状态失败，将继续使用外部状态', e);
+                }
                 ErrorHandler.logInfo('检测到购物车编辑模式，初始画布状态将由外部数据恢复，跳过本地存储恢复');
+            } else if (isEditModeFromUrl) {
+                // 普通编辑模式：允许从本地存储恢复
+                this.restoreMode = 'local';
+                await this._restoreAllViewStates();
             } else {
+                // 非编辑模式：不从本地存储恢复
+                this.restoreMode = 'none';
                 ErrorHandler.logInfo('URL 中未包含 edit=true 参数，跳过本地画布状态自动恢复');
             }
             
@@ -405,7 +439,7 @@ class CanvasStateIntegration {
     
     /**
      * 处理视图切换
-     * 在切换前保存当前视图状态，切换后恢复目标视图状态
+     * 在切换前保存当前视图状态，切换后根据模式恢复目标视图状态
      * @param {string} previousViewId - 前一个视图ID
      * @param {string} newViewId - 新视图ID
      */
@@ -417,13 +451,18 @@ class CanvasStateIntegration {
                 return;
             }
             
-            // 1. 保存前一个视图的状态
-            if (previousViewId) {
+            // 1. 保存前一个视图的状态（仅在 CanvasStateManager 已初始化时尝试）
+            if (previousViewId && canvasStateManager.isInitialized && canvasStateManager.isInitialized()) {
                 canvasStateManager.saveViewState(previousViewId);
             }
             
-            // 2. 恢复新视图的状态（如果有）
-            if (newViewId) {
+            // 2. 在非编辑模式下不执行任何自动恢复逻辑
+            if (!newViewId || this.restoreMode === 'none') {
+                return;
+            }
+
+            // 3. 编辑模式或购物车编辑模式下，尝试恢复新视图的状态（如果有）
+            if (canvasStateManager.isInitialized && canvasStateManager.isInitialized()) {
                 const state = canvasStateManager.getState();
                 if (state && state.views && state.views[newViewId]) {
                     await canvasStateManager.restoreViewState(newViewId);
