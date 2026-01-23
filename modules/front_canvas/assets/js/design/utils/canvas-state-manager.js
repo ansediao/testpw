@@ -18,6 +18,23 @@
 // 数据版本号，用于迁移
 const CURRENT_VERSION = '1.0.0';
 
+// 在序列化 Canvas JSON 时需要额外保留的自定义属性
+const CANVAS_PERSIST_EXTRA_PROPS = [
+    'id',
+    'layerName',
+    'layerType',
+    'groupId',
+    'groupOrder',
+    'userInitiated',
+    'isSystemImage',
+    'skipLayerSync',
+    'fromToolbar',
+    'fromButton',
+    'designMeta',
+    'isBackground',
+    'name'
+];
+
 /**
  * 错误类型枚举
  * @enum {string}
@@ -921,8 +938,8 @@ class CanvasStateManager {
                 return false;
             }
             
-            // 序列化画布对象
-            const canvasJSON = canvas.toJSON();
+            // 序列化画布对象（包含自定义属性，确保恢复后仍能通过 id 等字段定位对象）
+            const canvasJSON = canvas.toJSON(CANVAS_PERSIST_EXTRA_PROPS);
             
             // 从 Canvas Store 获取图层和图层组数据
             const layers = canvasStore ? canvasStore.getViewLayers(viewId) : [];
@@ -1401,52 +1418,90 @@ class CanvasStateManager {
             let layersToRestore = layers || [];
             let layerGroupsToRestore = layerGroups || [];
             
-            // 如果保存的图层数据为空，但画布有对象，从画布对象重建图层列表
-            if (layersToRestore.length === 0 && canvas) {
+            // 尝试获取当前视图下的画布对象列表（排除背景等系统对象）
+            let userObjects = [];
+            if (canvas && typeof canvas.getObjects === 'function') {
                 const canvasObjects = canvas.getObjects();
-                const userObjects = canvasObjects.filter(obj => {
-                    // 过滤掉背景和系统对象
-                    return obj.id && !obj.isBackground && obj.name !== 'background';
+                userObjects = canvasObjects.filter(obj => {
+                    return obj && !obj.isBackground && obj.name !== 'background';
                 });
-                
-                if (userObjects.length > 0) {
-                    ErrorHandler.logInfo('从画布对象重建图层列表，对象数:', userObjects.length);
-                    layersToRestore = userObjects.map((obj, index) => {
-                        // 使用 layers-sync.js 中的命名逻辑
-                        let layerName = obj.layerName;
-                        if (!layerName) {
-                            if (obj.type === 'text' || obj.type === 'i-text') {
-                                const text = obj.text || '';
-                                layerName = text.length > 15 ? text.substring(0, 15) + '...' : text;
-                            } else if (obj.type === 'image') {
-                                layerName = 'Image ' + Date.now().toString().slice(-4);
-                            } else {
-                                layerName = 'Layer ' + (index + 1);
-                            }
-                        }
-                        
-                        let layerType = obj.layerType;
-                        if (!layerType) {
-                            if (obj.type === 'text' || obj.type === 'i-text') {
-                                layerType = 'text';
-                            } else if (obj.type === 'image') {
-                                layerType = 'image';
-                            } else {
-                                layerType = 'other';
-                            }
-                        }
-                        
-                        return {
-                            id: obj.id,
-                            name: layerName,
-                            type: layerType,
-                            visible: obj.visible !== false,
-                            locked: obj.selectable === false,
-                            groupId: obj.groupId || null,
-                            groupOrder: obj.groupOrder || 0
-                        };
-                    });
+            }
+
+            // 如果已有图层数据，则优先使用这些数据，并将元信息同步回画布对象（确保对象拥有 id / layerName 等字段）
+            if (layersToRestore.length > 0 && userObjects.length > 0) {
+                const minLen = Math.min(layersToRestore.length, userObjects.length);
+                for (let i = 0; i < minLen; i++) {
+                    const layer = layersToRestore[i];
+                    const obj = userObjects[i];
+                    if (!layer || !obj) {
+                        continue;
+                    }
+
+                    if (!obj.id) {
+                        obj.id = layer.id;
+                    }
+                    if (!obj.layerName && layer.name) {
+                        obj.layerName = layer.name;
+                    }
+                    if (!obj.layerType && layer.type) {
+                        obj.layerType = layer.type;
+                    }
+                    if (!obj.groupId && layer.groupId) {
+                        obj.groupId = layer.groupId;
+                    }
+                    if (typeof layer.groupOrder === 'number' && (obj.groupOrder === undefined || obj.groupOrder === null)) {
+                        obj.groupOrder = layer.groupOrder;
+                    }
                 }
+            }
+            
+            // 如果保存的图层数据为空，但画布有对象，从画布对象重建图层列表
+            if (layersToRestore.length === 0 && userObjects.length > 0) {
+                ErrorHandler.logInfo('从画布对象重建图层列表，对象数:', userObjects.length);
+                layersToRestore = userObjects.map((obj, index) => {
+                    if (!obj) {
+                        return null;
+                    }
+
+                    // 确保每个对象都有稳定的 id，便于后续通过 id 进行操作和生成缩略图
+                    if (!obj.id) {
+                        obj.id = `layer_${index}_${Date.now()}`;
+                    }
+
+                    // 使用 layers-sync.js 中的命名逻辑
+                    let layerName = obj.layerName;
+                    if (!layerName) {
+                        if (obj.type === 'text' || obj.type === 'i-text') {
+                            const text = obj.text || '';
+                            layerName = text.length > 15 ? text.substring(0, 15) + '...' : text;
+                        } else if (obj.type === 'image') {
+                            layerName = 'Image ' + Date.now().toString().slice(-4);
+                        } else {
+                            layerName = 'Layer ' + (index + 1);
+                        }
+                    }
+                    
+                    let layerType = obj.layerType;
+                    if (!layerType) {
+                        if (obj.type === 'text' || obj.type === 'i-text') {
+                            layerType = 'text';
+                        } else if (obj.type === 'image') {
+                            layerType = 'image';
+                        } else {
+                            layerType = 'other';
+                        }
+                    }
+                    
+                    return {
+                        id: obj.id,
+                        name: layerName,
+                        type: layerType,
+                        visible: obj.visible !== false,
+                        locked: obj.selectable === false,
+                        groupId: obj.groupId || null,
+                        groupOrder: obj.groupOrder || 0
+                    };
+                }).filter(layerItem => layerItem !== null);
             }
             
             // 检查是否有 restoreViewData 方法

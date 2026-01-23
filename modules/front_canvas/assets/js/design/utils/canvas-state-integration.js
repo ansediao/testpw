@@ -79,13 +79,29 @@ class CanvasStateIntegration {
 
             // 如果处于“从购物车编辑”模式，则初始状态由外部数据驱动，
             // 在此阶段跳过从本地存储恢复，后续通过 applyExternalState 处理。
-            const skipInitialRestore = typeof window !== 'undefined' && window.pwcaCanvasEditFromCart === true;
-            
-            // 2. 尝试恢复已保存的状态（非购物车编辑模式）
+            const isEditFromCart = typeof window !== 'undefined' && window.pwcaCanvasEditFromCart === true;
+
+            // 仅当 URL 中显式包含 edit=true / edit=1 时才允许自动从本地存储恢复画布状态
+            let isEditModeFromUrl = false;
+            try {
+                if (typeof window !== 'undefined' && window.location && window.location.search) {
+                    const params = new URLSearchParams(window.location.search);
+                    const editParam = params.get('edit');
+                    isEditModeFromUrl = editParam === 'true' || editParam === '1';
+                }
+            } catch (e) {
+                isEditModeFromUrl = false;
+            }
+
+            const skipInitialRestore = !isEditModeFromUrl || isEditFromCart;
+
+            // 2. 尝试恢复已保存的状态（仅在编辑模式且非购物车编辑模式下）
             if (!skipInitialRestore) {
                 await this._restoreAllViewStates();
-            } else {
+            } else if (isEditFromCart) {
                 ErrorHandler.logInfo('检测到购物车编辑模式，初始画布状态将由外部数据恢复，跳过本地存储恢复');
+            } else {
+                ErrorHandler.logInfo('URL 中未包含 edit=true 参数，跳过本地画布状态自动恢复');
             }
             
             // 3. 设置画布事件监听

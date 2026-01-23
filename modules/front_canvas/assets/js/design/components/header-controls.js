@@ -32,8 +32,24 @@ const HeaderControls = {
                 return;
             }
 
+            const extraProps = [
+                'id',
+                'layerName',
+                'layerType',
+                'groupId',
+                'groupOrder',
+                'userInitiated',
+                'isSystemImage',
+                'skipLayerSync',
+                'fromToolbar',
+                'fromButton',
+                'designMeta',
+                'isBackground',
+                'name'
+            ];
+
             // Initial state
-            const historyState = ref(canvas.toJSON());
+            const historyState = ref(canvas.toJSON(extraProps));
             
             // Initialize useRefHistory
             const { history, undo, redo, canUndo, canRedo, clear, pause, resume } = useRefHistory(historyState, {
@@ -116,7 +132,7 @@ const HeaderControls = {
                     return;
                 }
                 
-                const newJson = canvas.toJSON();
+                const newJson = canvas.toJSON(extraProps);
                 const currentJson = historyState.value;
                 
                 // Avoid pushing duplicate states
