@@ -338,4 +338,156 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.pw-form-field {
+  margin-bottom: 16px;
+}
+.pw-form-field label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: #333;
+}
+.pw-form-field input[type=text],
+.pw-form-field input[type=number],
+.pw-form-field select,
+.pw-form-field textarea {
+  width: 100%;
+  max-width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ccd0d4;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  font-size: 13px;
+}
+.pw-form-field textarea {
+  resize: vertical;
+}
+
+.pwca-upload-field .pwca-upload-label {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+  background: #fafafa;
+  cursor: pointer;
+  display: block;
+  transition: all 0.2s ease;
+}
+.pwca-upload-field .pwca-upload-label:hover {
+  border-color: #0073aa;
+  background: #f0f8ff;
+}
+.pwca-upload-field #pw-image-preview {
+  display: none;
+}
+.pwca-upload-field #pw-image-preview img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.pwca-upload-field input[type=file] {
+  display: none;
+}
+
+.pw-category-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  background: #fff;
+}
+.pw-category-item .pw-category-name-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+.pw-category-item .pw-category-settings-btn,
+.pw-category-item .pw-category-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.pw-category-item .pw-category-settings-btn .dashicons {
+  color: #0073aa;
+}
+.pw-category-item .pw-category-delete-btn .dashicons {
+  color: #d63638;
+}
+
+.pwca-tag-modal-body {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+.pwca-checkbox-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.pw-toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.pw-toggle-input {
+  display: none;
+}
+
+.pw-toggle-label {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+.pw-toggle-label .pw-toggle-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: #dcdfe5;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  transition: background 0.2s;
+}
+.pw-toggle-label .pw-toggle-slider::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.pw-toggle-input:checked + .pw-toggle-label .pw-toggle-slider {
+  background: #2271b1;
+}
+
+.pw-toggle-input:checked + .pw-toggle-label .pw-toggle-slider::before {
+  transform: translateX(20px);
+}
+
+.pw-toggle-text {
+  font-size: 12px;
+  color: #555;
 }/*# sourceMappingURL=pwca-admin-design-management.css.map */
