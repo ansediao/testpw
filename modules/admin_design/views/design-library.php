@@ -70,7 +70,7 @@ $data_payload = array(
 		</div>
 	</div>
 
-	<div class="pw-design-tabs">
+	<div class="pw-design-tabs nav-tab-wrapper">
 		<a href="<?php echo esc_url( add_query_arg( array( 'page' => (string) ( $_REQUEST['page'] ?? '' ), 'tab' => 'all', 'category' => $selected_category, 's' => $search_query ) ) ); ?>" class="nav-tab <?php echo ( 'all' === $selected_tab ) ? 'nav-tab-active' : ''; ?>">All</a>
 		<a href="<?php echo esc_url( add_query_arg( array( 'page' => (string) ( $_REQUEST['page'] ?? '' ), 'tab' => 'universal', 'category' => $selected_category, 's' => $search_query ) ) ); ?>" class="nav-tab <?php echo ( 'universal' === $selected_tab ) ? 'nav-tab-active' : ''; ?>">Universal</a>
 		<a href="<?php echo esc_url( add_query_arg( array( 'page' => (string) ( $_REQUEST['page'] ?? '' ), 'tab' => 'universal-main-view', 'category' => $selected_category, 's' => $search_query ) ) ); ?>" class="nav-tab <?php echo ( 'universal-main-view' === $selected_tab ) ? 'nav-tab-active' : ''; ?>">Universal for Main View</a>

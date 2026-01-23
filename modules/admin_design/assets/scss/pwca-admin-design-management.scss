@@ -37,7 +37,7 @@
 
 	.pw-design-tabs {
 		margin-bottom: 20px;
-
+		width: fit-content;
 		.nav-tab {
 			margin: 0;
 		}
@@ -236,6 +236,7 @@
 		max-width: 360px;
 		width: 100%;
 		padding: 20px 24px;
+		overflow: hidden;
 	}
 
 	.pw-filter-search-field {

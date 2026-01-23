@@ -30,6 +30,8 @@
 }
 .pwca-admin-design .pw-design-tabs {
   margin-bottom: 20px;
+  width: -moz-fit-content;
+  width: fit-content;
 }
 .pwca-admin-design .pw-design-tabs .nav-tab {
   margin: 0;
@@ -199,6 +201,7 @@
   max-width: 360px;
   width: 100%;
   padding: 20px 24px;
+  overflow: hidden;
 }
 .pwca-admin-design .pw-filter-search-field {
   display: flex;
