@@ -93,6 +93,11 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
                         display: flex;
                         justify-content: center;
                         align-items: center;
+                        img{
+                            width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                        }
                     }
                 }
 

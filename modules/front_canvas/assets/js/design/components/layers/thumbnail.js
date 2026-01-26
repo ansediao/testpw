@@ -15,7 +15,7 @@ export function createThumbnailHelpers(getCanvasInstance) {
     const generateThumbnail = (obj, layerId) => {
         try {
             const THUMBNAIL_SIZE = 32;
-            const THUMBNAIL_PADDING = 2;
+            const THUMBNAIL_PADDING = 0;
             const CONTENT_SIZE = THUMBNAIL_SIZE - THUMBNAIL_PADDING * 2;
 
             const tempCanvas = document.createElement('canvas');
