@@ -69,8 +69,11 @@ final class Pwca_Front_Product_Assets {
 
 		wp_enqueue_script( 'pwca-vendor-layui', 'https://unpkg.com/layui@2.11.5/dist/layui.js', array(), '2.11.5', true );
 		wp_enqueue_script( 'pwca-vendor-vue', 'https://unpkg.com/vue@3/dist/vue.global.js', array(), '3', true );
+		wp_enqueue_script( 'pwca-vendor-vue-demi', 'https://unpkg.com/vue-demi@0.14.7/lib/index.iife.js', array( 'pwca-vendor-vue' ), '0.14.7', true );
 		wp_enqueue_script( 'pwca-vendor-axios', 'https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js', array(), '1.6.0', true );
 		wp_enqueue_script( 'pwca-vendor-fabric', 'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js', array(), '5.3.0', true );
+		wp_enqueue_script( 'pwca-vendor-vueuse-shared', 'https://unpkg.com/@vueuse/shared', array(), null, true );
+		wp_enqueue_script( 'pwca-vendor-vueuse-core', 'https://unpkg.com/@vueuse/core', array( 'pwca-vendor-vueuse-shared', 'pwca-vendor-vue-demi' ), null, true );
 	}
 
 	private function enqueue_local_assets() {
@@ -124,7 +127,7 @@ final class Pwca_Front_Product_Assets {
 		$this->enqueue_script_if_readable( 'pwca-product-component-add-to-cart', $this->module_url . 'assets/js/product/components/AddToCart.js', array( 'pwca-product-component-price-info' ), $this->module_path . '/assets/js/product/components/AddToCart.js' );
 		$this->enqueue_script_if_readable( 'pwca-product-component-color-variants', $this->module_url . 'assets/js/product/components/ColorVariants.js', array( 'pwca-product-component-add-to-cart' ), $this->module_path . '/assets/js/product/components/ColorVariants.js' );
 		$this->enqueue_script_if_readable( 'pwca-product-component-checkbox-options', $this->module_url . 'assets/js/product/components/CheckboxOptions.js', array( 'pwca-product-component-color-variants' ), $this->module_path . '/assets/js/product/components/CheckboxOptions.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-component-accessories', $this->module_url . 'assets/js/product/components/ProductAccessories.js', array( 'pwca-product-component-checkbox-options' ), $this->module_path . '/assets/js/product/components/ProductAccessories.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-component-accessories', $this->module_url . 'assets/js/product/components/ProductAccessories.js', array( 'pwca-product-component-checkbox-options', 'pwca-vendor-vueuse-core' ), $this->module_path . '/assets/js/product/components/ProductAccessories.js' );
 		$this->enqueue_script_if_readable( 'pwca-product-component-custom-colors', $this->module_url . 'assets/js/product/components/CustomColorsButton.js', array( 'pwca-product-component-accessories' ), $this->module_path . '/assets/js/product/components/CustomColorsButton.js' );
 	}
 

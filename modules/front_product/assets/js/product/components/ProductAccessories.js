@@ -10,6 +10,16 @@ const ProductAccessories = {
         // Access shared store
         const store = useProductStore();
 
+        // Resolve product id for localStorage key
+        const resolvedProductId = (window.pwProductConfig && window.pwProductConfig.productId)
+            ? window.pwProductConfig.productId
+            : (store.productId || null);
+
+        // VueUse useStorage for persisting selected accessories (per product)
+        const accessoriesStorage = (window.VueUse && window.VueUse.useStorage && resolvedProductId)
+            ? window.VueUse.useStorage(`pwca-accessories-${resolvedProductId}`, [])
+            : null;
+
         // Component state
         const isOpen = Vue.ref(false);
         const selectedAccessories = Vue.ref(new Set());
@@ -93,14 +103,26 @@ const ProductAccessories = {
             }, 0);
         });
 
-        Vue.watch([selectedAccessoriesArray], () => {
+        const syncAccessoriesState = () => {
+            const names = selectedAccessoriesArray.value.map(a => a.testname);
             store.setAccessoriesPrice(totalAccessoriesPrice.value);
-            store.setSelectedAccessoriesNames(selectedAccessoriesArray.value.map(a => a.testname));
+            store.setSelectedAccessoriesNames(names);
+
+            // Persist selected accessory names to localStorage via VueUse (if available)
+            if (accessoriesStorage && Object.prototype.hasOwnProperty.call(accessoriesStorage, 'value')) {
+                try {
+                    accessoriesStorage.value = names;
+                } catch (e) {
+                }
+            }
+        };
+
+        Vue.watch([selectedAccessoriesArray], () => {
+            syncAccessoriesState();
         }, { deep: true });
 
         Vue.onMounted(() => {
-            store.setAccessoriesPrice(totalAccessoriesPrice.value);
-            store.setSelectedAccessoriesNames(selectedAccessoriesArray.value.map(a => a.testname));
+            syncAccessoriesState();
         });
 
         // Close dropdown when clicking outside

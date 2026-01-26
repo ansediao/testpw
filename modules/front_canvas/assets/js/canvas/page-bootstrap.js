@@ -284,6 +284,8 @@ const addCustomizedProductToCart = async () => {
     return;
   }
 
+  const isEditFromCart = !!(settings.isEdit && window.pwcaCanvasEditFromCart);
+
   const quantityInput = document.querySelector('.product-card__input');
   const quantity = quantityInput ? parseInt(quantityInput.value || '1', 10) || 1 : 1;
   if (quantity <= 0) {
@@ -321,6 +323,39 @@ const addCustomizedProductToCart = async () => {
     console.warn('保存画布状态到购物车时发生错误，将继续提交但不携带画布状态:', e);
   }
 
+  // 从本地持久化中读取配件名称（仅在非购物车编辑模式下）
+  let accessoriesNamesPayload = [];
+  if (!isEditFromCart) {
+    try {
+      if (window.VueUse && typeof window.VueUse.useStorage === 'function') {
+        const storageRef = window.VueUse.useStorage(`pwca-accessories-${productId}`, []);
+        const rawValue = storageRef && Object.prototype.hasOwnProperty.call(storageRef, 'value') ? storageRef.value : storageRef;
+        if (Array.isArray(rawValue)) {
+          accessoriesNamesPayload = rawValue;
+        } else if (rawValue && Array.isArray(rawValue.names)) {
+          accessoriesNamesPayload = rawValue.names;
+        }
+      } else if (typeof window.localStorage !== 'undefined') {
+        const raw = window.localStorage.getItem(`pwca-accessories-${productId}`);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+              accessoriesNamesPayload = parsed;
+            }
+          } catch (err) {
+            const list = raw.split(',').map((s) => s.trim()).filter(Boolean);
+            if (list.length > 0) {
+              accessoriesNamesPayload = list;
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('读取配件信息失败，将继续提交但不附带配件名称:', err);
+    }
+  }
+
   const body = new URLSearchParams();
   body.set('action', 'add_customized_product_to_cart');
   body.set('product_id', String(productId));
@@ -341,6 +376,13 @@ const addCustomizedProductToCart = async () => {
   body.set('pw_view_print_methods', JSON.stringify(viewPrintMethods));
   if (canvasStateJson) {
     body.set('pw_canvas_state', canvasStateJson);
+  }
+  if (accessoriesNamesPayload && accessoriesNamesPayload.length > 0) {
+    try {
+      body.set('pw_accessories_names', JSON.stringify(accessoriesNamesPayload));
+    } catch (e) {
+      body.set('pw_accessories_names', accessoriesNamesPayload.join(','));
+    }
   }
 
   try {
