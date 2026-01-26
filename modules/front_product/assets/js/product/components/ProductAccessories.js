@@ -13,6 +13,24 @@ const ProductAccessories = {
         // Component state
         const isOpen = Vue.ref(false);
         const selectedAccessories = Vue.ref(new Set());
+        const storageKey = Vue.ref('');
+        const accessoriesNamesStorage = Vue.shallowRef(null);
+        const ensureStorageInitialized = (productId) => {
+            const pid = Number(productId || 0);
+            if (!pid) return;
+            const nextKey = `pwca-accessories-names-${pid}`;
+            if (storageKey.value === nextKey) return;
+            storageKey.value = nextKey;
+            if (window.VueUse && typeof window.VueUse.useStorage === 'function') {
+                try {
+                    accessoriesNamesStorage.value = window.VueUse.useStorage(nextKey, []);
+                } catch (e) {
+                    accessoriesNamesStorage.value = null;
+                }
+            } else {
+                accessoriesNamesStorage.value = null;
+            }
+        };
 
         // Computed properties
         const accessories = Vue.computed(() => {
@@ -94,14 +112,41 @@ const ProductAccessories = {
         });
 
         Vue.watch([selectedAccessoriesArray], () => {
+            ensureStorageInitialized(store.productId);
             store.setAccessoriesPrice(totalAccessoriesPrice.value);
-            store.setSelectedAccessoriesNames(selectedAccessoriesArray.value.map(a => a.testname));
+            const names = selectedAccessoriesArray.value.map(a => a.testname);
+            store.setSelectedAccessoriesNames(names);
+            if (names.length === 0) {
+                if (accessoriesNamesStorage.value && accessoriesNamesStorage.value.value !== undefined) {
+                    accessoriesNamesStorage.value.value = [];
+                } else if (storageKey.value) {
+                    try {
+                        localStorage.setItem(storageKey.value, '[]');
+                    } catch (e) {
+                    }
+                }
+                return;
+            }
+            if (accessoriesNamesStorage.value && accessoriesNamesStorage.value.value !== undefined) {
+                accessoriesNamesStorage.value.value = names;
+            } else if (storageKey.value) {
+                try {
+                    localStorage.setItem(storageKey.value, JSON.stringify(names));
+                } catch (e) {
+                }
+            }
         }, { deep: true });
 
         Vue.onMounted(() => {
+            ensureStorageInitialized(store.productId);
             store.setAccessoriesPrice(totalAccessoriesPrice.value);
-            store.setSelectedAccessoriesNames(selectedAccessoriesArray.value.map(a => a.testname));
+            const initialNames = selectedAccessoriesArray.value.map(a => a.testname);
+            store.setSelectedAccessoriesNames(initialNames);
         });
+        
+        Vue.watch(() => store.productId, (pid) => {
+            ensureStorageInitialized(pid);
+        }, { immediate: true });
 
         // Close dropdown when clicking outside
         Vue.onMounted(() => {

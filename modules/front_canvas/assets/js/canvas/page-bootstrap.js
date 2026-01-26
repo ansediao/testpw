@@ -321,6 +321,19 @@ const addCustomizedProductToCart = async () => {
     console.warn('保存画布状态到购物车时发生错误，将继续提交但不携带画布状态:', e);
   }
 
+  const accessoriesStorageKey = `pwca-accessories-names-${productId}`;
+  let accessoriesNames = [];
+  try {
+    const raw = localStorage.getItem(accessoriesStorageKey);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        accessoriesNames = parsed.filter(v => typeof v === 'string' && v.trim() !== '').map(v => v.trim());
+      }
+    }
+  } catch (e) {
+  }
+
   const body = new URLSearchParams();
   body.set('action', 'add_customized_product_to_cart');
   body.set('product_id', String(productId));
@@ -341,6 +354,9 @@ const addCustomizedProductToCart = async () => {
   body.set('pw_view_print_methods', JSON.stringify(viewPrintMethods));
   if (canvasStateJson) {
     body.set('pw_canvas_state', canvasStateJson);
+  }
+  if (accessoriesNames.length > 0) {
+    body.set('pw_accessories_names', JSON.stringify(accessoriesNames));
   }
 
   try {

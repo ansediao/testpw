@@ -795,10 +795,6 @@ final class Pwca_Front_Cart_Handler {
 	}
 
 	private function append_accessories_meta_if_needed( $item_data, $custom_data ) {
-		if ( ! isset( $custom_data['is_blank'] ) || (int) $custom_data['is_blank'] !== 1 ) {
-			return $item_data;
-		}
-
 		if ( empty( $custom_data['accessories_names'] ) ) {
 			return $item_data;
 		}
