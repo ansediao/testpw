@@ -30,6 +30,7 @@ final class Pwca_Admin_Design {
 		add_action( 'wp_ajax_pw_update_category_settings', array( $this, 'handle_update_category_settings' ) );
 		add_action( 'wp_ajax_pw_delete_category', array( $this, 'handle_delete_category' ) );
 		add_action( 'wp_ajax_pw_add_design', array( $this, 'handle_add_design' ) );
+		add_action( 'wp_ajax_pw_check_design_sku_unique', array( $this, 'handle_check_design_sku_unique' ) );
 		add_action( 'wp_ajax_pw_get_design_tags', array( $this, 'handle_get_design_tags' ) );
 		add_action( 'wp_ajax_pw_save_design_tags', array( $this, 'handle_save_design_tags' ) );
 		add_action( 'wp_ajax_pw_bulk_delete_designs', array( $this, 'handle_bulk_delete_designs' ) );
@@ -323,8 +324,15 @@ final class Pwca_Admin_Design {
 
 		$design_name = $this->get_post_text( 'design_name' );
 		$design_category = $this->get_post_int( 'design_category' );
+		$design_sku = $this->get_post_text( 'design_sku' );
 		if ( '' === $design_name ) {
 			wp_send_json_error( '设计名称不能为空' );
+		}
+		if ( '' === $design_sku ) {
+			wp_send_json_error( 'SKU 不能为空' );
+		}
+		if ( ! $this->is_design_sku_unique( $design_sku ) ) {
+			wp_send_json_error( 'SKU 已存在，请更换' );
 		}
 
 		$post_id = wp_insert_post(
@@ -343,6 +351,8 @@ final class Pwca_Admin_Design {
 			wp_set_object_terms( $post_id, $design_category, 'pw_design_category' );
 		}
 
+		update_post_meta( (int) $post_id, '_design_sku', $design_sku );
+
 		$attachment_id = $this->maybe_create_attachment_from_upload( 'design_image', (int) $post_id );
 		if ( $attachment_id ) {
 			set_post_thumbnail( (int) $post_id, $attachment_id );
@@ -353,6 +363,28 @@ final class Pwca_Admin_Design {
 				'message'      => '设计添加成功',
 				'post_id'      => (int) $post_id,
 				'redirect_url' => (string) get_edit_post_link( (int) $post_id ),
+			)
+		);
+	}
+
+	public function handle_check_design_sku_unique() {
+		$nonce = $this->get_post_text( 'nonce' );
+		$this->verify_nonce_or_exit( $nonce, 'pw_add_design_nonce', '安全验证失败' );
+		$this->require_capability_or_exit( 'edit_posts' );
+
+		$sku        = $this->get_post_text( 'sku' );
+		$exclude_id = $this->get_post_int( 'exclude_id' );
+
+		if ( '' === $sku ) {
+			wp_send_json_error( 'SKU 不能为空' );
+		}
+
+		$is_unique = $this->is_design_sku_unique( $sku, $exclude_id );
+
+		wp_send_json_success(
+			array(
+				'unique'  => $is_unique,
+				'message' => $is_unique ? 'SKU 可用' : 'SKU 已存在，请更换',
 			)
 		);
 	}
@@ -622,6 +654,33 @@ final class Pwca_Admin_Design {
 		if ( isset( $_POST['design_sku'] ) ) {
 			update_post_meta( $design_id, '_design_sku', sanitize_text_field( wp_unslash( $_POST['design_sku'] ) ) );
 		}
+	}
+
+	private function is_design_sku_unique( $sku, $exclude_post_id = 0 ) {
+		$sku = sanitize_text_field( (string) $sku );
+		if ( '' === $sku ) {
+			return false;
+		}
+
+		$args = array(
+			'post_type'      => 'pw_design',
+			'post_status'    => 'any',
+			'posts_per_page' => 1,
+			'fields'         => 'ids',
+			'meta_query'     => array(
+				array(
+					'key'   => '_design_sku',
+					'value' => $sku,
+				),
+			),
+		);
+
+		if ( $exclude_post_id > 0 ) {
+			$args['post__not_in'] = array( (int) $exclude_post_id );
+		}
+
+		$query = new WP_Query( $args );
+		return empty( $query->posts );
 	}
 
 	private function get_post_text( $key ) {

@@ -177,6 +177,50 @@
 		width: 90vw;
 	}
 
+	.pw-form-field {
+		margin-bottom: 16px;
+
+		label {
+			display: block;
+			margin-bottom: 6px;
+			font-weight: 600;
+		}
+
+		input[type='text'],
+		input[type='number'],
+		textarea,
+		select {
+			width: 100%;
+			max-width: 100%;
+		}
+	}
+
+	.pwca-field-message {
+		margin: 6px 0 0;
+		font-size: 12px;
+		line-height: 1.4;
+		color: #646970;
+
+		&.is-loading {
+			color: #646970;
+		}
+
+		&.is-error {
+			color: #d63638;
+		}
+
+		&.is-success {
+			color: #00a32a;
+		}
+	}
+
+	.modal__footer {
+		#pw-add-design-submit:disabled {
+			opacity: 0.55;
+			cursor: not-allowed;
+		}
+	}
+
 	.pwca-manage-category-modal {
 		max-width: 600px;
 		max-height: 80vh;

@@ -150,6 +150,40 @@
   max-width: 1200px;
   width: 90vw;
 }
+.pwca-admin-design .pw-form-field {
+  margin-bottom: 16px;
+}
+.pwca-admin-design .pw-form-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.pwca-admin-design .pw-form-field input[type=text],
+.pwca-admin-design .pw-form-field input[type=number],
+.pwca-admin-design .pw-form-field textarea,
+.pwca-admin-design .pw-form-field select {
+  width: 100%;
+  max-width: 100%;
+}
+.pwca-admin-design .pwca-field-message {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #646970;
+}
+.pwca-admin-design .pwca-field-message.is-loading {
+  color: #646970;
+}
+.pwca-admin-design .pwca-field-message.is-error {
+  color: #d63638;
+}
+.pwca-admin-design .pwca-field-message.is-success {
+  color: #00a32a;
+}
+.pwca-admin-design .modal__footer #pw-add-design-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 .pwca-admin-design .pwca-manage-category-modal {
   max-width: 600px;
   max-height: 80vh;

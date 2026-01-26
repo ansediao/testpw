@@ -139,6 +139,111 @@
 		$('#pw-add-design-btn').on('click', (event) => {
 			event.preventDefault()
 			showModal('pw-add-design-modal')
+
+			const form = document.getElementById('pw-add-design-form')
+			if (form) form.reset()
+
+			const uploadPlaceholder = document.getElementById('pw-upload-placeholder')
+			const imagePreview = document.getElementById('pw-image-preview')
+			const previewImg = document.getElementById('pw-preview-img')
+			const fileName = document.getElementById('pw-file-name')
+			const fileInput = document.getElementById('pw-design-image')
+
+			if (fileInput) fileInput.value = ''
+			if (previewImg) previewImg.src = ''
+			if (fileName) fileName.textContent = ''
+			if (uploadPlaceholder) uploadPlaceholder.style.display = 'block'
+			if (imagePreview) imagePreview.style.display = 'none'
+
+			const submitButton = document.getElementById('pw-add-design-submit')
+			const skuMessage = document.getElementById('pw-design-sku-message')
+			if (submitButton) submitButton.disabled = true
+			if (skuMessage) {
+				skuMessage.textContent = ''
+				skuMessage.classList.remove('is-error', 'is-success', 'is-loading')
+			}
+		})
+	}
+
+	const bindAddDesignSkuValidation = () => {
+		const form = document.getElementById('pw-add-design-form')
+		const submitButton = document.getElementById('pw-add-design-submit')
+		const nameInput = document.getElementById('pw-design-name')
+		const skuInput = document.getElementById('pw-design-sku')
+		const skuMessage = document.getElementById('pw-design-sku-message')
+		if (!form || !submitButton || !nameInput || !skuInput || !skuMessage) return
+
+		let checking = false
+		let checkedSku = ''
+		let skuUnique = false
+
+		const setMessage = (state, text) => {
+			skuMessage.textContent = String(text || '')
+			skuMessage.classList.remove('is-error', 'is-success', 'is-loading')
+			if (state === 'error') skuMessage.classList.add('is-error')
+			if (state === 'success') skuMessage.classList.add('is-success')
+			if (state === 'loading') skuMessage.classList.add('is-loading')
+		}
+
+		const updateSubmitState = () => {
+			const nameOk = String(nameInput.value || '').trim().length > 0
+			const currentSku = String(skuInput.value || '').trim()
+			const skuOk = currentSku.length > 0
+			const skuOkToSubmit = skuOk && skuUnique && checkedSku === currentSku && !checking
+			submitButton.disabled = !(nameOk && skuOkToSubmit)
+		}
+
+		const resetSkuState = () => {
+			checking = false
+			checkedSku = ''
+			skuUnique = false
+			setMessage('', '')
+			updateSubmitState()
+		}
+
+		nameInput.addEventListener('input', updateSubmitState)
+		skuInput.addEventListener('input', resetSkuState)
+
+		skuInput.addEventListener('blur', async () => {
+			const sku = String(skuInput.value || '').trim()
+			if (!sku) {
+				checking = false
+				checkedSku = ''
+				skuUnique = false
+				setMessage('error', 'SKU 不能为空')
+				updateSubmitState()
+				return
+			}
+
+			checking = true
+			setMessage('loading', '检查中...')
+			updateSubmitState()
+
+			try {
+				const response = await postUrlEncoded({
+					action: 'pw_check_design_sku_unique',
+					sku,
+					nonce: addDesignNonce,
+				})
+
+				if (!response?.success) {
+					checkedSku = sku
+					skuUnique = false
+					setMessage('error', `检查失败: ${response?.data || '未知错误'}`)
+					return
+				}
+
+				checkedSku = sku
+				skuUnique = Boolean(response.data?.unique)
+				setMessage(skuUnique ? 'success' : 'error', response.data?.message || (skuUnique ? 'SKU 可用' : 'SKU 已存在，请更换'))
+			} catch (error) {
+				checkedSku = sku
+				skuUnique = false
+				setMessage('error', `检查失败: ${error instanceof Error ? error.message : '未知错误'}`)
+			} finally {
+				checking = false
+				updateSubmitState()
+			}
 		})
 	}
 
@@ -197,6 +302,7 @@
 
 		submitButton.addEventListener('click', async (event) => {
 			event.preventDefault()
+			if (submitButton.disabled) return
 			const formData = new FormData(form)
 			formData.append('action', 'pw_add_design')
 
@@ -212,7 +318,6 @@
 				window.alert(`添加失败: ${error instanceof Error ? error.message : '未知错误'}`)
 			} finally {
 				submitButton.disabled = false
-				closeModal('pw-add-design-modal')
 			}
 		})
 	}
@@ -608,6 +713,7 @@
 		bindCategoryFilterAutoSubmit()
 		bindDeleteConfirm()
 		bindAddDesignModal()
+		bindAddDesignSkuValidation()
 		bindAddCategoryModal()
 		bindManageCategoryModal()
 		bindImagePreview()

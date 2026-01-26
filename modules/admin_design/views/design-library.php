@@ -288,6 +288,12 @@ $data_payload = array(
 						<input type="text" id="pw-design-name" name="design_name" required>
 					</div>
 
+					<div class="pw-form-field pwca-design-sku-field">
+						<label for="pw-design-sku">SKU</label>
+						<input type="text" id="pw-design-sku" name="design_sku" required>
+						<p class="pwca-field-message" id="pw-design-sku-message" aria-live="polite"></p>
+					</div>
+
 					<div class="pw-form-field">
 						<label for="pw-design-category">Design Category</label>
 						<select id="pw-design-category" name="design_category">
@@ -303,7 +309,7 @@ $data_payload = array(
 			</div>
 			<footer class="modal__footer">
 				<button class="button" type="button" data-micromodal-close>取消</button>
-				<button type="submit" class="button button-primary" id="pw-add-design-submit" form="pw-add-design-form">Add Design</button>
+				<button type="submit" class="button button-primary" id="pw-add-design-submit" form="pw-add-design-form" disabled>Add Design</button>
 			</footer>
 		</div>
 	</div>
