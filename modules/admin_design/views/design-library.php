@@ -376,7 +376,7 @@ $data_payload = array(
 						<select id="pw-category-type" name="category_type">
 							<option value="universal">Universal</option>
 							<option value="main_view">Main View</option>
-							<option value="product">Product</option>
+							<option value="product">Product Specific</option>
 						</select>
 					</div>
 				</form>
@@ -454,7 +454,7 @@ $data_payload = array(
 						<select id="pw-settings-category-type" name="category_type">
 							<option value="universal">Universal</option>
 							<option value="main_view">Main View</option>
-							<option value="product">Product</option>
+							<option value="product">Product Specific</option>
 						</select>
 					</div>
 
