@@ -24,6 +24,9 @@
 				border: 1px solid #c3c4c7;
 				box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 				border-radius: 4px;
+				&#pwca-design-category-filter{
+					min-width: 150px;
+				}
 			}
 
 			.dashicons {
@@ -46,9 +49,10 @@
 	.pw-design-bulk-actions {
 		margin-bottom: 20px;
 
-		.button {
+		.button,label {
 			margin-right: 10px;
 		}
+		
 	}
 
 	.pw-design-grid {

@@ -22,6 +22,10 @@
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
   border-radius: 4px;
 }
+.pwca-admin-design .pw-design-controls .pw-design-filters input#pwca-design-category-filter,
+.pwca-admin-design .pw-design-controls .pw-design-filters select#pwca-design-category-filter {
+  min-width: 150px;
+}
 .pwca-admin-design .pw-design-controls .pw-design-filters .dashicons {
   font-size: 20px;
   line-height: 30px;
@@ -39,7 +43,7 @@
 .pwca-admin-design .pw-design-bulk-actions {
   margin-bottom: 20px;
 }
-.pwca-admin-design .pw-design-bulk-actions .button {
+.pwca-admin-design .pw-design-bulk-actions .button, .pwca-admin-design .pw-design-bulk-actions label {
   margin-right: 10px;
 }
 .pwca-admin-design .pw-design-grid {
