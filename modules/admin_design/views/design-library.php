@@ -77,7 +77,11 @@ $data_payload = array(
 		<a href="<?php echo esc_url( add_query_arg( array( 'page' => (string) ( $_REQUEST['page'] ?? '' ), 'tab' => 'product-specific', 'category' => $selected_category, 's' => $search_query ) ) ); ?>" class="nav-tab <?php echo ( 'product-specific' === $selected_tab ) ? 'nav-tab-active' : ''; ?>">Product Specific</a>
 	</div>
 
-	<div id="pw-design-app">
+	<div id="pwca-design-library-loading" class="pwca-design-library-loading">
+		<span class="spinner is-active" aria-hidden="true"></span>
+	</div>
+
+	<div id="pw-design-app" hidden aria-busy="true">
 		<div class="pw-design-bulk-actions">
 			<button class="button" type="button" @click="openFilterModal">Filter</button>
 			<label><input type="checkbox" v-model="allSelected"> Select All</label>

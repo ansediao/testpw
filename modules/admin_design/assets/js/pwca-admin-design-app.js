@@ -2,8 +2,34 @@
 	const root = document.querySelector('.pwca-admin-design')
 	if (!root) return
 
+	const appEl = document.getElementById('pw-design-app')
+	if (appEl) {
+		appEl.hidden = true
+		appEl.setAttribute('aria-busy', 'true')
+	}
+
+	let loadingEl = document.getElementById('pwca-design-library-loading')
+	if (!loadingEl && appEl) {
+		loadingEl = document.createElement('div')
+		loadingEl.id = 'pwca-design-library-loading'
+		loadingEl.className = 'pwca-design-library-loading'
+		loadingEl.innerHTML = '<span class="spinner is-active" aria-hidden="true"></span>'
+		appEl.insertAdjacentElement('beforebegin', loadingEl)
+	}
+
+	const fail = (message) => {
+		if (loadingEl) loadingEl.remove()
+		if (!appEl) return
+		appEl.hidden = false
+		appEl.setAttribute('aria-busy', 'false')
+		appEl.innerHTML = `<div class="notice notice-error"><p>${String(message || 'Design Library 初始化失败，请刷新页面后重试。')}</p></div>`
+	}
+
 	const dataNode = document.getElementById('pwca-design-library-data')
-	if (!dataNode) return
+	if (!dataNode) {
+		fail('Design Library 数据节点缺失，请刷新页面后重试。')
+		return
+	}
 
 	let payload = null
 	try {
@@ -12,7 +38,15 @@
 		payload = null
 	}
 
-	if (!payload || !window.Vue) return
+	if (!payload) {
+		fail('Design Library 数据解析失败，请刷新页面后重试。')
+		return
+	}
+
+	if (!window.Vue) {
+		fail('Vue 未加载，Design Library 无法初始化。请检查网络或资源加载。')
+		return
+	}
 
 	const { createApp, ref, computed } = window.Vue
 
@@ -269,6 +303,16 @@
 		},
 	}
 
-	createApp(DesignApp).mount('#pw-design-app')
+	try {
+		createApp(DesignApp).mount('#pw-design-app')
+		if (loadingEl) loadingEl.remove()
+		if (appEl) {
+			appEl.hidden = false
+			appEl.setAttribute('aria-busy', 'false')
+		}
+	} catch (err) {
+		console.error(err)
+		fail('Design Library 初始化异常，请刷新页面后重试。')
+	}
 })()
 
