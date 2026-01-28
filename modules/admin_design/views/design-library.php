@@ -385,7 +385,7 @@ $data_payload = array(
 						<label for="pw-category-type">Category Type</label>
 						<select id="pw-category-type" name="category_type">
 							<option value="universal">Universal</option>
-							<option value="main_view">Main View</option>
+							<option value="main_view">Universal for Main View</option>
 							<option value="product">Product Specific</option>
 						</select>
 					</div>
@@ -463,7 +463,7 @@ $data_payload = array(
 						<label for="pw-settings-category-type">Category Type</label>
 						<select id="pw-settings-category-type" name="category_type">
 							<option value="universal">Universal</option>
-							<option value="main_view">Main View</option>
+							<option value="main_view">Universal for Main View</option>
 							<option value="product">Product Specific</option>
 						</select>
 					</div>
