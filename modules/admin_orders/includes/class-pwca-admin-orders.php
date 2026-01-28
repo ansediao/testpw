@@ -19,10 +19,7 @@ final class Pwca_Admin_Orders {
 	}
 
 	public function register() {
-		if ( ! $this->is_woocommerce_available() ) {
-			return;
-		}
-
+		
 		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'store_custom_data_on_order_item' ), 10, 4 );
 		add_action( 'woocommerce_after_order_itemmeta', array( $this, 'render_production_pdf_button' ), 10, 3 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
