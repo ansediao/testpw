@@ -48,13 +48,14 @@
 			}
 
 			clearMessage($container);
-			$button.addClass('is-loading').prop('disabled', true).text(config.messages?.duplicating || 'Duplicating...');
+			const originalText = $button.text();
+			$button.addClass('is-loading').prop('disabled', true).text(config.messages?.duplicating || '复制中…');
 
 			try {
 				const response = await requestDuplicate(cartKey, config);
-				if (response && response.success && response.data && response.data.redirect_url) {
-					setMessage($container, config.messages?.redirecting || 'Redirecting...', 'success');
-					setTimeout(() => window.open(response.data.redirect_url, '_blank'), 800);
+				if (response && response.success && response.data && response.data.new_cart_key) {
+					setMessage($container, config.messages?.duplicated || '已复制。', 'success');
+					setTimeout(() => window.location.reload(), 300);
 					return;
 				}
 
@@ -63,7 +64,7 @@
 			} catch (err) {
 				setMessage($container, config.messages?.request_failed || 'Request failed', 'error');
 			} finally {
-				$button.removeClass('is-loading').prop('disabled', false).text('Duplicate');
+				$button.removeClass('is-loading').prop('disabled', false).text(originalText);
 			}
 		});
 

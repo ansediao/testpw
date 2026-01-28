@@ -14,14 +14,11 @@ final class Pwca_Front_Cart_Admin_Actions {
 	public function register() {
 		add_filter( 'woocommerce_cart_item_name', array( $this, 'add_admin_action_buttons' ), 10, 3 );
 		add_action( 'wp_ajax_pw_duplicate_cart_item', array( $this, 'handle_duplicate_cart_item' ) );
+		add_action( 'wp_ajax_nopriv_pw_duplicate_cart_item', array( $this, 'handle_duplicate_cart_item' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'localize_admin_actions' ) );
 	}
 
 	public function add_admin_action_buttons( $product_name, $cart_item, $cart_item_key ) {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return $product_name;
-		}
-
 		if ( ! $this->context->is_cart_context() ) {
 			return $product_name;
 		}
@@ -39,7 +36,7 @@ final class Pwca_Front_Cart_Admin_Actions {
 	}
 
 	public function localize_admin_actions() {
-		if ( ! $this->context->is_cart_context() || ! current_user_can( 'manage_options' ) ) {
+		if ( ! $this->context->is_cart_context() ) {
 			return;
 		}
 
@@ -50,48 +47,32 @@ final class Pwca_Front_Cart_Admin_Actions {
 				'ajax_url' => admin_url( 'admin-ajax.php' ),
 				'nonce'    => wp_create_nonce( 'pw_cart_actions' ),
 				'messages' => array(
-					'duplicating'      => __( 'Duplicating...', 'pw-admin' ),
-					'redirecting'      => __( 'Product duplicated. Redirecting...', 'pw-admin' ),
-					'duplicate_failed' => __( 'Duplicate failed, please try again.', 'pw-admin' ),
-					'request_failed'   => __( 'Request failed, please try again.', 'pw-admin' ),
-					'confirm_edit'     => __( 'Edit this product in the admin? This will open a new tab.', 'pw-admin' ),
+					'duplicating'      => __( '复制中…', 'pw-admin' ),
+					'duplicated'       => __( '已复制该商品项。', 'pw-admin' ),
+					'duplicate_failed' => __( '复制失败，请重试。', 'pw-admin' ),
+					'request_failed'   => __( '请求失败，请重试。', 'pw-admin' ),
+					'confirm_edit'     => __( '在新标签页打开编辑？', 'pw-admin' ),
 				),
 			)
 		);
 	}
 
 	public function handle_duplicate_cart_item() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( __( 'Insufficient permissions', 'pw-admin' ) );
-		}
-
 		check_ajax_referer( 'pw_cart_actions', 'nonce' );
 
 		$cart_item_key = isset( $_POST['cart_key'] ) ? sanitize_text_field( wp_unslash( $_POST['cart_key'] ) ) : '';
 		if ( $cart_item_key === '' ) {
-			wp_send_json_error( __( 'Invalid cart item', 'pw-admin' ) );
+			wp_send_json_error( __( '无效的购物车项', 'pw-admin' ) );
 		}
 
-		$cart_item = $this->get_cart_item_or_error( $cart_item_key );
-		if ( is_wp_error( $cart_item ) ) {
-			wp_send_json_error( $cart_item->get_error_message() );
-		}
-
-		$original_product_id = isset( $cart_item['product_id'] ) ? (int) $cart_item['product_id'] : 0;
-		$original_product    = $original_product_id ? wc_get_product( $original_product_id ) : false;
-		if ( ! $original_product ) {
-			wp_send_json_error( __( 'Original product does not exist', 'pw-admin' ) );
-		}
-
-		$new_product_id = $this->duplicate_product_from_cart_item( $original_product, $cart_item );
-		if ( ! $new_product_id ) {
-			wp_send_json_error( __( 'Duplicate failed, please try again', 'pw-admin' ) );
+		$duplicated_key = $this->duplicate_cart_item_or_error( $cart_item_key );
+		if ( is_wp_error( $duplicated_key ) ) {
+			wp_send_json_error( $duplicated_key->get_error_message() );
 		}
 
 		wp_send_json_success(
 			array(
-				'new_product_id' => $new_product_id,
-				'redirect_url'   => admin_url( 'post.php?post=' . (int) $new_product_id . '&action=edit' ),
+				'new_cart_key' => (string) $duplicated_key,
 			)
 		);
 	}
@@ -118,20 +99,18 @@ final class Pwca_Front_Cart_Admin_Actions {
 		$is_design  = $added_from === 'design';
 		$is_product = $added_from === 'product';
 
-		$html = '<div class=\"pwca-cart-admin-actions\" data-cart-key=\"' . esc_attr( $cart_item_key ) . '\">';
-		$html .= $this->build_duplicate_link( $cart_item_key, $product_id, $variation_id, $is_product );
-		$html .= $this->build_edit_link( $product_id, $cart_item_key, $is_design, $is_product );
-		$html .= '<div class=\"pwca-cart-admin-message\" aria-live=\"polite\"></div>';
+		$html = '<div class="pwca-cart-admin-actions" data-cart-key="' . esc_attr( $cart_item_key ) . '">';
+		$html .= $this->build_duplicate_link( $cart_item_key, $product_id, $variation_id );
+		if ( current_user_can( 'manage_options' ) ) {
+			$html .= $this->build_edit_link( $product_id, $cart_item_key, $is_design, $is_product );
+		}
+		$html .= '<div class="pwca-cart-admin-message" aria-live="polite"></div>';
 		$html .= '</div>';
 
 		return $html;
 	}
 
-	private function build_duplicate_link( $cart_item_key, $product_id, $variation_id, $disabled ) {
-		if ( $disabled ) {
-			return '<button type="button" class="pwca-cart-admin-action pwca-cart-duplicate" disabled>' . esc_html__( 'Copy', 'pw-admin' ) . '</button>';
-		}
-
+	private function build_duplicate_link( $cart_item_key, $product_id, $variation_id ) {
 		return '<button type="button" class="pwca-cart-admin-action pwca-cart-duplicate" data-cart-key="' . esc_attr( $cart_item_key ) . '" data-product-id="' . esc_attr( $product_id ) . '" data-variation-id="' . esc_attr( $variation_id ) . '">' . esc_html__( 'Copy', 'pw-admin' ) . '</button>';
 	}
 
@@ -146,14 +125,14 @@ final class Pwca_Front_Cart_Admin_Actions {
 				home_url( '/pwcanvas/' )
 			);
 
-			return '<a class=\"pwca-cart-admin-action pwca-cart-edit\" href=\"' . esc_url( $url ) . '\" target=\"_blank\" rel=\"noopener noreferrer\">' . esc_html__( 'Edit', 'pw-admin' ) . '</a>';
+			return '<a class="pwca-cart-admin-action pwca-cart-edit" href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Edit', 'pw-admin' ) . '</a>';
 		}
 
 		if ( $is_product && $product_id ) {
-			return '<a class=\"pwca-cart-admin-action pwca-cart-edit\" href=\"' . esc_url( get_permalink( $product_id ) ) . '\" target=\"_blank\" rel=\"noopener noreferrer\">' . esc_html__( 'Edit', 'pw-admin' ) . '</a>';
+			return '<a class="pwca-cart-admin-action pwca-cart-edit" href="' . esc_url( get_permalink( $product_id ) ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Edit', 'pw-admin' ) . '</a>';
 		}
 
-		return '<button type=\"button\" class=\"pwca-cart-admin-action pwca-cart-edit\" disabled>' . esc_html__( 'Edit', 'pw-admin' ) . '</button>';
+		return '<button type="button" class="pwca-cart-admin-action pwca-cart-edit" disabled>' . esc_html__( 'Edit', 'pw-admin' ) . '</button>';
 	}
 
 	private function get_cart_item_or_error( $cart_item_key ) {
@@ -169,81 +148,71 @@ final class Pwca_Front_Cart_Admin_Actions {
 		return $item;
 	}
 
-	private function duplicate_product_from_cart_item( $original_product, $cart_item ) {
-		$original_post = get_post( $original_product->get_id() );
-		if ( ! $original_post ) {
-			return false;
+	private function duplicate_cart_item_or_error( $cart_item_key ) {
+		$cart_item = $this->get_cart_item_or_error( $cart_item_key );
+		if ( is_wp_error( $cart_item ) ) {
+			return $cart_item;
 		}
 
-		$new_id = wp_insert_post(
-			array(
-				'post_title'   => $original_post->post_title . ' (Duplicate)',
-				'post_content' => $original_post->post_content,
-				'post_excerpt' => $original_post->post_excerpt,
-				'post_status'  => 'draft',
-				'post_type'    => 'product',
-				'post_author'  => get_current_user_id(),
-				'post_parent'  => $original_post->post_parent,
-				'menu_order'   => $original_post->menu_order,
-			)
+		$product_id   = isset( $cart_item['product_id'] ) ? (int) $cart_item['product_id'] : 0;
+		$variation_id = isset( $cart_item['variation_id'] ) ? (int) $cart_item['variation_id'] : 0;
+		$variation    = isset( $cart_item['variation'] ) && is_array( $cart_item['variation'] ) ? $cart_item['variation'] : array();
+		$quantity     = isset( $cart_item['quantity'] ) ? (int) $cart_item['quantity'] : 1;
+		$quantity     = $quantity > 0 ? $quantity : 1;
+
+		if ( ! $product_id || ! wc_get_product( $product_id ) ) {
+			return new WP_Error( 'pwca_product_missing', __( '商品不存在', 'pw-admin' ) );
+		}
+
+		$cart_item_data = $this->extract_cart_item_data( $cart_item );
+
+		$added_key = WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $variation, $cart_item_data );
+		if ( ! $added_key ) {
+			return new WP_Error( 'pwca_duplicate_failed', __( '复制失败，请重试', 'pw-admin' ) );
+		}
+
+		if ( (string) $added_key === (string) $cart_item_key ) {
+			WC()->cart->set_quantity( $cart_item_key, $quantity, false );
+			$cart_item_data['_pwca_duplicate_uid'] = wp_generate_uuid4();
+			$added_key                            = WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $variation, $cart_item_data );
+			if ( ! $added_key ) {
+				return new WP_Error( 'pwca_duplicate_failed', __( '复制失败，请重试', 'pw-admin' ) );
+			}
+		}
+
+		WC()->cart->calculate_totals();
+		WC()->cart->set_session();
+
+		return (string) $added_key;
+	}
+
+	private function extract_cart_item_data( array $cart_item ) {
+		$excluded = array(
+			'product_id'         => true,
+			'variation_id'       => true,
+			'variation'          => true,
+			'quantity'           => true,
+			'data'               => true,
+			'data_hash'          => true,
+			'line_subtotal'      => true,
+			'line_subtotal_tax'  => true,
+			'line_total'         => true,
+			'line_tax'           => true,
+			'line_tax_data'      => true,
+			'line_total_tax'     => true,
+			'line_subtotal_tax'  => true,
+			'line_total_tax'     => true,
 		);
 
-		if ( is_wp_error( $new_id ) || ! $new_id ) {
-			return false;
-		}
-
-		$this->copy_product_meta( $original_product->get_id(), $new_id );
-		$this->copy_product_taxonomies( $original_product->get_id(), $new_id );
-		$this->copy_product_thumbnail( $original_product->get_id(), $new_id );
-		$this->save_cart_custom_data( $new_id, $cart_item );
-		$this->mark_as_duplicate( $new_id, $cart_item );
-
-		return (int) $new_id;
-	}
-
-	private function copy_product_meta( $original_id, $new_id ) {
-		$meta_data = get_post_meta( $original_id );
-		foreach ( $meta_data as $key => $values ) {
-			if ( in_array( $key, array( '_edit_lock', '_edit_last' ), true ) ) {
+		$data = array();
+		foreach ( $cart_item as $key => $value ) {
+			if ( isset( $excluded[ $key ] ) ) {
 				continue;
 			}
-
-			foreach ( (array) $values as $value ) {
-				add_post_meta( $new_id, $key, maybe_unserialize( $value ) );
-			}
-		}
-	}
-
-	private function copy_product_taxonomies( $original_id, $new_id ) {
-		$taxonomies = array( 'product_cat', 'product_tag' );
-		foreach ( $taxonomies as $taxonomy ) {
-			$terms = wp_get_object_terms( $original_id, $taxonomy, array( 'fields' => 'ids' ) );
-			if ( is_wp_error( $terms ) || empty( $terms ) ) {
-				continue;
-			}
-			wp_set_object_terms( $new_id, $terms, $taxonomy );
-		}
-	}
-
-	private function copy_product_thumbnail( $original_id, $new_id ) {
-		$thumb_id = get_post_thumbnail_id( $original_id );
-		if ( $thumb_id ) {
-			set_post_thumbnail( $new_id, $thumb_id );
-		}
-	}
-
-	private function save_cart_custom_data( $new_product_id, $cart_item ) {
-		if ( ! isset( $cart_item['custom_data'] ) || ! is_array( $cart_item['custom_data'] ) ) {
-			return;
+			$data[ $key ] = $value;
 		}
 
-		update_post_meta( $new_product_id, '_pw_cart_custom_data', wp_json_encode( $cart_item['custom_data'] ) );
-	}
-
-	private function mark_as_duplicate( $new_product_id, $cart_item ) {
-		update_post_meta( $new_product_id, '_pw_is_duplicate', true );
-		update_post_meta( $new_product_id, '_pw_duplicate_time', current_time( 'timestamp' ) );
-		update_post_meta( $new_product_id, '_pw_original_product_id', isset( $cart_item['product_id'] ) ? (int) $cart_item['product_id'] : 0 );
+		return $data;
 	}
 }
 
