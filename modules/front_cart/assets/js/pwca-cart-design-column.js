@@ -80,6 +80,8 @@
 		if (!config || !config.map) {
 			return;
 		}
+		const pathname = window.location && window.location.pathname ? String(window.location.pathname) : '';
+		const isCustomCart = pathname.indexOf('/custom-cart') !== -1;
 
 		Object.keys(config.map).forEach((cartKey) => {
 			const data = config.map[cartKey] || {};
@@ -101,6 +103,7 @@
 			designs.forEach((d) => {
 				const name = d && d.name ? String(d.name) : '';
 				const image = d && d.image ? String(d.image) : '';
+				const sku = d && d.sku ? String(d.sku) : '';
 				const qty = d && d.quantity ? parseInt(d.quantity, 10) : 0;
 				const imgSrc = image || config.placeholder || '';
 				const subtotalHtml = unitFee != null ? formatPrice(unitFee * Math.max(0, qty)) : '—';
@@ -127,6 +130,12 @@
 				span.className = 'pwca-design-row-title';
 				span.textContent = name;
 				tdName.appendChild(span);
+				if (isCustomCart && sku !== '') {
+					const skuEl = document.createElement('div');
+					skuEl.className = 'pwca-design-row-sku';
+					skuEl.textContent = 'SKU: ' + sku;
+					tdName.appendChild(skuEl);
+				}
 				tr.appendChild(tdName);
 
 				const tdDesign = document.createElement('td');

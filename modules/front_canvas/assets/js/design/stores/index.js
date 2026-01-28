@@ -555,6 +555,7 @@ const useDesignUsageStore = defineStore('designUsage', {
             const id = payload && payload.id ? String(payload.id) : '';
             const name = payload && payload.name ? String(payload.name) : '';
             const image = payload && payload.image ? String(payload.image) : '';
+            const sku = payload && payload.sku ? String(payload.sku) : '';
             let found = null;
             for (const it of this.items) {
                 if ((id && it.id === id) || (!id && image && it.image === image)) {
@@ -564,8 +565,9 @@ const useDesignUsageStore = defineStore('designUsage', {
             }
             if (found) {
                 found.quantity = (Number(found.quantity || 0) + 1);
+                if (!found.sku && sku) found.sku = sku;
             } else {
-                this.items.push({ id, name, image, quantity: 1 });
+                this.items.push({ id, name, image, sku, quantity: 1 });
             }
         },
         removeDesign(payload) {

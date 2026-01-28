@@ -92,6 +92,7 @@ const buildDesignPayload = () => {
   const payload = designList.map((item) => ({
     name: String(item?.name || ''),
     image: String(item?.image || ''),
+    sku: String(item?.sku || ''),
     quantity: Number(item?.quantity || 0),
   }));
 

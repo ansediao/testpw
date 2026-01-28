@@ -978,7 +978,7 @@ function addImage(event) {
                 fromToolbar: true,     // 标记来源为工具栏
                 isDesignElement: true
             });
-            img.designMeta = { id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl) };
+            img.designMeta = { id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl), sku: String((designImg && designImg.getAttribute && designImg.getAttribute('data-design-sku')) || '') };
             
             // 检查画布上是否已经存在相同 ID 的对象
             const existingObject = canvas.getObjects().find(obj => obj.id === newId);
@@ -988,7 +988,7 @@ function addImage(event) {
                 try {
                     if (typeof window.useDesignUsageStore === 'function') {
                         const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
-                        store.addDesign({ id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl) });
+                        store.addDesign({ id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl), sku: String((designImg && designImg.getAttribute && designImg.getAttribute('data-design-sku')) || '') });
                     }
                 } catch (e) {}
             } else {
@@ -1030,14 +1030,14 @@ function addDesignToCanvas(designId) {
                 fromToolbar: true,
                 isDesignElement: true
             });
-            img.designMeta = { id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl) };
+            img.designMeta = { id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl), sku: String(designImg.getAttribute('data-design-sku') || '') };
             
             // 检查画布上是否已经存在相同 ID 的对象
             const existingObject = canvas.getObjects().find(obj => obj.id === newId);
             if (!existingObject) {
                 canvas.add(img);
                 canvas.setActiveObject(img);
-                const meta = { id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl) };
+                const meta = { id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl), sku: String(designImg.getAttribute('data-design-sku') || '') };
                 try {
                     if (typeof recordDesignUsage === 'function') {
                         recordDesignUsage(meta) || (typeof queueDesignUsage === 'function' && queueDesignUsage(meta));
@@ -1089,7 +1089,7 @@ function recordDesignUsage(meta) {
     try {
         if (typeof window.useDesignUsageStore === 'function') {
             const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
-            store.addDesign({ id: String(meta.id || ''), name: String(meta.name || ''), image: String(meta.image || '') });
+            store.addDesign({ id: String(meta.id || ''), name: String(meta.name || ''), image: String(meta.image || ''), sku: String(meta.sku || '') });
             return true;
         }
     } catch (e) {}

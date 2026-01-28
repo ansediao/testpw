@@ -435,6 +435,7 @@ final class Pwca_Front_Cart_Handler {
 			$out[] = array(
 				'name'     => isset( $item['name'] ) ? sanitize_text_field( $item['name'] ) : '',
 				'image'    => isset( $item['image'] ) ? esc_url_raw( $item['image'] ) : '',
+				'sku'      => isset( $item['sku'] ) ? sanitize_text_field( $item['sku'] ) : '',
 				'quantity' => isset( $item['quantity'] ) ? (int) $item['quantity'] : 0,
 			);
 		}

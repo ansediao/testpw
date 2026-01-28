@@ -83,7 +83,8 @@
                 foreach ($designs as $design) {
                     echo '<div class="design-item">';
                     if (has_post_thumbnail($design->ID)) {
-                        echo '<img src="' . get_the_post_thumbnail_url($design->ID, 'thumbnail') . '" alt="' . esc_attr($design->post_title) . '" class="pwca-design-thumbnail" data-design-id="' . esc_attr($design->ID) . '">';
+                        $design_sku = (string) ( get_post_meta( $design->ID, '_design_sku', true ) ?: '' );
+                        echo '<img src="' . get_the_post_thumbnail_url($design->ID, 'thumbnail') . '" alt="' . esc_attr($design->post_title) . '" class="pwca-design-thumbnail" data-design-id="' . esc_attr($design->ID) . '" data-design-sku="' . esc_attr( $design_sku ) . '">';
                     }
                     echo '</div>';
                 }
