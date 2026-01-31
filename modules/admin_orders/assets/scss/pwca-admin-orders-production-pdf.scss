@@ -1,12 +1,20 @@
-@import "../../../front_canvas/assets/scss/_variables";
-@import "../../../front_canvas/assets/scss/_mixins";
+@import '../../../front_canvas/assets/scss/_variables';
+@import '../../../front_canvas/assets/scss/_mixins';
 
 body.wp-admin {
+	.pwca-admin-orders-production-pdf-row {
+		background: #f9f9f9;
+		
+		td {
+			padding: 12px 16px !important;
+			border-top: 1px solid #e0e0e0;
+		}
+	}
+
 	.pwca-admin-orders-production-pdf {
 		display: flex;
 		gap: 8px;
 		align-items: center;
-		margin-top: 10px;
 
 		.spinner {
 			float: none;

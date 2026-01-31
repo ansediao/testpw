@@ -53,6 +53,56 @@
 		return 'PNG';
 	};
 
+	/**
+	 * 使用 Canvas 绘制中文文字并返回图片
+	 */
+	const textToImage = (lines, options = {}) => {
+		const {
+			fontSize = 14,
+			fontFamily = 'Microsoft YaHei, PingFang SC, Hiragino Sans GB, sans-serif',
+			lineHeight = 1.5,
+			color = '#000',
+			maxWidth = 500
+		} = options;
+
+		const canvas = document.createElement('canvas');
+		const ctx = canvas.getContext('2d');
+		
+		ctx.font = `${fontSize}px ${fontFamily}`;
+		
+		// 计算画布尺寸
+		let textWidth = 0;
+		lines.forEach(line => {
+			const w = ctx.measureText(line).width;
+			if (w > textWidth) textWidth = w;
+		});
+		
+		const width = Math.min(textWidth + 20, maxWidth);
+		const height = lines.length * fontSize * lineHeight + 20;
+		
+		canvas.width = width * 2; // 2x for retina
+		canvas.height = height * 2;
+		ctx.scale(2, 2);
+		
+		// 绘制文字
+		ctx.font = `${fontSize}px ${fontFamily}`;
+		ctx.fillStyle = color;
+		ctx.textBaseline = 'top';
+		
+		lines.forEach((line, i) => {
+			ctx.fillText(line, 10, 10 + i * fontSize * lineHeight);
+		});
+		
+		return {
+			dataUrl: canvas.toDataURL('image/png'),
+			width,
+			height
+		};
+	};
+
+	/**
+	 * 生成包含所有商品设计的 PDF
+	 */
 	const generatePdf = async (container) => {
 		const jsPDF = getJsPdf();
 		if (!jsPDF) {
@@ -60,31 +110,71 @@
 		}
 
 		const orderNumber = container.dataset.orderNumber || '';
-		const productName = container.dataset.productName || '';
-		const productId = container.dataset.productId || '';
-		const customColor = container.dataset.customColor || '';
-		const colorName = container.dataset.colorName || '';
-		const customImageUrl = container.dataset.customImage || '';
+		const itemsJson = container.dataset.items || '[]';
+		
+		let items = [];
+		try {
+			items = JSON.parse(itemsJson);
+		} catch (e) {
+			throw new Error('商品数据解析失败');
+		}
 
-		if (!customImageUrl) {
-			throw new Error('缺少设计图链接');
+		if (!Array.isArray(items) || items.length === 0) {
+			throw new Error('没有可生成的设计数据');
 		}
 
 		const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-		doc.setFontSize(16);
-		doc.text(`生产单 - 订单 #${orderNumber}`, 40, 50);
-		doc.setFontSize(11);
-		doc.text(`产品：${productName}`, 40, 80);
-		doc.text(`产品ID：${productId}`, 40, 98);
+		const pageWidth = doc.internal.pageSize.getWidth();
+		const pageHeight = doc.internal.pageSize.getHeight();
+		const margin = 40;
+		const contentWidth = pageWidth - margin * 2;
 
-		const colorLine = colorName ? `${colorName}（${customColor}）` : customColor;
-		if (colorLine) {
-			doc.text(`颜色：${colorLine}`, 40, 116);
+		// 遍历每个商品，每个商品一页
+		for (let i = 0; i < items.length; i++) {
+			const item = items[i];
+			
+			if (i > 0) {
+				doc.addPage();
+			}
+
+			let yPos = margin;
+
+			// 构建文字内容
+			const textLines = [
+				`生产单 - 订单 #${orderNumber}`,
+				``,
+				`商品 ${i + 1} / ${items.length}`,
+				`产品：${item.product_name || ''}`,
+				`产品ID：${item.product_id || ''}`
+			];
+
+			// 颜色信息
+			const colorLine = item.color_name 
+				? `${item.color_name}（${item.custom_color}）` 
+				: item.custom_color;
+			if (colorLine) {
+				textLines.push(`颜色：${colorLine}`);
+			}
+
+			// 使用 Canvas 绘制中文文字
+			const textImg = textToImage(textLines, { fontSize: 14, maxWidth: contentWidth });
+			doc.addImage(textImg.dataUrl, 'PNG', margin, yPos, textImg.width, textImg.height);
+			yPos += textImg.height + 20;
+
+			// 设计图
+			if (item.custom_image) {
+				try {
+					const imageDataUrl = await fetchImageDataUrl(item.custom_image);
+					const format = inferImageFormat(imageDataUrl);
+					const maxImgHeight = pageHeight - yPos - margin;
+					doc.addImage(imageDataUrl, format, margin, yPos, contentWidth, 0);
+				} catch (imgErr) {
+					// 图片加载失败时显示错误信息
+					const errImg = textToImage([`[图片加载失败: ${imgErr.message}]`], { fontSize: 12, color: '#c00' });
+					doc.addImage(errImg.dataUrl, 'PNG', margin, yPos, errImg.width, errImg.height);
+				}
+			}
 		}
-
-		const imageDataUrl = await fetchImageDataUrl(customImageUrl);
-		const format = inferImageFormat(imageDataUrl);
-		doc.addImage(imageDataUrl, format, 40, 140, 360, 0);
 
 		const safeOrder = String(orderNumber || 'order').replace(/[^\w.-]/g, '-');
 		doc.save(`production-order-${safeOrder}.pdf`);
@@ -129,4 +219,3 @@
 
 	document.addEventListener('click', onClick, false);
 })();
-

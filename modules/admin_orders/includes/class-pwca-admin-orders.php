@@ -19,9 +19,9 @@ final class Pwca_Admin_Orders {
 	}
 
 	public function register() {
-		
 		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'store_custom_data_on_order_item' ), 10, 4 );
-		add_action( 'woocommerce_after_order_itemmeta', array( $this, 'render_production_pdf_button' ), 10, 3 );
+		// 在订单操作区域（Order actions）渲染 PDF 生成按钮
+		add_action( 'woocommerce_order_actions_end', array( $this, 'render_production_pdf_button' ), 10, 1 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
@@ -94,40 +94,67 @@ final class Pwca_Admin_Orders {
 		}
 	}
 
-	public function render_production_pdf_button( $item_id, $item, $order ) {
+	/**
+	 * 在订单操作区域（Order actions）渲染 PDF 生成按钮
+	 */
+	public function render_production_pdf_button( $order_id ) {
+		$order = wc_get_order( $order_id );
 		if ( ! $this->is_valid_order( $order ) ) {
 			return;
 		}
 
-		$resolved = $this->resolve_item_design_data( $item_id, $item );
-		if ( $resolved['custom_image'] === '' ) {
+		// 收集所有有设计数据的商品
+		$items_data = $this->collect_order_design_items( $order );
+		if ( empty( $items_data ) ) {
 			return;
 		}
 
-		$product_name = is_object( $item ) && method_exists( $item, 'get_name' ) ? (string) $item->get_name() : '';
-		$product_id   = is_object( $item ) && method_exists( $item, 'get_product_id' ) ? (int) $item->get_product_id() : 0;
-		$order_id     = (int) $order->get_id();
 		$order_number = (string) $order->get_order_number();
 
+		echo '<li class="wide pwca-admin-orders-production-pdf-action">';
 		echo '<div class="pwca-admin-orders-production-pdf"'
 			. ' data-order-id="' . esc_attr( (string) $order_id ) . '"'
 			. ' data-order-number="' . esc_attr( $order_number ) . '"'
-			. ' data-item-id="' . esc_attr( (string) (int) $item_id ) . '"'
-			. ' data-product-id="' . esc_attr( (string) $product_id ) . '"'
-			. ' data-product-name="' . esc_attr( $product_name ) . '"'
-			. ' data-custom-image="' . esc_attr( $resolved['custom_image'] ) . '"'
-			. ' data-custom-color="' . esc_attr( $resolved['custom_color'] ) . '"'
-			. ' data-color-name="' . esc_attr( $resolved['color_name'] ) . '"'
+			. ' data-items="' . esc_attr( wp_json_encode( $items_data ) ) . '"'
 			. '>';
-
-		echo '<button type="button" class="button pwca-admin-orders-generate-pdf">生成印刷文件PDF</button>';
+		echo '<button type="button" class="button button-primary pwca-admin-orders-generate-pdf">生成印刷文件PDF</button>';
 		echo '<span class="spinner"></span>';
-		echo '<span class="pwca-admin-orders-production-pdf__status" aria-live="polite"></span>';
+		echo '<span class="pwca-admin-orders-production-pdf__status"></span>';
 		echo '</div>';
+		echo '</li>';
 	}
 
-	private function is_woocommerce_available() {
-		return class_exists( 'WooCommerce' ) || function_exists( 'wc_get_order' );
+	/**
+	 * 收集订单中所有有设计数据的商品信息
+	 */
+	private function collect_order_design_items( $order ) {
+		$items_data = array();
+		$items = $order->get_items();
+
+		foreach ( $items as $item_id => $item ) {
+			if ( ! ( is_object( $item ) && method_exists( $item, 'get_type' ) && $item->get_type() === 'line_item' ) ) {
+				continue;
+			}
+
+			$resolved = $this->resolve_item_design_data( $item_id, $item );
+			if ( $resolved['custom_image'] === '' ) {
+				continue;
+			}
+
+			$product_name = is_object( $item ) && method_exists( $item, 'get_name' ) ? (string) $item->get_name() : '';
+			$product_id   = is_object( $item ) && method_exists( $item, 'get_product_id' ) ? (int) $item->get_product_id() : 0;
+
+			$items_data[] = array(
+				'item_id'      => (int) $item_id,
+				'product_id'   => $product_id,
+				'product_name' => $product_name,
+				'custom_image' => $resolved['custom_image'],
+				'custom_color' => $resolved['custom_color'],
+				'color_name'   => $resolved['color_name'],
+			);
+		}
+
+		return $items_data;
 	}
 
 	private function should_load_assets( $hook ) {
@@ -206,7 +233,15 @@ final class Pwca_Admin_Orders {
 			return true;
 		}
 
-		return $context['id'] === 'woocommerce_page_wc-orders';
+		if ( $context['id'] === 'woocommerce_page_wc-orders' ) {
+			return true;
+		}
+
+		if ( strpos( $context['id'], 'wc-orders' ) !== false ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private function sanitize_custom_data_scalars( array $custom_data ) {
