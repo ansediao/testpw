@@ -65,13 +65,13 @@ $customize_color = isset( $settings['customize_color'] ) ? (string) $settings['c
 			<tr>
 				<th scope="row">Inquiry Form</th>
 				<td>
-					<input type="text" name="pw_api_key" value="<?php echo esc_attr( $api_key ); ?>" placeholder="API 集成信息" class="regular-text">
+					<input type="text" name="pw_api_key" value="<?php echo esc_attr( $api_key ); ?>" placeholder="API integration info" class="regular-text">
 				</td>
 			</tr>
 			<tr>
 				<th scope="row"></th>
 				<td>
-					<input type="text" name="pw_api_secret" value="<?php echo esc_attr( $api_secret ); ?>" placeholder="API 集成信息" class="regular-text">
+					<input type="text" name="pw_api_secret" value="<?php echo esc_attr( $api_secret ); ?>" placeholder="API integration info" class="regular-text">
 				</td>
 			</tr>
 		</table>

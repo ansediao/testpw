@@ -84,7 +84,7 @@
 		connectButton.addEventListener('click', async () => {
 			const token = tokenInput.value.trim()
 			if (!token) {
-				setNotice(statusContainer, 'error', '请输入Token')
+				setNotice(statusContainer, 'error', 'Please enter Token')
 				return
 			}
 
@@ -105,7 +105,7 @@
 					response.data
 
 				if (!isValid) {
-					setNotice(statusContainer, 'error', '验证失败: 无效的响应格式')
+					setNotice(statusContainer, 'error', 'Verification failed: Invalid response format')
 					return
 				}
 
@@ -116,13 +116,13 @@
 				})
 
 				if (saveResult && saveResult.success) {
-					setNotice(statusContainer, 'success', '验证成功，Token已保存')
+					setNotice(statusContainer, 'success', 'Verification successful, Token saved')
 					return
 				}
 
-				setNotice(statusContainer, 'warning', '验证成功，但Token保存失败')
+				setNotice(statusContainer, 'warning', 'Verification successful, but Token save failed')
 			} catch (error) {
-				setNotice(statusContainer, 'error', `验证失败: ${error instanceof Error ? error.message : '未知错误'}`)
+				setNotice(statusContainer, 'error', `Verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
 			} finally {
 				setBusy(false)
 			}
@@ -200,7 +200,7 @@
 				})
 
 				if (!data || !data.success || !data.data) {
-					setNotice(cacheResult, 'error', String(data?.data || '获取缓存状态失败'))
+					setNotice(cacheResult, 'error', String(data?.data || 'Failed to get cache status'))
 					return
 				}
 
@@ -210,7 +210,7 @@
 				if (cacheLastUpdated) cacheLastUpdated.textContent = String(status.last_updated || 'N/A')
 				if (cacheTtl) cacheTtl.textContent = String(status.ttl || 'N/A')
 			} catch (error) {
-				setNotice(cacheResult, 'error', `获取缓存状态失败: ${error instanceof Error ? error.message : '未知错误'}`)
+				setNotice(cacheResult, 'error', `Failed to get cache status: ${error instanceof Error ? error.message : 'Unknown error'}`)
 			} finally {
 				setStatusLoading(false)
 			}
@@ -235,18 +235,18 @@
 				})
 
 				if (!data) {
-					setNotice(cacheResult, 'error', '清除缓存失败: 未知错误')
+					setNotice(cacheResult, 'error', 'Clear cache failed: Unknown error')
 					return
 				}
 
 				if (data.success) {
-					setNotice(cacheResult, 'success', String(data.data || '缓存已清除'))
+					setNotice(cacheResult, 'success', String(data.data || 'Cache cleared'))
 					fetchCacheStatus()
 				} else {
-					setNotice(cacheResult, 'error', String(data.data || '清除缓存失败'))
+					setNotice(cacheResult, 'error', String(data.data || 'Clear cache failed'))
 				}
 			} catch (error) {
-				setNotice(cacheResult, 'error', `清除缓存失败: ${error instanceof Error ? error.message : '未知错误'}`)
+				setNotice(cacheResult, 'error', `Clear cache failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
 			} finally {
 				clearCacheButton.disabled = false
 			}
@@ -258,7 +258,7 @@
 			const pwId = (productIdInput && productIdInput.value.trim()) || 'test'
 			if (!pwId) return
 
-			cacheTestResult.textContent = '测试中...'
+			cacheTestResult.textContent = 'Testing...'
 			cacheTestResult.classList.remove('is-success', 'is-error')
 
 			const measureRequest = async (label) => {
@@ -280,23 +280,23 @@
 			}
 
 			try {
-				const first = await measureRequest('首次请求')
-				const second = await measureRequest('第二次请求')
+				const first = await measureRequest('First request')
+				const second = await measureRequest('Second request')
 
 				const lines = []
-				lines.push(`${first.label}: ${first.ok ? '成功' : '失败'} (${first.status}), 耗时 ${first.duration.toFixed(1)}ms`)
-				lines.push(`${second.label}: ${second.ok ? '成功' : '失败'} (${second.status}), 耗时 ${second.duration.toFixed(1)}ms`)
+				lines.push(`${first.label}: ${first.ok ? 'Success' : 'Failed'} (${first.status}), Time: ${first.duration.toFixed(1)}ms`)
+				lines.push(`${second.label}: ${second.ok ? 'Success' : 'Failed'} (${second.status}), Time: ${second.duration.toFixed(1)}ms`)
 
 				const faster = first.duration && second.duration
 					? (first.duration / second.duration).toFixed(2)
 					: 'N/A'
 
-				lines.push(`第二次请求速度约为第一次的 ${faster} 倍`)
+				lines.push(`Second request is ${faster}x faster than first`)
 
 				cacheTestResult.textContent = lines.join(' | ')
 				cacheTestResult.classList.add('is-success')
 			} catch {
-				cacheTestResult.textContent = '测试失败: 请求异常'
+				cacheTestResult.textContent = 'Test failed: Request error'
 				cacheTestResult.classList.add('is-error')
 			}
 		}
@@ -325,7 +325,7 @@
 		const reconnectButton = document.getElementById('pwca-reconnect-button')
 		if (reconnectButton) {
 			reconnectButton.addEventListener('click', () => {
-				window.alert('重新连接功能将在此处实现')
+				window.alert('Reconnect feature will be implemented here')
 			})
 		}
 
@@ -360,7 +360,7 @@
 				reader.onload = () => {
 					const img = document.createElement('img')
 					img.src = String(reader.result || '')
-					img.alt = '预览图片'
+					img.alt = 'Preview image'
 					preview.innerHTML = ''
 					preview.appendChild(img)
 				}
@@ -382,15 +382,15 @@
 				messages.hidden = false
 
 				if (response?.success) {
-					setNotice(messages, 'success', String(response.data || '提交成功'))
+					setNotice(messages, 'success', String(response.data || 'Submitted successfully'))
 					form.reset()
 					if (preview) preview.innerHTML = ''
 				} else {
-					setNotice(messages, 'error', String(response?.data || '提交失败'))
+					setNotice(messages, 'error', String(response?.data || 'Submission failed'))
 				}
 			} catch {
 				messages.hidden = false
-				setNotice(messages, 'error', '提交失败: 网络错误')
+				setNotice(messages, 'error', 'Submission failed: Network error')
 			} finally {
 				setBusy(false)
 			}

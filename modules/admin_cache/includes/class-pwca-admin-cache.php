@@ -32,8 +32,8 @@ final class Pwca_Admin_Cache {
 
 		$this->page_hook = add_submenu_page(
 			'pw-dashboard',
-			'产品数据缓存',
-			'产品数据缓存',
+			'Product Data Cache',
+			'Product Data Cache',
 			'manage_options',
 			'pw-cache-manager',
 			array( $this, 'render_page' )
@@ -68,12 +68,12 @@ final class Pwca_Admin_Cache {
 
 	public function handle_clear_product_cache() {
 		if ( ! $this->verify_ajax_nonce( 'pw_clear_cache_nonce', 'nonce' ) ) {
-			wp_send_json_error( '安全验证失败' );
+			wp_send_json_error( 'Security verification failed' );
 			return;
 		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( '权限不足' );
+			wp_send_json_error( 'Insufficient permissions' );
 			return;
 		}
 
@@ -83,26 +83,26 @@ final class Pwca_Admin_Cache {
 		if ( $product_id > 0 ) {
 			$result = $api->clear_cached_product_data( $product_id );
 			if ( $result ) {
-				wp_send_json_success( "产品 ID {$product_id} 的缓存已清除" );
+				wp_send_json_success( "Cache cleared for product ID {$product_id}" );
 				return;
 			}
 
-			wp_send_json_error( "清除产品 ID {$product_id} 的缓存失败" );
+			wp_send_json_error( "Failed to clear cache for product ID {$product_id}" );
 			return;
 		}
 
 		$cleared_count = $api->clear_all_cached_product_data();
-		wp_send_json_success( "已清除 {$cleared_count} 个产品的缓存数据" );
+		wp_send_json_success( "Cleared cache data for {$cleared_count} products" );
 	}
 
 	public function handle_get_cache_status() {
 		if ( ! $this->verify_ajax_nonce( 'pw_cache_status_nonce', 'nonce' ) ) {
-			wp_send_json_error( '安全验证失败' );
+			wp_send_json_error( 'Security verification failed' );
 			return;
 		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( '权限不足' );
+			wp_send_json_error( 'Insufficient permissions' );
 			return;
 		}
 
@@ -127,7 +127,7 @@ final class Pwca_Admin_Cache {
 			"SELECT MAX(meta_value) FROM {$wpdb->postmeta} WHERE meta_key = '_pw_aggregated_data_cache_time'"
 		);
 
-		$latest_cache_time = $latest_cache ? date( 'Y-m-d H:i:s', (int) $latest_cache ) : '无';
+		$latest_cache_time = $latest_cache ? date( 'Y-m-d H:i:s', (int) $latest_cache ) : 'None';
 
 		wp_send_json_success(
 			array(

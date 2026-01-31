@@ -42,7 +42,7 @@ final class Pwca_Admin_Design {
 	public function register_pw_design_price_metabox() {
 		add_meta_box(
 			'pw_design_price_metabox',
-			'价格',
+			'Price',
 			array( $this, 'render_pw_design_price_metabox' ),
 			'pw_design',
 			'side',
@@ -53,7 +53,7 @@ final class Pwca_Admin_Design {
 	public function render_pw_design_price_metabox( $post ) {
 		wp_nonce_field( 'pw_design_price_nonce', 'pw_design_price_nonce_field' );
 		$value = get_post_meta( $post->ID, '_pw_design_price', true );
-		echo '<label for="pw_design_price">价格</label>';
+		echo '<label for="pw_design_price">Price</label>';
 		echo '<input type="number" id="pw_design_price" name="pw_design_price" value="' . esc_attr( (string) $value ) . '" min="0" step="0.01" style="width:100%" />';
 	}
 
@@ -169,25 +169,25 @@ final class Pwca_Admin_Design {
 
 	public function handle_add_category() {
 		$nonce = $this->get_post_text( 'nonce' );
-		$this->verify_nonce_or_exit( $nonce, 'pw_add_category_nonce', '安全验证失败' );
+		$this->verify_nonce_or_exit( $nonce, 'pw_add_category_nonce', 'Security verification failed' );
 		$this->require_capability_or_exit( 'manage_categories' );
 
 		$category_name = $this->get_post_text( 'category_name' );
 		$category_type = $this->get_post_text( 'category_type' );
 		if ( '' === $category_name ) {
-			wp_send_json_error( '分类名称不能为空' );
+			wp_send_json_error( 'Category name cannot be empty' );
 		}
 
 		$term_data = wp_insert_term(
 			$category_name,
 			'pw_design_category',
 			array(
-				'description' => '分类类型: ' . $category_type,
+				'description' => 'Category type: ' . $category_type,
 			)
 		);
 
 		if ( is_wp_error( $term_data ) ) {
-			wp_send_json_error( '创建分类失败: ' . $term_data->get_error_message() );
+			wp_send_json_error( 'Failed to create category: ' . $term_data->get_error_message() );
 		}
 
 		if ( isset( $term_data['term_id'] ) ) {
@@ -196,7 +196,7 @@ final class Pwca_Admin_Design {
 
 		wp_send_json_success(
 			array(
-				'message'       => '分类创建成功',
+				'message'       => 'Category created successfully',
 				'term_id'       => (int) $term_data['term_id'],
 				'category_name' => $category_name,
 				'category_type' => $category_type,
@@ -206,17 +206,17 @@ final class Pwca_Admin_Design {
 
 	public function handle_get_category_settings() {
 		$nonce = $this->get_post_text( 'nonce' );
-		$this->verify_nonce_or_exit( $nonce, 'pw_add_category_nonce', '安全验证失败' );
+		$this->verify_nonce_or_exit( $nonce, 'pw_add_category_nonce', 'Security verification failed' );
 		$this->require_capability_or_exit( 'manage_categories' );
 
 		$category_id = $this->get_post_int( 'category_id' );
 		if ( $category_id <= 0 ) {
-			wp_send_json_error( '无效的分类ID' );
+			wp_send_json_error( 'Invalid category ID' );
 		}
 
 		$category = get_term( $category_id, 'pw_design_category' );
 		if ( is_wp_error( $category ) || ! $category ) {
-			wp_send_json_error( '分类不存在' );
+			wp_send_json_error( 'Category does not exist' );
 		}
 
 		wp_send_json_success(
@@ -239,7 +239,7 @@ final class Pwca_Admin_Design {
 
 	public function handle_update_category_settings() {
 		$nonce = $this->get_post_text( 'nonce' );
-		$this->verify_nonce_or_exit( $nonce, 'pw_add_category_nonce', '安全验证失败' );
+		$this->verify_nonce_or_exit( $nonce, 'pw_add_category_nonce', 'Security verification failed' );
 		$this->require_capability_or_exit( 'manage_categories' );
 
 		$category_id = $this->get_post_int( 'category_id' );
@@ -248,10 +248,10 @@ final class Pwca_Admin_Design {
 		$category_type = $this->get_post_text( 'category_type' );
 
 		if ( $category_id <= 0 ) {
-			wp_send_json_error( '无效的分类ID' );
+			wp_send_json_error( 'Invalid category ID' );
 		}
 		if ( '' === $category_name ) {
-			wp_send_json_error( '分类名称不能为空' );
+			wp_send_json_error( 'Category name cannot be empty' );
 		}
 
 		$term_data = wp_update_term(
@@ -264,7 +264,7 @@ final class Pwca_Admin_Design {
 		);
 
 		if ( is_wp_error( $term_data ) ) {
-			wp_send_json_error( '更新分类失败: ' . $term_data->get_error_message() );
+			wp_send_json_error( 'Failed to update category: ' . $term_data->get_error_message() );
 		}
 
 		update_term_meta( $category_id, 'category_type', $category_type );
@@ -280,7 +280,7 @@ final class Pwca_Admin_Design {
 
 		wp_send_json_success(
 			array(
-				'message'       => '分类设置更新成功',
+				'message'       => 'Category settings updated successfully',
 				'category_id'   => $category_id,
 				'category_name' => $category_name,
 			)
@@ -289,25 +289,25 @@ final class Pwca_Admin_Design {
 
 	public function handle_delete_category() {
 		$nonce = $this->get_post_text( 'nonce' );
-		$this->verify_nonce_or_exit( $nonce, 'pw_add_category_nonce', '安全验证失败' );
+		$this->verify_nonce_or_exit( $nonce, 'pw_add_category_nonce', 'Security verification failed' );
 		$this->require_capability_or_exit( 'manage_categories' );
 
 		$category_id = $this->get_post_int( 'category_id' );
 		if ( $category_id <= 0 ) {
-			wp_send_json_error( '无效的分类ID' );
+			wp_send_json_error( 'Invalid category ID' );
 		}
 
 		$result = wp_delete_term( $category_id, 'pw_design_category' );
 		if ( is_wp_error( $result ) ) {
-			wp_send_json_error( '删除分类失败: ' . $result->get_error_message() );
+			wp_send_json_error( 'Failed to delete category: ' . $result->get_error_message() );
 		}
 		if ( false === $result ) {
-			wp_send_json_error( '删除分类失败: 分类不存在或无法删除' );
+			wp_send_json_error( 'Failed to delete category: Category does not exist or cannot be deleted' );
 		}
 
 		wp_send_json_success(
 			array(
-				'message'     => '分类删除成功',
+				'message'     => 'Category deleted successfully',
 				'category_id' => $category_id,
 			)
 		);
@@ -315,7 +315,7 @@ final class Pwca_Admin_Design {
 
 	public function handle_add_design() {
 		if ( 'POST' !== (string) ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) {
-			wp_send_json_error( '无效的请求方法' );
+			wp_send_json_error( 'Invalid request method' );
 		}
 
 		$nonce = $this->get_post_text( 'pw_add_design_nonce_field' );
@@ -326,13 +326,13 @@ final class Pwca_Admin_Design {
 		$design_category = $this->get_post_int( 'design_category' );
 		$design_sku = $this->get_post_text( 'design_sku' );
 		if ( '' === $design_name ) {
-			wp_send_json_error( '设计名称不能为空' );
+			wp_send_json_error( 'Design name cannot be empty' );
 		}
 		if ( '' === $design_sku ) {
-			wp_send_json_error( 'SKU 不能为空' );
+			wp_send_json_error( 'SKU cannot be empty' );
 		}
 		if ( ! $this->is_design_sku_unique( $design_sku ) ) {
-			wp_send_json_error( 'SKU 已存在，请更换' );
+			wp_send_json_error( 'SKU already exists, please use a different one' );
 		}
 
 		$post_id = wp_insert_post(
@@ -344,7 +344,7 @@ final class Pwca_Admin_Design {
 		);
 
 		if ( is_wp_error( $post_id ) ) {
-			wp_send_json_error( '创建设计失败: ' . $post_id->get_error_message() );
+			wp_send_json_error( 'Failed to create design: ' . $post_id->get_error_message() );
 		}
 
 		if ( $design_category > 0 ) {
@@ -360,7 +360,7 @@ final class Pwca_Admin_Design {
 
 		wp_send_json_success(
 			array(
-				'message'      => '设计添加成功',
+				'message'      => 'Design added successfully',
 				'post_id'      => (int) $post_id,
 				'redirect_url' => (string) get_edit_post_link( (int) $post_id ),
 			)
@@ -369,14 +369,14 @@ final class Pwca_Admin_Design {
 
 	public function handle_check_design_sku_unique() {
 		$nonce = $this->get_post_text( 'nonce' );
-		$this->verify_nonce_or_exit( $nonce, 'pw_add_design_nonce', '安全验证失败' );
+		$this->verify_nonce_or_exit( $nonce, 'pw_add_design_nonce', 'Security verification failed' );
 		$this->require_capability_or_exit( 'edit_posts' );
 
 		$sku        = $this->get_post_text( 'sku' );
 		$exclude_id = $this->get_post_int( 'exclude_id' );
 
 		if ( '' === $sku ) {
-			wp_send_json_error( 'SKU 不能为空' );
+			wp_send_json_error( 'SKU cannot be empty' );
 		}
 
 		$is_unique = $this->is_design_sku_unique( $sku, $exclude_id );
@@ -384,18 +384,18 @@ final class Pwca_Admin_Design {
 		wp_send_json_success(
 			array(
 				'unique'  => $is_unique,
-				'message' => $is_unique ? 'SKU 可用' : 'SKU 已存在，请更换',
+				'message' => $is_unique ? 'SKU is available' : 'SKU already exists, please use a different one',
 			)
 		);
 	}
 
 	public function handle_get_design_tags() {
 		$nonce = $this->get_post_text( 'nonce' );
-		$this->verify_nonce_or_exit( $nonce, 'pw_add_design_nonce', '安全验证失败' );
+		$this->verify_nonce_or_exit( $nonce, 'pw_add_design_nonce', 'Security verification failed' );
 
 		$design_id = $this->get_post_int( 'design_id' );
 		if ( $design_id <= 0 ) {
-			wp_send_json_error( '无效的设计ID' );
+			wp_send_json_error( 'Invalid design ID' );
 		}
 
 		$all_tags = get_terms(
@@ -405,7 +405,7 @@ final class Pwca_Admin_Design {
 			)
 		);
 		if ( is_wp_error( $all_tags ) ) {
-			wp_send_json_error( '加载标签失败' );
+			wp_send_json_error( 'Failed to load tags' );
 		}
 
 		$current_tag_ids = wp_get_object_terms( $design_id, 'pw_design_tag', array( 'fields' => 'ids' ) );
@@ -428,12 +428,12 @@ final class Pwca_Admin_Design {
 
 	public function handle_save_design_tags() {
 		$nonce = $this->get_post_text( 'nonce' );
-		$this->verify_nonce_or_exit( $nonce, 'pw_add_design_nonce', '安全验证失败' );
+		$this->verify_nonce_or_exit( $nonce, 'pw_add_design_nonce', 'Security verification failed' );
 
 		$design_id = $this->get_post_int( 'design_id' );
 		$design    = $this->get_design_post_or_exit( $design_id );
 		if ( ! current_user_can( 'edit_post', $design->ID ) ) {
-			wp_send_json_error( '权限不足' );
+			wp_send_json_error( 'Insufficient permissions' );
 		}
 
 		$tags_raw = isset( $_POST['tags'] ) ? wp_unslash( $_POST['tags'] ) : array();
@@ -450,12 +450,12 @@ final class Pwca_Admin_Design {
 
 		$result = wp_set_object_terms( $design_id, $tags, 'pw_design_tag' );
 		if ( is_wp_error( $result ) ) {
-			wp_send_json_error( '标签保存失败: ' . $result->get_error_message() );
+			wp_send_json_error( 'Failed to save tags: ' . $result->get_error_message() );
 		}
 
 		wp_send_json_success(
 			array(
-				'message' => '标签保存成功',
+				'message' => 'Tags saved successfully',
 				'tags'    => array_values( array_filter( array_map( 'intval', (array) $result ) ) ),
 			)
 		);
@@ -463,12 +463,12 @@ final class Pwca_Admin_Design {
 
 	public function handle_bulk_delete_designs() {
 		$nonce = $this->get_post_text( 'nonce' );
-		$this->verify_nonce_or_exit( $nonce, 'pw_bulk_delete_designs_nonce', '安全验证失败' );
+		$this->verify_nonce_or_exit( $nonce, 'pw_bulk_delete_designs_nonce', 'Security verification failed' );
 		$this->require_capability_or_exit( 'delete_posts' );
 
 		$ids = $this->get_post_int_list( 'ids' );
 		if ( empty( $ids ) ) {
-			wp_send_json_error( '未选择任何设计' );
+			wp_send_json_error( 'No designs selected' );
 		}
 
 		foreach ( $ids as $design_id ) {
@@ -479,34 +479,34 @@ final class Pwca_Admin_Design {
 			wp_delete_post( $design_id, true );
 		}
 
-		wp_send_json_success( '删除成功' );
+		wp_send_json_success( 'Deleted successfully' );
 	}
 
 	public function handle_bulk_update_designs() {
 		$nonce = $this->get_post_text( 'nonce' );
-		$this->verify_nonce_or_exit( $nonce, 'pw_bulk_update_designs_nonce', '安全验证失败' );
+		$this->verify_nonce_or_exit( $nonce, 'pw_bulk_update_designs_nonce', 'Security verification failed' );
 		$this->require_capability_or_exit( 'edit_posts' );
 
 		$ids = $this->get_post_int_list( 'ids' );
 		$fields_json = $this->get_post_text( 'fields' );
 
 		if ( empty( $ids ) ) {
-			wp_send_json_error( '未选择任何设计' );
+			wp_send_json_error( 'No designs selected' );
 		}
 		if ( '' === $fields_json ) {
-			wp_send_json_error( '未提供更新字段' );
+			wp_send_json_error( 'No update fields provided' );
 		}
 
 		$fields = json_decode( $fields_json, true );
 		if ( ! is_array( $fields ) ) {
-			wp_send_json_error( '字段格式错误' );
+			wp_send_json_error( 'Invalid field format' );
 		}
 
 		foreach ( $ids as $design_id ) {
 			$this->bulk_update_design( $design_id, $fields );
 		}
 
-		wp_send_json_success( '更新成功' );
+		wp_send_json_success( 'Updated successfully' );
 	}
 
 	public function handle_get_design_data() {
@@ -730,7 +730,7 @@ final class Pwca_Admin_Design {
 
 	private function require_capability_or_exit( $capability ) {
 		if ( ! current_user_can( $capability ) ) {
-			wp_send_json_error( '权限不足' );
+			wp_send_json_error( 'Insufficient permissions' );
 		}
 	}
 

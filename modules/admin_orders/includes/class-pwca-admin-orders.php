@@ -55,9 +55,9 @@ final class Pwca_Admin_Orders {
 			'pwcaAdminOrdersProductionPdf',
 			array(
 				'i18n' => array(
-					'generating' => '正在生成 PDF…',
-					'success'    => '已生成并开始下载',
-					'failed'     => '生成失败',
+					'generating' => 'Generating PDF...',
+					'success'    => 'Generated and download started',
+					'failed'     => 'Generation failed',
 				),
 			)
 		);
@@ -117,7 +117,7 @@ final class Pwca_Admin_Orders {
 			. ' data-order-number="' . esc_attr( $order_number ) . '"'
 			. ' data-items="' . esc_attr( wp_json_encode( $items_data ) ) . '"'
 			. '>';
-		echo '<button type="button" class="button button-primary pwca-admin-orders-generate-pdf">生成印刷文件PDF</button>';
+		echo '<button type="button" class="button button-primary pwca-admin-orders-generate-pdf">Generate Print PDF</button>';
 		echo '<span class="spinner"></span>';
 		echo '<span class="pwca-admin-orders-production-pdf__status"></span>';
 		echo '</div>';

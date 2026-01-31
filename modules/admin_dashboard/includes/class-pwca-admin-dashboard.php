@@ -124,26 +124,26 @@ final class Pwca_Admin_Dashboard {
 
 		if ( ! isset( $_POST['pwca_sync_products_nonce'] ) ) {
 			return array(
-				array( 'type' => 'error', 'text' => '安全验证失败' ),
+				array( 'type' => 'error', 'text' => 'Security verification failed' ),
 			);
 		}
 
 		$nonce = sanitize_text_field( wp_unslash( $_POST['pwca_sync_products_nonce'] ) );
 		if ( ! wp_verify_nonce( $nonce, 'pwca_sync_products' ) ) {
 			return array(
-				array( 'type' => 'error', 'text' => '安全验证失败' ),
+				array( 'type' => 'error', 'text' => 'Security verification failed' ),
 			);
 		}
 
 		if ( ! class_exists( 'Pwca_Integration_Promowares' ) ) {
 			return array(
-				array( 'type' => 'error', 'text' => 'Promowares 同步模块不可用' ),
+				array( 'type' => 'error', 'text' => 'Promowares sync module unavailable' ),
 			);
 		}
 
 		if ( ! method_exists( 'Pwca_Integration_Promowares', 'schedule_product_import' ) ) {
 			return array(
-				array( 'type' => 'error', 'text' => '产品导入功能不可用' ),
+				array( 'type' => 'error', 'text' => 'Product import feature unavailable' ),
 			);
 		}
 
@@ -210,14 +210,14 @@ final class Pwca_Admin_Dashboard {
 	private function save_settings_from_post() {
 		if ( ! isset( $_POST['pwca_settings_nonce'] ) ) {
 			return array(
-				array( 'type' => 'error', 'text' => '安全验证失败' ),
+				array( 'type' => 'error', 'text' => 'Security verification failed' ),
 			);
 		}
 
 		$nonce = sanitize_text_field( wp_unslash( $_POST['pwca_settings_nonce'] ) );
 		if ( ! wp_verify_nonce( $nonce, 'pwca_settings' ) ) {
 			return array(
-				array( 'type' => 'error', 'text' => '安全验证失败' ),
+				array( 'type' => 'error', 'text' => 'Security verification failed' ),
 			);
 		}
 
@@ -234,7 +234,7 @@ final class Pwca_Admin_Dashboard {
 		update_option( 'pw_customize_color', $customize_color );
 
 		return array(
-			array( 'type' => 'success', 'text' => '设置已保存' ),
+			array( 'type' => 'success', 'text' => 'Settings saved' ),
 		);
 	}
 

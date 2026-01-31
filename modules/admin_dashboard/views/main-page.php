@@ -88,13 +88,13 @@ $messages           = isset( $view_model['messages'] ) && is_array( $view_model[
 	</section>
 
 	<section class="pwca-admin-dashboard__section pwca-admin-dashboard__section--cache">
-		<h2 class="pwca-admin-dashboard__section-title">产品数据缓存管理</h2>
+		<h2 class="pwca-admin-dashboard__section-title">Product Data Cache Management</h2>
 
 		<div class="pwca-admin-dashboard__cache-status" id="pwca-cache-status">
-			<p><strong>总缓存数：</strong><span id="pwca-cache-total">-</span></p>
-			<p><strong>过期缓存数：</strong><span id="pwca-cache-expired">-</span></p>
-			<p><strong>最近更新时间：</strong><span id="pwca-cache-last-updated">-</span></p>
-			<p><strong>缓存有效期：</strong><span id="pwca-cache-ttl">-</span></p>
+			<p><strong>Total Cache:</strong><span id="pwca-cache-total">-</span></p>
+			<p><strong>Expired Cache:</strong><span id="pwca-cache-expired">-</span></p>
+			<p><strong>Last Updated:</strong><span id="pwca-cache-last-updated">-</span></p>
+			<p><strong>Cache TTL:</strong><span id="pwca-cache-ttl">-</span></p>
 		</div>
 
 		<div class="pwca-admin-dashboard__cache-actions">
@@ -103,13 +103,13 @@ $messages           = isset( $view_model['messages'] ) && is_array( $view_model[
 					type="text"
 					id="pwca-cache-product-id"
 					class="regular-text pwca-admin-dashboard__input"
-					placeholder="输入产品 PW ID（留空则清除所有缓存）"
+					placeholder="Enter Product PW ID (leave empty to clear all cache)"
 				/>
-				<button type="button" class="button" id="pwca-clear-cache">清除缓存</button>
-				<button type="button" class="button" id="pwca-refresh-cache-status">刷新状态</button>
+				<button type="button" class="button" id="pwca-clear-cache">Clear Cache</button>
+				<button type="button" class="button" id="pwca-refresh-cache-status">Refresh Status</button>
 			</div>
 			<div class="pwca-admin-dashboard__row">
-				<button type="button" class="button" id="pwca-test-cache">缓存性能测试</button>
+				<button type="button" class="button" id="pwca-test-cache">Cache Performance Test</button>
 				<span class="pwca-admin-dashboard__cache-test-result" id="pwca-cache-test-result"></span>
 			</div>
 			<div class="pwca-admin-dashboard__result" id="pwca-cache-result" aria-live="polite"></div>
