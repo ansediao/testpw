@@ -59,7 +59,7 @@
             </button>
         </div>
         <button id="generatePdfBtn" @click="generatePdf">PDF</button>
-        <a :href="productLink" class="close-btn" title="返回产品页">
+        <a :href="productLink" class="close-btn" title="Back to Product">
             X
         </a>
     </div>

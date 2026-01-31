@@ -92,10 +92,10 @@
 					$(document.body).trigger('pwca_cart_quantity_updated');
 					return;
 				}
-				const message = result && result.data && result.data.message ? result.data.message : (config.messages?.error || '更新失败');
+				const message = result && result.data && result.data.message ? result.data.message : (config.messages?.error || 'Update failed');
 				showTooltip(item.$controls, message);
 			} catch (e) {
-				showTooltip(item.$controls, config.messages?.error || '更新失败');
+				showTooltip(item.$controls, config.messages?.error || 'Update failed');
 			} finally {
 				setUpdating(item.$controls, false);
 				updateMinusDisabled(item.$controls);
@@ -139,7 +139,7 @@
 		}
 
 		if (value < min) {
-			showTooltip($controls, `${config.messages?.min_quantity || '数量不能少于最小值'}：${min}`);
+			showTooltip($controls, `${config.messages?.min_quantity || 'Quantity cannot be less than minimum'}：${min}`);
 			return;
 		}
 

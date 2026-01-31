@@ -19,15 +19,15 @@ if (!defined('ABSPATH')) {
     <div class="modal__overlay" tabindex="-1">
         <div class="modal__container pwca-gradient-modal-content" role="dialog" aria-modal="true" aria-labelledby="pwca-gradient-modal-title">
             <header>
-                <h3 id="pwca-gradient-modal-title" class="modal__title pwca-gradient-modal-title">选择渐变色</h3>
-                <button id="close-gradient-color-modal" class="modal__close pwca-gradient-modal-close" aria-label="关闭">&times;</button>
+                <h3 id="pwca-gradient-modal-title" class="modal__title pwca-gradient-modal-title">Select Gradient Color</h3>
+                <button id="close-gradient-color-modal" class="modal__close pwca-gradient-modal-close" aria-label="Close">&times;</button>
             </header>
 
             <div class="modal__content">
                 <div class="gradient-section">
                     <div class="gradient-colors-container color-groups-container">
                         <div class="gradient-colors-column color-group">
-                            <label class="gradient-colors-label">颜色 1:</label>
+                            <label class="gradient-colors-label">Color 1:</label>
                             <div class="color-options color-swatches">
                                 <div class="color-option color-swatch" data-color="#ff0000"></div>
                                 <div class="color-option color-swatch" data-color="#00ff00"></div>
@@ -42,7 +42,7 @@ if (!defined('ABSPATH')) {
                         </div>
 
                         <div class="gradient-colors-column color-group">
-                            <label class="gradient-colors-label">颜色 2:</label>
+                            <label class="gradient-colors-label">Color 2:</label>
                             <div class="color-options color-swatches">
                                 <div class="color-option color-swatch" data-color="#ff0000"></div>
                                 <div class="color-option color-swatch" data-color="#00ff00"></div>
@@ -58,19 +58,19 @@ if (!defined('ABSPATH')) {
                     </div>
 
                     <div class="gradient-direction-row">
-                        <label for="gradientDirection" class="gradient-direction-label">方向:</label>
+                        <label for="gradientDirection" class="gradient-direction-label">Direction:</label>
                         <select id="gradientDirection" class="gradient-direction-select">
-                            <option value="to right">从左到右</option>
-                            <option value="to bottom">从上到下</option>
-                            <option value="to bottom right">从左上到右下</option>
-                            <option value="to bottom left">从右上到左下</option>
+                            <option value="to right">Left to Right</option>
+                            <option value="to bottom">Top to Bottom</option>
+                            <option value="to bottom right">Top Left to Bottom Right</option>
+                            <option value="to bottom left">Top Right to Bottom Left</option>
                         </select>
                     </div>
                 </div>
             </div>
 
             <div class="modal__footer">
-                <button id="applyGradientColor" class="btn btn-primary btn-inquiry pwca-gradient-apply-btn">应用渐变色</button>
+                <button id="applyGradientColor" class="btn btn-primary btn-inquiry pwca-gradient-apply-btn">Apply Gradient</button>
             </div>
         </div>
     </div>

@@ -47,11 +47,11 @@ final class Pwca_Front_Cart_Admin_Actions {
 				'ajax_url' => admin_url( 'admin-ajax.php' ),
 				'nonce'    => wp_create_nonce( 'pw_cart_actions' ),
 				'messages' => array(
-					'duplicating'      => __( '复制中…', 'pw-admin' ),
-					'duplicated'       => __( '已复制该商品项。', 'pw-admin' ),
-					'duplicate_failed' => __( '复制失败，请重试。', 'pw-admin' ),
-					'request_failed'   => __( '请求失败，请重试。', 'pw-admin' ),
-					'confirm_edit'     => __( '在新标签页打开编辑？', 'pw-admin' ),
+					'duplicating'      => __( 'Copying...', 'pw-admin' ),
+					'duplicated'       => __( 'Item copied.', 'pw-admin' ),
+					'duplicate_failed' => __( 'Copy failed, please try again.', 'pw-admin' ),
+					'request_failed'   => __( 'Request failed, please try again.', 'pw-admin' ),
+					'confirm_edit'     => __( 'Open in new tab to edit?', 'pw-admin' ),
 				),
 			)
 		);
@@ -62,7 +62,7 @@ final class Pwca_Front_Cart_Admin_Actions {
 
 		$cart_item_key = isset( $_POST['cart_key'] ) ? sanitize_text_field( wp_unslash( $_POST['cart_key'] ) ) : '';
 		if ( $cart_item_key === '' ) {
-			wp_send_json_error( __( '无效的购物车项', 'pw-admin' ) );
+			wp_send_json_error( __( 'Invalid cart item', 'pw-admin' ) );
 		}
 
 		$duplicated_key = $this->duplicate_cart_item_or_error( $cart_item_key );
@@ -161,14 +161,14 @@ final class Pwca_Front_Cart_Admin_Actions {
 		$quantity     = $quantity > 0 ? $quantity : 1;
 
 		if ( ! $product_id || ! wc_get_product( $product_id ) ) {
-			return new WP_Error( 'pwca_product_missing', __( '商品不存在', 'pw-admin' ) );
+			return new WP_Error( 'pwca_product_missing', __( 'Product does not exist', 'pw-admin' ) );
 		}
 
 		$cart_item_data = $this->extract_cart_item_data( $cart_item );
 
 		$added_key = WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $variation, $cart_item_data );
 		if ( ! $added_key ) {
-			return new WP_Error( 'pwca_duplicate_failed', __( '复制失败，请重试', 'pw-admin' ) );
+			return new WP_Error( 'pwca_duplicate_failed', __( 'Copy failed, please try again', 'pw-admin' ) );
 		}
 
 		if ( (string) $added_key === (string) $cart_item_key ) {
@@ -176,7 +176,7 @@ final class Pwca_Front_Cart_Admin_Actions {
 			$cart_item_data['_pwca_duplicate_uid'] = wp_generate_uuid4();
 			$added_key                            = WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $variation, $cart_item_data );
 			if ( ! $added_key ) {
-				return new WP_Error( 'pwca_duplicate_failed', __( '复制失败，请重试', 'pw-admin' ) );
+				return new WP_Error( 'pwca_duplicate_failed', __( 'Copy failed, please try again', 'pw-admin' ) );
 			}
 		}
 

@@ -81,7 +81,7 @@
 		state.mode = 'iframe';
 		state.lastUrl = url;
 
-		els.$title.text('设计预览');
+		els.$title.text('Design Preview');
 		els.$openEditor.attr('href', url).show();
 
 		setHidden(els.$imageWrap, true);
@@ -105,13 +105,13 @@
 		state.mode = 'image';
 		state.lastUrl = imageUrl;
 
-		els.$title.text(title || '图片预览');
+		els.$title.text(title || 'Image Preview');
 		els.$openEditor.hide();
 
 		els.$iframe.attr('src', '').attr('hidden', 'hidden');
 		setHidden(els.$imageWrap, false);
 
-		els.$image.attr('src', imageUrl).attr('alt', title || '图片预览');
+		els.$image.attr('src', imageUrl).attr('alt', title || 'Image Preview');
 		showContent(els);
 		openBase(els);
 	};
@@ -144,7 +144,7 @@
 				return;
 			}
 			e.preventDefault();
-			openImage(els, url, $target.data('image-title') || '图片预览');
+			openImage(els, url, $target.data('image-title') || 'Image Preview');
 		});
 
 		els.$closeButtons.on('click', (e) => {

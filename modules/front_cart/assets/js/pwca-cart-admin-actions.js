@@ -49,12 +49,12 @@
 
 			clearMessage($container);
 			const originalText = $button.text();
-			$button.addClass('is-loading').prop('disabled', true).text(config.messages?.duplicating || '复制中…');
+			$button.addClass('is-loading').prop('disabled', true).text(config.messages?.duplicating || 'Copying...');
 
 			try {
 				const response = await requestDuplicate(cartKey, config);
 				if (response && response.success && response.data && response.data.new_cart_key) {
-					setMessage($container, config.messages?.duplicated || '已复制。', 'success');
+					setMessage($container, config.messages?.duplicated || 'Copied.', 'success');
 					setTimeout(() => window.location.reload(), 300);
 					return;
 				}

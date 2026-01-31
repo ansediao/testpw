@@ -42,11 +42,11 @@ final class Pwca_Front_Cart_Quantity {
 				'ajax_url'  => admin_url( 'admin-ajax.php' ),
 				'nonce'     => wp_create_nonce( 'pwca_cart_quantity_nonce' ),
 				'messages'  => array(
-					'updating'         => __( '正在更新...', 'pw-admin' ),
-					'error'            => __( '更新失败，请重试', 'pw-admin' ),
-					'success'          => __( '更新成功', 'pw-admin' ),
-					'invalid_quantity' => __( '数量无效', 'pw-admin' ),
-					'min_quantity'     => __( '数量不能少于最小值', 'pw-admin' ),
+					'updating'         => __( 'Updating...', 'pw-admin' ),
+					'error'            => __( 'Update failed, please try again', 'pw-admin' ),
+					'success'          => __( 'Updated successfully', 'pw-admin' ),
+					'invalid_quantity' => __( 'Invalid quantity', 'pw-admin' ),
+					'min_quantity'     => __( 'Quantity cannot be less than minimum', 'pw-admin' ),
 				),
 				'config'    => $this->quantity_config,
 			)
