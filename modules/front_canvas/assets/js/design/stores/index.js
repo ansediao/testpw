@@ -377,13 +377,16 @@ export const useCanvasStore = defineStore('canvas', {
             this.setLoadingProductData(true);
             this.setProductDataError(null);
             try {
-                const response = await axios.get(`/wp-json/pw/v1/product-data/${pwId}`);
+                const response = await fetch(`/wp-json/pw/v1/product-data/${pwId}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
 
                 try {
-                    const headerValue =
-                        response &&
-                        response.headers &&
-                        (response.headers['x-pw-cache'] || response.headers['X-PW-Cache']);
+                    const headerValue = response.headers.get('x-pw-cache') || response.headers.get('X-PW-Cache');
                     if (headerValue && String(headerValue).toUpperCase() === 'HIT') {
                         // eslint-disable-next-line no-console
                         console.info('[PW Canvas] 使用缓存的产品数据', { pwId });
@@ -391,12 +394,12 @@ export const useCanvasStore = defineStore('canvas', {
                 } catch (e) {
                 }
 
-                this.setProductData(response.data);
+                this.setProductData(data);
                 // 从产品数据中提取视图信息
-                // this.extractViewsFromProductData(response.data);
-                this.setViewsFromProductData(response.data);
+                // this.extractViewsFromProductData(data);
+                this.setViewsFromProductData(data);
 
-                return response.data;
+                return data;
             } catch (error) {
                 this.setProductDataError(error.message || 'Failed to retrieve product data');
                 throw error;

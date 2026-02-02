@@ -105,7 +105,7 @@ final class Pwca_Front_Product_Assets {
 		$this->enqueue_script_if_readable( 'pwca-canvas-manager', $this->plugin_root_url . 'modules/front_canvas/assets/js/canvas-manager.js', array( 'pwca-vendor-fabric' ), $this->plugin_root_path . '/modules/front_canvas/assets/js/canvas-manager.js' );
 
 		$this->enqueue_script_if_readable( 'pwca-product-image-canvas', $this->module_url . 'assets/js/product/product-image-canvas.js', array( 'pwca-canvas-manager' ), $this->module_path . '/assets/js/product/product-image-canvas.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-api', $this->module_url . 'assets/js/product/api/productDataAPI.js', array( 'pwca-vendor-axios' ), $this->module_path . '/assets/js/product/api/productDataAPI.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-api', $this->module_url . 'assets/js/product/api/productDataAPI.js', array(), $this->module_path . '/assets/js/product/api/productDataAPI.js' );
 		$this->enqueue_script_if_readable( 'pwca-product-store', $this->module_url . 'assets/js/product/stores/productStore.js', array( 'pwca-vendor-vue', 'pwca-product-api' ), $this->module_path . '/assets/js/product/stores/productStore.js' );
 		if ( function_exists( 'wp_script_is' ) && wp_script_is( 'pwca-product-store', 'enqueued' ) ) {
 			wp_localize_script(
