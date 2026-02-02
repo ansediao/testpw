@@ -10,7 +10,7 @@
 - **Vue 3**: 主要前端框架，使用 Composition API
 - **Pinia**: 状态管理库
 - **Fabric.js**: 2D 画布编辑和图形处理
-- **Axios**: HTTP 客户端
+- **Fetch API**: 原生 HTTP 客户端
 - **jsPDF**: PDF 导出功能
 
 ## 外部依赖

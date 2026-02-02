@@ -1,6 +1,6 @@
 /**
  * 产品数据 API 模块
- * 使用 axios 从 REST API 获取数据，供 Vue 使用
+ * 使用 fetch 从 REST API 获取数据，供 Vue 使用
  */
 window.ProductDataAPI = {
     /**
@@ -11,33 +11,34 @@ window.ProductDataAPI = {
     async fetchProductData(pwId) {
         try {
             const config = window.pwProductConfig;
-            
-            const response = await axios.get(`${config.restApiUrl}${pwId}`, {
+
+            const response = await fetch(`${config.restApiUrl}${pwId}`, {
                 headers: {
                     'X-WP-Nonce': config.nonce
                 }
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
             try {
-                const headerValue =
-                    response &&
-                    response.headers &&
-                    (response.headers['x-pw-cache'] || response.headers['X-PW-Cache']);
+                const headerValue = response.headers.get('x-pw-cache') || response.headers.get('X-PW-Cache');
                 if (headerValue && String(headerValue).toUpperCase() === 'HIT') {
                     // eslint-disable-next-line no-console
                     console.info('[PW Product] 使用缓存的产品数据', { pwId });
                 }
             } catch (e) {
             }
-            
-            return response.data;
+
+            return data;
         } catch (error) {
-            if (error.response) {
-                throw new Error(`API 错误 ${error.response.status}: ${error.response.data.message || '未知错误'}`);
-            } else if (error.request) {
-                throw new Error('网络请求失败，请检查网络连接');
+            if (error.message && error.message.includes('HTTP error')) {
+                throw new Error(`API 错误: ${error.message}`);
             } else {
-                throw new Error(`请求错误: ${error.message}`);
+                throw new Error('网络请求失败，请检查网络连接');
             }
         }
     },
@@ -51,7 +52,7 @@ window.ProductDataAPI = {
         if (!config || !config.pwId) {
             throw new Error('未找到当前产品的 pw_id');
         }
-        
+
         return this.fetchProductData(config.pwId);
     },
 
@@ -64,7 +65,7 @@ window.ProductDataAPI = {
         try {
             const promises = pwIds.map(pwId => this.fetchProductData(pwId));
             const results = await Promise.allSettled(promises);
-            
+
             return results.map((result, index) => ({
                 pwId: pwIds[index],
                 success: result.status === 'fulfilled',
@@ -83,13 +84,18 @@ window.ProductDataAPI = {
     async checkApiConnection() {
         try {
             const config = window.pwProductConfig;
-            await axios.get(config.restApiUrl.replace('/product-data/', '/health'), {
-                timeout: 5000,
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+            const response = await fetch(config.restApiUrl.replace('/product-data/', '/health'), {
+                signal: controller.signal,
                 headers: {
                     'X-WP-Nonce': config.nonce
                 }
             });
-            return true;
+
+            clearTimeout(timeoutId);
+            return response.ok;
         } catch (error) {
             return false;
         }
@@ -107,6 +113,6 @@ window.ProductDataAPI = {
 // 为 Vue 组件提供全局访问
 if (typeof window !== 'undefined') {
     window.productDataAPI = window.ProductDataAPI;
-    
+
     // ProductDataAPI 已就绪
 }

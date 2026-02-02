@@ -33,28 +33,32 @@ register_rest_route('api/v1', '/templates', $args);
 ### 2. 实现方式
 
 #### 前台调用
-前台JavaScript应该调用WordPress REST API端点，而不是直接调用第三方API。项目中使用 **Axios** HTTP客户端：
+前台JavaScript应该调用WordPress REST API端点，而不是直接调用第三方API。项目中使用原生 **Fetch API**：
 
-**使用 Axios（推荐）：**
+**使用 Fetch API（推荐）：**
 ```javascript
-// ✅ 正确方式 - 使用 Axios
-const response = await axios.get(`/wp-json/pw/v1/product-data/${pwId}`, {
+// ✅ 正确方式 - 使用 Fetch API
+const response = await fetch(`/wp-json/pw/v1/product-data/${pwId}`, {
     headers: {
         'X-WP-Nonce': config.nonce
     }
 });
+const data = await response.json();
 
 // 或 POST 请求
-const response = await axios.post('/wp-json/pw-canvas/v1/print-methods', {
-    printing_method_ids: [1, 2, 3]
-}, {
+const response = await fetch('/wp-json/pw-canvas/v1/print-methods', {
+    method: 'POST',
     headers: {
         'Content-Type': 'application/json'
-    }
+    },
+    body: JSON.stringify({
+        printing_method_ids: [1, 2, 3]
+    })
 });
+const data = await response.json();
 
 // ❌ 错误方式 - 禁止直接调用第三方API
-axios.get('https://dev.promowares.com/api/v1/products/1', ...)
+fetch('https://dev.promowares.com/api/v1/products/1', ...)
 ```
 
 

@@ -66,7 +66,7 @@ final class Pwca_Front_Canvas_Assets {
 		wp_enqueue_script( 'pwca-vendor-vue', 'https://unpkg.com/vue@3/dist/vue.global.js', array(), '3', true );
 		wp_enqueue_script( 'pwca-vendor-vue-demi', 'https://unpkg.com/vue-demi@0.14.7/lib/index.iife.js', array( 'pwca-vendor-vue' ), '0.14.7', true );
 		wp_enqueue_script( 'pwca-vendor-pinia', 'https://unpkg.com/pinia@2/dist/pinia.iife.js', array( 'pwca-vendor-vue-demi' ), '2', true );
-		wp_enqueue_script( 'pwca-vendor-axios', 'https://unpkg.com/axios/dist/axios.min.js', array(), null, true );
+
 		wp_enqueue_script( 'pwca-vendor-vueuse-shared', 'https://unpkg.com/@vueuse/shared', array(), null, true );
 		wp_enqueue_script( 'pwca-vendor-vueuse-core', 'https://unpkg.com/@vueuse/core', array( 'pwca-vendor-vueuse-shared' ), null, true );
 		wp_enqueue_script( 'pwca-vendor-fabric', 'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js', array(), '5.3.1', true );
@@ -314,7 +314,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-store-index',
 			$this->module_url . 'assets/js/design/stores/index.js',
-			array( 'pwca-vendor-pinia', 'pwca-vendor-axios' ),
+			array( 'pwca-vendor-pinia' ),
 			$this->module_path . '/assets/js/design/stores/index.js'
 		);
 		wp_script_add_data( 'pwca-front-canvas-store-index', 'type', 'module' );
