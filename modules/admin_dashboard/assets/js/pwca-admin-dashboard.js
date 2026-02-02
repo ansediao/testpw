@@ -8,6 +8,8 @@
 	const clearCacheNonce = root.dataset.clearCacheNonce || ''
 	const cacheStatusNonce = root.dataset.cacheStatusNonce || ''
 	const productRequestNonce = root.dataset.productRequestNonce || ''
+	const saveMockModeNonce = root.dataset.saveMockModeNonce || ''
+	const initialApiMockMode = root.dataset.apiMockMode === '1' ? 1 : 0
 
 	const buildNotice = (type, message) => {
 		const notice = document.createElement('div')
@@ -126,6 +128,85 @@
 			} finally {
 				setBusy(false)
 			}
+		})
+	}
+
+	const initApiMockToggle = () => {
+		const container = document.getElementById('pwca-api-mock-toggle')
+		const statusContainer = document.getElementById('pwca-api-mock-status')
+
+		if (!container || !saveMockModeNonce) return
+
+		const buttons = Array.from(container.querySelectorAll('button[data-value]'))
+		if (!buttons.length) return
+
+		const setActive = (value) => {
+			buttons.forEach((button) => {
+				const buttonValue = button.dataset.value === '1' ? 1 : 0
+				if (buttonValue === value) {
+					button.classList.remove('button-secondary')
+					button.classList.add('button-primary')
+				} else {
+					button.classList.remove('button-primary')
+					button.classList.add('button-secondary')
+				}
+			})
+			container.dataset.current = String(value)
+		}
+
+		setActive(initialApiMockMode)
+
+		const setBusy = (busy) => {
+			buttons.forEach((button) => {
+				button.disabled = busy
+			})
+		}
+
+		buttons.forEach((button) => {
+			button.addEventListener('click', async (event) => {
+				event.preventDefault()
+				const value = button.dataset.value === '1' ? 1 : 0
+
+				if (String(value) === container.dataset.current) {
+					return
+				}
+
+				setBusy(true)
+				if (statusContainer) {
+					statusContainer.innerHTML = ''
+				}
+
+				try {
+					const response = await postUrlEncoded({
+						action: 'pw_save_mock_mode',
+						mode: value,
+						nonce: saveMockModeNonce,
+					})
+
+					if (response && response.success) {
+						setActive(value)
+						if (statusContainer) {
+							const message =
+								value === 1
+									? 'Mock error mode enabled. All Promowares API calls will return mocked errors.'
+									: 'Mock error mode disabled. Promowares API will return real data.'
+							setNotice(statusContainer, 'success', message)
+						}
+					} else if (statusContainer) {
+						setNotice(statusContainer, 'error', String((response && response.data) || 'Failed to save mock mode'))
+					}
+				} catch (error) {
+					if (statusContainer) {
+						setNotice(
+							statusContainer,
+							'error',
+							`Failed to save mock mode: ${error instanceof Error ? error.message : 'Unknown error'}`,
+						)
+					}
+				} finally {
+					setBusy(false)
+				}
+			})
 		})
 	}
 
@@ -398,6 +479,7 @@
 	}
 
 	initTokenConnect()
+	initApiMockToggle()
 	initImportProgress()
 	initCacheManagement()
 	initSettingsTab()

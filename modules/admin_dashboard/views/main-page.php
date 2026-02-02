@@ -4,13 +4,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$ajax_url           = isset( $view_model['ajax_url'] ) ? (string) $view_model['ajax_url'] : '';
-$rest_product_base  = isset( $view_model['rest_product_base'] ) ? (string) $view_model['rest_product_base'] : '';
-$save_token_nonce   = isset( $view_model['save_token_nonce'] ) ? (string) $view_model['save_token_nonce'] : '';
-$clear_cache_nonce  = isset( $view_model['clear_cache_nonce'] ) ? (string) $view_model['clear_cache_nonce'] : '';
-$cache_status_nonce = isset( $view_model['cache_status_nonce'] ) ? (string) $view_model['cache_status_nonce'] : '';
-$current_token      = isset( $view_model['current_token'] ) ? (string) $view_model['current_token'] : '';
-$messages           = isset( $view_model['messages'] ) && is_array( $view_model['messages'] ) ? $view_model['messages'] : array();
+$ajax_url             = isset( $view_model['ajax_url'] ) ? (string) $view_model['ajax_url'] : '';
+$rest_product_base    = isset( $view_model['rest_product_base'] ) ? (string) $view_model['rest_product_base'] : '';
+$save_token_nonce     = isset( $view_model['save_token_nonce'] ) ? (string) $view_model['save_token_nonce'] : '';
+$clear_cache_nonce    = isset( $view_model['clear_cache_nonce'] ) ? (string) $view_model['clear_cache_nonce'] : '';
+$cache_status_nonce   = isset( $view_model['cache_status_nonce'] ) ? (string) $view_model['cache_status_nonce'] : '';
+$current_token        = isset( $view_model['current_token'] ) ? (string) $view_model['current_token'] : '';
+$save_mock_mode_nonce = isset( $view_model['save_mock_mode_nonce'] ) ? (string) $view_model['save_mock_mode_nonce'] : '';
+$api_mock_mode        = isset( $view_model['api_mock_mode'] ) ? (int) $view_model['api_mock_mode'] : 0;
+$messages             = isset( $view_model['messages'] ) && is_array( $view_model['messages'] ) ? $view_model['messages'] : array();
 
 ?>
 
@@ -21,6 +23,8 @@ $messages           = isset( $view_model['messages'] ) && is_array( $view_model[
 	data-save-token-nonce="<?php echo esc_attr( $save_token_nonce ); ?>"
 	data-clear-cache-nonce="<?php echo esc_attr( $clear_cache_nonce ); ?>"
 	data-cache-status-nonce="<?php echo esc_attr( $cache_status_nonce ); ?>"
+	data-save-mock-mode-nonce="<?php echo esc_attr( $save_mock_mode_nonce ); ?>"
+	data-api-mock-mode="<?php echo esc_attr( (string) $api_mock_mode ); ?>"
 >
 	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 
@@ -56,6 +60,19 @@ $messages           = isset( $view_model['messages'] ) && is_array( $view_model[
 			<button type="button" class="button" id="pwca-token-connect">Connect</button>
 		</div>
 		<div class="pwca-admin-dashboard__token-status" id="pwca-token-status" aria-live="polite"></div>
+	</section>
+
+	<section class="pwca-admin-dashboard__section pwca-admin-dashboard__section--api-mock">
+		<h2 class="pwca-admin-dashboard__section-title">API Mock Mode</h2>
+		<div class="pwca-admin-dashboard__row">
+			<span class="pwca-admin-dashboard__label">Promowares API</span>
+			<div class="pwca-admin-dashboard__toggle" id="pwca-api-mock-toggle" data-current="<?php echo $api_mock_mode ? '1' : '0'; ?>">
+				<button type="button" class="button <?php echo $api_mock_mode ? 'button-secondary' : 'button-primary'; ?>" data-value="0">Real Data</button>
+				<button type="button" class="button <?php echo $api_mock_mode ? 'button-primary' : 'button-secondary'; ?>" data-value="1">Mock Error</button>
+			</div>
+		</div>
+		<p class="description">Switch between real Promowares API responses and mocked error responses for testing.</p>
+		<div class="pwca-admin-dashboard__mock-status" id="pwca-api-mock-status" aria-live="polite"></div>
 	</section>
 
 	<section class="pwca-admin-dashboard__section pwca-admin-dashboard__section--currency">

@@ -824,6 +824,17 @@ class Pw_Admin_Promowares_Api
      */
     private function call_promowares_api($endpoint, $token)
     {
+        $mock_mode = (int) get_option('pw_api_mock_mode', 0);
+        if ($mock_mode === 1) {
+            return new WP_Error(
+                'pw_mock_api_error',
+                'Mocked Promowares API error (pw_api_mock_mode is enabled).',
+                array(
+                    'endpoint' => $endpoint,
+                )
+            );
+        }
+
         $response = wp_remote_get($this->api_base_url . $endpoint, array(
             'headers' => array(
                 'Accept' => 'application/json',

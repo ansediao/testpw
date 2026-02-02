@@ -103,13 +103,15 @@ final class Pwca_Admin_Dashboard {
 		$messages = $this->maybe_schedule_product_import();
 
 		return array(
-			'ajax_url'           => admin_url( 'admin-ajax.php' ),
-			'rest_product_base'  => trailingslashit( rest_url( 'pw/v1/product-data' ) ),
-			'save_token_nonce'   => wp_create_nonce( 'pw_save_token_nonce' ),
-			'clear_cache_nonce'  => wp_create_nonce( 'pw_clear_cache_nonce' ),
-			'cache_status_nonce' => wp_create_nonce( 'pw_cache_status_nonce' ),
-			'current_token'      => get_option( 'pw_api_token', '' ),
-			'messages'           => $messages,
+			'ajax_url'             => admin_url( 'admin-ajax.php' ),
+			'rest_product_base'    => trailingslashit( rest_url( 'pw/v1/product-data' ) ),
+			'save_token_nonce'     => wp_create_nonce( 'pw_save_token_nonce' ),
+			'clear_cache_nonce'    => wp_create_nonce( 'pw_clear_cache_nonce' ),
+			'cache_status_nonce'   => wp_create_nonce( 'pw_cache_status_nonce' ),
+			'current_token'        => get_option( 'pw_api_token', '' ),
+			'api_mock_mode'        => (int) get_option( 'pw_api_mock_mode', 0 ),
+			'save_mock_mode_nonce' => wp_create_nonce( 'pw_save_mock_mode_nonce' ),
+			'messages'             => $messages,
 		);
 	}
 
