@@ -33,6 +33,7 @@ final class Pwca_Integration_Promowares {
 	public function register() {
 		add_action( 'wp_ajax_check_import_progress', array( $this, 'handle_check_import_progress' ) );
 		add_action( 'wp_ajax_pw_save_token', array( $this, 'handle_save_token' ) );
+		add_action( 'wp_ajax_pw_save_mock_mode', array( $this, 'handle_save_mock_mode' ) );
 
 		add_action( 'import_single_product', array( $this, 'import_single_product' ) );
 		add_action( 'import_composite_product_group', array( $this, 'import_composite_product_group' ) );
@@ -104,6 +105,29 @@ final class Pwca_Integration_Promowares {
 		}
 
 		wp_send_json_error( 'Token保存失败' );
+	}
+
+	public function handle_save_mock_mode() {
+		if ( ! $this->verify_ajax_nonce( 'pw_save_mock_mode_nonce', 'nonce' ) ) {
+			wp_send_json_error( '安全验证失败' );
+			return;
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( '权限不足' );
+			return;
+		}
+
+		$mode_raw = isset( $_POST['mode'] ) ? sanitize_text_field( wp_unslash( $_POST['mode'] ) ) : '';
+		$mode     = (int) ( '1' === $mode_raw ? 1 : 0 );
+
+		$result = update_option( 'pw_api_mock_mode', $mode );
+		if ( $result ) {
+			wp_send_json_success( 'API 模拟模式已更新' );
+			return;
+		}
+
+		wp_send_json_error( 'API 模拟模式更新失败' );
 	}
 
 	
