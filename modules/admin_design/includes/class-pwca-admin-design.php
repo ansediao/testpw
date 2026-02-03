@@ -937,7 +937,20 @@ final class Pwca_Admin_Design {
 			$args['s'] = $filters['search_query'];
 		}
 
-		if ( ! empty( $filters['selected_category'] ) ) {
+		$selected_tab = (string) $filters['selected_tab'];
+
+		if ( 'universal-main-view' === $selected_tab ) {
+			$main_view_category_ids = $this->get_main_view_category_ids();
+			if ( ! empty( $main_view_category_ids ) ) {
+				$args['tax_query'] = array(
+					array(
+						'taxonomy' => 'pw_design_category',
+						'field'    => 'term_id',
+						'terms'    => $main_view_category_ids,
+					),
+				);
+			}
+		} elseif ( ! empty( $filters['selected_category'] ) ) {
 			$args['tax_query'] = array(
 				array(
 					'taxonomy' => 'pw_design_category',
@@ -947,7 +960,7 @@ final class Pwca_Admin_Design {
 			);
 		}
 
-		$tag_slug = $this->map_tab_to_tag_slug( (string) $filters['selected_tab'] );
+		$tag_slug = $this->map_tab_to_tag_slug( $selected_tab );
 		if ( '' !== $tag_slug ) {
 			if ( ! isset( $args['tax_query'] ) ) {
 				$args['tax_query'] = array();
@@ -998,19 +1011,37 @@ final class Pwca_Admin_Design {
 	}
 
 	private function map_tab_to_tag_slug( $selected_tab ) {
-		if ( 'universal' === $selected_tab ) {
-			return 'universal';
-		}
-
-		if ( 'universal-main-view' === $selected_tab ) {
-			return 'universal-main-view';
-		}
-
 		if ( 'product-specific' === $selected_tab ) {
 			return 'product-specific';
 		}
 
 		return '';
+	}
+
+	private function get_main_view_category_ids() {
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'pw_design_category',
+				'hide_empty' => false,
+			)
+		);
+
+		if ( is_wp_error( $terms ) ) {
+			return array();
+		}
+
+		$main_view_category_ids = array();
+		foreach ( $terms as $term ) {
+			if ( ! $term instanceof WP_Term ) {
+				continue;
+			}
+			$category_type = get_term_meta( $term->term_id, 'category_type', true );
+			if ( 'main_view' === $category_type ) {
+				$main_view_category_ids[] = $term->term_id;
+			}
+		}
+
+		return $main_view_category_ids;
 	}
 
 	private function get_design_categories_terms() {
