@@ -687,16 +687,6 @@ class Pw_Admin_Promowares_Api
             ), 401);
         }
 
-        // Mock Error 模式下跳过缓存，直接返回错误
-        $mock_mode = (int) get_option('pw_api_mock_mode', 0);
-        if ($mock_mode === 1) {
-            return new WP_Error(
-                'pw_mock_api_error',
-                'Mocked Promowares API error (pw_api_mock_mode is enabled).',
-                array('status' => 503)
-            );
-        }
-
         // 检查缓存数据（启用缓存检查，通过 updated_at 判断）
         $cached_data = $this->get_cached_product_data($product_id);
         if ($cached_data !== false) {
@@ -1201,6 +1191,13 @@ class Pw_Admin_Promowares_Api
      */
     private function check_remote_data_freshness($product_id, $cache_timestamp)
     {
+        // Mock Error 模式下模拟通讯失败
+        $mock_mode = (int) get_option('pw_api_mock_mode', 0);
+        if ($mock_mode === 1) {
+            error_log('[PW Cache] Mock Error enabled, simulating remote freshness check failure');
+            return false; // 模拟通讯失败，标记缓存为过期，强制重新获取
+        }
+
         try {
             $response = wp_remote_get(
                 $this->api_base_url . "products/{$product_id}/updated-at",
@@ -1213,7 +1210,7 @@ class Pw_Admin_Promowares_Api
                     'timeout' => 5
                 )
             );
-            
+
             if (is_wp_error($response)) {
                 error_log('[PW Cache] Failed to check remote data freshness: ' . $response->get_error_message());
                 return true; // 网络错误时保持缓存有效
