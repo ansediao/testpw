@@ -20,12 +20,13 @@ final class Pwca_Admin_Orders {
 
 	public function register() {
 		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'store_custom_data_on_order_item' ), 10, 4 );
-		// 在订单操作区域（Order actions）渲染 PDF 生成按钮
+		// 92899491f08#order_data)0898c05829f1efpdf0385e7385e2
+		add_action( 'woocommerce_admin_order_data_after_payment_info', array( $this, 'render_production_pdf_button' ), 10, 1 );
 		add_action( 'woocommerce_order_actions_end', array( $this, 'render_production_pdf_button' ), 10, 1 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
-	public function enqueue_assets( $hook ) {
+		public function enqueue_assets( $hook ) {
 		if ( ! $this->should_load_assets( (string) $hook ) ) {
 			return;
 		}
@@ -118,10 +119,18 @@ final class Pwca_Admin_Orders {
 	}
 
 	/**
-	 * 在订单操作区域（Order actions）渲染 PDF 生成按钮
+	 * 在订单详情（#order_data）或订单操作区域渲染 PDF 生成按钮
+	 *
+	 * @param int|\WC_Order $order_or_order_id 订单对象或订单 ID。
 	 */
-	public function render_production_pdf_button( $order_id ) {
-		$order = wc_get_order( $order_id );
+	public function render_production_pdf_button( $order_or_order_id ) {
+		static $rendered = false;
+
+		if ( $rendered ) {
+			return;
+		}
+
+		$order = wc_get_order( $order_or_order_id );
 		if ( ! $this->is_valid_order( $order ) ) {
 			return;
 		}
@@ -132,19 +141,41 @@ final class Pwca_Admin_Orders {
 			return;
 		}
 
+		$order_id     = (int) $order->get_id();
 		$order_number = (string) $order->get_order_number();
 
-		echo '<li class="wide pwca-admin-orders-production-pdf-action">';
-		echo '<div class="pwca-admin-orders-production-pdf"'
-			. ' data-order-id="' . esc_attr( (string) $order_id ) . '"'
-			. ' data-order-number="' . esc_attr( $order_number ) . '"'
-			. ' data-items="' . esc_attr( wp_json_encode( $items_data ) ) . '"'
-			. '>';
-		echo '<button type="button" class="button button-primary pwca-admin-orders-generate-pdf">Generate Print PDF</button>';
-		echo '<span class="spinner"></span>';
-		echo '<span class="pwca-admin-orders-production-pdf__status"></span>';
-		echo '</div>';
-		echo '</li>';
+		$container_attrs = sprintf(
+			' data-order-id="%s" data-order-number="%s" data-items="%s"',
+			esc_attr( (string) $order_id ),
+			esc_attr( $order_number ),
+			esc_attr( wp_json_encode( $items_data ) )
+		);
+
+		$current_hook = current_filter();
+
+		if ( 'woocommerce_order_actions_end' === $current_hook ) {
+			// 订单操作区域（Order actions）中的按钮，保持原有结构。
+			echo '<li class="wide pwca-admin-orders-production-pdf-action">';
+			echo '<div class="pwca-admin-orders-production-pdf"' . $container_attrs . '>';
+			echo '<button type="button" class="button button-primary pwca-admin-orders-generate-pdf">';
+			echo esc_html__( 'Generate Print PDF', 'pw-admin' );
+			echo '</button>';
+			echo '<span class="spinner"></span>';
+			echo '<span class="pwca-admin-orders-production-pdf__status"></span>';
+			echo '</div>';
+			echo '</li>';
+		} else {
+			// #order_data 区域中的按钮，使用标准 WP 按钮样式。
+			echo '<div class="pwca-admin-orders-production-pdf"' . $container_attrs . '>';
+			echo '<button type="button" class="button button-primary pwca-admin-orders-generate-pdf">';
+			echo esc_html__( 'Download Order PDF', 'pw-admin' );
+			echo '</button>';
+			echo '<span class="spinner"></span>';
+			echo '<span class="pwca-admin-orders-production-pdf__status"></span>';
+			echo '</div>';
+		}
+
+		$rendered = true;
 	}
 
 	/**
