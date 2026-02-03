@@ -22,6 +22,8 @@ final class Pwca_Admin_Orders {
 		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'store_custom_data_on_order_item' ), 10, 4 );
 		// 在订单操作区域（Order actions）渲染 PDF 生成按钮
 		add_action( 'woocommerce_order_actions_end', array( $this, 'render_production_pdf_button' ), 10, 1 );
+		// 在订单数据列（order_data_column）最下面渲染订单详情 PDF 下载按钮
+		add_action( 'woocommerce_admin_order_data_after_billing_address', array( $this, 'render_order_details_pdf_button' ), 10, 1 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
@@ -145,6 +147,30 @@ final class Pwca_Admin_Orders {
 		echo '<span class="pwca-admin-orders-production-pdf__status"></span>';
 		echo '</div>';
 		echo '</li>';
+	}
+
+	/**
+	 * 在订单数据区域（#order_data）渲染订单详情 PDF 下载按钮
+	 */
+	public function render_order_details_pdf_button( $order ) {
+		if ( ! $this->is_valid_order( $order ) ) {
+			return;
+		}
+
+		$order_id     = $order->get_id();
+		$order_number = (string) $order->get_order_number();
+
+		echo '<p class="form-field form-field-wide pwca-admin-orders-details-pdf-action">';
+		echo '<label>订单 PDF</label>';
+		echo '<span class="pwca-admin-orders-details-pdf"'
+			. ' data-order-id="' . esc_attr( (string) $order_id ) . '"'
+			. ' data-order-number="' . esc_attr( $order_number ) . '"'
+			. '>';
+		echo '<button type="button" class="button pwca-admin-orders-download-details-pdf">下载订单详情 PDF</button>';
+		echo '<span class="spinner" style="float: none; margin-top: 0;"></span>';
+		echo '<span class="pwca-admin-orders-details-pdf__status" style="margin-left: 10px;"></span>';
+		echo '</span>';
+		echo '</p>';
 	}
 
 	/**
