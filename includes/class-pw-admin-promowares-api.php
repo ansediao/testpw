@@ -680,6 +680,8 @@ class Pw_Admin_Promowares_Api
     {
         $product_id = $request['id'];
         $token = $this->hardcoded_token;
+        $mock_mode = (int) get_option('pw_api_mock_mode', 0);
+        error_log("[PW Mock] get_aggregated_product_data called for product_id: {$product_id}, mock_mode: {$mock_mode}");
 
         if (empty($token)) {
             return new WP_REST_Response(array(
@@ -689,10 +691,11 @@ class Pw_Admin_Promowares_Api
 
         // 检查缓存数据（启用缓存检查，通过 updated_at 判断）
         $cached_data = $this->get_cached_product_data($product_id);
+        error_log("[PW Mock] Cache check result: " . ($cached_data !== false ? 'HIT' : 'MISS'));
         if ($cached_data !== false) {
             $response = new WP_REST_Response($cached_data, 200);
             $response->header('X-PW-Cache', 'HIT');
-
+            error_log("[PW Mock] Returning cached data");
             return $response;
         }
 
@@ -793,20 +796,49 @@ class Pw_Admin_Promowares_Api
         $aggregated_data['computed'] = $this->compute_business_logic($aggregated_data);
 
         // 保存缓存数据（排除模拟数据，模拟数据不缓存）
-        $cache_data = $aggregated_data;
-        if (isset($cache_data['mock_data'])) {
-            unset($cache_data['mock_data']);
+        // Mock Error 模式下不保存缓存，避免缓存错误数据
+        $mock_mode = (int) get_option('pw_api_mock_mode', 0);
+        if ($mock_mode !== 1) {
+            $cache_data = $aggregated_data;
+            if (isset($cache_data['mock_data'])) {
+                unset($cache_data['mock_data']);
+            }
+            if (isset($cache_data['has_mock_data'])) {
+                $cache_data['has_mock_data'] = false; // 缓存中标记为无模拟数据
+            }
+            if (isset($cache_data['mock_data_error'])) {
+                unset($cache_data['mock_data_error']);
+            }
+            // 重新计算业务逻辑字段（排除模拟数据）
+            $cache_data['computed'] = $this->compute_business_logic($cache_data);
+
+            $this->save_cached_product_data($product_id, $cache_data);
         }
-        if (isset($cache_data['has_mock_data'])) {
-            $cache_data['has_mock_data'] = false; // 缓存中标记为无模拟数据
+
+        // 如果关键 API 都失败了，返回 503 错误
+        $critical_failures = 0;
+        if (empty($aggregated_data['product']) && !empty($aggregated_data['product_error'])) {
+            $critical_failures++;
         }
-        if (isset($cache_data['mock_data_error'])) {
-            unset($cache_data['mock_data_error']);
+        if (empty($aggregated_data['templates']) && !empty($aggregated_data['templates_error'])) {
+            $critical_failures++;
         }
-        // 重新计算业务逻辑字段（排除模拟数据）
-        $cache_data['computed'] = $this->compute_business_logic($cache_data);
-        
-        $this->save_cached_product_data($product_id, $cache_data);
+        if (empty($aggregated_data['variants']) && !empty($aggregated_data['variants_error'])) {
+            $critical_failures++;
+        }
+
+        // 如果关键 API 都失败了，返回 503 错误
+        if ($critical_failures >= 3) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'error' => 'Promowares API Error: All critical API calls failed.',
+                'details' => array(
+                    'product_error' => $aggregated_data['product_error'] ?? null,
+                    'templates_error' => $aggregated_data['templates_error'] ?? null,
+                    'variants_error' => $aggregated_data['variants_error'] ?? null,
+                )
+            ), 503);
+        }
 
         $response = new WP_REST_Response($aggregated_data, 200);
         $response->header('X-PW-Cache', 'MISS');
@@ -825,7 +857,9 @@ class Pw_Admin_Promowares_Api
     private function call_promowares_api($endpoint, $token)
     {
         $mock_mode = (int) get_option('pw_api_mock_mode', 0);
+        error_log("[PW Mock] call_promowares_api called for endpoint: {$endpoint}, mock_mode: {$mock_mode}");
         if ($mock_mode === 1) {
+            error_log("[PW Mock] Mock Error enabled, returning error for endpoint: {$endpoint}");
             return new WP_Error(
                 'pw_mock_api_error',
                 'Mocked Promowares API error (pw_api_mock_mode is enabled).',
