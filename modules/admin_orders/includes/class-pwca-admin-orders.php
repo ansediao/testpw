@@ -112,8 +112,8 @@ final class Pwca_Admin_Orders {
 		// }
 
 		if ( isset( $values['custom_data']['custom_image'] ) && is_string( $values['custom_data']['custom_image'] ) && $values['custom_data']['custom_image'] !== '' ) {
-			$download_link = '<a href="' . esc_url( $values['custom_data']['custom_image'] ) . '" target="_blank" download>下载设计图</a>';
-			$item->add_meta_data( '设计下载', $download_link, false );
+			$download_link = '<a href="' . esc_url( $values['custom_data']['custom_image'] ) . '" target="_blank" download class="button">下载设计图</a>';
+			$item->add_meta_data( '　', $download_link, false );
 		}
 	}
 
