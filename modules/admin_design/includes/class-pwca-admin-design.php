@@ -940,13 +940,24 @@ final class Pwca_Admin_Design {
 		$selected_tab = (string) $filters['selected_tab'];
 
 		if ( 'universal-main-view' === $selected_tab ) {
-			$main_view_category_ids = $this->get_main_view_category_ids();
+			$main_view_category_ids = $this->get_category_ids_by_type( 'main_view' );
 			if ( ! empty( $main_view_category_ids ) ) {
 				$args['tax_query'] = array(
 					array(
 						'taxonomy' => 'pw_design_category',
 						'field'    => 'term_id',
 						'terms'    => $main_view_category_ids,
+					),
+				);
+			}
+		} elseif ( 'product-specific' === $selected_tab ) {
+			$product_category_ids = $this->get_category_ids_by_type( 'product' );
+			if ( ! empty( $product_category_ids ) ) {
+				$args['tax_query'] = array(
+					array(
+						'taxonomy' => 'pw_design_category',
+						'field'    => 'term_id',
+						'terms'    => $product_category_ids,
 					),
 				);
 			}
@@ -957,23 +968,6 @@ final class Pwca_Admin_Design {
 					'field'    => 'slug',
 					'terms'    => $filters['selected_category'],
 				),
-			);
-		}
-
-		$tag_slug = $this->map_tab_to_tag_slug( $selected_tab );
-		if ( '' !== $tag_slug ) {
-			if ( ! isset( $args['tax_query'] ) ) {
-				$args['tax_query'] = array();
-			}
-
-			if ( ! empty( $args['tax_query'] ) && ! isset( $args['tax_query']['relation'] ) ) {
-				$args['tax_query']['relation'] = 'AND';
-			}
-
-			$args['tax_query'][] = array(
-				'taxonomy' => 'pw_design_tag',
-				'field'    => 'slug',
-				'terms'    => $tag_slug,
 			);
 		}
 
@@ -1011,14 +1005,10 @@ final class Pwca_Admin_Design {
 	}
 
 	private function map_tab_to_tag_slug( $selected_tab ) {
-		if ( 'product-specific' === $selected_tab ) {
-			return 'product-specific';
-		}
-
 		return '';
 	}
 
-	private function get_main_view_category_ids() {
+	private function get_category_ids_by_type( $category_type ) {
 		$terms = get_terms(
 			array(
 				'taxonomy'   => 'pw_design_category',
@@ -1030,18 +1020,18 @@ final class Pwca_Admin_Design {
 			return array();
 		}
 
-		$main_view_category_ids = array();
+		$category_ids = array();
 		foreach ( $terms as $term ) {
 			if ( ! $term instanceof WP_Term ) {
 				continue;
 			}
-			$category_type = get_term_meta( $term->term_id, 'category_type', true );
-			if ( 'main_view' === $category_type ) {
-				$main_view_category_ids[] = $term->term_id;
+			$term_category_type = get_term_meta( $term->term_id, 'category_type', true );
+			if ( $category_type === $term_category_type ) {
+				$category_ids[] = $term->term_id;
 			}
 		}
 
-		return $main_view_category_ids;
+		return $category_ids;
 	}
 
 	private function get_design_categories_terms() {
