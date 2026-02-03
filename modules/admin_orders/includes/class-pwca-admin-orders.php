@@ -68,6 +68,18 @@ final class Pwca_Admin_Orders {
 			return;
 		}
 
+		$product_id = $item->get_product_id();
+
+
+		
+
+		if ( $product_id ) {
+			$pw_id = get_post_meta( $product_id, 'pw_id', true );
+			if ( $pw_id ) {
+				$item->add_meta_data( 'Variation ID', $pw_id, true );
+			}
+		}
+
 		if ( ! isset( $values['custom_data'] ) || ! is_array( $values['custom_data'] ) ) {
 			return;
 		}
@@ -79,19 +91,19 @@ final class Pwca_Admin_Orders {
 
 		$item->add_meta_data( 'custom_data', $custom_data, true );
 
-		if ( isset( $custom_data['custom_image'] ) && is_string( $custom_data['custom_image'] ) && $custom_data['custom_image'] !== '' ) {
-			$item->add_meta_data( '_custom_image', $custom_data['custom_image'], true );
-		}
+		// if ( isset( $custom_data['custom_image'] ) && is_string( $custom_data['custom_image'] ) && $custom_data['custom_image'] !== '' ) {
+		// 	$item->add_meta_data( '_custom_image', $custom_data['custom_image'], true );
+		// }
 
-		$legacy_color = '';
-		if ( isset( $custom_data['custom_color'] ) && is_string( $custom_data['custom_color'] ) ) {
-			$legacy_color = $custom_data['custom_color'];
-		} elseif ( isset( $custom_data['color'] ) && is_string( $custom_data['color'] ) ) {
-			$legacy_color = $custom_data['color'];
-		}
-		if ( $legacy_color !== '' ) {
-			$item->add_meta_data( '_custom_color', $legacy_color, true );
-		}
+		// $legacy_color = '';
+		// if ( isset( $custom_data['custom_color'] ) && is_string( $custom_data['custom_color'] ) ) {
+		// 	$legacy_color = $custom_data['custom_color'];
+		// } elseif ( isset( $custom_data['color'] ) && is_string( $custom_data['color'] ) ) {
+		// 	$legacy_color = $custom_data['color'];
+		// }
+		// if ( $legacy_color !== '' ) {
+		// 	$item->add_meta_data( '_custom_color', $legacy_color, true );
+		// }
 	}
 
 	/**
