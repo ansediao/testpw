@@ -89,7 +89,9 @@ final class Pwca_Admin_Orders {
 			return;
 		}
 
-		$item->add_meta_data( 'custom_data', $custom_data, true );
+		foreach ( $custom_data as $key => $value ) {
+			$item->add_meta_data( $key, $value, true );
+		}
 
 		// if ( isset( $custom_data['custom_image'] ) && is_string( $custom_data['custom_image'] ) && $custom_data['custom_image'] !== '' ) {
 		// 	$item->add_meta_data( '_custom_image', $custom_data['custom_image'], true );
