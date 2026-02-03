@@ -89,7 +89,11 @@ final class Pwca_Admin_Orders {
 			return;
 		}
 
+		$skip_keys = array( 'custom_image', 'added_from' );
 		foreach ( $custom_data as $key => $value ) {
+			if ( in_array( $key, $skip_keys, true ) ) {
+				continue;
+			}
 			$item->add_meta_data( $key, $value, true );
 		}
 
