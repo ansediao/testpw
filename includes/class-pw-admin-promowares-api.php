@@ -687,6 +687,16 @@ class Pw_Admin_Promowares_Api
             ), 401);
         }
 
+        // Mock Error 模式下跳过缓存，直接返回错误
+        $mock_mode = (int) get_option('pw_api_mock_mode', 0);
+        if ($mock_mode === 1) {
+            return new WP_Error(
+                'pw_mock_api_error',
+                'Mocked Promowares API error (pw_api_mock_mode is enabled).',
+                array('status' => 503)
+            );
+        }
+
         // 检查缓存数据（启用缓存检查，通过 updated_at 判断）
         $cached_data = $this->get_cached_product_data($product_id);
         if ($cached_data !== false) {

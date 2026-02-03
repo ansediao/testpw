@@ -36,7 +36,7 @@ window.ProductDataAPI = {
             return data;
         } catch (error) {
             if (error.message && error.message.includes('HTTP error')) {
-                throw new Error(`API 错误: ${error.message}`);
+                throw new Error(`API Error: ${error.message}`);
             } else {
                 throw new Error('网络请求失败，请检查网络连接');
             }
