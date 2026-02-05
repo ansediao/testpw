@@ -36,9 +36,13 @@ window.ProductDataAPI = {
             return data;
         } catch (error) {
             if (error.message && error.message.includes('HTTP error')) {
-                throw new Error(`API Error: ${error.message}`);
+                const errorMsg = `API Error: ${error.message}`;
+                alert("Prduct Error,Please Contact Admin.");
+                throw new Error(errorMsg);
             } else {
-                throw new Error('网络请求失败，请检查网络连接');
+                const errorMsg = '网络请求失败，请检查网络连接';
+                alert(errorMsg);
+                throw new Error(errorMsg);
             }
         }
     },
