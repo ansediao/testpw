@@ -188,11 +188,7 @@ final class Pwca_Admin_Orders {
 			return;
 		}
 
-		// 检查是否有设计数据
-		$resolved = $this->resolve_item_design_data( $item_id, $item );
-		if ( empty( $resolved['custom_image'] ) ) {
-			return;
-		}
+		
 
 		$product_name = is_object( $item ) && method_exists( $item, 'get_name' ) ? (string) $item->get_name() : '';
 		$product_id   = is_object( $item ) && method_exists( $item, 'get_product_id' ) ? (int) $item->get_product_id() : 0;
