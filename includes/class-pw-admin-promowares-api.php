@@ -842,6 +842,12 @@ class Pw_Admin_Promowares_Api
 
         $response = new WP_REST_Response($aggregated_data, 200);
         $response->header('X-PW-Cache', 'MISS');
+        
+        // 检查产品是否有更新标记，如果有则通知前台刷新
+        if ($this->check_product_update_flag($product_id)) {
+            $response->header('X-PW-Product-Updated', 'true');
+            error_log("[PW Cache] Product {$product_id} updated flag sent to frontend");
+        }
 
         return $response;
     }
@@ -1217,6 +1223,7 @@ class Pw_Admin_Promowares_Api
 
     /**
      * Check if remote product data has been updated since cache timestamp.
+     * 如果updated-at有更新，进一步检查产品原始数据是否有实际变化。
      *
      * @since    1.0.0
      * @param    int    $product_id        The Promowares product ID.
@@ -1262,6 +1269,24 @@ class Pw_Admin_Promowares_Api
             if (isset($data['data']['updated_at'])) {
                 $remote_updated_at = strtotime($data['data']['updated_at']);
                 $is_fresh = $remote_updated_at <= $cache_timestamp;
+                
+                // 如果updated-at显示有更新，进一步检查产品原始数据是否有实际变化
+                if (!$is_fresh) {
+                    error_log("[PW Cache] Product {$product_id} updated-at changed, checking actual data changes...");
+                    $has_actual_changes = $this->check_product_data_changes($product_id);
+                    
+                    if (!$has_actual_changes) {
+                        error_log("[PW Cache] Product {$product_id} updated-at changed but no actual data changes detected, keeping cache");
+                        // 更新缓存时间戳，避免下次重复检查
+                        $this->update_cache_timestamp($product_id);
+                        return true;
+                    }
+                    
+                    error_log("[PW Cache] Product {$product_id} has actual data changes, marking cache as STALE");
+                    // 有实际变化，触发产品更新
+                    $this->update_product_if_changed($product_id);
+                }
+                
                 error_log("[PW Cache] Product {$product_id} cache freshness check: " . ($is_fresh ? 'FRESH' : 'STALE'));
                 return $is_fresh;
             }
@@ -1273,6 +1298,370 @@ class Pw_Admin_Promowares_Api
             error_log('[PW Cache] Exception in freshness check: ' . $e->getMessage());
             return true;
         }
+    }
+
+    /**
+     * 获取远程产品的原始数据（标题、描述、价格、SKU等）
+     *
+     * @since    1.0.0
+     * @param    int    $product_id    The Promowares product ID.
+     * @return   array|false          产品数据或false
+     */
+    private function get_remote_product_raw_data($product_id)
+    {
+        try {
+            $response = wp_remote_get(
+                $this->api_base_url . "products/{$product_id}",
+                array(
+                    'headers' => array(
+                        'Authorization' => $this->hardcoded_token,
+                        'Accept' => 'application/json',
+                        'User-Agent' => 'PW-Canvas-Plugin/1.0.0'
+                    ),
+                    'timeout' => 10
+                )
+            );
+
+            if (is_wp_error($response)) {
+                error_log('[PW Cache] Failed to fetch remote product data: ' . $response->get_error_message());
+                return false;
+            }
+
+            $response_code = wp_remote_retrieve_response_code($response);
+            if ($response_code !== 200) {
+                error_log("[PW Cache] Remote product data returned status: {$response_code}");
+                return false;
+            }
+
+            $body = wp_remote_retrieve_body($response);
+            $data = json_decode($body, true);
+
+            if (isset($data['data'])) {
+                return $data['data'];
+            }
+
+            return false;
+        } catch (Exception $e) {
+            error_log('[PW Cache] Exception in get_remote_product_raw_data: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 获取本地WooCommerce产品的数据
+     *
+     * @since    1.0.0
+     * @param    int    $product_id    The Promowares product ID.
+     * @return   array|false          本地产品数据或false
+     */
+    private function get_local_product_data($product_id)
+    {
+        // 查找对应的 WooCommerce 产品
+        $woo_products = get_posts(array(
+            'post_type' => 'product',
+            'meta_query' => array(
+                array(
+                    'key' => 'pw_id',
+                    'value' => $product_id,
+                    'compare' => '='
+                )
+            ),
+            'posts_per_page' => 1
+        ));
+
+        if (empty($woo_products)) {
+            return false;
+        }
+
+        $woo_product_id = $woo_products[0]->ID;
+        $product = wc_get_product($woo_product_id);
+
+        if (!$product) {
+            return false;
+        }
+
+        return array(
+            'woo_product_id' => $woo_product_id,
+            'name' => $product->get_name(),
+            'description' => $product->get_description(),
+            'short_description' => $product->get_short_description(),
+            'sku' => $product->get_sku(),
+            'regular_price' => $product->get_regular_price(),
+            'sale_price' => $product->get_sale_price(),
+            'price' => $product->get_price(),
+            'stock_status' => $product->get_stock_status(),
+            'stock_quantity' => $product->get_stock_quantity(),
+            'manage_stock' => $product->get_manage_stock(),
+        );
+    }
+
+    /**
+     * 比较本地和远程产品数据，检查是否有实际变化
+     *
+     * @since    1.0.0
+     * @param    int    $product_id    The Promowares product ID.
+     * @return   bool                 True如果有实际变化，false如果没有
+     */
+    private function check_product_data_changes($product_id)
+    {
+        $remote_data = $this->get_remote_product_raw_data($product_id);
+        $local_data = $this->get_local_product_data($product_id);
+
+        if ($remote_data === false || $local_data === false) {
+            // 无法获取数据，假设有变化以触发更新
+            return true;
+        }
+
+        // 定义要比较的字段映射（远程字段 => 本地字段）
+        $fields_to_compare = array(
+            'name' => 'name',
+            'title' => 'name',
+            'description' => 'description',
+            'short_description' => 'short_description',
+            'sku' => 'sku',
+            'price' => 'price',
+            'regular_price' => 'regular_price',
+            'sale_price' => 'sale_price',
+            'stock_status' => 'stock_status',
+            'stock_quantity' => 'stock_quantity',
+        );
+
+        $changes = array();
+
+        foreach ($fields_to_compare as $remote_field => $local_field) {
+            $remote_value = isset($remote_data[$remote_field]) ? trim($remote_data[$remote_field]) : '';
+            $local_value = isset($local_data[$local_field]) ? trim($local_data[$local_field]) : '';
+
+            // 标准化价格比较
+            if (in_array($remote_field, array('price', 'regular_price', 'sale_price'))) {
+                $remote_value = $this->normalize_price($remote_value);
+                $local_value = $this->normalize_price($local_value);
+            }
+
+            if ($remote_value !== $local_value) {
+                $changes[$remote_field] = array(
+                    'remote' => $remote_value,
+                    'local' => $local_value
+                );
+            }
+        }
+
+        if (!empty($changes)) {
+            error_log("[PW Cache] Product {$product_id} detected changes: " . json_encode($changes));
+            // 保存变更信息供后续使用
+            $this->set_product_changes_cache($product_id, $changes);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 标准化价格值用于比较
+     *
+     * @since    1.0.0
+     * @param    mixed    $price    价格值
+     * @return   string            标准化后的价格
+     */
+    private function normalize_price($price)
+    {
+        if (empty($price)) {
+            return '0';
+        }
+        // 移除货币符号和空格，保留数字和小数点
+        $price = preg_replace('/[^0-9.]/', '', $price);
+        return number_format((float) $price, 2, '.', '');
+    }
+
+    /**
+     * 保存产品变更信息到临时缓存
+     *
+     * @since    1.0.0
+     * @param    int      $product_id    The Promowares product ID.
+     * @param    array    $changes       变更信息
+     */
+    private function set_product_changes_cache($product_id, $changes)
+    {
+        set_transient("pw_product_changes_{$product_id}", $changes, HOUR_IN_SECONDS);
+    }
+
+    /**
+     * 获取产品变更信息
+     *
+     * @since    1.0.0
+     * @param    int    $product_id    The Promowares product ID.
+     * @return   array|false          变更信息或false
+     */
+    private function get_product_changes_cache($product_id)
+    {
+        return get_transient("pw_product_changes_{$product_id}");
+    }
+
+    /**
+     * 更新缓存时间戳（当检测到无实际变化时）
+     *
+     * @since    1.0.0
+     * @param    int    $product_id    The Promowares product ID.
+     * @return   bool                  True on success, false on failure.
+     */
+    private function update_cache_timestamp($product_id)
+    {
+        // 查找对应的 WooCommerce 产品
+        $woo_products = get_posts(array(
+            'post_type' => 'product',
+            'meta_query' => array(
+                array(
+                    'key' => 'pw_id',
+                    'value' => $product_id,
+                    'compare' => '='
+                )
+            ),
+            'posts_per_page' => 1
+        ));
+
+        if (empty($woo_products)) {
+            return false;
+        }
+
+        $woo_product_id = $woo_products[0]->ID;
+        return update_post_meta($woo_product_id, '_pw_aggregated_data_cache_time', time());
+    }
+
+    /**
+     * 如果产品有变化，更新WooCommerce产品数据
+     *
+     * @since    1.0.0
+     * @param    int    $product_id    The Promowares product ID.
+     * @return   bool                  True on success, false on failure.
+     */
+    private function update_product_if_changed($product_id)
+    {
+        $changes = $this->get_product_changes_cache($product_id);
+        
+        if ($changes === false) {
+            // 重新检查变化
+            $this->check_product_data_changes($product_id);
+            $changes = $this->get_product_changes_cache($product_id);
+        }
+
+        if ($changes === false || empty($changes)) {
+            return false;
+        }
+
+        $local_data = $this->get_local_product_data($product_id);
+        if ($local_data === false) {
+            return false;
+        }
+
+        $woo_product_id = $local_data['woo_product_id'];
+        $product = wc_get_product($woo_product_id);
+
+        if (!$product) {
+            return false;
+        }
+
+        $updated = false;
+
+        // 根据变更更新产品字段
+        foreach ($changes as $field => $values) {
+            $remote_value = $values['remote'];
+
+            switch ($field) {
+                case 'name':
+                case 'title':
+                    $product->set_name($remote_value);
+                    $updated = true;
+                    break;
+
+                case 'description':
+                    $product->set_description($remote_value);
+                    $updated = true;
+                    break;
+
+                case 'short_description':
+                    $product->set_short_description($remote_value);
+                    $updated = true;
+                    break;
+
+                case 'sku':
+                    $product->set_sku($remote_value);
+                    $updated = true;
+                    break;
+
+                case 'regular_price':
+                    $product->set_regular_price($remote_value);
+                    $updated = true;
+                    break;
+
+                case 'sale_price':
+                    $product->set_sale_price($remote_value);
+                    $updated = true;
+                    break;
+
+                case 'price':
+                    // 价格通常由regular_price和sale_price计算得出，不需要直接设置
+                    break;
+
+                case 'stock_status':
+                    $product->set_stock_status($remote_value);
+                    $updated = true;
+                    break;
+
+                case 'stock_quantity':
+                    $product->set_stock_quantity(intval($remote_value));
+                    $updated = true;
+                    break;
+            }
+        }
+
+        if ($updated) {
+            $product->save();
+            error_log("[PW Cache] Product {$product_id} (WC ID: {$woo_product_id}) updated successfully");
+            
+            // 清除变更缓存
+            delete_transient("pw_product_changes_{$product_id}");
+            
+            // 设置产品更新标记，用于通知前台刷新
+            $this->set_product_update_flag($product_id);
+            
+            // 触发产品更新后的操作
+            do_action('pw_product_updated_after_sync', $woo_product_id, $product_id, $changes);
+            
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 设置产品更新标记，用于通知前台刷新
+     *
+     * @since    1.0.0
+     * @param    int    $product_id    The Promowares product ID.
+     */
+    private function set_product_update_flag($product_id)
+    {
+        // 使用 transient 存储更新标记，有效期5分钟
+        set_transient("pw_product_updated_flag_{$product_id}", time(), 5 * MINUTE_IN_SECONDS);
+        error_log("[PW Cache] Product {$product_id} update flag set for frontend refresh");
+    }
+
+    /**
+     * 检查产品是否有更新标记
+     *
+     * @since    1.0.0
+     * @param    int    $product_id    The Promowares product ID.
+     * @return   bool                  True if product was updated, false otherwise.
+     */
+    public function check_product_update_flag($product_id)
+    {
+        $flag = get_transient("pw_product_updated_flag_{$product_id}");
+        if ($flag !== false) {
+            // 检查标记后删除，避免重复刷新
+            delete_transient("pw_product_updated_flag_{$product_id}");
+            return true;
+        }
+        return false;
     }
 
     /**

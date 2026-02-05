@@ -33,6 +33,20 @@ window.ProductDataAPI = {
             } catch (e) {
             }
 
+            // 检查产品是否有更新，如果有则刷新页面
+            try {
+                const updatedFlag = response.headers.get('x-pw-product-updated') || response.headers.get('X-PW-Product-Updated');
+                if (updatedFlag && String(updatedFlag).toLowerCase() === 'true') {
+                    // eslint-disable-next-line no-console
+                    console.info('[PW Product] 产品数据已更新，即将刷新页面', { pwId });
+                    // 延迟刷新，让用户看到提示
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                }
+            } catch (e) {
+            }
+
             return data;
         } catch (error) {
             if (error.message && error.message.includes('HTTP error')) {
