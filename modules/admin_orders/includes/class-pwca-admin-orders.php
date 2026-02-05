@@ -162,11 +162,15 @@ final class Pwca_Admin_Orders {
 		$order_id     = $order->get_id();
 		$order_number = (string) $order->get_order_number();
 
+		// 收集所有有设计数据的商品
+		$items_data = $this->collect_order_design_items( $order );
+
 		echo '<p class="form-field form-field-wide pwca-admin-orders-details-pdf-action">';
 		echo '<label>订单 PDF</label>';
 		echo '<span class="pwca-admin-orders-details-pdf"'
 			. ' data-order-id="' . esc_attr( (string) $order_id ) . '"'
 			. ' data-order-number="' . esc_attr( $order_number ) . '"'
+			. ' data-items="' . esc_attr( wp_json_encode( $items_data ) ) . '"'
 			. '>';
 		echo '<button type="button" class="button pwca-admin-orders-download-details-pdf">下载订单详情 PDF</button>';
 		echo '<span class="spinner" style="float: none; margin-top: 0;"></span>';

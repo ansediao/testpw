@@ -195,6 +195,15 @@
 		// 从页面获取订单信息
 		const orderData = extractOrderDataFromPage();
 
+		// 获取设计数据
+		const itemsJson = container.dataset.items || '[]';
+		let designItems = [];
+		try {
+			designItems = JSON.parse(itemsJson);
+		} catch (e) {
+			designItems = [];
+		}
+
 		const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 		const pageWidth = doc.internal.pageSize.getWidth();
 		const pageHeight = doc.internal.pageSize.getHeight();
@@ -295,6 +304,49 @@
 				const totalImg = textToImage(orderData.totals[i], { fontSize: 12, maxWidth: contentWidth });
 				doc.addImage(totalImg.dataUrl, 'PNG', margin, yPos, totalImg.width, totalImg.height);
 				yPos += totalImg.height + 5;
+			}
+		}
+
+		// 商品设计图（每个商品一页）
+		if (Array.isArray(designItems) && designItems.length > 0) {
+			for (let i = 0; i < designItems.length; i++) {
+				doc.addPage();
+				let designYPos = margin;
+
+				const item = designItems[i];
+
+				// 设计图标题
+				const designTitleLines = [
+					'【商品设计图】',
+					`商品 ${i + 1} / ${designItems.length}`,
+					`产品：${item.product_name || ''}`,
+					`产品ID：${item.product_id || ''}`
+				];
+
+				// 颜色信息
+				const colorLine = item.color_name
+					? `${item.color_name}（${item.custom_color}）`
+					: item.custom_color;
+				if (colorLine) {
+					designTitleLines.push(`颜色：${colorLine}`);
+				}
+
+				const designTitleImg = textToImage(designTitleLines, { fontSize: 14, maxWidth: contentWidth });
+				doc.addImage(designTitleImg.dataUrl, 'PNG', margin, designYPos, designTitleImg.width, designTitleImg.height);
+				designYPos += designTitleImg.height + 20;
+
+				// 设计图
+				if (item.custom_image) {
+					try {
+						const imageDataUrl = await fetchImageDataUrl(item.custom_image);
+						const format = inferImageFormat(imageDataUrl);
+						const maxImgHeight = pageHeight - designYPos - margin;
+						doc.addImage(imageDataUrl, format, margin, designYPos, contentWidth, 0);
+					} catch (imgErr) {
+						const errImg = textToImage([`[图片加载失败: ${imgErr.message}]`], { fontSize: 12, color: '#c00' });
+						doc.addImage(errImg.dataUrl, 'PNG', margin, designYPos, errImg.width, errImg.height);
+					}
+				}
 			}
 		}
 
