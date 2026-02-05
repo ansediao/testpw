@@ -34,6 +34,12 @@ final class Pwca_Front_Cart_Handler {
 
 		add_filter( 'woocommerce_cart_item_price', array( $this, 'render_cart_item_price_with_discount' ), 10, 3 );
 		add_filter( 'woocommerce_cart_item_subtotal', array( $this, 'render_cart_item_subtotal_with_discount' ), 10, 3 );
+
+		add_filter( 'woocommerce_cart_subtotal', array( $this, 'render_cart_subtotal_with_discount' ), 10, 3 );
+		add_filter( 'woocommerce_cart_total', array( $this, 'render_cart_total_with_discount' ), 10, 1 );
+
+		add_action( 'woocommerce_before_calculate_totals', array( $this, 'apply_discount_to_cart_items' ), 10, 1 );
+		add_filter( 'woocommerce_get_cart_item_price', array( $this, 'get_cart_item_discounted_price' ), 10, 3 );
 	}
 
 	public function redirect_custom_cart_for_sync_products() {
@@ -339,8 +345,12 @@ final class Pwca_Front_Cart_Handler {
 			return $price_html;
 		}
 
-		$original_price   = wc_get_price_to_display( $product );
-		$discounted_price = $original_price * $rate;
+		$original_price   = (float) $product->get_regular_price();
+		$discounted_price = (float) $product->get_price();
+
+		if ( $original_price <= 0 || $discounted_price <= 0 || $discounted_price >= $original_price ) {
+			return $price_html;
+		}
 
 		$formatted = wc_format_sale_price( wc_price( $original_price ), wc_price( $discounted_price ) );
 		$label     = $this->get_discount_label_from_custom( $custom );
@@ -370,10 +380,16 @@ final class Pwca_Front_Cart_Handler {
 		$qty = isset( $cart_item['quantity'] ) ? (int) $cart_item['quantity'] : 1;
 		$qty = max( 1, $qty );
 
-		$unit_display_price     = wc_get_price_to_display( $product );
-		$original_line_total    = $unit_display_price * $qty;
-		$discounted_line_total  = $original_line_total * $rate;
-		$formatted              = wc_format_sale_price( wc_price( $original_line_total ), wc_price( $discounted_line_total ) );
+		$original_price        = (float) $product->get_regular_price();
+		$discounted_price      = (float) $product->get_price();
+		$original_line_total   = $original_price * $qty;
+		$discounted_line_total = $discounted_price * $qty;
+
+		if ( $original_line_total <= 0 || $discounted_line_total <= 0 || $discounted_line_total >= $original_line_total ) {
+			return $subtotal_html;
+		}
+
+		$formatted = wc_format_sale_price( wc_price( $original_line_total ), wc_price( $discounted_line_total ) );
 
 		$label = $this->get_discount_label_from_custom( $custom );
 		if ( $label ) {
@@ -381,6 +397,178 @@ final class Pwca_Front_Cart_Handler {
 		}
 
 		return $formatted;
+	}
+
+	public function render_cart_subtotal_with_discount( $subtotal_html, $compound, $cart ) {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			return $subtotal_html;
+		}
+
+		$has_discount = false;
+		$discount_label = '';
+		$original_subtotal = 0;
+		$discounted_subtotal = 0;
+
+		foreach ( WC()->cart->get_cart() as $cart_item ) {
+			$product = isset( $cart_item['data'] ) ? $cart_item['data'] : null;
+			if ( ! $product || ! is_object( $product ) ) {
+				continue;
+			}
+
+			$qty = isset( $cart_item['quantity'] ) ? (int) $cart_item['quantity'] : 1;
+			$qty = max( 1, $qty );
+
+			if ( isset( $cart_item['custom_data'] ) && is_array( $cart_item['custom_data'] ) ) {
+				$custom = $cart_item['custom_data'];
+				$rate = $this->get_discount_rate_from_custom( $custom );
+				if ( $rate !== null ) {
+					$has_discount = true;
+					$original_price = (float) $product->get_regular_price();
+					$discounted_price = (float) $product->get_price();
+					$original_subtotal += $original_price * $qty;
+					$discounted_subtotal += $discounted_price * $qty;
+
+					$label = $this->get_discount_label_from_custom( $custom );
+					if ( $label ) {
+						$discount_label = $label;
+					}
+					continue;
+				}
+			}
+
+			$price = (float) $product->get_price();
+			$original_subtotal += $price * $qty;
+			$discounted_subtotal += $price * $qty;
+		}
+
+		if ( ! $has_discount || $original_subtotal <= 0 || $discounted_subtotal >= $original_subtotal ) {
+			return $subtotal_html;
+		}
+
+		$formatted = wc_format_sale_price( wc_price( $original_subtotal ), wc_price( $discounted_subtotal ) );
+		if ( $discount_label ) {
+			$formatted .= ' <small class="pwca-discount-hint">' . esc_html( $discount_label ) . '</small>';
+		}
+
+		return $formatted;
+	}
+
+	public function render_cart_total_with_discount( $total_html ) {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			return $total_html;
+		}
+
+		$has_discount = false;
+		$discount_label = '';
+		$original_subtotal = 0;
+		$discounted_subtotal = 0;
+
+		foreach ( WC()->cart->get_cart() as $cart_item ) {
+			$product = isset( $cart_item['data'] ) ? $cart_item['data'] : null;
+			if ( ! $product || ! is_object( $product ) ) {
+				continue;
+			}
+
+			$qty = isset( $cart_item['quantity'] ) ? (int) $cart_item['quantity'] : 1;
+			$qty = max( 1, $qty );
+
+			if ( isset( $cart_item['custom_data'] ) && is_array( $cart_item['custom_data'] ) ) {
+				$custom = $cart_item['custom_data'];
+				$rate = $this->get_discount_rate_from_custom( $custom );
+				if ( $rate !== null ) {
+					$has_discount = true;
+					$original_price = (float) $product->get_regular_price();
+					$discounted_price = (float) $product->get_price();
+					$original_subtotal += $original_price * $qty;
+					$discounted_subtotal += $discounted_price * $qty;
+
+					$label = $this->get_discount_label_from_custom( $custom );
+					if ( $label ) {
+						$discount_label = $label;
+					}
+					continue;
+				}
+			}
+
+			$price = (float) $product->get_price();
+			$original_subtotal += $price * $qty;
+			$discounted_subtotal += $price * $qty;
+		}
+
+		if ( ! $has_discount || $original_subtotal <= 0 || $discounted_subtotal >= $original_subtotal ) {
+			return $total_html;
+		}
+
+		$total = WC()->cart->get_total( 'edit' );
+		$fee_total = $total - $discounted_subtotal;
+		$original_total = $original_subtotal + $fee_total;
+
+		$formatted = wc_format_sale_price( wc_price( $original_total ), wc_price( $total ) );
+		if ( $discount_label ) {
+			$formatted .= ' <small class="pwca-discount-hint">' . esc_html( $discount_label ) . '</small>';
+		}
+
+		return $formatted;
+	}
+
+	public function apply_discount_to_cart_items( $cart ) {
+		if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
+			return;
+		}
+
+		if ( did_action( 'woocommerce_before_calculate_totals' ) >= 2 ) {
+			return;
+		}
+
+		foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
+			if ( ! isset( $cart_item['custom_data'] ) || ! is_array( $cart_item['custom_data'] ) ) {
+				continue;
+			}
+
+			$custom = $cart_item['custom_data'];
+			$rate   = $this->get_discount_rate_from_custom( $custom );
+			if ( $rate === null ) {
+				continue;
+			}
+
+			$product = $cart_item['data'];
+			if ( ! $product || ! is_object( $product ) ) {
+				continue;
+			}
+
+			$original_price = (float) $product->get_price();
+			if ( $original_price <= 0 ) {
+				continue;
+			}
+
+			$discounted_price = $original_price * $rate;
+			$discounted_price = round( $discounted_price, wc_get_price_decimals() );
+
+			$product->set_price( $discounted_price );
+			$product->set_sale_price( $discounted_price );
+		}
+	}
+
+	public function get_cart_item_discounted_price( $price, $cart_item, $cart_item_key ) {
+		if ( ! isset( $cart_item['custom_data'] ) || ! is_array( $cart_item['custom_data'] ) ) {
+			return $price;
+		}
+
+		$custom = $cart_item['custom_data'];
+		$rate   = $this->get_discount_rate_from_custom( $custom );
+		if ( $rate === null ) {
+			return $price;
+		}
+
+		$product = isset( $cart_item['data'] ) ? $cart_item['data'] : null;
+		if ( ! $product || ! is_object( $product ) ) {
+			return $price;
+		}
+
+		$original_price   = (float) $product->get_regular_price();
+		$discounted_price = $original_price * $rate;
+
+		return (float) $discounted_price;
 	}
 
 	private function build_custom_data_from_post() {
