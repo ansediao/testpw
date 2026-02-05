@@ -308,22 +308,31 @@ final class Pwca_Front_Cart_Handler {
 		$strings = array();
 		$html    = '';
 
-		foreach ( $item->get_formatted_meta_data( $args['hideprefix'], true ) as $meta ) {
+		$hideprefix   = isset( $args['hideprefix'] ) ? $args['hideprefix'] : '';
+		$label_class  = isset( $args['label_class'] ) ? $args['label_class'] : '';
+		$label_before = isset( $args['label_before'] ) ? $args['label_before'] : '';
+		$label_after  = isset( $args['label_after'] ) ? $args['label_after'] : '';
+		$autop        = isset( $args['autop'] ) ? $args['autop'] : false;
+		$before       = isset( $args['before'] ) ? $args['before'] : '';
+		$after        = isset( $args['after'] ) ? $args['after'] : '';
+		$separator    = isset( $args['separator'] ) ? $args['separator'] : '';
+
+		foreach ( $item->get_formatted_meta_data( $hideprefix, true ) as $meta ) {
 			$key   = $meta->display_key;
 			$value = $meta->display_value;
 
 			if ( $meta->key === 'custom_data' && ( $key === 'Custom Design' || $key === 'Color' ) ) {
 				$value = $meta->value;
 			} else {
-				$value = $args['autop'] ? wp_kses_post( $value ) : wp_kses_post( make_clickable( trim( $value ) ) );
-				$key   = $args['autop'] ? wp_kses_post( $key ) : wp_kses_post( trim( $key ) );
+				$value = $autop ? wp_kses_post( $value ) : wp_kses_post( make_clickable( trim( $value ) ) );
+				$key   = $autop ? wp_kses_post( $key ) : wp_kses_post( trim( $key ) );
 			}
 
-			$strings[] = '<strong class="' . esc_attr( $args['label_class'] ) . '">' . $key . $args['label_before'] . ':</strong> ' . $value . $args['label_after'];
+			$strings[] = '<strong class="' . esc_attr( $label_class ) . '">' . $key . $label_before . ':</strong> ' . $value . $label_after;
 		}
 
 		if ( $strings ) {
-			$html = $args['before'] . implode( $args['separator'], $strings ) . $args['after'];
+			$html = $before . implode( $separator, $strings ) . $after;
 		}
 
 		return $html;
