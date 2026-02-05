@@ -24,6 +24,8 @@ final class Pwca_Admin_Orders {
 		add_action( 'woocommerce_order_actions_end', array( $this, 'render_production_pdf_button' ), 10, 1 );
 		// 在订单数据列（order_data_column）最下面渲染订单详情 PDF 下载按钮
 		add_action( 'woocommerce_admin_order_data_after_billing_address', array( $this, 'render_order_details_pdf_button' ), 10, 1 );
+		// 在订单项元数据表格（display_meta table）下方添加按钮
+		add_action( 'woocommerce_after_order_itemmeta', array( $this, 'render_button_after_item_meta' ), 10, 3 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
@@ -171,6 +173,40 @@ final class Pwca_Admin_Orders {
 		echo '<span class="pwca-admin-orders-details-pdf__status" style="margin-left: 10px;"></span>';
 		echo '</span>';
 		echo '</p>';
+	}
+
+	/**
+	 * 在订单项元数据表格（display_meta table）下方添加按钮
+	 *
+	 * @param int        $item_id 订单项ID
+	 * @param WC_Order_Item $item 订单项对象
+	 * @param WC_Product   $product 产品对象
+	 */
+	public function render_button_after_item_meta( $item_id, $item, $product ) {
+		// 只处理 line_item 类型的订单项
+		if ( ! ( is_object( $item ) && method_exists( $item, 'get_type' ) && $item->get_type() === 'line_item' ) ) {
+			return;
+		}
+
+		// 检查是否有设计数据
+		$resolved = $this->resolve_item_design_data( $item_id, $item );
+		if ( empty( $resolved['custom_image'] ) ) {
+			return;
+		}
+
+		$product_name = is_object( $item ) && method_exists( $item, 'get_name' ) ? (string) $item->get_name() : '';
+		$product_id   = is_object( $item ) && method_exists( $item, 'get_product_id' ) ? (int) $item->get_product_id() : 0;
+
+		echo '<div class="pwca-admin-orders-item-meta-button">';
+		echo '<button type="button" class="button pwca-admin-orders-view-design"'
+			. ' data-item-id="' . esc_attr( (string) $item_id ) . '"'
+			. ' data-product-id="' . esc_attr( (string) $product_id ) . '"'
+			. ' data-product-name="' . esc_attr( $product_name ) . '"'
+			. ' data-design-image="' . esc_attr( $resolved['custom_image'] ) . '"'
+			. '>';
+		echo '查看设计图';
+		echo '</button>';
+		echo '</div>';
 	}
 
 	/**
