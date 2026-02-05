@@ -629,6 +629,62 @@ onReady(() => {
   // 如果是从购物车进入的编辑模式，尝试恢复对应行项目的完整画布状态
   initCartEditCanvasState();
 
+  // 基于 products/{product_id}/updated-at 检查远程数据是否更新，
+  // 如价格发生变化则由后端同步 WooCommerce 价格，并在前端刷新页面。
+  (async () => {
+    try {
+      const settings = getSettings();
+      const pwId = settings.pwId;
+      if (!pwId) {
+        return;
+      }
+
+      const restBase = (settings.restUrl || '/wp-json/').replace(/\/?$/, '/');
+      const syncUrl = `${restBase}pw-canvas/v1/product-sync-status/${encodeURIComponent(pwId)}`;
+
+      const response = await fetch(syncUrl, {
+        method: 'GET',
+        credentials: 'same-origin'
+      });
+
+      let payload;
+
+      if (!response.ok) {
+        try {
+          payload = await response.json();
+        } catch (e) {
+          payload = null;
+        }
+
+        const message = (payload && (payload.error || payload.message))
+          ? String(payload.error || payload.message)
+          : `无法检查产品最新价格（HTTP ${response.status}）`;
+
+        window.alert(message);
+        return;
+      }
+
+      payload = await response.json();
+      if (!payload || payload.success === false) {
+        const message = (payload && (payload.error || payload.message))
+          ? String(payload.error || payload.message)
+          : '无法检查产品最新价格，请稍后重试。';
+
+        window.alert(message);
+        return;
+      }
+
+      if (payload.price_changed && payload.price_synced) {
+        window.alert('该产品的价格已在后台更新，页面将刷新以显示最新价格。');
+        window.setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }
+    } catch (e) {
+      window.alert('无法检查产品最新价格，请检查网络连接或稍后重试。');
+    }
+  })();
+
   const addToCartBtn = document.getElementById('addToCartBtn');
   if (addToCartBtn) {
     addToCartBtn.addEventListener('click', () => addCustomizedProductToCart());

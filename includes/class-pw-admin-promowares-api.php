@@ -591,6 +591,219 @@ class Pw_Admin_Promowares_Api
             'callback' => array($this, 'handle_image_upload'),
             'permission_callback' => '__return_true',
         ));
+
+        // Register product sync status endpoint (check products/{id}/updated-at and sync price)
+        register_rest_route('pw-canvas/v1', '/product-sync-status/(?P<id>\d+)', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_product_sync_status'),
+            'permission_callback' => '__return_true',
+            'args' => array(
+                'id' => array(
+                    'required' => true,
+                    'validate_callback' => function ($param) {
+                        return is_numeric($param) && $param > 0;
+                    },
+                    'sanitize_callback' => function ($param) {
+                        return (int) $param;
+                    },
+                ),
+            ),
+        ));
+    }
+
+    /**
+     * Get product sync status based on products/{product_id}/updated-at.
+     *
+     * - 当 Promowares 的 products/{id}/updated-at 无法获取数据时，返回错误，前端可提示用户。
+     * - 当 updated_at 发生变化时，从 Promowares 获取最新价格并与 WooCommerce 产品价格对比，
+     *   如有变化则更新 WooCommerce 价格并清理本地缓存。
+     *
+     * @since    1.0.0
+     * @param    WP_REST_Request $request The REST request object.
+     * @return   WP_REST_Response         The sync status response.
+     */
+    public function get_product_sync_status($request)
+    {
+        $product_id = isset($request['id']) ? (int) $request['id'] : 0;
+        if ($product_id <= 0) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'error' => 'Invalid product id',
+                'error_code' => 'INVALID_PRODUCT_ID',
+            ), 400);
+        }
+
+        $token = $this->hardcoded_token;
+        if (empty($token)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'error' => 'API token not configured',
+                'error_code' => 'MISSING_TOKEN',
+            ), 401);
+        }
+
+        // 查找对应的 WooCommerce 产品
+        $woo_products = get_posts(array(
+            'post_type' => 'product',
+            'meta_query' => array(
+                array(
+                    'key' => 'pw_id',
+                    'value' => $product_id,
+                    'compare' => '=',
+                ),
+            ),
+            'posts_per_page' => 1,
+        ));
+
+        $woo_product_id = !empty($woo_products) ? (int) $woo_products[0]->ID : 0;
+        $woo_price = null;
+        $woo_regular_price = null;
+        $is_sync_product = false;
+        $woo_product = null;
+
+        if ($woo_product_id && function_exists('wc_get_product')) {
+            $woo_product = wc_get_product($woo_product_id);
+            if ($woo_product) {
+                $woo_price = (float) $woo_product->get_price();
+                $woo_regular_price = (float) $woo_product->get_regular_price();
+                $is_sync_product = get_post_meta($woo_product_id, 'pw_isSyncProduct', true) === '1';
+            }
+        }
+
+        // 请求 products/{id}/updated-at，检查远程更新时间
+        $updated_response = $this->call_promowares_api("products/{$product_id}/updated-at", $token);
+        if (is_wp_error($updated_response)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'error' => $updated_response->get_error_message(),
+                'error_code' => $updated_response->get_error_code(),
+                'error_type' => 'REMOTE_UPDATED_AT_REQUEST_FAILED',
+                'has_woocommerce_product' => (bool) $woo_product_id,
+                'is_sync_product' => $is_sync_product,
+            ), 502);
+        }
+
+        if (!isset($updated_response['data']['updated_at'])) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'error' => 'No updated_at field in Promowares response',
+                'error_code' => 'MISSING_UPDATED_AT',
+                'error_type' => 'REMOTE_UPDATED_AT_MISSING',
+                'has_woocommerce_product' => (bool) $woo_product_id,
+                'is_sync_product' => $is_sync_product,
+            ), 500);
+        }
+
+        $remote_updated_at = (string) $updated_response['data']['updated_at'];
+        $remote_updated_ts = strtotime($remote_updated_at) ?: 0;
+
+        $last_meta_key = 'pw_remote_product_updated_at';
+        $last_updated_at = $woo_product_id ? (string) get_post_meta($woo_product_id, $last_meta_key, true) : '';
+        $last_updated_ts = $last_updated_at !== '' ? strtotime($last_updated_at) : 0;
+
+        // 如果之前没有记录，或者远程更新时间更新了，则认为 updated_at 发生变化
+        $updated_at_changed = ($last_updated_ts === 0) || ($remote_updated_ts > $last_updated_ts);
+
+        $remote_price = null;
+        $remote_anchor_price = null;
+        $price_changed = false;
+        $price_synced = false;
+        $sync_error = null;
+
+        if ($woo_product && $is_sync_product && $updated_at_changed) {
+            // 当 updated_at 有变化时，从 Promowares 获取完整产品数据以检查价格
+            $product_detail = $this->call_promowares_api("products/{$product_id}", $token);
+
+            if (is_wp_error($product_detail)) {
+                $sync_error = $product_detail->get_error_message();
+            } elseif (!isset($product_detail['data']) || !is_array($product_detail['data'])) {
+                $sync_error = 'Invalid product data from Promowares';
+            } else {
+                $data = $product_detail['data'];
+
+                if (isset($data['price']) && is_numeric($data['price'])) {
+                    $remote_price = (float) $data['price'];
+                }
+                if (isset($data['anchor_price']) && is_numeric($data['anchor_price'])) {
+                    $remote_anchor_price = (float) $data['anchor_price'];
+                }
+
+                if ($remote_price === null && $remote_anchor_price === null) {
+                    $sync_error = 'Remote product does not contain price information';
+                }
+            }
+
+            if ($sync_error === null && ($remote_price !== null || $remote_anchor_price !== null)) {
+                // 选择要写入的价格：优先使用 price 作为当前售价，anchor_price 作为原价
+                $new_price = $remote_price !== null ? $remote_price : $remote_anchor_price;
+                $new_regular_price = $remote_anchor_price !== null ? $remote_anchor_price : $remote_price;
+
+                $current_price = is_numeric($woo_price) ? (float) $woo_price : null;
+                if ($current_price !== null && $new_price !== null && (float) $new_price !== (float) $current_price) {
+                    $price_changed = true;
+                }
+
+                if ($price_changed) {
+                    // 通过 WooCommerce API 更新价格，确保缓存一致
+                    if ($new_regular_price !== null) {
+                        $woo_product->set_regular_price((string) $new_regular_price);
+                    }
+                    if ($new_price !== null) {
+                        $woo_product->set_price((string) $new_price);
+                    }
+                    $woo_product->save();
+
+                    // 同步更新底层 meta，兼容直接读取 _price/_regular_price 的逻辑
+                    if ($new_price !== null) {
+                        update_post_meta($woo_product_id, '_price', (string) $new_price);
+                    }
+                    if ($new_regular_price !== null) {
+                        update_post_meta($woo_product_id, '_regular_price', (string) $new_regular_price);
+                    }
+
+                    // WooCommerce 价格已更新，清理聚合数据缓存，确保下次前端请求拿到新价格
+                    $this->clear_cached_product_data($product_id);
+
+                    $price_synced = true;
+
+                    // 重新获取最新价格用于响应体
+                    $woo_price = (float) $woo_product->get_price();
+                    $woo_regular_price = (float) $woo_product->get_regular_price();
+                }
+            }
+        }
+
+        // 仅在价格同步未发生错误的情况下更新本地 updated_at 记录，
+        // 避免在价格同步失败时丢失后续重试机会。
+        if ($woo_product_id && $sync_error === null) {
+            update_post_meta($woo_product_id, $last_meta_key, $remote_updated_at);
+        }
+
+        $response_data = array(
+            'success' => $sync_error === null,
+            'has_woocommerce_product' => (bool) $woo_product_id,
+            'is_sync_product' => $is_sync_product,
+            'remote_updated_at' => $remote_updated_at,
+            'previous_remote_updated_at' => $last_updated_at !== '' ? $last_updated_at : null,
+            'updated_at_changed' => $updated_at_changed,
+            'woo_product_id' => $woo_product_id,
+            'woo_price' => $woo_price,
+            'woo_regular_price' => $woo_regular_price,
+            'remote_price' => $remote_price,
+            'remote_anchor_price' => $remote_anchor_price,
+            'price_changed' => $price_changed,
+            'price_synced' => $price_synced,
+        );
+
+        if ($sync_error !== null) {
+            $response_data['success'] = false;
+            $response_data['error'] = $sync_error;
+            $response_data['error_code'] = 'PRICE_SYNC_FAILED';
+
+            return new WP_REST_Response($response_data, 500);
+        }
+
+        return new WP_REST_Response($response_data, 200);
     }
 
     /**
