@@ -1,0 +1,190 @@
+@charset "UTF-8";
+/**
+ * SCSS 变量集中定义文件
+ * 定义新变量前请先检查是否已存在相同或相似变量
+ * 每个变量必须包含使用说明注释
+ */
+/**
+ * SCSS 混合器集中定义文件
+ * 用于复用常见样式模式
+ */
+.modal {
+  display: none;
+}
+
+.modal.is-open {
+  display: block;
+}
+
+.modal__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100000;
+  pointer-events: auto;
+}
+
+.modal__container {
+  background-color: #fff;
+  padding: 0;
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: pwcaFadeInScale 0.2s ease-out;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes pwcaFadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: #f0f0f1;
+  border-bottom: 1px solid #c3c4c7;
+  flex-shrink: 0;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d2327;
+}
+
+.modal__close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #646970;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+.modal__close:hover {
+  color: #d63638;
+}
+
+.modal__content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-open {
+  overflow: hidden;
+}
+
+#pwca-view-design-modal .modal__container {
+  width: 800px;
+  max-width: 90vw;
+}
+
+.pwca-view-design-empty {
+  text-align: center;
+  color: #646970;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
+.pwca-view-design-block {
+  margin-bottom: 24px;
+}
+.pwca-view-design-block:last-child {
+  margin-bottom: 0;
+}
+
+.pwca-view-design-view-name {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d2327;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #c3c4c7;
+}
+
+.pwca-view-design-images {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.pwca-view-design-image-item {
+  position: relative;
+  background: #f6f7f7;
+  border: 1px solid #c3c4c7;
+  border-radius: 4px;
+  overflow: hidden;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pwca-view-design-image-item img {
+  max-width: 100%;
+  max-height: 100%;
+  -o-object-fit: contain;
+     object-fit: contain;
+  padding: 8px;
+}
+
+.pwca-view-design-image-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.pwca-view-design-image-label.pwca-image-label-print {
+  background: #2271b1;
+  color: #fff;
+}
+.pwca-view-design-image-label.pwca-image-label-mockup {
+  background: #1d2327;
+  color: #fff;
+}
+
+.pwca-admin-orders-item-meta-button {
+  margin-top: 8px;
+}
+.pwca-admin-orders-item-meta-button .pwca-admin-orders-view-design {
+  margin-right: 8px;
+}
+
+@media (max-width: 768px) {
+  .modal__container {
+    margin: 10px;
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+  }
+  .pwca-view-design-images {
+    grid-template-columns: 1fr;
+  }
+}/*# sourceMappingURL=pwca-admin-orders-view-design.css.map */

@@ -34,12 +34,36 @@
   border-bottom: 1px solid #E5E5E5;
   padding-bottom: 10px;
 }
+.pwca-order-summary .pwca-order-item .pwca-item-price .woocommerce-Price-amount {
+  display: block;
+}
+.pwca-order-summary .pwca-order-item .pwca-item-price .pwca-discount-hint {
+  display: block;
+  font-size: 12px;
+  color: #e74c3c;
+}
 .pwca-order-summary .pwca-order-subtotal {
   padding: 10px 0;
   border-bottom: 1px solid #E5E5E5;
 }
+.pwca-order-summary .pwca-order-subtotal .pwca-subtotal-amount .woocommerce-Price-amount {
+  display: block;
+}
+.pwca-order-summary .pwca-order-subtotal .pwca-subtotal-amount .pwca-discount-hint {
+  display: block;
+  font-size: 12px;
+  color: #e74c3c;
+}
 .pwca-order-summary .pwca-order-total {
   padding: 10px 0;
+}
+.pwca-order-summary .pwca-order-total .pwca-total-amount .woocommerce-Price-amount {
+  display: block;
+}
+.pwca-order-summary .pwca-order-total .pwca-total-amount .pwca-discount-hint {
+  display: block;
+  font-size: 12px;
+  color: #e74c3c;
 }
 
 .pwca-order-shipping {

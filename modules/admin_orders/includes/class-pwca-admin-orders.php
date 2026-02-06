@@ -29,6 +29,7 @@ final class Pwca_Admin_Orders {
 		// 控制订单项元数据表格中的显示
 		add_filter( 'woocommerce_order_item_display_meta_key', array( $this, 'filter_order_item_display_meta_key' ), 10, 3 );
 		add_filter( 'woocommerce_order_item_display_meta_value', array( $this, 'filter_order_item_display_meta_value' ), 10, 3 );
+		add_filter( 'woocommerce_order_item_get_formatted_meta_data', array( $this, 'hide_view_images_from_display_meta' ), 10, 2 );
 	}
 
 	public function enqueue_assets( $hook ) {
@@ -47,6 +48,7 @@ final class Pwca_Admin_Orders {
 		}
 
 		$this->maybe_enqueue_style( 'pwca-admin-orders-production-pdf', 'assets/scss/pwca-admin-orders-production-pdf.css' );
+		$this->maybe_enqueue_style( 'pwca-admin-orders-view-design', 'assets/scss/pwca-admin-orders-view-design.css' );
 
 		wp_enqueue_script(
 			'pwca-admin-orders-production-pdf',
@@ -67,6 +69,36 @@ final class Pwca_Admin_Orders {
 				),
 			)
 		);
+
+		wp_enqueue_script(
+			'pwca-admin-orders-view-design',
+			$this->module_url . 'assets/js/pwca-admin-orders-view-design.js',
+			array(),
+			null,
+			true
+		);
+
+		// 添加弹窗 HTML 到 footer
+		add_action( 'admin_footer', array( $this, 'render_view_design_modal' ) );
+	}
+
+	/**
+	 * 渲染设计预览弹窗
+	 */
+	public function render_view_design_modal() {
+		echo '<div class="modal" id="pwca-view-design-modal" aria-hidden="true">';
+		echo '<div class="modal__overlay" data-micromodal-close>';
+		echo '<div class="modal__container" role="dialog" aria-modal="true">';
+		echo '<div class="modal__header">';
+		echo '<h3 class="modal__title" id="pwca-view-design-modal-title">Design Preview</h3>';
+		echo '<button class="modal__close" data-micromodal-close aria-label="Close">&times;</button>';
+		echo '</div>';
+		echo '<div class="modal__content" id="pwca-view-design-modal-body">';
+		echo '<p class="pwca-view-design-empty">Loading...</p>';
+		echo '</div>';
+		echo '</div>';
+		echo '</div>';
+		echo '</div>';
 	}
 
 	public function store_custom_data_on_order_item( $item, $cart_item_key, $values, $order ) {
@@ -95,12 +127,17 @@ final class Pwca_Admin_Orders {
 			return;
 		}
 
-		$skip_keys = array( 'custom_image', 'added_from', 'is_sample', 'is_blank' );
+		$skip_keys = array( 'custom_image', 'added_from', 'is_sample', 'is_blank', 'view_images' );
 		foreach ( $custom_data as $key => $value ) {
 			if ( in_array( $key, $skip_keys, true ) ) {
 				continue;
 			}
 			$item->add_meta_data( $key, $value, true );
+		}
+
+		// 存储 view_images 到私有元数据（以下划线开头，不会在 display_meta 中显示）
+		if ( isset( $custom_data['view_images'] ) && is_array( $custom_data['view_images'] ) && ! empty( $custom_data['view_images'] ) ) {
+			$item->add_meta_data( '_view_images', $custom_data['view_images'], true );
 		}
 
 		// 存储 Order Type（根据 is_sample 转换）
@@ -175,19 +212,26 @@ final class Pwca_Admin_Orders {
 			return;
 		}
 
-		
-
 		$product_name = is_object( $item ) && method_exists( $item, 'get_name' ) ? (string) $item->get_name() : '';
 		$product_id   = is_object( $item ) && method_exists( $item, 'get_product_id' ) ? (int) $item->get_product_id() : 0;
+
+		// 获取 view_images 数据
+		$view_images = array();
+		if ( method_exists( $item, 'get_meta' ) ) {
+			$view_images = $item->get_meta( '_view_images', true );
+			if ( ! is_array( $view_images ) ) {
+				$view_images = array();
+			}
+		}
 
 		echo '<div class="pwca-admin-orders-item-meta-button">';
 		echo '<button type="button" class="button pwca-admin-orders-view-design"'
 			. ' data-item-id="' . esc_attr( (string) $item_id ) . '"'
 			. ' data-product-id="' . esc_attr( (string) $product_id ) . '"'
 			. ' data-product-name="' . esc_attr( $product_name ) . '"'
-			// . ' data-design-image="' . esc_attr( $resolved['custom_image'] ) . '"'
+			. ' data-view-images="' . esc_attr( wp_json_encode( $view_images ) ) . '"'
 			. '>';
-		echo 'Designer Page';
+		echo 'View Design';
 		echo '</button>';
 		echo '</div>';
 	}
@@ -606,5 +650,21 @@ final class Pwca_Admin_Orders {
 		}
 
 		return $display_value;
+	}
+
+	/**
+	 * 隐藏 view_images 从订单项元数据表格显示
+	 *
+	 * @param array $formatted_meta 格式化后的元数据
+	 * @param WC_Order_Item $item 订单项对象
+	 * @return array
+	 */
+	public function hide_view_images_from_display_meta( $formatted_meta, $item ) {
+		foreach ( $formatted_meta as $key => $meta ) {
+			if ( isset( $meta->key ) && $meta->key === 'view_images' ) {
+				unset( $formatted_meta[ $key ] );
+			}
+		}
+		return $formatted_meta;
 	}
 }
