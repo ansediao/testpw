@@ -25,6 +25,10 @@ final class Pwca_Admin_Orders {
 		// 在订单项元数据表格（display_meta table）下方添加按钮
 		add_action( 'woocommerce_after_order_itemmeta', array( $this, 'render_button_after_item_meta' ), 10, 3 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+
+		// 控制订单项元数据表格中的显示
+		add_filter( 'woocommerce_order_item_display_meta_key', array( $this, 'filter_order_item_display_meta_key' ), 10, 3 );
+		add_filter( 'woocommerce_order_item_display_meta_value', array( $this, 'filter_order_item_display_meta_value' ), 10, 3 );
 	}
 
 	public function enqueue_assets( $hook ) {
@@ -91,12 +95,24 @@ final class Pwca_Admin_Orders {
 			return;
 		}
 
-		$skip_keys = array( 'custom_image', 'added_from' );
+		$skip_keys = array( 'custom_image', 'added_from', 'is_sample' );
 		foreach ( $custom_data as $key => $value ) {
 			if ( in_array( $key, $skip_keys, true ) ) {
 				continue;
 			}
 			$item->add_meta_data( $key, $value, true );
+		}
+
+		// 存储 Order Type（根据 is_sample 转换）
+		if ( isset( $custom_data['is_sample'] ) ) {
+			$is_sample = (int) $custom_data['is_sample'];
+			$item->add_meta_data( '_order_type', $is_sample === 1 ? 'Sample' : 'Bulk', true );
+		}
+
+		// 存储 Customization（根据 added_from 转换）
+		if ( isset( $custom_data['added_from'] ) ) {
+			$added_from = (string) $custom_data['added_from'];
+			$item->add_meta_data( '_customization', $added_from === 'design' ? 'Yes' : 'No', true );
 		}
 
 		// if ( isset( $custom_data['custom_image'] ) && is_string( $custom_data['custom_image'] ) && $custom_data['custom_image'] !== '' ) {
@@ -533,5 +549,59 @@ final class Pwca_Admin_Orders {
 		}
 
 		return '';
+	}
+
+	/**
+	 * 过滤订单项元数据表格中的 key 显示
+	 *
+	 * @param string $display_key 显示的 key
+	 * @param object $meta 元数据对象
+	 * @param WC_Order_Item $item 订单项对象
+	 * @return string
+	 */
+	public function filter_order_item_display_meta_key( $display_key, $meta, $item ) {
+		// 隐藏 color_name
+		if ( $display_key === 'color_name' ) {
+			return '';
+		}
+
+		// 将内部 key 转换为友好的显示名称
+		$key_mapping = array(
+			'_order_type'   => 'Order Type',
+			'_customization' => 'Customization',
+			'accessories_names' => 'Accessories',
+		);
+
+		if ( isset( $key_mapping[ $display_key ] ) ) {
+			return $key_mapping[ $display_key ];
+		}
+
+		return $display_key;
+	}
+
+	/**
+	 * 过滤订单项元数据表格中的 value 显示
+	 *
+	 * @param string $display_value 显示的值
+	 * @param object $meta 元数据对象
+	 * @param WC_Order_Item $item 订单项对象
+	 * @return string
+	 */
+	public function filter_order_item_display_meta_value( $display_value, $meta, $item ) {
+		$meta_key = isset( $meta->key ) ? $meta->key : '';
+
+		// 处理 accessories_names 数组显示
+		if ( $meta_key === 'accessories_names' ) {
+			if ( is_array( $display_value ) ) {
+				return implode( ', ', $display_value );
+			}
+			// 如果是 JSON 字符串，尝试解码
+			$decoded = json_decode( $display_value, true );
+			if ( is_array( $decoded ) ) {
+				return implode( ', ', $decoded );
+			}
+		}
+
+		return $display_value;
 	}
 }
