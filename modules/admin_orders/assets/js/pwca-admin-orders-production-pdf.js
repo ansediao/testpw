@@ -101,6 +101,36 @@
 	};
 
 	/**
+	 * 从 view_images 中提取所有图片 URL
+	 */
+	const extractImagesFromViewImages = (viewImages) => {
+		if (!Array.isArray(viewImages) || viewImages.length === 0) {
+			return [];
+		}
+
+		const images = [];
+		viewImages.forEach((view) => {
+			if (!view || typeof view !== 'object') return;
+			
+			const viewName = view.view_name || view.view_id || view.id || 'View';
+			const viewImages_list = Array.isArray(view.images) ? view.images : [];
+			
+			viewImages_list.forEach((url, idx) => {
+				if (typeof url === 'string' && url !== '') {
+					const label = viewImages_list.length === 2 && idx === 0 ? 'Print File' : 'Mockup';
+					images.push({
+						url,
+						viewName,
+						label
+					});
+				}
+			});
+		});
+		
+		return images;
+	};
+
+	/**
 	 * 生成包含所有商品设计的 PDF
 	 */
 	const generatePdf = async (container) => {
@@ -129,42 +159,51 @@
 		const margin = 40;
 		const contentWidth = pageWidth - margin * 2;
 
-		// 遍历每个商品，每个商品一页
+		// 遍历每个商品，每个商品一页或多页（根据图片数量）
 		for (let i = 0; i < items.length; i++) {
 			const item = items[i];
+			const images = extractImagesFromViewImages(item.view_images);
 			
-			if (i > 0) {
-				doc.addPage();
+			if (images.length === 0) {
+				continue;
 			}
 
-			let yPos = margin;
+			// 每个图片一页
+			for (let imgIdx = 0; imgIdx < images.length; imgIdx++) {
+				if (i > 0 || imgIdx > 0) {
+					doc.addPage();
+				}
 
-			// 构建文字内容
-			const textLines = [
-				`生产单 - 订单 #${orderNumber}`,
-				``,
-				`商品 ${i + 1} / ${items.length}`,
-				`产品：${item.product_name || ''}`,
-				`产品ID：${item.product_id || ''}`
-			];
+				const imageInfo = images[imgIdx];
+				let yPos = margin;
 
-			// 颜色信息
-			const colorLine = item.color_name 
-				? `${item.color_name}（${item.custom_color}）` 
-				: item.custom_color;
-			if (colorLine) {
-				textLines.push(`颜色：${colorLine}`);
-			}
+				// 构建文字内容
+				const textLines = [
+					`生产单 - 订单 #${orderNumber}`,
+					``,
+					`商品 ${i + 1} / ${items.length}`,
+					`产品：${item.product_name || ''}`,
+					`产品ID：${item.product_id || ''}`,
+					`视图：${imageInfo.viewName}`,
+					`类型：${imageInfo.label}`
+				];
 
-			// 使用 Canvas 绘制中文文字
-			const textImg = textToImage(textLines, { fontSize: 14, maxWidth: contentWidth });
-			doc.addImage(textImg.dataUrl, 'PNG', margin, yPos, textImg.width, textImg.height);
-			yPos += textImg.height + 20;
+				// 颜色信息
+				const colorLine = item.color_name 
+					? `${item.color_name}（${item.custom_color}）` 
+					: item.custom_color;
+				if (colorLine) {
+					textLines.push(`颜色：${colorLine}`);
+				}
 
-			// 设计图
-			if (item.custom_image) {
+				// 使用 Canvas 绘制中文文字
+				const textImg = textToImage(textLines, { fontSize: 14, maxWidth: contentWidth });
+				doc.addImage(textImg.dataUrl, 'PNG', margin, yPos, textImg.width, textImg.height);
+				yPos += textImg.height + 20;
+
+				// 设计图
 				try {
-					const imageDataUrl = await fetchImageDataUrl(item.custom_image);
+					const imageDataUrl = await fetchImageDataUrl(imageInfo.url);
 					const format = inferImageFormat(imageDataUrl);
 					const maxImgHeight = pageHeight - yPos - margin;
 					doc.addImage(imageDataUrl, format, margin, yPos, contentWidth, 0);
@@ -179,8 +218,6 @@
 		const safeOrder = String(orderNumber || 'order').replace(/[^\w.-]/g, '-');
 		doc.save(`production-order-${safeOrder}.pdf`);
 	};
-
-
 
 	const getI18n = () => {
 		const i18n = window.pwcaAdminOrdersProductionPdf && window.pwcaAdminOrdersProductionPdf.i18n;

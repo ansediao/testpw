@@ -127,7 +127,7 @@ final class Pwca_Admin_Orders {
 			return;
 		}
 
-		$skip_keys = array( 'custom_image', 'added_from', 'is_sample', 'is_blank', 'view_images' );
+		$skip_keys = array( 'custom_image', 'added_from', 'is_sample', 'is_blank', 'view_images', 'color' );
 		foreach ( $custom_data as $key => $value ) {
 			if ( in_array( $key, $skip_keys, true ) ) {
 				continue;
@@ -231,7 +231,7 @@ final class Pwca_Admin_Orders {
 			. ' data-product-name="' . esc_attr( $product_name ) . '"'
 			. ' data-view-images="' . esc_attr( wp_json_encode( $view_images ) ) . '"'
 			. '>';
-		echo 'View Design';
+		echo 'Designer Page';
 		echo '</button>';
 		echo '</div>';
 	}
@@ -248,21 +248,41 @@ final class Pwca_Admin_Orders {
 				continue;
 			}
 
-			$resolved = $this->resolve_item_design_data( $item_id, $item );
-			if ( $resolved['custom_image'] === '' ) {
+			// 获取 view_images 数据
+			$view_images = array();
+			if ( method_exists( $item, 'get_meta' ) ) {
+				$view_images = $item->get_meta( '_view_images', true );
+				if ( ! is_array( $view_images ) ) {
+					$view_images = array();
+				}
+			}
+
+			// 如果没有 view_images，跳过此订单项
+			if ( empty( $view_images ) ) {
 				continue;
 			}
 
 			$product_name = is_object( $item ) && method_exists( $item, 'get_name' ) ? (string) $item->get_name() : '';
 			$product_id   = is_object( $item ) && method_exists( $item, 'get_product_id' ) ? (int) $item->get_product_id() : 0;
 
+			// 获取颜色信息
+			$color_name   = '';
+			$custom_color = '';
+			if ( method_exists( $item, 'get_meta' ) ) {
+				$color_name   = $item->get_meta( 'color_name', true );
+				$custom_color = $item->get_meta( 'custom_color', true );
+				if ( ! $custom_color ) {
+					$custom_color = $item->get_meta( 'color', true );
+				}
+			}
+
 			$items_data[] = array(
 				'item_id'      => (int) $item_id,
 				'product_id'   => $product_id,
 				'product_name' => $product_name,
-				'custom_image' => $resolved['custom_image'],
-				'custom_color' => $resolved['custom_color'],
-				'color_name'   => $resolved['color_name'],
+				'view_images'  => $view_images,
+				'custom_color' => $custom_color,
+				'color_name'   => $color_name,
 			);
 		}
 
@@ -653,18 +673,62 @@ final class Pwca_Admin_Orders {
 	}
 
 	/**
-	 * 隐藏 view_images 从订单项元数据表格显示
+	 * 隐藏 view_images 从订单项元数据表格显示，并处理颜色显示逻辑
+	 *
+	 * 颜色显示规则：
+	 * - 只显示一个 Color 项
+	 * - 有 color_name 就只显示 color_name
+	 * - 没有 color_name 就显示 color_value
+	 * - 都没有就不显示 Color 项
 	 *
 	 * @param array $formatted_meta 格式化后的元数据
 	 * @param WC_Order_Item $item 订单项对象
 	 * @return array
 	 */
 	public function hide_view_images_from_display_meta( $formatted_meta, $item ) {
+		$color_name_meta = null;
+		$color_value_meta = null;
+		$color_name_key = null;
+		$color_value_key = null;
+
 		foreach ( $formatted_meta as $key => $meta ) {
+			// 隐藏 view_images
 			if ( isset( $meta->key ) && $meta->key === 'view_images' ) {
 				unset( $formatted_meta[ $key ] );
+				continue;
+			}
+			// 记录 color_name 和 color_value 的位置
+			if ( isset( $meta->key ) && $meta->key === 'color_name' ) {
+				$color_name_meta = $meta;
+				$color_name_key = $key;
+			}
+			if ( isset( $meta->key ) && $meta->key === 'color_value' ) {
+				$color_value_meta = $meta;
+				$color_value_key = $key;
 			}
 		}
+
+		// 处理颜色显示逻辑：只显示一个 Color
+		if ( $color_name_meta && ! empty( $color_name_meta->value ) ) {
+			// 有 color_name，删除 color_value
+			if ( $color_value_key !== null ) {
+				unset( $formatted_meta[ $color_value_key ] );
+			}
+		} elseif ( $color_value_meta && ! empty( $color_value_meta->value ) ) {
+			// 没有 color_name 但有 color_value，删除空的 color_name
+			if ( $color_name_key !== null ) {
+				unset( $formatted_meta[ $color_name_key ] );
+			}
+		} else {
+			// 都没有值，都删除
+			if ( $color_name_key !== null ) {
+				unset( $formatted_meta[ $color_name_key ] );
+			}
+			if ( $color_value_key !== null ) {
+				unset( $formatted_meta[ $color_value_key ] );
+			}
+		}
+
 		return $formatted_meta;
 	}
 }
