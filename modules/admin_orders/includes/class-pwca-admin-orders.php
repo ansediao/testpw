@@ -563,11 +563,6 @@ final class Pwca_Admin_Orders {
 	 * @return string
 	 */
 	public function filter_order_item_display_meta_key( $display_key, $meta, $item ) {
-		// 隐藏 color_name
-		if ( $display_key === 'color_name' ) {
-			return '';
-		}
-
 		// 将内部 key 转换为友好的显示名称
 		$key_mapping = array(
 			'_order_type'       => 'Order Type',
@@ -576,6 +571,7 @@ final class Pwca_Admin_Orders {
 			'color'             => 'Color',
 			'custom_color'      => 'Color',
 			'color_value'       => 'Color',
+			'color_name'        => 'Color',
 			'is_blank'          => 'Blank Product',
 		);
 
