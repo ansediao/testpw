@@ -95,7 +95,7 @@ final class Pwca_Admin_Orders {
 			return;
 		}
 
-		$skip_keys = array( 'custom_image', 'added_from', 'is_sample' );
+		$skip_keys = array( 'custom_image', 'added_from', 'is_sample', 'is_blank' );
 		foreach ( $custom_data as $key => $value ) {
 			if ( in_array( $key, $skip_keys, true ) ) {
 				continue;
@@ -351,16 +351,19 @@ final class Pwca_Admin_Orders {
 	}
 
 	private function sanitize_custom_data_flags( array $custom_data ) {
-		if ( ! array_key_exists( 'is_blank', $custom_data ) ) {
-			return array();
+		$out = array();
+
+		if ( array_key_exists( 'is_blank', $custom_data ) ) {
+			$value = $custom_data['is_blank'];
+			$out['is_blank'] = is_numeric( $value ) ? (int) $value : ( (bool) $value ? 1 : 0 );
 		}
 
-		$value = $custom_data['is_blank'];
-		$is_blank = is_numeric( $value ) ? (int) $value : ( (bool) $value ? 1 : 0 );
+		if ( array_key_exists( 'is_sample', $custom_data ) ) {
+			$value = $custom_data['is_sample'];
+			$out['is_sample'] = is_numeric( $value ) ? (int) $value : ( (bool) $value ? 1 : 0 );
+		}
 
-		return array(
-			'is_blank' => $is_blank,
-		);
+		return $out;
 	}
 
 	private function sanitize_custom_data_view_images( array $custom_data ) {
@@ -567,9 +570,13 @@ final class Pwca_Admin_Orders {
 
 		// 将内部 key 转换为友好的显示名称
 		$key_mapping = array(
-			'_order_type'   => 'Order Type',
-			'_customization' => 'Customization',
+			'_order_type'       => 'Order Type',
+			'_customization'    => 'Customization',
 			'accessories_names' => 'Accessories',
+			'color'             => 'Color',
+			'custom_color'      => 'Color',
+			'color_value'       => 'Color',
+			'is_blank'          => 'Blank Product',
 		);
 
 		if ( isset( $key_mapping[ $display_key ] ) ) {
