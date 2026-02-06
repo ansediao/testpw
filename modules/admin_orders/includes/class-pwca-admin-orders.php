@@ -20,8 +20,6 @@ final class Pwca_Admin_Orders {
 
 	public function register() {
 		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'store_custom_data_on_order_item' ), 10, 4 );
-		// 在订单操作区域（Order actions）渲染 PDF 生成按钮
-		add_action( 'woocommerce_order_actions_end', array( $this, 'render_production_pdf_button' ), 10, 1 );
 		// 在订单数据列（order_data_column）最下面渲染订单详情 PDF 下载按钮
 		add_action( 'woocommerce_admin_order_data_after_billing_address', array( $this, 'render_order_details_pdf_button' ), 10, 1 );
 		// 在订单项元数据表格（display_meta table）下方添加按钮
@@ -122,36 +120,6 @@ final class Pwca_Admin_Orders {
 	}
 
 	/**
-	 * 在订单操作区域（Order actions）渲染 PDF 生成按钮
-	 */
-	public function render_production_pdf_button( $order_id ) {
-		$order = wc_get_order( $order_id );
-		if ( ! $this->is_valid_order( $order ) ) {
-			return;
-		}
-
-		// 收集所有有设计数据的商品
-		$items_data = $this->collect_order_design_items( $order );
-		if ( empty( $items_data ) ) {
-			return;
-		}
-
-		$order_number = (string) $order->get_order_number();
-
-		echo '<li class="wide pwca-admin-orders-production-pdf-action">';
-		echo '<div class="pwca-admin-orders-production-pdf"'
-			. ' data-order-id="' . esc_attr( (string) $order_id ) . '"'
-			. ' data-order-number="' . esc_attr( $order_number ) . '"'
-			. ' data-items="' . esc_attr( wp_json_encode( $items_data ) ) . '"'
-			. '>';
-		echo '<button type="button" class="button button-primary pwca-admin-orders-generate-pdf">Generate Print PDF</button>';
-		echo '<span class="spinner"></span>';
-		echo '<span class="pwca-admin-orders-production-pdf__status"></span>';
-		echo '</div>';
-		echo '</li>';
-	}
-
-	/**
 	 * 在订单数据区域（#order_data）渲染订单详情 PDF 下载按钮
 	 */
 	public function render_order_details_pdf_button( $order ) {
@@ -171,7 +139,7 @@ final class Pwca_Admin_Orders {
 			. ' data-order-number="' . esc_attr( $order_number ) . '"'
 			. ' data-items="' . esc_attr( wp_json_encode( $items_data ) ) . '"'
 			. '>';
-		echo '<button type="button" class="button pwca-admin-orders-download-details-pdf">Print File</button>';
+		echo '<button type="button" class="button button-primary pwca-admin-orders-download-details-pdf">Print File</button>';
 		echo '<span class="spinner" style="float: none; margin-top: 0;"></span>';
 		echo '<span class="pwca-admin-orders-details-pdf__status" style="margin-left: 10px;"></span>';
 		echo '</span>';
