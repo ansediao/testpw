@@ -166,13 +166,12 @@ final class Pwca_Admin_Orders {
 		$items_data = $this->collect_order_design_items( $order );
 
 		echo '<p class="form-field form-field-wide pwca-admin-orders-details-pdf-action">';
-		echo '<label>订单 PDF</label>';
 		echo '<span class="pwca-admin-orders-details-pdf"'
 			. ' data-order-id="' . esc_attr( (string) $order_id ) . '"'
 			. ' data-order-number="' . esc_attr( $order_number ) . '"'
 			. ' data-items="' . esc_attr( wp_json_encode( $items_data ) ) . '"'
 			. '>';
-		echo '<button type="button" class="button pwca-admin-orders-download-details-pdf">下载订单详情 PDF</button>';
+		echo '<button type="button" class="button pwca-admin-orders-download-details-pdf">Print File</button>';
 		echo '<span class="spinner" style="float: none; margin-top: 0;"></span>';
 		echo '<span class="pwca-admin-orders-details-pdf__status" style="margin-left: 10px;"></span>';
 		echo '</span>';
@@ -202,9 +201,9 @@ final class Pwca_Admin_Orders {
 			. ' data-item-id="' . esc_attr( (string) $item_id ) . '"'
 			. ' data-product-id="' . esc_attr( (string) $product_id ) . '"'
 			. ' data-product-name="' . esc_attr( $product_name ) . '"'
-			. ' data-design-image="' . esc_attr( $resolved['custom_image'] ) . '"'
+			// . ' data-design-image="' . esc_attr( $resolved['custom_image'] ) . '"'
 			. '>';
-		echo '查看设计图';
+		echo 'Designer Page';
 		echo '</button>';
 		echo '</div>';
 	}
