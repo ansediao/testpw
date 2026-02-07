@@ -1,5 +1,38 @@
 @charset "UTF-8";
 /**
+ * Admin Orders 模块主样式文件
+ * 导入所有子模块的样式
+ */
+/**
+ * SCSS 变量集中定义文件
+ * 定义新变量前请先检查是否已存在相同或相似变量
+ * 每个变量必须包含使用说明注释
+ */
+/**
+ * SCSS 混合器集中定义文件
+ * 用于复用常见样式模式
+ */
+body.wp-admin .pwca-admin-orders-production-pdf-row {
+  background: #f9f9f9;
+}
+body.wp-admin .pwca-admin-orders-production-pdf-row td {
+  padding: 12px 16px !important;
+  border-top: 1px solid #e0e0e0;
+}
+body.wp-admin .pwca-admin-orders-production-pdf {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+body.wp-admin .pwca-admin-orders-production-pdf .spinner {
+  float: none;
+  margin: 0;
+}
+body.wp-admin .pwca-admin-orders-production-pdf__status {
+  color: #1d2327;
+}
+
+/**
  * SCSS 变量集中定义文件
  * 定义新变量前请先检查是否已存在相同或相似变量
  * 每个变量必须包含使用说明注释
@@ -187,4 +220,4 @@
   .pwca-view-design-images {
     grid-template-columns: 1fr;
   }
-}/*# sourceMappingURL=pwca-admin-orders-view-design.css.map */
+}/*# sourceMappingURL=pwca-admin-orders.css.map */
