@@ -353,6 +353,12 @@ const addCustomizedProductToCart = async () => {
   body.set('pw_design_fee_total', String(designFeeTotal));
   body.set('pw_designs', JSON.stringify(designs));
   body.set('pw_view_print_methods', JSON.stringify(viewPrintMethods));
+
+  // 获取样品订单状态
+  const sampleCheckbox = document.querySelector('.sample-check input#sample');
+  const isSampleOrder = sampleCheckbox ? sampleCheckbox.checked : false;
+  body.set('pw_is_sample', isSampleOrder ? '1' : '0');
+
   if (canvasStateJson) {
     body.set('pw_canvas_state', canvasStateJson);
   }
