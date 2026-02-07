@@ -1,4 +1,4 @@
-body.wp-admin #adminmenu .wp-submenu a[href="admin.php?page=pw-dashboard"] {
+> body.wp-admin #adminmenu .wp-submenu a[href="admin.php?page=pw-dashboard"] {
   display: none !important;
 }
 
@@ -85,15 +85,6 @@ body.wp-admin #adminmenu .wp-submenu a[href="admin.php?page=pw-dashboard"] {
 .pwca-admin-dashboard__result {
   margin-top: 12px;
 }
-.pwca-admin-dashboard__tabs {
-  margin-top: 12px;
-}
-.pwca-admin-dashboard__tab-content {
-  margin-top: 16px;
-}
-.pwca-admin-dashboard__pane-title {
-  margin: 0 0 16px 0;
-}
 .pwca-admin-dashboard__stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -149,6 +140,23 @@ body.wp-admin #adminmenu .wp-submenu a[href="admin.php?page=pw-dashboard"] {
 .pwca-admin-dashboard__nav-label {
   font-weight: 600;
 }
+
+.pwca-admin-dashboard__tabs {
+  margin-top: 12px;
+}
+.pwca-admin-dashboard__tab-content {
+  margin-top: 16px;
+}
+.pwca-admin-dashboard__pane-title {
+  margin: 0 0 16px 0;
+}
+.pwca-admin-dashboard__pane--settings .form-table th {
+  padding: 20px 10px 20px 0;
+}
+.pwca-admin-dashboard__pane--settings .form-table td {
+  padding: 15px 10px;
+}
+
 .pwca-admin-dashboard__status-table {
   width: 100%;
   border-collapse: collapse;
@@ -175,6 +183,7 @@ body.wp-admin #adminmenu .wp-submenu a[href="admin.php?page=pw-dashboard"] {
   color: #e74c3c;
   font-weight: 700;
 }
+
 .pwca-admin-dashboard__product-request {
   max-width: 800px;
   margin: 20px auto;
@@ -230,6 +239,10 @@ body.wp-admin #adminmenu .wp-submenu a[href="admin.php?page=pw-dashboard"] {
   text-align: center;
   margin-top: 18px;
 }
+.pwca-admin-dashboard__form-messages {
+  margin-bottom: 16px;
+}
+
 .pwca-admin-dashboard__support-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -243,6 +256,7 @@ body.wp-admin #adminmenu .wp-submenu a[href="admin.php?page=pw-dashboard"] {
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
+
 @media (max-width: 782px) {
   .pwca-admin-dashboard__form-field {
     flex-direction: column;

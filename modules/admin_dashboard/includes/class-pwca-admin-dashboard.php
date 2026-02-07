@@ -4,14 +4,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Admin Dashboard 主模块类
+ * 负责协调各子模块的加载和注册
+ */
 final class Pwca_Admin_Dashboard {
+	private static $instance = null;
 	private $module_path;
 	private $module_url;
 	private $page_hooks = array();
 
 	public static function bootstrap( $module_path, $module_url ) {
-		$instance = new self( $module_path, $module_url );
-		$instance->register();
+		if ( null === self::$instance ) {
+			self::$instance = new self( $module_path, $module_url );
+			self::$instance->init();
+		}
+		return self::$instance;
 	}
 
 	private function __construct( $module_path, $module_url ) {
@@ -19,10 +27,24 @@ final class Pwca_Admin_Dashboard {
 		$this->module_url  = trailingslashit( (string) $module_url );
 	}
 
-	public function register() {
+	private function init() {
+		$this->load_dependencies();
+		$this->load_submodules();
+		$this->register();
+	}
+
+	private function load_dependencies() {
+		require_once $this->module_path . 'includes/class-pwca-admin-dashboard-loader.php';
+	}
+
+	private function load_submodules() {
+		$loader = new Pwca_Admin_Dashboard_Loader( $this->module_path, $this->module_url );
+		$loader->load();
+	}
+
+	private function register() {
 		add_action( 'admin_menu', array( $this, 'register_menu_pages' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-		add_action( 'wp_ajax_pw_submit_product_request', array( $this, 'handle_product_request_submission' ) );
 	}
 
 	public function register_menu_pages() {
@@ -71,14 +93,67 @@ final class Pwca_Admin_Dashboard {
 		);
 	}
 
+	/**
+	 * 渲染主页面 - 委托给 Dashboard 子模块
+	 */
 	public function render_main_page() {
-		$view_model = $this->get_main_page_view_model();
-		$this->render_view( 'main-page.php', array( 'view_model' => $view_model ) );
+		if ( class_exists( 'Pwca_Admin_Dashboard_Dashboard' ) ) {
+			Pwca_Admin_Dashboard_Dashboard::render_main_page();
+		}
 	}
 
+	/**
+	 * 渲染设置页面 - 委托给 Settings 子模块
+	 */
 	public function render_settings_page() {
-		$view_model = $this->get_settings_page_view_model();
-		$this->render_view( 'settings-page.php', array( 'view_model' => $view_model ) );
+		if ( class_exists( 'Pwca_Admin_Dashboard_Settings' ) ) {
+			Pwca_Admin_Dashboard_Settings::render_settings_page();
+		}
+	}
+
+	/**
+	 * 渲染当前 Tab - 根据当前 tab 委托给对应的子模块
+	 */
+	public static function render_current_tab( $current_tab ) {
+		switch ( $current_tab ) {
+			case 'dashboard':
+				if ( class_exists( 'Pwca_Admin_Dashboard_Dashboard' ) ) {
+					Pwca_Admin_Dashboard_Dashboard::render_dashboard_tab();
+				}
+				break;
+			case 'settings':
+				if ( class_exists( 'Pwca_Admin_Dashboard_Settings' ) ) {
+					Pwca_Admin_Dashboard_Settings::render_settings_tab();
+				}
+				break;
+			case 'status':
+				if ( class_exists( 'Pwca_Admin_Dashboard_Status' ) ) {
+					Pwca_Admin_Dashboard_Status::render_status_tab();
+				}
+				break;
+			case 'product_request':
+				if ( class_exists( 'Pwca_Admin_Dashboard_Product_Request' ) ) {
+					Pwca_Admin_Dashboard_Product_Request::render_product_request_tab();
+				}
+				break;
+			case 'support':
+				if ( class_exists( 'Pwca_Admin_Dashboard_Support' ) ) {
+					Pwca_Admin_Dashboard_Support::render_support_tab();
+				}
+				break;
+		}
+	}
+
+	public function get_page_hooks() {
+		return $this->page_hooks;
+	}
+
+	public function get_module_path() {
+		return $this->module_path;
+	}
+
+	public function get_module_url() {
+		return $this->module_url;
 	}
 
 	private function is_woocommerce_active() {
@@ -97,235 +172,5 @@ final class Pwca_Admin_Dashboard {
 
 		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 		return in_array( $page, array( 'pw-dashboard', 'pw-dashboard-settings' ), true );
-	}
-
-	private function get_main_page_view_model() {
-		$messages = $this->maybe_schedule_product_import();
-
-		return array(
-			'ajax_url'             => admin_url( 'admin-ajax.php' ),
-			'rest_product_base'    => trailingslashit( rest_url( 'pw/v1/product-data' ) ),
-			'save_token_nonce'     => wp_create_nonce( 'pw_save_token_nonce' ),
-			'clear_cache_nonce'    => wp_create_nonce( 'pw_clear_cache_nonce' ),
-			'cache_status_nonce'   => wp_create_nonce( 'pw_cache_status_nonce' ),
-			'current_token'        => get_option( 'pw_api_token', '' ),
-			'api_mock_mode'        => (int) get_option( 'pw_api_mock_mode', 0 ),
-			'save_mock_mode_nonce' => wp_create_nonce( 'pw_save_mock_mode_nonce' ),
-			'messages'             => $messages,
-		);
-	}
-
-	private function maybe_schedule_product_import() {
-		if ( 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
-			return array();
-		}
-
-		if ( ! isset( $_POST['pwca_sync_products'] ) ) {
-			return array();
-		}
-
-		if ( ! isset( $_POST['pwca_sync_products_nonce'] ) ) {
-			return array(
-				array( 'type' => 'error', 'text' => 'Security verification failed' ),
-			);
-		}
-
-		$nonce = sanitize_text_field( wp_unslash( $_POST['pwca_sync_products_nonce'] ) );
-		if ( ! wp_verify_nonce( $nonce, 'pwca_sync_products' ) ) {
-			return array(
-				array( 'type' => 'error', 'text' => 'Security verification failed' ),
-			);
-		}
-
-		if ( ! class_exists( 'Pwca_Integration_Promowares' ) ) {
-			return array(
-				array( 'type' => 'error', 'text' => 'Promowares sync module unavailable' ),
-			);
-		}
-
-		if ( ! method_exists( 'Pwca_Integration_Promowares', 'schedule_product_import' ) ) {
-			return array(
-				array( 'type' => 'error', 'text' => 'Product import feature unavailable' ),
-			);
-		}
-
-		return Pwca_Integration_Promowares::schedule_product_import();
-	}
-
-	private function get_settings_page_view_model() {
-		$current_tab = $this->get_current_tab();
-
-		return array(
-			'ajax_url'              => admin_url( 'admin-ajax.php' ),
-			'rest_product_base'     => trailingslashit( rest_url( 'pw/v1/product-data' ) ),
-			'save_token_nonce'      => wp_create_nonce( 'pw_save_token_nonce' ),
-			'clear_cache_nonce'     => wp_create_nonce( 'pw_clear_cache_nonce' ),
-			'cache_status_nonce'    => wp_create_nonce( 'pw_cache_status_nonce' ),
-			'product_request_nonce' => wp_create_nonce( 'pw_product_request_nonce' ),
-			'current_tab'           => $current_tab,
-			'tabs'                  => $this->get_tabs(),
-			'settings'              => $this->get_settings_view_model( $current_tab ),
-		);
-	}
-
-	private function get_current_tab() {
-		$tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'dashboard';
-		$tabs = $this->get_tabs();
-		if ( isset( $tabs[ $tab ] ) ) {
-			return $tab;
-		}
-
-		return 'dashboard';
-	}
-
-	private function get_tabs() {
-		return array(
-			'dashboard'       => 'Dashboard',
-			'settings'        => 'Settings',
-			'status'          => 'Status',
-			'product_request' => 'Product Requirement',
-			'support'         => 'Support',
-		);
-	}
-
-	private function get_settings_view_model( $current_tab ) {
-		if ( 'settings' !== $current_tab ) {
-			return array();
-		}
-
-		$messages = array();
-
-		if ( isset( $_POST['pwca_save_settings'] ) ) {
-			$messages = $this->save_settings_from_post();
-		}
-
-		return array(
-			'messages'       => $messages,
-			'disable_ssl'    => (int) get_option( 'pw_disable_ssl', 0 ),
-			'api_key'        => (string) get_option( 'pw_api_key', '' ),
-			'api_secret'     => (string) get_option( 'pw_api_secret', '' ),
-			'customize_text' => (string) get_option( 'pw_customize_text', 'Customize' ),
-			'customize_color'=> (string) get_option( 'pw_customize_color', '#000000' ),
-		);
-	}
-
-	private function save_settings_from_post() {
-		if ( ! isset( $_POST['pwca_settings_nonce'] ) ) {
-			return array(
-				array( 'type' => 'error', 'text' => 'Security verification failed' ),
-			);
-		}
-
-		$nonce = sanitize_text_field( wp_unslash( $_POST['pwca_settings_nonce'] ) );
-		if ( ! wp_verify_nonce( $nonce, 'pwca_settings' ) ) {
-			return array(
-				array( 'type' => 'error', 'text' => 'Security verification failed' ),
-			);
-		}
-
-		$disable_ssl     = isset( $_POST['pw_disable_ssl'] ) ? 1 : 0;
-		$api_key         = isset( $_POST['pw_api_key'] ) ? sanitize_text_field( wp_unslash( $_POST['pw_api_key'] ) ) : '';
-		$api_secret      = isset( $_POST['pw_api_secret'] ) ? sanitize_text_field( wp_unslash( $_POST['pw_api_secret'] ) ) : '';
-		$customize_text  = isset( $_POST['pw_customize_text'] ) ? sanitize_text_field( wp_unslash( $_POST['pw_customize_text'] ) ) : 'Customize';
-		$customize_color = isset( $_POST['pw_customize_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['pw_customize_color'] ) ) : '#000000';
-
-		update_option( 'pw_disable_ssl', $disable_ssl );
-		update_option( 'pw_api_key', $api_key );
-		update_option( 'pw_api_secret', $api_secret );
-		update_option( 'pw_customize_text', $customize_text );
-		update_option( 'pw_customize_color', $customize_color );
-
-		return array(
-			array( 'type' => 'success', 'text' => 'Settings saved' ),
-		);
-	}
-
-	private function render_view( $relative_path, array $data ) {
-		$path = $this->module_path . 'views' . DIRECTORY_SEPARATOR . $relative_path;
-		if ( ! file_exists( $path ) ) {
-			return;
-		}
-
-		foreach ( $data as $key => $value ) {
-			${$key} = $value;
-		}
-
-		require $path;
-	}
-
-	public function handle_product_request_submission() {
-		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'pw_product_request_nonce' ) ) {
-			wp_send_json_error( __( 'Security check failed!', 'pw-admin' ) );
-			return;
-		}
-
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( __( 'Permission denied!', 'pw-admin' ) );
-			return;
-		}
-
-		$description  = isset( $_POST['pw_product_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['pw_product_description'] ) ) : '';
-		$product_link = isset( $_POST['pw_product_link'] ) ? esc_url_raw( wp_unslash( $_POST['pw_product_link'] ) ) : '';
-		$image_url    = '';
-
-		if ( isset( $_FILES['pw_product_image'] ) && ! empty( $_FILES['pw_product_image']['name'] ) ) {
-			if ( ! function_exists( 'wp_handle_upload' ) ) {
-				require_once ABSPATH . 'wp-admin/includes/file.php';
-			}
-
-			$uploaded_file     = $_FILES['pw_product_image'];
-			$upload_overrides  = array( 'test_form' => false );
-			$movefile          = wp_handle_upload( $uploaded_file, $upload_overrides );
-
-			if ( $movefile && ! isset( $movefile['error'] ) ) {
-				$image_url = $movefile['url'];
-			}
-		}
-
-		if ( '' === $description && '' === $product_link && '' === $image_url ) {
-			wp_send_json_error( __( 'Please fill in at least one field.', 'pw-admin' ) );
-			return;
-		}
-
-		if ( class_exists( 'Flamingo_Inbound_Message' ) ) {
-			$this->save_product_request_to_flamingo( $description, $product_link, $image_url );
-			wp_send_json_success( __( 'Your product request has been submitted successfully!', 'pw-admin' ) );
-			return;
-		}
-
-		wp_send_json_success( __( 'Your product request has been saved successfully!', 'pw-admin' ) );
-	}
-
-	private function save_product_request_to_flamingo( $description, $product_link, $image_url ) {
-		$current_user = wp_get_current_user();
-		$from_name    = $current_user->display_name ? $current_user->display_name : 'Admin User';
-		$from_email   = $current_user->user_email ? $current_user->user_email : get_option( 'admin_email' );
-
-		$flamingo_fields = array(
-			'product_description' => $description,
-			'product_link'        => $product_link,
-			'product_image'       => $image_url,
-			'request_type'        => 'Product Request',
-			'request_source'      => 'Admin Dashboard',
-			'submitted_by'        => $from_name,
-		);
-
-		$request_subject = __( 'Product Request from Admin Dashboard', 'pw-admin' );
-		$post_data       = array(
-			'post_type'   => 'flamingo_inbound',
-			'post_status' => 'publish',
-			'post_title'  => $request_subject,
-		);
-
-		$post_id = wp_insert_post( $post_data );
-		if ( ! $post_id || is_wp_error( $post_id ) ) {
-			return;
-		}
-
-		update_post_meta( $post_id, '_from', $from_name . ' <' . $from_email . '>' );
-		update_post_meta( $post_id, '_from_name', $from_name );
-		update_post_meta( $post_id, '_from_email', $from_email );
-		update_post_meta( $post_id, '_subject', $request_subject );
-		update_post_meta( $post_id, '_fields', $flamingo_fields );
 	}
 }

@@ -30,7 +30,7 @@ modules/{module_name}/
 
 ### 复杂模块结构（支持内部子模块）
 
-对于功能复杂的模块，可在内部使用 `feat_` 前缀文件夹进一步拆分功能子模块：
+对于功能复杂的模块，可在内部使用 `features/` 目录统一管理 `feat_` 前缀的功能子模块：
 
 ```
 modules/{module_name}/
@@ -39,13 +39,21 @@ modules/{module_name}/
 │   ├── class-{prefix}-{type}-{feature}.php
 │   ├── class-{prefix}-{type}-{feature}-context.php
 │   └── class-{prefix}-{type}-{feature}-loader.php  # 子模块加载器
-├── feat_{sub_feature}/    # 功能子模块（自动加载）
-│   ├── index.php
-│   └── includes/
-├── feat_{another}/        # 另一个功能子模块
-│   ├── index.php
-│   └── includes/
+├── features/              # 功能子模块统一存放目录
+│   ├── feat_{sub_feature}/    # 功能子模块（自动加载）
+│   │   ├── index.php
+│   │   ├── includes/
+│   │   ├── views/
+│   │   └── assets/            # 子模块独立资源
+│   │       └── scss/
+│   └── feat_{another}/        # 另一个功能子模块
+│       ├── index.php
+│       ├── includes/
+│       ├── views/
+│       └── assets/
+│           └── scss/
 ├── assets/
+│   └── scss/              # 主 SCSS 入口，导入所有子模块样式
 └── views/
 ```
 
@@ -225,13 +233,13 @@ class {Prefix}_{Type}_{Feature}_Assets {
 
 ## 复杂模块的子模块加载器
 
-对于功能复杂的模块，使用子模块加载器自动加载 `feat_` 前缀的功能子模块：
+对于功能复杂的模块，使用子模块加载器自动加载 `features/` 目录下的 `feat_` 前缀功能子模块：
 
 ```php
 <?php
 /**
  * 子模块加载器
- * 负责扫描模块目录下的 feat_* 子目录并加载
+ * 负责扫描模块目录下 features/ 子目录中的 feat_* 文件夹并加载
  */
 class {Prefix}_{Type}_{Feature}_Loader {
     protected $module_path;
@@ -243,7 +251,8 @@ class {Prefix}_{Type}_{Feature}_Loader {
     }
 
     public function load() {
-        $feat_dirs = glob( $this->module_path . 'feat_*', GLOB_ONLYDIR );
+        // 从 features/ 子目录加载 feat_* 模块
+        $feat_dirs = glob( $this->module_path . 'features' . DIRECTORY_SEPARATOR . 'feat_*', GLOB_ONLYDIR );
         if ( ! is_array( $feat_dirs ) || empty( $feat_dirs ) ) {
             return;
         }
@@ -262,7 +271,7 @@ class {Prefix}_{Type}_{Feature}_Loader {
 
 ```php
 <?php
-// modules/{module_name}/feat_{sub_feature}/index.php
+// modules/{module_name}/features/feat_{sub_feature}/index.php
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
@@ -316,6 +325,68 @@ final class {Prefix}_{Type}_{Feature} {
 }
 ```
 
+## SCSS 样式规范（子模块）
+
+对于复杂模块，SCSS 样式应该按子模块拆分，最后统一编译：
+
+### 目录结构
+
+```
+modules/{module_name}/
+├── assets/
+│   └── scss/
+│       └── {prefix}-{type}-{feature}.scss   # 主入口文件
+└── features/
+    └── feat_{sub_feature}/
+        └── assets/
+            └── scss/
+                └── _{sub-feature}.scss      # 子模块样式（下划线前缀表示 partial）
+```
+
+### 主 SCSS 入口文件示例
+
+```scss
+// modules/{module_name}/assets/scss/{prefix}-{type}-{feature}.scss
+
+// 基础样式
+body.wp-admin {
+    // 全局适配样式
+}
+
+// 导入子模块样式（使用相对路径）
+@import "../../features/feat_dashboard/assets/scss/dashboard";
+@import "../../features/feat_settings/assets/scss/settings";
+@import "../../features/feat_status/assets/scss/status";
+
+// 全局响应式样式
+.{prefix}-{type}-{feature} {
+    @media (max-width: 782px) {
+        // 响应式规则
+    }
+}
+```
+
+### 子模块 SCSS 文件示例
+
+```scss
+// modules/{module_name}/features/feat_{sub_feature}/assets/scss/_{sub-feature}.scss
+
+.{prefix}-{type}-{feature} {
+    // 子模块特定样式
+    &__element {
+        // 样式规则
+    }
+}
+```
+
+### 规范要点
+
+1. **文件命名**: 子模块 SCSS 使用下划线前缀（如 `_dashboard.scss`），表示这是 partial 文件
+2. **导入路径**: 主 SCSS 使用相对路径导入子模块样式
+3. **单一出口**: 只编译主 SCSS 文件，生成一个统一的 CSS 文件
+4. **命名空间**: 所有样式使用 BEM 命名法，以模块名作为前缀
+5. **层级对应**: SCSS 嵌套层级与 DOM 结构保持一致
+
 ## 最佳实践
 
 1. **单一职责**: 每个模块只负责一个明确的功能领域
@@ -325,3 +396,4 @@ final class {Prefix}_{Type}_{Feature} {
 5. **命名空间**: 使用类前缀避免命名冲突
 6. **安全校验**: 所有文件开头添加 `if ( ! defined( 'ABSPATH' ) ) { exit; }`
 7. **层级清晰**: 复杂模块使用 `feat_` 前缀拆分子功能，保持目录结构清晰
+8. **样式分离**: SCSS 按子模块拆分，但统一编译成一个 CSS 文件

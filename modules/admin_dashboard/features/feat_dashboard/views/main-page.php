@@ -12,7 +12,11 @@ $cache_status_nonce   = isset( $view_model['cache_status_nonce'] ) ? (string) $v
 $current_token        = isset( $view_model['current_token'] ) ? (string) $view_model['current_token'] : '';
 $save_mock_mode_nonce = isset( $view_model['save_mock_mode_nonce'] ) ? (string) $view_model['save_mock_mode_nonce'] : '';
 $api_mock_mode        = isset( $view_model['api_mock_mode'] ) ? (int) $view_model['api_mock_mode'] : 0;
-$messages             = isset( $view_model['messages'] ) && is_array( $view_model['messages'] ) ? $view_model['messages'] : array();
+// 从 Dashboard 子模块获取消息
+$messages = array();
+if ( class_exists( 'Pwca_Admin_Dashboard_Dashboard' ) ) {
+	$messages = Pwca_Admin_Dashboard_Dashboard::get_messages();
+}
 
 ?>
 

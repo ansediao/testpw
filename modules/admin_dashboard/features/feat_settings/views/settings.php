@@ -4,15 +4,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$settings = isset( $view_model['settings'] ) && is_array( $view_model['settings'] ) ? $view_model['settings'] : array();
+// 从 Settings 子模块获取消息和数据
+$messages = array();
+$settings_data = array();
+if ( class_exists( 'Pwca_Admin_Dashboard_Settings' ) ) {
+	$messages = Pwca_Admin_Dashboard_Settings::get_messages();
+	$settings_data = Pwca_Admin_Dashboard_Settings::get_settings_data();
+}
 
-$messages = isset( $settings['messages'] ) && is_array( $settings['messages'] ) ? $settings['messages'] : array();
-
-$disable_ssl     = isset( $settings['disable_ssl'] ) ? (int) $settings['disable_ssl'] : (int) get_option( 'pw_disable_ssl', 0 );
-$api_key         = isset( $settings['api_key'] ) ? (string) $settings['api_key'] : (string) get_option( 'pw_api_key', '' );
-$api_secret      = isset( $settings['api_secret'] ) ? (string) $settings['api_secret'] : (string) get_option( 'pw_api_secret', '' );
-$customize_text  = isset( $settings['customize_text'] ) ? (string) $settings['customize_text'] : (string) get_option( 'pw_customize_text', 'Customize' );
-$customize_color = isset( $settings['customize_color'] ) ? (string) $settings['customize_color'] : (string) get_option( 'pw_customize_color', '#000000' );
+$disable_ssl     = isset( $settings_data['disable_ssl'] ) ? (int) $settings_data['disable_ssl'] : 0;
+$api_key         = isset( $settings_data['api_key'] ) ? (string) $settings_data['api_key'] : '';
+$api_secret      = isset( $settings_data['api_secret'] ) ? (string) $settings_data['api_secret'] : '';
+$customize_text  = isset( $settings_data['customize_text'] ) ? (string) $settings_data['customize_text'] : 'Customize';
+$customize_color = isset( $settings_data['customize_color'] ) ? (string) $settings_data['customize_color'] : '#000000';
 
 ?>
 

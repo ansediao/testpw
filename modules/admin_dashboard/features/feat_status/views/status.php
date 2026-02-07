@@ -4,6 +4,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// 从 Status 子模块获取数据
+$status_data = array();
+if ( class_exists( 'Pwca_Admin_Dashboard_Status' ) ) {
+	$status_data = Pwca_Admin_Dashboard_Status::get_status_data();
+}
+
 $woo_installed = class_exists( 'WooCommerce' );
 if ( ! $woo_installed ) {
 	$active_plugins = apply_filters( 'active_plugins', get_option( 'active_plugins', array() ) );

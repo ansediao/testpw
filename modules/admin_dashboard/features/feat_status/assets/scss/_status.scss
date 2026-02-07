@@ -1,0 +1,38 @@
+// Status 子模块样式
+// 包含状态检查表格的样式
+
+.pwca-admin-dashboard {
+	// 状态表格
+	&__status-table {
+		width: 100%;
+		border-collapse: collapse;
+		margin-top: 16px;
+
+		th,
+		td {
+			padding: 12px 15px;
+			border: 1px solid #ddd;
+			text-align: left;
+		}
+
+		th {
+			background-color: #f5f5f5;
+			font-weight: 700;
+		}
+
+		tr:nth-child(even) {
+			background-color: #f9f9f9;
+		}
+	}
+
+	// 状态指示器
+	.pwca-status--ok {
+		color: #2ecc71;
+		font-weight: 700;
+	}
+
+	.pwca-status--fail {
+		color: #e74c3c;
+		font-weight: 700;
+	}
+}

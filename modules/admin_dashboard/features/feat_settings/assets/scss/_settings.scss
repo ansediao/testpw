@@ -1,0 +1,31 @@
+// Settings 子模块样式
+// 包含设置页面和 Settings Tab 的样式
+
+.pwca-admin-dashboard {
+	// Tab 导航
+	&__tabs {
+		margin-top: 12px;
+	}
+
+	&__tab-content {
+		margin-top: 16px;
+	}
+
+	// Settings Tab 标题
+	&__pane-title {
+		margin: 0 0 16px 0;
+	}
+
+	// 设置表单样式（在 WordPress form-table 基础上增强）
+	&__pane--settings {
+		.form-table {
+			th {
+				padding: 20px 10px 20px 0;
+			}
+
+			td {
+				padding: 15px 10px;
+			}
+		}
+	}
+}

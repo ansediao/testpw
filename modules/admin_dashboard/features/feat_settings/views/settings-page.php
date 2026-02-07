@@ -10,8 +10,19 @@ $save_token_nonce      = isset( $view_model['save_token_nonce'] ) ? (string) $vi
 $clear_cache_nonce     = isset( $view_model['clear_cache_nonce'] ) ? (string) $view_model['clear_cache_nonce'] : '';
 $cache_status_nonce    = isset( $view_model['cache_status_nonce'] ) ? (string) $view_model['cache_status_nonce'] : '';
 $product_request_nonce = isset( $view_model['product_request_nonce'] ) ? (string) $view_model['product_request_nonce'] : '';
-$current_tab           = isset( $view_model['current_tab'] ) ? (string) $view_model['current_tab'] : 'dashboard';
-$tabs                  = isset( $view_model['tabs'] ) && is_array( $view_model['tabs'] ) ? $view_model['tabs'] : array();
+
+// 获取当前 tab
+$current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'dashboard';
+$tabs = array(
+	'dashboard'       => 'Dashboard',
+	'settings'        => 'Settings',
+	'status'          => 'Status',
+	'product_request' => 'Product Requirement',
+	'support'         => 'Support',
+);
+if ( ! isset( $tabs[ $current_tab ] ) ) {
+	$current_tab = 'dashboard';
+}
 
 ?>
 
@@ -47,11 +58,10 @@ $tabs                  = isset( $view_model['tabs'] ) && is_array( $view_model['
 
 	<div class="pwca-admin-dashboard__tab-content">
 		<?php
-		$tab_path = __DIR__ . DIRECTORY_SEPARATOR . 'tabs' . DIRECTORY_SEPARATOR . $current_tab . '.php';
-		if ( file_exists( $tab_path ) ) {
-			require $tab_path;
+		// 使用主模块的 render_current_tab 方法渲染当前 tab
+		if ( class_exists( 'Pwca_Admin_Dashboard' ) ) {
+			Pwca_Admin_Dashboard::render_current_tab( $current_tab );
 		}
 		?>
 	</div>
 </div>
-

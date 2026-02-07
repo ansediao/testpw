@@ -4,6 +4,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// 从 Support 子模块获取数据
+$support_data = array();
+if ( class_exists( 'Pwca_Admin_Dashboard_Support' ) ) {
+	$support_data = Pwca_Admin_Dashboard_Support::get_support_data();
+}
+
+$documentation_url = isset( $support_data['documentation_url'] ) ? $support_data['documentation_url'] : '#';
+$support_email = isset( $support_data['support_email'] ) ? $support_data['support_email'] : '';
+
 ?>
 
 <section class="pwca-admin-dashboard__pane pwca-admin-dashboard__pane--support">

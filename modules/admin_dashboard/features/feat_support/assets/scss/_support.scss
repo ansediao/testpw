@@ -1,0 +1,21 @@
+// Support 子模块样式
+// 包含支持卡片布局的样式
+
+.pwca-admin-dashboard {
+	// 支持卡片网格
+	&__support-cards {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+		gap: 20px;
+		margin-top: 20px;
+	}
+
+	// 支持卡片
+	&__support-card {
+		background: #fff;
+		border: 1px solid #ddd;
+		border-radius: 5px;
+		padding: 20px;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	}
+}
