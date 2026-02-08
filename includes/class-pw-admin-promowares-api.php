@@ -691,6 +691,17 @@ class Pw_Admin_Promowares_Api
 
         // 检查缓存数据（启用缓存检查，通过 updated_at 判断）
         $cached_data = $this->get_cached_product_data($product_id);
+
+        // 如果缓存检查返回 WP_Error，表示远程检查失败
+        if (is_wp_error($cached_data)) {
+            error_log("[PW Cache] Cache freshness check failed: " . $cached_data->get_error_message());
+            return new WP_REST_Response(array(
+                'success' => false,
+                'error' => 'Failed to verify cache freshness: ' . $cached_data->get_error_message(),
+                'details' => $cached_data->get_error_data()
+            ), 503);
+        }
+
         error_log("[PW Mock] Cache check result: " . ($cached_data !== false ? 'HIT' : 'MISS'));
         if ($cached_data !== false) {
             $response = new WP_REST_Response($cached_data, 200);
@@ -1070,8 +1081,8 @@ class Pw_Admin_Promowares_Api
      * Get cached product data from product meta.
      *
      * @since    1.0.0
-     * @param    int    $product_id    The Promowares product ID.
-     * @return   array|false           The cached data or false if not found/invalid.
+     * @param    int             $product_id    The Promowares product ID.
+     * @return   array|false|WP_Error           The cached data, false if not found/invalid, or WP_Error on remote check failure.
      */
     private function get_cached_product_data($product_id)
     {
@@ -1104,10 +1115,18 @@ class Pw_Admin_Promowares_Api
         }
 
         // 检查远程数据是否有更新（移除本地过期时间逻辑）
-        if (!$this->check_remote_data_freshness($product_id, intval($cache_timestamp))) {
+        $freshness_result = $this->check_remote_data_freshness($product_id, intval($cache_timestamp));
+
+        // 如果返回 WP_Error，表示检查失败，返回错误信息
+        if (is_wp_error($freshness_result)) {
+            return $freshness_result;
+        }
+
+        // 如果返回 false，表示远程数据已更新，缓存失效
+        if (!$freshness_result) {
             // 远程数据已更新，删除旧缓存
-            delete_post_meta($woo_product_id, '_pw_aggregated_data_cache');
-            delete_post_meta($woo_product_id, '_pw_aggregated_data_cache_time');
+            // delete_post_meta($woo_product_id, '_pw_aggregated_data_cache');
+            // delete_post_meta($woo_product_id, '_pw_aggregated_data_cache_time');
             return false;
         }
 
@@ -1226,9 +1245,9 @@ class Pw_Admin_Promowares_Api
      * 如果updated-at有更新，进一步检查产品原始数据是否有实际变化。
      *
      * @since    1.0.0
-     * @param    int    $product_id        The Promowares product ID.
-     * @param    int    $cache_timestamp   The local cache timestamp.
-     * @return   bool                      True if cache is still valid, false if needs update.
+     * @param    int             $product_id        The Promowares product ID.
+     * @param    int             $cache_timestamp   The local cache timestamp.
+     * @return   bool|WP_Error                     True if cache is still valid, false if needs update, WP_Error on failure.
      */
     private function check_remote_data_freshness($product_id, $cache_timestamp)
     {
@@ -1253,14 +1272,16 @@ class Pw_Admin_Promowares_Api
             );
 
             if (is_wp_error($response)) {
-                error_log('[PW Cache] Failed to check remote data freshness: ' . $response->get_error_message());
-                return true; // 网络错误时保持缓存有效
+                $error_message = $response->get_error_message();
+                error_log('[PW Cache] Failed to check remote data freshness: ' . $error_message);
+                return new WP_Error('remote_check_failed', 'Network error when checking remote data freshness: ' . $error_message);
             }
-            
+
             $response_code = wp_remote_retrieve_response_code($response);
             if ($response_code !== 200) {
+                $error_message = "API returned status code: {$response_code}";
                 error_log("[PW Cache] Remote freshness check returned status: {$response_code}");
-                return true; // API错误时保持缓存有效
+                return new WP_Error('remote_check_failed', $error_message, array('status_code' => $response_code));
             }
             
             $body = wp_remote_retrieve_body($response);
