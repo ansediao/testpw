@@ -51,7 +51,7 @@ window.ProductDataAPI = {
         } catch (error) {
             if (error.message && error.message.includes('HTTP error')) {
                 const errorMsg = `API Error: ${error.message}`;
-                alert("Prduct Error,Please Contact Admin.");
+                alert("Product Error, Please Contact Admin.");
                 throw new Error(errorMsg);
             } else {
                 const errorMsg = '网络请求失败，请检查网络连接';
