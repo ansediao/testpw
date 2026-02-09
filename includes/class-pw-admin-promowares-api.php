@@ -2020,6 +2020,88 @@ class Pw_Admin_Promowares_Api
     }
 
     /**
+     * Get user info from Promowares API.
+     *
+     * @since    1.0.0
+     * @param    string    $token    Optional. Custom token to use.
+     * @return   array|WP_Error     The user info or error.
+     */
+    public function get_user_info($token = null)
+    {
+        $auth_token = $token ?: $this->hardcoded_token;
+
+        if (empty($auth_token)) {
+            return new WP_Error('missing_token', 'API token is required');
+        }
+
+        $response = wp_remote_get($this->api_base_url . 'auth/user-info', [
+            'headers' => [
+                'Accept' => 'application/json',
+                'Accept-Encoding' => 'gzip, deflate, br',
+                'Authorization' => $auth_token,
+                'Connection' => 'keep-alive',
+                'User-Agent' => 'PW-Canvas-Plugin/1.0.0'
+            ],
+            'timeout' => 30
+        ]);
+
+        if (is_wp_error($response)) {
+            return $response;
+        }
+
+        $response_code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if ($response_code === 200 && isset($data['data'])) {
+            return $data;
+        }
+
+        return new WP_Error('api_error', 'Failed to get user info', $data);
+    }
+
+    /**
+     * Validate token with Promowares API.
+     *
+     * @since    1.0.0
+     * @param    string    $token    Optional. Custom token to use.
+     * @return   array|WP_Error     The validation result or error.
+     */
+    public function validate_token($token = null)
+    {
+        $auth_token = $token ?: $this->hardcoded_token;
+
+        if (empty($auth_token)) {
+            return new WP_Error('missing_token', 'API token is required');
+        }
+
+        $response = wp_remote_get($this->api_base_url . 'auth/validate', [
+            'headers' => [
+                'Accept' => 'application/json',
+                'Accept-Encoding' => 'gzip, deflate, br',
+                'Authorization' => $auth_token,
+                'Connection' => 'keep-alive',
+                'User-Agent' => 'PW-Canvas-Plugin/1.0.0'
+            ],
+            'timeout' => 30
+        ]);
+
+        if (is_wp_error($response)) {
+            return $response;
+        }
+
+        $response_code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if ($response_code === 200 && isset($data['data'])) {
+            return $data;
+        }
+
+        return new WP_Error('api_error', 'Token validation failed', $data);
+    }
+
+    /**
      * Get custom colors data from Promowares API.
      *
      * @since    1.0.0
