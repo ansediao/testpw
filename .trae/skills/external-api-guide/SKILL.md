@@ -21,7 +21,9 @@ description: "项目外部Promowares API使用指南。Invoke when user needs to
 | 计算运费 | `PW_Admin_Promowares_API::calculate_shipping()` | [shipping.md](references/shipping.md) |
 | 获取印刷方式 | `PW_Admin_Promowares_API::get_print_methods()` | [print-methods.md](references/print-methods.md) |
 | 获取自定义颜色 | `PW_Admin_Promowares_API::get_custom_colors()` | [custom-colors.md](references/custom-colors.md) |
-| 验证Token | `PW_Admin_Promowares_API::verify_token()` | [auth.md](references/auth.md) |
+| 获取用户信息 | `PW_Admin_Promowares_API::get_user_info()` | [user-info.md](references/auth/user-info.md) |
+| 验证Token有效性 | `PW_Admin_Promowares_API::validate_token()` | [validate.md](references/auth/validate.md) |
+
 
 ## 内部接口位置
 
