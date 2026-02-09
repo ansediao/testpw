@@ -28,13 +28,3 @@ GET /api/v1/products/{id}/customization
 ```
 
 **内部接口**: `PW_Admin_Promowares_API::get_product_customization($id)`
-
----
-
-## 同步产品数据
-
-```
-POST /api/v1/products/sync
-```
-
-**内部接口**: `PW_Admin_Promowares_API::sync_products($ids)`
