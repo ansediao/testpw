@@ -21,21 +21,6 @@ GET /api/v1/products/{id}
 
 ---
 
-## 获取产品列表
-
-```
-GET /api/v1/products
-```
-
-**内部接口**: `PW_Admin_Promowares_API::get_products($params)`
-
-**参数**:
-- `page` - 页码
-- `per_page` - 每页数量
-- `category` - 分类筛选
-
----
-
 ## 获取产品定制数据
 
 ```
