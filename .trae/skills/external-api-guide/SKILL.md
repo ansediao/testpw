@@ -23,6 +23,7 @@ description: "项目外部Promowares API使用指南。Invoke when user needs to
 | 获取自定义颜色 | `PW_Admin_Promowares_API::get_custom_colors()` | [custom-colors.md](references/custom-colors.md) |
 | 获取用户信息 | `PW_Admin_Promowares_API::get_user_info()` | [user-info.md](references/auth/user-info.md) |
 | 验证Token有效性 | `PW_Admin_Promowares_API::validate_token()` | [validate.md](references/auth/validate.md) |
+| 获取用户定制化设置 | `PW_Admin_Promowares_API::call_promowares_api('customization-settings', $token)` | [get-user-customization-settings.md](references/auth/get-user-customization-settings.md) |
 
 
 ## 内部接口位置
@@ -51,4 +52,7 @@ $headers = [
 - [shipping.md](references/shipping.md) - 运费相关API
 - [print-methods.md](references/print-methods.md) - 印刷方式API
 - [custom-colors.md](references/custom-colors.md) - 自定义颜色API
-- [auth.md](references/auth.md) - 认证相关API
+- [auth/](references/auth/) - 认证相关API
+  - [user-info.md](references/auth/user-info.md) - 获取用户信息
+  - [validate.md](references/auth/validate.md) - 验证Token
+  - [get-user-customization-settings.md](references/auth/get-user-customization-settings.md) - 获取用户定制化设置
