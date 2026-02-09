@@ -31,23 +31,6 @@ GET /api/v1/products/{id}/customization
 
 ---
 
-## 检查产品更新
-
-```
-GET /api/v1/products/{id}/updated-at
-```
-
-**内部接口**: `PW_Admin_Promowares_API::check_product_update($id)`
-
-**响应示例**:
-```json
-{
-    "updated_at": "2024-01-15T10:30:00Z"
-}
-```
-
----
-
 ## 同步产品数据
 
 ```
