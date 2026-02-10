@@ -15,6 +15,7 @@ description: "项目外部Promowares API使用指南。Invoke when user needs to
 |-----------|-------------|-------------|
 | 获取产品数据 | `PW_Admin_Promowares_API::get_product()` | [products.md](references/products.md) |
 | 获取产品列表 | `PW_Admin_Promowares_API::get_products()` | [product/get_products.md](references/product/get_products.md) |
+| 获取单个产品定制数据 | `PW_Admin_Promowares_API::get_single_product_customization()` | [product/get_single_product_customization.md](references/product/get_single_product_customization.md) |
 | 检查产品更新 | `PW_Admin_Promowares_API::check_product_update()` | [product/check_product_update.md](references/product/check_product_update.md) |
 | 获取容器信息 | `PW_Admin_Promowares_API::get_container()` | [containers.md](references/containers.md) |
 | 发送产品咨询 | `PW_Admin_Promowares_API::send_inquiry()` | [inquiry.md](references/inquiry.md) |

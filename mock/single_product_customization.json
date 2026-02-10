@@ -1,0 +1,951 @@
+{
+	"code": 200,
+	"message": "success",
+	"data": {
+		"product_id": 29,
+		"custom_template": {
+			"id": 53,
+			"created_at": "2026-01-28 11:43:41",
+			"updated_at": "2026-02-06 18:39:53",
+			"deleted_at": null,
+			"product_custom_template_name": "T恤",
+			"product_category": "服装类1",
+			"link_product_id": 29,
+			"store_id": null,
+			"product_type": "shop",
+			"multi_view_config_type": "Seperated"
+		},
+		"custom_views": [
+			{
+				"id": 66,
+				"created_at": "2026-01-28 11:43:43",
+				"updated_at": "2026-02-06 18:39:56",
+				"deleted_at": null,
+				"product_custom_template_id": 53,
+				"product_id": 29,
+				"store_id": null,
+				"product_type": "shop",
+				"view_type": "main",
+				"view_flow": "Flat Flow",
+				"core_layer_type": "Base Layer +Overlay LayerCombination",
+				"view_name": "主",
+				"status": "draft",
+				"printing_method_list_id": [
+					9
+				],
+				"selected_modules": [
+					"TEXT",
+					"UPLOAD"
+				],
+				"assign_design_folders": [
+					"Design",
+					"Specific",
+					"Product"
+				],
+				"product_specific_design_only": true,
+				"inspiring_photos_url": "https://promowares-cloud-storage.s3.amazonaws.com/uploads/1769569273544322000-底色图层.jpg",
+				"view_color_list": [],
+				"single_printing_method_only": true,
+				"layers": [
+					{
+						"id": 359,
+						"created_at": "2026-01-28 11:43:45",
+						"updated_at": "2026-02-06 18:39:58",
+						"deleted_at": null,
+						"custom_view_id": 66,
+						"product_id": 29,
+						"store_id": null,
+						"product_type": "shop",
+						"print_method_id": 1,
+						"name": "Background Layer",
+						"type": "image",
+						"layer_data": {
+							"content": {
+								"opacity": 100,
+								"backgroundColor": "#ffffff"
+							},
+							"controls": {
+								"hide": false,
+								"movable": false,
+								"scalable": false,
+								"deletable": false,
+								"fixedSize": false,
+								"rotatable": false,
+								"stayOnTop": false,
+								"exportable": true,
+								"visibility": true,
+								"excludeInExport": false,
+								"allowUnproportionalScaling": false
+							},
+							"position": {
+								"zIndex": {
+									"value": 1,
+									"locked": true
+								},
+								"rotation": 0,
+								"anchorPoint": "bottom-left",
+								"coordinates": {
+									"x": 0,
+									"y": 0,
+									"unit": "px"
+								}
+							},
+							"dimensions": {
+								"layerSize": {
+									"width": 220,
+									"height": 120
+								},
+								"contentArea": {
+									"width": 600,
+									"height": 600
+								},
+								"physicalSize": {
+									"width": 20,
+									"height": 20
+								}
+							}
+						},
+						"sort_order": 1,
+						"status": 1
+					},
+					{
+						"id": 360,
+						"created_at": "2026-01-28 11:43:46",
+						"updated_at": "2026-02-06 18:40:00",
+						"deleted_at": null,
+						"custom_view_id": 66,
+						"product_id": 29,
+						"store_id": null,
+						"product_type": "shop",
+						"print_method_id": 1,
+						"name": "Base Layer",
+						"type": "image",
+						"layer_data": {
+							"content": {
+								"opacity": 100,
+								"backgroundColor": "#ffffff",
+								"imageURL": "https://promowares-cloud-storage.s3.amazonaws.com/uploads/1769569092844806000-base.jpg"
+							},
+							"controls": {
+								"hide": false,
+								"movable": true,
+								"scalable": true,
+								"deletable": false,
+								"fixedSize": false,
+								"rotatable": true,
+								"stayOnTop": false,
+								"exportable": true,
+								"visibility": true,
+								"excludeInExport": false,
+								"allowUnproportionalScaling": false
+							},
+							"position": {
+								"zIndex": {
+									"value": 2,
+									"locked": false
+								},
+								"rotation": 0,
+								"anchorPoint": "bottom-left",
+								"coordinates": {
+									"x": 0,
+									"y": 0,
+									"unit": "px"
+								}
+							},
+							"dimensions": {
+								"layerSize": {
+									"width": 649.3430656934307,
+									"height": 649.3430656934307
+								},
+								"contentArea": {
+									"width": 230,
+									"height": 230
+								},
+								"physicalSize": {
+									"width": 6.25,
+									"height": 6.25
+								}
+							}
+						},
+						"sort_order": 2,
+						"status": 1
+					},
+					{
+						"id": 361,
+						"created_at": "2026-01-28 11:43:48",
+						"updated_at": "2026-02-06 18:40:02",
+						"deleted_at": null,
+						"custom_view_id": 66,
+						"product_id": 29,
+						"store_id": null,
+						"product_type": "shop",
+						"print_method_id": 1,
+						"name": "Overlay Layer",
+						"type": "image",
+						"layer_data": {
+							"content": {
+								"opacity": 100,
+								"backgroundColor": "#ffffff",
+								"imageURL": "https://promowares-cloud-storage.s3.amazonaws.com/uploads/1769569083122451000-overlay.png"
+							},
+							"controls": {
+								"hide": false,
+								"movable": false,
+								"scalable": true,
+								"deletable": false,
+								"fixedSize": false,
+								"rotatable": true,
+								"stayOnTop": false,
+								"exportable": true,
+								"visibility": true,
+								"excludeInExport": false,
+								"allowUnproportionalScaling": false
+							},
+							"position": {
+								"zIndex": {
+									"value": 3,
+									"locked": true
+								},
+								"rotation": 0,
+								"anchorPoint": "bottom-left",
+								"coordinates": {
+									"x": 0,
+									"y": 0,
+									"unit": "px"
+								}
+							},
+							"dimensions": {
+								"layerSize": {
+									"width": 649.3430656934307,
+									"height": 649.3430656934307
+								},
+								"contentArea": {
+									"width": 230,
+									"height": 230
+								},
+								"physicalSize": {
+									"width": 6.25,
+									"height": 6.25
+								}
+							}
+						},
+						"sort_order": 3,
+						"status": 1
+					},
+					{
+						"id": 362,
+						"created_at": "2026-01-28 11:43:49",
+						"updated_at": "2026-02-06 18:40:04",
+						"deleted_at": null,
+						"custom_view_id": 66,
+						"product_id": 29,
+						"store_id": null,
+						"product_type": "shop",
+						"print_method_id": 1,
+						"name": "Size Calculation Layer",
+						"type": "image",
+						"layer_data": {
+							"content": {
+								"opacity": 100,
+								"backgroundColor": "#ffffff"
+							},
+							"controls": {
+								"hide": false,
+								"movable": true,
+								"scalable": false,
+								"deletable": false,
+								"fixedSize": false,
+								"rotatable": false,
+								"stayOnTop": false,
+								"exportable": true,
+								"visibility": false,
+								"excludeInExport": false,
+								"allowUnproportionalScaling": false
+							},
+							"position": {
+								"zIndex": {
+									"value": 4,
+									"locked": false
+								},
+								"rotation": 0,
+								"anchorPoint": "bottom-left",
+								"coordinates": {
+									"x": 0,
+									"y": 0,
+									"unit": "px"
+								}
+							},
+							"dimensions": {
+								"layerSize": {
+									"width": 80,
+									"height": 50
+								},
+								"contentArea": {
+									"width": 80,
+									"height": 50
+								},
+								"physicalSize": {
+									"width": 2,
+									"height": 1.25
+								}
+							}
+						},
+						"sort_order": 4,
+						"status": 1
+					},
+					{
+						"id": 363,
+						"created_at": "2026-01-28 11:43:51",
+						"updated_at": "2026-02-06 18:40:05",
+						"deleted_at": null,
+						"custom_view_id": 66,
+						"product_id": 29,
+						"store_id": null,
+						"product_type": "shop",
+						"print_method_id": 1,
+						"name": "FlexiCurve Layer",
+						"type": "image",
+						"layer_data": {
+							"content": {
+								"opacity": 100,
+								"backgroundColor": "#ffffff"
+							},
+							"controls": {
+								"hide": false,
+								"movable": true,
+								"scalable": true,
+								"deletable": true,
+								"fixedSize": false,
+								"rotatable": true,
+								"stayOnTop": false,
+								"exportable": true,
+								"visibility": true,
+								"excludeInExport": false,
+								"allowUnproportionalScaling": false
+							},
+							"position": {
+								"zIndex": {
+									"value": 5,
+									"locked": false
+								},
+								"rotation": 0,
+								"anchorPoint": "bottom-left",
+								"coordinates": {
+									"x": 0,
+									"y": 0,
+									"unit": "px"
+								}
+							},
+							"dimensions": {
+								"layerSize": {
+									"width": 798,
+									"height": 647
+								},
+								"contentArea": {
+									"width": 718.2,
+									"height": 582.3000000000001
+								},
+								"physicalSize": {
+									"width": 4.5,
+									"height": 2.25
+								}
+							}
+						},
+						"sort_order": 5,
+						"status": 1
+					},
+					{
+						"id": 364,
+						"created_at": "2026-01-28 11:43:52",
+						"updated_at": "2026-02-06 18:40:07",
+						"deleted_at": null,
+						"custom_view_id": 66,
+						"product_id": 29,
+						"store_id": null,
+						"product_type": "shop",
+						"print_method_id": 1,
+						"name": "Helper Layer",
+						"type": "image",
+						"layer_data": {
+							"content": {
+								"opacity": 100,
+								"backgroundColor": "#ffffff"
+							},
+							"controls": {
+								"hide": false,
+								"movable": false,
+								"scalable": false,
+								"deletable": false,
+								"fixedSize": false,
+								"rotatable": false,
+								"stayOnTop": false,
+								"exportable": false,
+								"visibility": false,
+								"excludeInExport": false,
+								"allowUnproportionalScaling": false
+							},
+							"position": {
+								"zIndex": {
+									"value": 6,
+									"locked": true
+								},
+								"rotation": 0,
+								"anchorPoint": "bottom-left",
+								"coordinates": {
+									"x": 0,
+									"y": 0,
+									"unit": "px"
+								}
+							},
+							"dimensions": {
+								"layerSize": {
+									"width": 600,
+									"height": 450
+								},
+								"contentArea": {
+									"width": 600,
+									"height": 450
+								},
+								"physicalSize": {
+									"width": 15,
+									"height": 11.25
+								}
+							}
+						},
+						"sort_order": 6,
+						"status": 1
+					},
+					{
+						"id": 365,
+						"created_at": "2026-01-28 11:43:54",
+						"updated_at": "2026-02-06 18:40:10",
+						"deleted_at": null,
+						"custom_view_id": 66,
+						"product_id": 29,
+						"store_id": null,
+						"product_type": "shop",
+						"print_method_id": 1,
+						"name": "Content Area Layer",
+						"type": "image",
+						"layer_data": {
+							"content": {
+								"opacity": 100,
+								"backgroundColor": "#ffffff",
+								"imageURL": "https://promowares-cloud-storage.s3.amazonaws.com/uploads/1769569059256485000-view.png"
+							},
+							"controls": {
+								"hide": false,
+								"movable": false,
+								"scalable": false,
+								"deletable": true,
+								"fixedSize": false,
+								"rotatable": false,
+								"stayOnTop": false,
+								"exportable": true,
+								"visibility": true,
+								"excludeInExport": false,
+								"allowUnproportionalScaling": false
+							},
+							"position": {
+								"zIndex": {
+									"value": 7,
+									"locked": true
+								},
+								"rotation": 0,
+								"anchorPoint": "bottom-left",
+								"coordinates": {
+									"x": 0,
+									"y": 0,
+									"unit": "px"
+								}
+							},
+							"dimensions": {
+								"layerSize": {
+									"width": 800,
+									"height": 649.3430656934307
+								},
+								"contentArea": {
+									"width": 200,
+									"height": 100
+								},
+								"physicalSize": {
+									"width": 5.5,
+									"height": 3
+								}
+							}
+						},
+						"sort_order": 7,
+						"status": 1
+					}
+				]
+			},
+			{
+				"id": 67,
+				"created_at": "2026-01-28 11:43:55",
+				"updated_at": "2026-02-06 18:40:11",
+				"deleted_at": null,
+				"product_custom_template_id": 53,
+				"product_id": 29,
+				"store_id": null,
+				"product_type": "shop",
+				"view_type": "sub",
+				"view_flow": "Flat Flow",
+				"core_layer_type": "Base Layer +Overlay LayerCombination",
+				"view_name": "左",
+				"status": "draft",
+				"printing_method_list_id": [
+					9
+				],
+				"selected_modules": [
+					"TEXT",
+					"UPLOAD"
+				],
+				"assign_design_folders": [
+					"Design",
+					"Specific",
+					"Product"
+				],
+				"product_specific_design_only": true,
+				"inspiring_photos_url": "https://promowares-cloud-storage.s3.amazonaws.com/uploads/1769570890279735000-base.png",
+				"view_color_list": [],
+				"single_printing_method_only": true,
+				"view_color_option": "Use the Same Color as 主 View",
+				"color_combination_mode": "Fixed Combination",
+				"enable_universal_color": true,
+				"gradient_color_type": "ALL color",
+				"layers": [
+					{
+						"id": 366,
+						"created_at": "2026-01-28 11:43:57",
+						"updated_at": "2026-02-06 18:40:13",
+						"deleted_at": null,
+						"custom_view_id": 67,
+						"product_id": 29,
+						"store_id": null,
+						"product_type": "shop",
+						"print_method_id": 1,
+						"name": "Background Layer",
+						"type": "image",
+						"layer_data": {
+							"content": {
+								"opacity": 100,
+								"backgroundColor": "#ffffff"
+							},
+							"controls": {
+								"hide": false,
+								"movable": false,
+								"scalable": false,
+								"deletable": false,
+								"fixedSize": false,
+								"rotatable": false,
+								"stayOnTop": false,
+								"exportable": true,
+								"visibility": true,
+								"excludeInExport": false,
+								"allowUnproportionalScaling": false
+							},
+							"position": {
+								"zIndex": {
+									"value": 1,
+									"locked": true
+								},
+								"rotation": 0,
+								"anchorPoint": "bottom-left",
+								"coordinates": {
+									"x": 0,
+									"y": 0,
+									"unit": "px"
+								}
+							},
+							"dimensions": {
+								"layerSize": {
+									"width": 220,
+									"height": 120
+								},
+								"contentArea": {
+									"width": 600,
+									"height": 600
+								},
+								"physicalSize": {
+									"width": 20,
+									"height": 20
+								}
+							}
+						},
+						"sort_order": 1,
+						"status": 1
+					},
+					{
+						"id": 367,
+						"created_at": "2026-01-28 11:43:59",
+						"updated_at": "2026-02-06 18:40:15",
+						"deleted_at": null,
+						"custom_view_id": 67,
+						"product_id": 29,
+						"store_id": null,
+						"product_type": "shop",
+						"print_method_id": 1,
+						"name": "Base Layer",
+						"type": "image",
+						"layer_data": {
+							"content": {
+								"opacity": 100,
+								"backgroundColor": "#ffffff",
+								"imageURL": "https://promowares-cloud-storage.s3.amazonaws.com/uploads/1769570815621819000-base.png"
+							},
+							"controls": {
+								"hide": false,
+								"movable": true,
+								"scalable": true,
+								"deletable": false,
+								"fixedSize": false,
+								"rotatable": true,
+								"stayOnTop": false,
+								"exportable": true,
+								"visibility": true,
+								"excludeInExport": false,
+								"allowUnproportionalScaling": false
+							},
+							"position": {
+								"zIndex": {
+									"value": 2,
+									"locked": false
+								},
+								"rotation": 0,
+								"anchorPoint": "bottom-left",
+								"coordinates": {
+									"x": 0,
+									"y": 0,
+									"unit": "px"
+								}
+							},
+							"dimensions": {
+								"layerSize": {
+									"width": 649.3430656934307,
+									"height": 649.3430656934307
+								},
+								"contentArea": {
+									"width": 230,
+									"height": 230
+								},
+								"physicalSize": {
+									"width": 6.25,
+									"height": 6.25
+								}
+							}
+						},
+						"sort_order": 2,
+						"status": 1
+					},
+					{
+						"id": 368,
+						"created_at": "2026-01-28 11:44:00",
+						"updated_at": "2026-02-06 18:40:17",
+						"deleted_at": null,
+						"custom_view_id": 67,
+						"product_id": 29,
+						"store_id": null,
+						"product_type": "shop",
+						"print_method_id": 1,
+						"name": "Overlay Layer",
+						"type": "image",
+						"layer_data": {
+							"content": {
+								"opacity": 100,
+								"backgroundColor": "#ffffff",
+								"imageURL": "https://promowares-cloud-storage.s3.amazonaws.com/uploads/1769570808321503000-overlay.png"
+							},
+							"controls": {
+								"hide": false,
+								"movable": true,
+								"scalable": true,
+								"deletable": false,
+								"fixedSize": false,
+								"rotatable": true,
+								"stayOnTop": false,
+								"exportable": true,
+								"visibility": true,
+								"excludeInExport": false,
+								"allowUnproportionalScaling": false
+							},
+							"position": {
+								"zIndex": {
+									"value": 3,
+									"locked": false
+								},
+								"rotation": 0,
+								"anchorPoint": "bottom-left",
+								"coordinates": {
+									"x": 0,
+									"y": 0,
+									"unit": "px"
+								}
+							},
+							"dimensions": {
+								"layerSize": {
+									"width": 649.3430656934307,
+									"height": 649.3430656934307
+								},
+								"contentArea": {
+									"width": 230,
+									"height": 230
+								},
+								"physicalSize": {
+									"width": 6.25,
+									"height": 6.25
+								}
+							}
+						},
+						"sort_order": 3,
+						"status": 1
+					},
+					{
+						"id": 369,
+						"created_at": "2026-01-28 11:44:02",
+						"updated_at": "2026-02-06 18:40:19",
+						"deleted_at": null,
+						"custom_view_id": 67,
+						"product_id": 29,
+						"store_id": null,
+						"product_type": "shop",
+						"print_method_id": 1,
+						"name": "Size Calculation Layer",
+						"type": "image",
+						"layer_data": {
+							"content": {
+								"opacity": 100,
+								"backgroundColor": "#ffffff"
+							},
+							"controls": {
+								"hide": false,
+								"movable": false,
+								"scalable": false,
+								"deletable": false,
+								"fixedSize": false,
+								"rotatable": false,
+								"stayOnTop": false,
+								"exportable": true,
+								"visibility": false,
+								"excludeInExport": false,
+								"allowUnproportionalScaling": false
+							},
+							"position": {
+								"zIndex": {
+									"value": 4,
+									"locked": true
+								},
+								"rotation": 0,
+								"anchorPoint": "bottom-left",
+								"coordinates": {
+									"x": 0,
+									"y": 0,
+									"unit": "px"
+								}
+							},
+							"dimensions": {
+								"layerSize": {
+									"width": 80,
+									"height": 50
+								},
+								"contentArea": {
+									"width": 80,
+									"height": 50
+								},
+								"physicalSize": {
+									"width": 2,
+									"height": 1.25
+								}
+							}
+						},
+						"sort_order": 4,
+						"status": 1
+					},
+					{
+						"id": 370,
+						"created_at": "2026-01-28 11:44:03",
+						"updated_at": "2026-02-06 18:40:20",
+						"deleted_at": null,
+						"custom_view_id": 67,
+						"product_id": 29,
+						"store_id": null,
+						"product_type": "shop",
+						"print_method_id": 1,
+						"name": "FlexiCurve Layer",
+						"type": "image",
+						"layer_data": {
+							"content": {
+								"opacity": 100,
+								"backgroundColor": "#ffffff"
+							},
+							"controls": {
+								"hide": false,
+								"movable": true,
+								"scalable": true,
+								"deletable": true,
+								"fixedSize": false,
+								"rotatable": true,
+								"stayOnTop": false,
+								"exportable": true,
+								"visibility": true,
+								"excludeInExport": false,
+								"allowUnproportionalScaling": false
+							},
+							"position": {
+								"zIndex": {
+									"value": 5,
+									"locked": false
+								},
+								"rotation": 0,
+								"anchorPoint": "bottom-left",
+								"coordinates": {
+									"x": 0,
+									"y": 0,
+									"unit": "px"
+								}
+							},
+							"dimensions": {
+								"layerSize": {
+									"width": 180,
+									"height": 90
+								},
+								"contentArea": {
+									"width": 180,
+									"height": 90
+								},
+								"physicalSize": {
+									"width": 4.5,
+									"height": 2.25
+								}
+							}
+						},
+						"sort_order": 5,
+						"status": 1
+					},
+					{
+						"id": 371,
+						"created_at": "2026-01-28 11:44:05",
+						"updated_at": "2026-02-06 18:40:22",
+						"deleted_at": null,
+						"custom_view_id": 67,
+						"product_id": 29,
+						"store_id": null,
+						"product_type": "shop",
+						"print_method_id": 1,
+						"name": "Helper Layer",
+						"type": "image",
+						"layer_data": {
+							"content": {
+								"opacity": 100,
+								"backgroundColor": "#ffffff"
+							},
+							"controls": {
+								"hide": false,
+								"movable": false,
+								"scalable": false,
+								"deletable": false,
+								"fixedSize": false,
+								"rotatable": false,
+								"stayOnTop": false,
+								"exportable": false,
+								"visibility": false,
+								"excludeInExport": false,
+								"allowUnproportionalScaling": false
+							},
+							"position": {
+								"zIndex": {
+									"value": 6,
+									"locked": true
+								},
+								"rotation": 0,
+								"anchorPoint": "bottom-left",
+								"coordinates": {
+									"x": 0,
+									"y": 0,
+									"unit": "px"
+								}
+							},
+							"dimensions": {
+								"layerSize": {
+									"width": 600,
+									"height": 450
+								},
+								"contentArea": {
+									"width": 600,
+									"height": 450
+								},
+								"physicalSize": {
+									"width": 15,
+									"height": 11.25
+								}
+							}
+						},
+						"sort_order": 6,
+						"status": 1
+					},
+					{
+						"id": 372,
+						"created_at": "2026-01-28 11:44:06",
+						"updated_at": "2026-02-06 18:40:23",
+						"deleted_at": null,
+						"custom_view_id": 67,
+						"product_id": 29,
+						"store_id": null,
+						"product_type": "shop",
+						"print_method_id": 1,
+						"name": "Content Area Layer",
+						"type": "image",
+						"layer_data": {
+							"content": {
+								"opacity": 100,
+								"backgroundColor": "#ffffff",
+								"imageURL": "https://promowares-cloud-storage.s3.amazonaws.com/uploads/1769570785212217000-view.png"
+							},
+							"controls": {
+								"hide": false,
+								"movable": false,
+								"scalable": false,
+								"deletable": true,
+								"fixedSize": false,
+								"rotatable": false,
+								"stayOnTop": false,
+								"exportable": true,
+								"visibility": true,
+								"excludeInExport": false,
+								"allowUnproportionalScaling": false
+							},
+							"position": {
+								"zIndex": {
+									"value": 7,
+									"locked": true
+								},
+								"rotation": 0,
+								"anchorPoint": "bottom-left",
+								"coordinates": {
+									"x": 0,
+									"y": 0,
+									"unit": "px"
+								}
+							},
+							"dimensions": {
+								"layerSize": {
+									"width": 800,
+									"height": 649.3430656934307
+								},
+								"contentArea": {
+									"width": 200,
+									"height": 100
+								},
+								"physicalSize": {
+									"width": 5.5,
+									"height": 3
+								}
+							}
+						},
+						"sort_order": 7,
+						"status": 1
+					}
+				]
+			}
+		]
+	}
+}

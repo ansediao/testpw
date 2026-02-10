@@ -18,13 +18,3 @@ GET /api/v1/products/{id}
     ...
 }
 ```
-
----
-
-## 获取产品定制数据
-
-```
-GET /api/v1/products/{id}/customization
-```
-
-**内部接口**: `PW_Admin_Promowares_API::get_product_customization($id)`
