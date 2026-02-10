@@ -21,7 +21,7 @@ description: "项目外部Promowares API使用指南。Invoke when user needs to
 | 发送产品咨询 | `PW_Admin_Promowares_API::send_inquiry()` | [inquiry.md](references/inquiry.md) |
 | 计算运费 | `PW_Admin_Promowares_API::calculate_shipping()` | [shipping.md](references/shipping.md) |
 | 获取印刷方式 | `PW_Admin_Promowares_API::get_print_methods()` | [print-methods.md](references/print-methods.md) |
-| 获取自定义颜色 | `PW_Admin_Promowares_API::get_custom_colors()` | [custom-colors.md](references/custom-colors.md) |
+| 获取自定义颜色 | `PW_Admin_Promowares_API::get_custom_colors($color_list_id)` | [get_print-method_colorlist_info.md](references/get_print-method_colorlist_info.md) |
 | 获取用户信息 | `PW_Admin_Promowares_API::get_user_info()` | [user-info.md](references/auth/user-info.md) |
 | 验证Token有效性 | `PW_Admin_Promowares_API::validate_token()` | [validate.md](references/auth/validate.md) |
 | 获取用户定制化设置 | `PW_Admin_Promowares_API::call_promowares_api('customization-settings', $token)` | [get-user-customization-settings.md](references/auth/get-user-customization-settings.md) |
