@@ -1,0 +1,9 @@
+{
+  "name": "cart-editor-skill",
+  "version": "1.0.0",
+  "description": "通用购物车编辑功能，支持保存和恢复编辑器状态",
+  "main": "index.js",
+  "keywords": ["cart", "editor", "shopping", "design"],
+  "author": "",
+  "license": "MIT"
+}

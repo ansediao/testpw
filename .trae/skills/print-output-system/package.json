@@ -1,0 +1,19 @@
+{
+  "name": "print-output-system",
+  "version": "1.0.0",
+  "description": "通用打印输出系统 - 支持多格式导出、价格计算、打印配置管理",
+  "main": "index.js",
+  "scripts": {
+    "test": "node examples/basic-usage.js"
+  },
+  "keywords": [
+    "print",
+    "export",
+    "pdf",
+    "svg",
+    "designer"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}
