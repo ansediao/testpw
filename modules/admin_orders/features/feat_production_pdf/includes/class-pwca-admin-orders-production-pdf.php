@@ -116,6 +116,15 @@ final class Pwca_Admin_Orders_Production_Pdf {
 			$product_name = is_object( $item ) && method_exists( $item, 'get_name' ) ? (string) $item->get_name() : '';
 			$product_id   = is_object( $item ) && method_exists( $item, 'get_product_id' ) ? (int) $item->get_product_id() : 0;
 
+			// 获取 SKU
+			$sku = '';
+			if ( method_exists( $item, 'get_meta' ) ) {
+				$sku = $item->get_meta( 'Variation ID', true );
+				if ( ! $sku ) {
+					$sku = get_post_meta( $product_id, '_sku', true );
+				}
+			}
+
 			// 获取颜色信息
 			$color_name   = '';
 			$custom_color = '';
@@ -127,17 +136,142 @@ final class Pwca_Admin_Orders_Production_Pdf {
 				}
 			}
 
+			// 获取 view_print_methods 数据（印刷方式名称映射）
+			$view_print_methods = array();
+			if ( method_exists( $item, 'get_meta' ) ) {
+				$view_print_methods = $item->get_meta( 'view_print_methods', true );
+				if ( ! is_array( $view_print_methods ) ) {
+					$view_print_methods = array();
+				}
+			}
+
+			// 获取印刷方式完整数据（包含图片）
+			$print_methods_data = $this->get_print_methods_data_for_product( $product_id, $view_print_methods );
+
 			$items_data[] = array(
-				'item_id'      => (int) $item_id,
-				'product_id'   => $product_id,
-				'product_name' => $product_name,
-				'view_images'  => $view_images,
-				'custom_color' => $custom_color,
-				'color_name'   => $color_name,
+				'item_id'            => (int) $item_id,
+				'product_id'         => $product_id,
+				'product_name'       => $product_name,
+				'sku'                => $sku,
+				'view_images'        => $view_images,
+				'view_print_methods' => $view_print_methods,
+				'print_methods_data' => $print_methods_data,
+				'custom_color'       => $custom_color,
+				'color_name'         => $color_name,
 			);
 		}
 
 		return $items_data;
+	}
+
+	/**
+	 * 获取产品关联的印刷方式完整数据
+	 */
+	private function get_print_methods_data_for_product( $product_id, $view_print_methods ) {
+		$print_methods_data = array();
+
+		// 从产品获取印刷方式ID列表
+		$printing_method_ids = $this->get_printing_method_ids_from_product( $product_id );
+		if ( empty( $printing_method_ids ) ) {
+			return $print_methods_data;
+		}
+
+		// 通过 API 获取印刷方式完整数据
+		$api_data = $this->fetch_print_methods_from_api( $printing_method_ids );
+		if ( empty( $api_data ) ) {
+			return $print_methods_data;
+		}
+
+		// 构建印刷方式名称到完整数据的映射
+		foreach ( $api_data as $method ) {
+			if ( ! is_array( $method ) || ! isset( $method['name'] ) ) {
+				continue;
+			}
+			$print_methods_data[ $method['name'] ] = array(
+				'id'                 => isset( $method['id'] ) ? (int) $method['id'] : 0,
+				'name'               => $method['name'],
+				'code'               => isset( $method['code'] ) ? $method['code'] : '',
+				'description'        => isset( $method['description'] ) ? $method['description'] : '',
+				'print_method_area'  => isset( $method['print_method_area'] ) ? $method['print_method_area'] : '',
+				'print_cost'         => isset( $method['print_cost'] ) ? (float) $method['print_cost'] : 0,
+				'moq_quantity'       => isset( $method['moq_quantity'] ) ? (int) $method['moq_quantity'] : 0,
+				'process_time'       => isset( $method['process_time'] ) ? (int) $method['process_time'] : 0,
+			);
+		}
+
+		return $print_methods_data;
+	}
+
+	/**
+	 * 从产品获取印刷方式ID列表
+	 */
+	private function get_printing_method_ids_from_product( $product_id ) {
+		$ids = array();
+
+		// 从 pw_main_custom_view 和 pw_sub_custom_view 获取印刷方式ID
+		$main_view = get_post_meta( $product_id, 'pw_main_custom_view', true );
+		if ( is_array( $main_view ) && isset( $main_view['printing_method_list_id'] ) && is_array( $main_view['printing_method_list_id'] ) ) {
+			$ids = array_merge( $ids, $main_view['printing_method_list_id'] );
+		}
+
+		$sub_views = get_post_meta( $product_id, 'pw_sub_custom_view', true );
+		if ( is_array( $sub_views ) ) {
+			foreach ( $sub_views as $sub_view ) {
+				if ( is_array( $sub_view ) && isset( $sub_view['printing_method_list_id'] ) && is_array( $sub_view['printing_method_list_id'] ) ) {
+					$ids = array_merge( $ids, $sub_view['printing_method_list_id'] );
+				}
+			}
+		}
+
+		return array_unique( array_filter( array_map( 'intval', $ids ) ) );
+	}
+
+	/**
+	 * 通过 API 获取印刷方式数据
+	 */
+	private function fetch_print_methods_from_api( $printing_method_ids ) {
+		if ( empty( $printing_method_ids ) ) {
+			return array();
+		}
+
+		// 检查缓存
+		$cache_key = 'pw_print_methods_' . md5( implode( ',', $printing_method_ids ) );
+		$cached_data = get_transient( $cache_key );
+		if ( $cached_data !== false && is_array( $cached_data ) ) {
+			return $cached_data;
+		}
+
+		// 通过 REST API 获取数据
+		$ids_string = implode( ',', $printing_method_ids );
+		$api_url = rest_url( 'pw-canvas/v1/print-methods' );
+		
+		$response = wp_remote_post( $api_url, array(
+			'headers' => array(
+				'Content-Type' => 'application/json',
+			),
+			'body' => wp_json_encode( array(
+				'printing_method_ids' => $printing_method_ids,
+			) ),
+			'timeout' => 30,
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			return array();
+		}
+
+		$body = wp_remote_retrieve_body( $response );
+		$data = json_decode( $body, true );
+
+		if ( ! is_array( $data ) || ! isset( $data['data'] ) || ! is_array( $data['data'] ) ) {
+			return array();
+		}
+
+		$methods = $data['data'];
+		
+		// 缓存1小时
+		set_transient( $cache_key, $methods, HOUR_IN_SECONDS );
+
+		return $methods;
 	}
 
 	private function should_load_assets( $hook ) {
