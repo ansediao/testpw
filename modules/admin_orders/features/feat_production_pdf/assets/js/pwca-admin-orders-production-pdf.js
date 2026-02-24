@@ -60,7 +60,8 @@
 			lineHeight = 1.5,
 			color = '#000',
 			maxWidth = 500,
-			boldLines = []
+			boldLines = [],
+			padding = 10
 		} = options;
 
 		const canvas = document.createElement('canvas');
@@ -74,8 +75,8 @@
 			if (w > textWidth) textWidth = w;
 		});
 		
-		const width = Math.min(textWidth + 20, maxWidth);
-		const height = lines.length * fontSize * lineHeight + 20;
+		const width = Math.min(textWidth + padding * 2, maxWidth);
+		const height = lines.length * fontSize * lineHeight + padding * 2;
 		
 		canvas.width = width * 2;
 		canvas.height = height * 2;
@@ -87,7 +88,7 @@
 			const isBold = boldLines.includes(i);
 			ctx.font = `${isBold ? 'bold ' : ''}${fontSize}px ${fontFamily}`;
 			ctx.fillStyle = color;
-			ctx.fillText(line, 10, 10 + i * fontSize * lineHeight);
+			ctx.fillText(line, padding, padding + i * fontSize * lineHeight);
 		});
 		
 		return {
@@ -180,38 +181,38 @@
 
 				let yPos = margin;
 
-				const headerLines = [
-					`生产单 - 订单 #${orderNumber}`,
-					``,
-					`商品 ${i + 1} / ${items.length}`
-				];
-				const headerImg = textToImage(headerLines, { fontSize: 12, maxWidth: contentWidth });
-				doc.addImage(headerImg.dataUrl, 'PNG', margin, yPos, headerImg.width, headerImg.height);
-				yPos += headerImg.height + 15;
+				// const headerLines = [
+				// 	`生产单 - 订单 #${orderNumber}`,
+				// 	``,
+				// 	`商品 ${i + 1} / ${items.length}`
+				// ];
+				// const headerImg = textToImage(headerLines, { fontSize: 12, maxWidth: contentWidth });
+				// doc.addImage(headerImg.dataUrl, 'PNG', margin, yPos, headerImg.width, headerImg.height);
+				// yPos += headerImg.height + 15;
 
 				const productLines = [item.product_name || ''];
-				const productImg = textToImage(productLines, { fontSize: 16, maxWidth: contentWidth, boldLines: [0] });
+				const productImg = textToImage(productLines, { fontSize: 16, maxWidth: contentWidth, boldLines: [0], padding: 2 });
 				doc.addImage(productImg.dataUrl, 'PNG', margin, yPos, productImg.width, productImg.height);
-				yPos += productImg.height + 5;
+				yPos += productImg.height + 2;
 
 				if (item.sku) {
 					const skuLines = [`SKU: ${item.sku}`];
-					const skuImg = textToImage(skuLines, { fontSize: 12, maxWidth: contentWidth, color: '#666' });
+					const skuImg = textToImage(skuLines, { fontSize: 12, maxWidth: contentWidth, color: '#666', padding: 2 });
 					doc.addImage(skuImg.dataUrl, 'PNG', margin, yPos, skuImg.width, skuImg.height);
-					yPos += skuImg.height + 5;
+					yPos += skuImg.height + 10;
 				}
 
-				const colorLine = item.color_name 
-					? `${item.color_name}（${item.custom_color}）` 
-					: item.custom_color;
-				if (colorLine) {
-					const colorLines = [`颜色: ${colorLine}`];
-					const colorImg = textToImage(colorLines, { fontSize: 12, maxWidth: contentWidth });
-					doc.addImage(colorImg.dataUrl, 'PNG', margin, yPos, colorImg.width, colorImg.height);
-					yPos += colorImg.height + 15;
-				}
+				// const colorLine = item.color_name 
+				// 	? `${item.color_name}（${item.custom_color}）` 
+				// 	: item.custom_color;
+				// if (colorLine) {
+				// 	const colorLines = [`颜色: ${colorLine}`];
+				// 	const colorImg = textToImage(colorLines, { fontSize: 12, maxWidth: contentWidth });
+				// 	doc.addImage(colorImg.dataUrl, 'PNG', margin, yPos, colorImg.width, colorImg.height);
+				// 	yPos += colorImg.height + 15;
+				// }
 
-				const viewNameLines = [`视图: ${view.viewName}`];
+				const viewNameLines = [`View Name: ${view.viewName}`];
 				const viewNameImg = textToImage(viewNameLines, { fontSize: 14, maxWidth: contentWidth, boldLines: [0] });
 				doc.addImage(viewNameImg.dataUrl, 'PNG', margin, yPos, viewNameImg.width, viewNameImg.height);
 				yPos += viewNameImg.height + 10;
