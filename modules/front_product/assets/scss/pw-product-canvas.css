@@ -26,10 +26,12 @@
   transition: all 0.3s ease;
   margin: 20px 0;
   animation: pw-fadeIn 0.5s ease-in-out;
-  /* Canvas元素样式 */
 }
 .pw-product-canvas-container:hover {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+.pw-product-canvas-container {
+  /* Canvas元素样式 */
 }
 .pw-product-canvas-container canvas {
   display: block;
@@ -50,8 +52,7 @@
   z-index: 100;
   display: flex;
   gap: 8px;
-  -webkit-backdrop-filter: blur(4px);
-          backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   /* 工具栏按钮样式 */
 }
 .pw-canvas-toolbar button {
@@ -65,8 +66,6 @@
   font-weight: 500;
   transition: all 0.2s ease;
   min-width: 60px;
-  /* 清空按钮特殊样式 */
-  /* 工具提示样式 */
 }
 .pw-canvas-toolbar button:hover {
   background: #005a87;
@@ -80,11 +79,17 @@
   outline: 2px solid #007cba;
   outline-offset: 2px;
 }
+.pw-canvas-toolbar button {
+  /* 清空按钮特殊样式 */
+}
 .pw-canvas-toolbar button:last-child {
   background: #dc3232;
 }
 .pw-canvas-toolbar button:last-child:hover {
   background: #a02622;
+}
+.pw-canvas-toolbar button {
+  /* 工具提示样式 */
 }
 .pw-canvas-toolbar button[title]:hover::after {
   content: attr(title);

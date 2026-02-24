@@ -39,8 +39,6 @@ final class Pwca_Admin_Orders_Production_Pdf {
 			);
 		}
 
-		$this->maybe_enqueue_style( 'pwca-admin-orders-production-pdf', 'assets/scss/pwca-admin-orders-production-pdf.css' );
-
 		wp_enqueue_script(
 			'pwca-admin-orders-production-pdf',
 			$this->module_url . 'assets/js/pwca-admin-orders-production-pdf.js',
@@ -195,20 +193,5 @@ final class Pwca_Admin_Orders_Production_Pdf {
 		}
 
 		return false;
-	}
-
-	private function maybe_enqueue_style( $handle, $relative_css_path ) {
-		$relative_css_path = ltrim( (string) $relative_css_path, '/\\' );
-		$css_path = $this->module_path . str_replace( array( '/', '\\' ), DIRECTORY_SEPARATOR, $relative_css_path );
-		if ( ! file_exists( $css_path ) ) {
-			return;
-		}
-
-		wp_enqueue_style(
-			(string) $handle,
-			$this->module_url . str_replace( DIRECTORY_SEPARATOR, '/', $relative_css_path ),
-			array(),
-			null
-		);
 	}
 }

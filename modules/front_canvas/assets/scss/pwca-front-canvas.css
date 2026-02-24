@@ -13,11 +13,6 @@ body.wpcanvas {
   padding: 0;
   font-family: "Arial", sans-serif;
 }
-body.wpcanvas #app.container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
 body.wpcanvas #app.container .view-container .canvas-wrapper {
   position: absolute;
   top: 0;
@@ -41,6 +36,11 @@ body.wpcanvas #app.container .btn-custom {
 }
 body.wpcanvas #app.container .btn-custom:hover {
   background-color: #0099ee;
+}
+body.wpcanvas #app.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 body.wpcanvas #app.container .header {
@@ -719,7 +719,7 @@ body.wpcanvas #app.container .footer .product-card__add-to-cart {
   cursor: pointer;
 }
 body.wpcanvas #app.container .footer .product-card__add-to-cart:hover {
-  background-color: #eb1515;
+  background-color: rgb(234.9802955665, 21.0197044335, 21.0197044335);
 }
 
 body.wpcanvas .popup-modal {
@@ -883,6 +883,16 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 14px;
   transition: all 0.2s ease-in-out;
+}
+.pwca-group-print-modal__btn:focus, .modal#pwca-group-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+.pwca-group-print-modal__btn:disabled, .modal#pwca-group-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.pwca-group-print-modal__btn, .modal#pwca-group-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn {
   padding: 4px 16px;
   border: 1px solid #e2e8f0;
   border-radius: 4px;
@@ -892,14 +902,6 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   transition: all 0.2s;
   background: #ffffff;
   color: #64748b;
-}
-.pwca-group-print-modal__btn:focus, .modal#pwca-group-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-.pwca-group-print-modal__btn:disabled, .modal#pwca-group-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 .pwca-group-print-modal__btn:hover, .modal#pwca-group-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn:hover {
   background: #f8fafc;
@@ -911,8 +913,8 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   border-color: #3b82f6;
 }
 .pwca-group-print-modal__btn--primary:hover, .modal#pwca-group-print-method-modal .modal__overlay .modal__container .modal__footer .modal__btn.modal__btn-primary:hover {
-  background: #0b63f3;
-  border-color: #0b63f3;
+  background: rgb(11.1512195122, 99.1219512195, 242.8487804878);
+  border-color: rgb(11.1512195122, 99.1219512195, 242.8487804878);
 }
 
 .pwca-group-info {
@@ -1155,10 +1157,6 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 14px;
   transition: all 0.2s ease-in-out;
-  border: 1px solid #e2e8f0;
-  font-weight: 500;
-  background: #ffffff;
-  color: #64748b;
 }
 .pwca-print-method-modal__btn:focus {
   outline: none;
@@ -1167,6 +1165,12 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
 .pwca-print-method-modal__btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+.pwca-print-method-modal__btn {
+  border: 1px solid #e2e8f0;
+  font-weight: 500;
+  background: #ffffff;
+  color: #64748b;
 }
 .pwca-print-method-modal__btn:hover {
   background: #f8fafc;
@@ -1178,8 +1182,8 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   border-color: #3b82f6;
 }
 .pwca-print-method-modal__btn--primary:hover {
-  background: #0b63f3;
-  border-color: #0b63f3;
+  background: rgb(11.1512195122, 99.1219512195, 242.8487804878);
+  border-color: rgb(11.1512195122, 99.1219512195, 242.8487804878);
 }
 
 .pwca-print-methods {
@@ -1463,13 +1467,13 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   display: block;
   background-color: rgba(34, 197, 94, 0.1);
   border: 1px solid rgba(34, 197, 94, 0.3);
-  color: #136e34;
+  color: rgb(18.987012987, 110.012987013, 52.4935064935);
 }
 .pwca-inquiry-form .pwca-form-message--error {
   display: block;
   background-color: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #bd1010;
+  color: rgb(188.842364532, 16.157635468, 16.157635468);
 }
 
 .pwca-inquiry-modal__footer {
@@ -1488,8 +1492,6 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 14px;
   transition: all 0.2s ease-in-out;
-  padding: 8px 24px;
-  font-weight: 500;
 }
 .pwca-inquiry-modal__btn:focus {
   outline: none;
@@ -1499,12 +1501,16 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   opacity: 0.6;
   cursor: not-allowed;
 }
+.pwca-inquiry-modal__btn {
+  padding: 8px 24px;
+  font-weight: 500;
+}
 .pwca-inquiry-modal__btn--submit {
   background-color: #3b82f6;
   color: #ffffff;
 }
 .pwca-inquiry-modal__btn--submit:hover {
-  background-color: #0b63f3;
+  background-color: rgb(11.1512195122, 99.1219512195, 242.8487804878);
 }
 .pwca-inquiry-modal__btn--submit:disabled {
   background-color: #ccc;
@@ -1723,6 +1729,16 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 14px;
   transition: all 0.2s ease-in-out;
+}
+.layers-box .layers-panel .layers-list .layer-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+.layers-box .layers-panel .layers-list .layer-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.layers-box .layers-panel .layers-list .layer-btn {
   padding: 4px 6px;
   border: none;
   background: transparent;
@@ -1738,14 +1754,6 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   margin: 0 2px;
   border: 1px solid #d1d5db;
   background-color: #ffffff;
-}
-.layers-box .layers-panel .layers-list .layer-btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-.layers-box .layers-panel .layers-list .layer-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 .layers-box .layers-panel .layers-list .layer-btn:hover {
   background: #e5e7eb;

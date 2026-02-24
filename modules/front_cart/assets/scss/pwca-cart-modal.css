@@ -232,7 +232,7 @@
 }
 .pwca-btn.pwca-btn-secondary:hover, .pwca-btn-secondary.pwca-retry-btn:hover {
   background: #f8f9fa;
-  border-color: #c1c9d0;
+  border-color: rgb(192.9827586207, 200.5, 208.0172413793);
 }
 
 .pwca-modal-body-lock {

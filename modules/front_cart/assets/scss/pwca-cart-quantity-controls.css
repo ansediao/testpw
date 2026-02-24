@@ -186,7 +186,7 @@
     height: 30px;
   }
 }
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+@media (min-resolution: 192dpi) {
   .pwca-quantity-controls .pwca-qty-btn {
     border-width: 0.5px;
   }
