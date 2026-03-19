@@ -6,6 +6,7 @@
 	const restProductBase = root.dataset.restProductBase || ''
 	const adminPageUrl = root.dataset.adminPageUrl || ''
 	const storeUrl = root.dataset.storeUrl || ''
+	const connectNonce = root.dataset.connectNonce || ''
 	const clearCacheNonce = root.dataset.clearCacheNonce || ''
 	const cacheStatusNonce = root.dataset.cacheStatusNonce || ''
 	const productRequestNonce = root.dataset.productRequestNonce || ''
@@ -129,44 +130,12 @@
 		return `${connectBaseUrl}?${params.toString()}`
 	}
 
-	const initSecretKeyValidation = () => {
-		const secretKeyInput = document.getElementById('pwca-secret-key-input')
-		const hint = document.getElementById('pwca-secret-key-hint')
-		if (!secretKeyInput || !hint) return
-
-		const updateHint = () => {
-			const value = secretKeyInput.value.trim()
-
-			if (!value) {
-				hint.textContent = 'Please enter secret key (at least 8 characters)'
-				hint.classList.remove('is-success')
-				hint.classList.add('is-error')
-				return
-			}
-
-			if (value.length < 8) {
-				hint.textContent = 'Secret key must be at least 8 characters'
-				hint.classList.remove('is-success')
-				hint.classList.add('is-error')
-				return
-			}
-
-			hint.textContent = 'Secret key format looks valid'
-			hint.classList.remove('is-error')
-			hint.classList.add('is-success')
-		}
-
-		secretKeyInput.addEventListener('input', updateHint)
-		secretKeyInput.addEventListener('blur', updateHint)
-	}
-
 	const initTokenConnect = () => {
 		const tokenInput = document.getElementById('pwca-token-input')
 		const connectButton = document.getElementById('pwca-token-connect')
 		const statusContainer = document.getElementById('pwca-token-status')
-		const secretKeyInput = document.getElementById('pwca-secret-key-input')
 
-		if (!tokenInput || !connectButton || !statusContainer || !secretKeyInput) return
+		if (!tokenInput || !connectButton || !statusContainer) return
 
 		const setBusy = (busy) => {
 			connectButton.disabled = busy
@@ -174,17 +143,20 @@
 		}
 
 		connectButton.addEventListener('click', async () => {
-			const secretKey = secretKeyInput.value.trim()
-			if (!secretKey) {
-				setNotice(statusContainer, 'error', 'Please enter Secret key')
-				return
-			}
-
 			setBusy(true)
 			statusContainer.innerHTML = ''
 
 			try {
-				const redirectUrl = await buildConnectRedirectUrl(secretKey, 'pw-dashboard')
+				const response = await postUrlEncoded({
+					action: 'pwca_get_bind_entry_url',
+					nonce: connectNonce,
+					callback_page: 'pw-dashboard',
+				})
+				const redirectUrl = response && response.success && response.data && response.data.url ? String(response.data.url) : ''
+				if (!redirectUrl) {
+					setNotice(statusContainer, 'error', String((response && response.data) || 'Connect URL build failed'))
+					return
+				}
 				window.location.href = redirectUrl
 			} catch (error) {
 				setNotice(statusContainer, 'error', `Connect failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -567,7 +539,6 @@
 		})
 	}
 
-	initSecretKeyValidation()
 	initTokenConnect()
 	initApiMockToggle()
 	initImportProgress()

@@ -9,6 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * 处理主页面产品同步功能和视图渲染
  */
 final class Pwca_Admin_Dashboard_Dashboard {
+	private const PWCA_BIND_SECRET_KEY = 'o93aVh9I+M0yOvFB7JtFB2ejgBg4dIvBUHoM1zpGUQc=';
 	private static $instance = null;
 	private $module_path;
 	private $module_url;
@@ -33,6 +34,7 @@ final class Pwca_Admin_Dashboard_Dashboard {
 	private function register() {
 		add_action( 'admin_init', array( $this, 'handle_sync_request' ) );
 		add_action( 'admin_init', array( $this, 'handle_connect_callback' ) );
+		add_action( 'wp_ajax_pwca_get_bind_entry_url', array( $this, 'handle_get_bind_entry_url' ) );
 	}
 
 	/**
@@ -58,6 +60,7 @@ final class Pwca_Admin_Dashboard_Dashboard {
 			'store_url'            => home_url( '/' ),
 			'rest_product_base'    => trailingslashit( rest_url( 'pw/v1/product-data' ) ),
 			'save_token_nonce'     => wp_create_nonce( 'pw_save_token_nonce' ),
+			'connect_nonce'        => wp_create_nonce( 'pwca_get_bind_entry_url' ),
 			'clear_cache_nonce'    => wp_create_nonce( 'pw_clear_cache_nonce' ),
 			'cache_status_nonce'   => wp_create_nonce( 'pw_cache_status_nonce' ),
 			'current_token'        => get_option( 'pw_api_token', '' ),
@@ -113,6 +116,48 @@ final class Pwca_Admin_Dashboard_Dashboard {
 		if ( ! empty( $messages ) ) {
 			set_transient( 'pwca_dashboard_messages', $messages, 30 );
 		}
+	}
+
+	public function handle_get_bind_entry_url() {
+		check_ajax_referer( 'pwca_get_bind_entry_url', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( '权限不足' );
+			return;
+		}
+
+		$callback_page = isset( $_POST['callback_page'] ) ? sanitize_text_field( wp_unslash( $_POST['callback_page'] ) ) : 'pw-dashboard';
+		$callback_tab  = isset( $_POST['callback_tab'] ) ? sanitize_text_field( wp_unslash( $_POST['callback_tab'] ) ) : '';
+		$callback_page = in_array( $callback_page, array( 'pw-dashboard', 'pw-dashboard-settings' ), true ) ? $callback_page : 'pw-dashboard';
+
+		$callback_args = array(
+			'page' => $callback_page,
+		);
+		if ( 'pw-dashboard-settings' === $callback_page && '' !== $callback_tab ) {
+			$callback_args['tab'] = $callback_tab;
+		}
+
+		$callback_url = add_query_arg( $callback_args, admin_url( 'admin.php' ) );
+		$store_url    = home_url();
+		$timestamp    = (string) time();
+		$sign_source  = sprintf( 'callback=%s&store_url=%s&timestamp=%s', $callback_url, $store_url, $timestamp );
+		$sign         = hash_hmac( 'sha256', $sign_source, self::PWCA_BIND_SECRET_KEY );
+
+		$bind_url = add_query_arg(
+			array(
+				'callback'  => $callback_url,
+				'store_url' => $store_url,
+				'timestamp' => $timestamp,
+				'sign'      => $sign,
+			),
+			'https://www.promowares.xyz/api/store/bind-entry'
+		);
+
+		wp_send_json_success(
+			array(
+				'url' => $bind_url,
+			)
+		);
 	}
 
 	public function handle_connect_callback() {

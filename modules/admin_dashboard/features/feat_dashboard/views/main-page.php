@@ -9,6 +9,7 @@ $admin_page_url       = isset( $view_model['admin_page_url'] ) ? (string) $view_
 $store_url            = isset( $view_model['store_url'] ) ? (string) $view_model['store_url'] : '';
 $rest_product_base    = isset( $view_model['rest_product_base'] ) ? (string) $view_model['rest_product_base'] : '';
 $save_token_nonce     = isset( $view_model['save_token_nonce'] ) ? (string) $view_model['save_token_nonce'] : '';
+$connect_nonce        = isset( $view_model['connect_nonce'] ) ? (string) $view_model['connect_nonce'] : '';
 $clear_cache_nonce    = isset( $view_model['clear_cache_nonce'] ) ? (string) $view_model['clear_cache_nonce'] : '';
 $cache_status_nonce   = isset( $view_model['cache_status_nonce'] ) ? (string) $view_model['cache_status_nonce'] : '';
 $current_token        = isset( $view_model['current_token'] ) ? (string) $view_model['current_token'] : '';
@@ -30,6 +31,7 @@ if ( class_exists( 'Pwca_Admin_Dashboard_Dashboard' ) ) {
 	data-store-url="<?php echo esc_url( $store_url ); ?>"
 	data-rest-product-base="<?php echo esc_url( $rest_product_base ); ?>"
 	data-save-token-nonce="<?php echo esc_attr( $save_token_nonce ); ?>"
+	data-connect-nonce="<?php echo esc_attr( $connect_nonce ); ?>"
 	data-clear-cache-nonce="<?php echo esc_attr( $clear_cache_nonce ); ?>"
 	data-cache-status-nonce="<?php echo esc_attr( $cache_status_nonce ); ?>"
 	data-save-mock-mode-nonce="<?php echo esc_attr( $save_mock_mode_nonce ); ?>"
@@ -56,17 +58,6 @@ if ( class_exists( 'Pwca_Admin_Dashboard_Dashboard' ) ) {
 
 	<section class="pwca-admin-dashboard__section pwca-admin-dashboard__section--token">
 		<h2 class="pwca-admin-dashboard__section-title">Token</h2>
-		<div class="pwca-admin-dashboard__key-row">
-			<input
-				type="password"
-				name="pw_secret_key"
-				id="pwca-secret-key-input"
-				class="regular-text"
-				placeholder="Enter Secret Key"
-				autocomplete="off"
-			>
-			<p class="pwca-admin-dashboard__field-hint" id="pwca-secret-key-hint" aria-live="polite">Please enter secret key (at least 8 characters)</p>
-		</div>
 		<div class="pwca-admin-dashboard__key-row">
 			<input
 				type="text"
