@@ -5,6 +5,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $ajax_url              = isset( $view_model['ajax_url'] ) ? (string) $view_model['ajax_url'] : '';
+$admin_page_url        = isset( $view_model['admin_page_url'] ) ? (string) $view_model['admin_page_url'] : '';
+$store_url             = isset( $view_model['store_url'] ) ? (string) $view_model['store_url'] : '';
 $rest_product_base     = isset( $view_model['rest_product_base'] ) ? (string) $view_model['rest_product_base'] : '';
 $save_token_nonce      = isset( $view_model['save_token_nonce'] ) ? (string) $view_model['save_token_nonce'] : '';
 $clear_cache_nonce     = isset( $view_model['clear_cache_nonce'] ) ? (string) $view_model['clear_cache_nonce'] : '';
@@ -29,6 +31,8 @@ if ( ! isset( $tabs[ $current_tab ] ) ) {
 <div
 	class="wrap pwca-admin-dashboard"
 	data-ajax-url="<?php echo esc_url( $ajax_url ); ?>"
+	data-admin-page-url="<?php echo esc_url( $admin_page_url ); ?>"
+	data-store-url="<?php echo esc_url( $store_url ); ?>"
 	data-rest-product-base="<?php echo esc_url( $rest_product_base ); ?>"
 	data-save-token-nonce="<?php echo esc_attr( $save_token_nonce ); ?>"
 	data-clear-cache-nonce="<?php echo esc_attr( $clear_cache_nonce ); ?>"

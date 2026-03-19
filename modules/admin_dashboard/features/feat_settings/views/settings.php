@@ -48,6 +48,7 @@ $customize_color = isset( $settings_data['customize_color'] ) ? (string) $settin
 				<th scope="row">Reconnect your store</th>
 				<td>
 					<button type="button" class="button" id="pwca-reconnect-button">Reconnect</button>
+					<div class="pwca-admin-dashboard__token-status" id="pwca-settings-connect-status" aria-live="polite"></div>
 				</td>
 			</tr>
 			<tr>
@@ -75,7 +76,7 @@ $customize_color = isset( $settings_data['customize_color'] ) ? (string) $settin
 			<tr>
 				<th scope="row"></th>
 				<td>
-					<input type="text" name="pw_api_secret" value="<?php echo esc_attr( $api_secret ); ?>" placeholder="API integration info" class="regular-text">
+					<input type="text" id="pwca-settings-secret-key-input" name="pw_api_secret" value="<?php echo esc_attr( $api_secret ); ?>" placeholder="API integration info" class="regular-text">
 				</td>
 			</tr>
 		</table>

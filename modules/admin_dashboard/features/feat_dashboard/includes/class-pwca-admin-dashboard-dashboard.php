@@ -31,8 +31,8 @@ final class Pwca_Admin_Dashboard_Dashboard {
 	}
 
 	private function register() {
-		// Dashboard 功能通过主模块页面渲染，这里处理 POST 请求
 		add_action( 'admin_init', array( $this, 'handle_sync_request' ) );
+		add_action( 'admin_init', array( $this, 'handle_connect_callback' ) );
 	}
 
 	/**
@@ -54,11 +54,14 @@ final class Pwca_Admin_Dashboard_Dashboard {
 	private function get_main_page_view_model() {
 		return array(
 			'ajax_url'             => admin_url( 'admin-ajax.php' ),
+			'admin_page_url'       => admin_url( 'admin.php' ),
+			'store_url'            => home_url( '/' ),
 			'rest_product_base'    => trailingslashit( rest_url( 'pw/v1/product-data' ) ),
 			'save_token_nonce'     => wp_create_nonce( 'pw_save_token_nonce' ),
 			'clear_cache_nonce'    => wp_create_nonce( 'pw_clear_cache_nonce' ),
 			'cache_status_nonce'   => wp_create_nonce( 'pw_cache_status_nonce' ),
 			'current_token'        => get_option( 'pw_api_token', '' ),
+			'current_store_id'     => get_option( 'pw_store_id', '' ),
 			'api_mock_mode'        => (int) get_option( 'pw_api_mock_mode', 0 ),
 			'save_mock_mode_nonce' => wp_create_nonce( 'pw_save_mock_mode_nonce' ),
 		);
@@ -110,6 +113,144 @@ final class Pwca_Admin_Dashboard_Dashboard {
 		if ( ! empty( $messages ) ) {
 			set_transient( 'pwca_dashboard_messages', $messages, 30 );
 		}
+	}
+
+	public function handle_connect_callback() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$state_raw = isset( $_GET['state'] ) ? wp_unslash( $_GET['state'] ) : '';
+		$state     = $this->parse_connect_state( $state_raw );
+
+		$page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
+		if ( '' === $page && isset( $state['page'] ) ) {
+			$page = (string) $state['page'];
+		}
+
+		$valid_pages = array( 'pw-dashboard', 'pw-dashboard-settings' );
+		if ( ! in_array( $page, $valid_pages, true ) ) {
+			return;
+		}
+
+		$has_connect_result = isset( $_GET['success'] ) || isset( $_GET['store_id'] ) || isset( $_GET['token'] ) || isset( $_GET['error'] );
+		if ( ! $has_connect_result ) {
+			return;
+		}
+
+		$success_raw = isset( $_GET['success'] ) ? sanitize_text_field( wp_unslash( $_GET['success'] ) ) : '';
+		$store_id    = isset( $_GET['store_id'] ) ? sanitize_text_field( wp_unslash( $_GET['store_id'] ) ) : '';
+		$token       = isset( $_GET['token'] ) ? sanitize_text_field( wp_unslash( $_GET['token'] ) ) : '';
+		$error       = isset( $_GET['error'] ) ? sanitize_text_field( wp_unslash( $_GET['error'] ) ) : '';
+		$tab         = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : '';
+		if ( '' === $tab && isset( $state['tab'] ) ) {
+			$tab = sanitize_text_field( (string) $state['tab'] );
+		}
+		$is_success  = in_array( strtolower( $success_raw ), array( '1', 'true', 'success', 'yes' ), true );
+		$has_error   = '' !== $error;
+
+		$messages = array();
+		if ( $is_success && ! $has_error && $store_id !== '' && $token !== '' ) {
+			update_option( 'pw_store_id', $store_id );
+			update_option( 'pw_api_token', $token );
+			$messages[] = array(
+				'type' => 'success',
+				'text' => 'Store connected successfully',
+			);
+		} else {
+			$message_text = $error !== '' ? $error : 'Store connection failed';
+			$messages[]   = array(
+				'type' => 'error',
+				'text' => $message_text,
+			);
+		}
+
+		if ( 'pw-dashboard-settings' === $page ) {
+			set_transient( 'pwca_settings_messages', $messages, 30 );
+		} else {
+			set_transient( 'pwca_dashboard_messages', $messages, 30 );
+		}
+
+		$redirect_args = array(
+			'page' => $page,
+		);
+		if ( 'pw-dashboard-settings' === $page && $tab !== '' ) {
+			$redirect_args['tab'] = $tab;
+		}
+		$redirect_url = add_query_arg( $redirect_args, admin_url( 'admin.php' ) );
+		wp_safe_redirect( $redirect_url );
+		exit;
+	}
+
+	private function parse_connect_state( $state_raw ) {
+		$state_raw = is_string( $state_raw ) ? trim( $state_raw ) : '';
+		if ( '' === $state_raw ) {
+			return array();
+		}
+
+		$candidates   = array( $state_raw, rawurldecode( $state_raw ) );
+		$base64_state = strtr( $state_raw, '-_', '+/' );
+		$padding      = strlen( $base64_state ) % 4;
+		if ( 0 !== $padding ) {
+			$base64_state .= str_repeat( '=', 4 - $padding );
+		}
+		$decoded_base64 = base64_decode( $base64_state, true );
+		if ( false !== $decoded_base64 && '' !== $decoded_base64 ) {
+			$candidates[] = $decoded_base64;
+		}
+
+		foreach ( $candidates as $candidate ) {
+			$parsed = json_decode( (string) $candidate, true );
+			if ( ! is_array( $parsed ) ) {
+				continue;
+			}
+
+			$result = array();
+			if ( isset( $parsed['page'] ) ) {
+				$result['page'] = sanitize_text_field( (string) $parsed['page'] );
+			}
+			if ( isset( $parsed['tab'] ) ) {
+				$result['tab'] = sanitize_text_field( (string) $parsed['tab'] );
+			}
+			if ( ! empty( $result ) ) {
+				return $result;
+			}
+		}
+
+		foreach ( $candidates as $candidate ) {
+			$parsed = array();
+			parse_str( (string) $candidate, $parsed );
+			if ( ! is_array( $parsed ) ) {
+				continue;
+			}
+
+			$result = array();
+			if ( isset( $parsed['page'] ) ) {
+				$result['page'] = sanitize_text_field( (string) $parsed['page'] );
+			}
+			if ( isset( $parsed['tab'] ) ) {
+				$result['tab'] = sanitize_text_field( (string) $parsed['tab'] );
+			}
+			if ( ! empty( $result ) ) {
+				return $result;
+			}
+		}
+
+		if ( false !== strpos( $state_raw, '|' ) ) {
+			$parts  = explode( '|', $state_raw );
+			$result = array();
+			if ( isset( $parts[0] ) && '' !== trim( $parts[0] ) ) {
+				$result['page'] = sanitize_text_field( trim( $parts[0] ) );
+			}
+			if ( isset( $parts[1] ) && '' !== trim( $parts[1] ) ) {
+				$result['tab'] = sanitize_text_field( trim( $parts[1] ) );
+			}
+			if ( ! empty( $result ) ) {
+				return $result;
+			}
+		}
+
+		return array();
 	}
 
 	private function process_sync_request() {

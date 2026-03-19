@@ -1,0 +1,8 @@
+- [x] Dashboard 页面显示新增密钥输入框，位置在 token 输入与 Connect 按钮上方
+- [x] 点击 Connect 后不再执行旧 token 校验与即时保存逻辑
+- [x] 跳转 URL 包含 callback、store_url、timestamp、sign 四个参数
+- [x] 签名字符串严格为 `callback={callback}&store_url={store_url}&timestamp={timestamp}` 且 sign 为 HMAC-SHA256 hex 小写
+- [x] 回跳时成功分支（success=1）可保存 store_id 与 token
+- [x] 回跳时失败分支（success=0 或有 error）仅提示错误且不保存 token
+- [x] 保存接口具备权限与安全校验，错误提示对管理员可读
+- [x] 已完成控制台与页面交互层面的回归检查指引（不新增测试文件、不启动额外服务）

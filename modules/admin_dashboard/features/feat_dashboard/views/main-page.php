@@ -5,11 +5,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $ajax_url             = isset( $view_model['ajax_url'] ) ? (string) $view_model['ajax_url'] : '';
+$admin_page_url       = isset( $view_model['admin_page_url'] ) ? (string) $view_model['admin_page_url'] : '';
+$store_url            = isset( $view_model['store_url'] ) ? (string) $view_model['store_url'] : '';
 $rest_product_base    = isset( $view_model['rest_product_base'] ) ? (string) $view_model['rest_product_base'] : '';
 $save_token_nonce     = isset( $view_model['save_token_nonce'] ) ? (string) $view_model['save_token_nonce'] : '';
 $clear_cache_nonce    = isset( $view_model['clear_cache_nonce'] ) ? (string) $view_model['clear_cache_nonce'] : '';
 $cache_status_nonce   = isset( $view_model['cache_status_nonce'] ) ? (string) $view_model['cache_status_nonce'] : '';
 $current_token        = isset( $view_model['current_token'] ) ? (string) $view_model['current_token'] : '';
+$current_store_id     = isset( $view_model['current_store_id'] ) ? (string) $view_model['current_store_id'] : '';
 $save_mock_mode_nonce = isset( $view_model['save_mock_mode_nonce'] ) ? (string) $view_model['save_mock_mode_nonce'] : '';
 $api_mock_mode        = isset( $view_model['api_mock_mode'] ) ? (int) $view_model['api_mock_mode'] : 0;
 // 从 Dashboard 子模块获取消息
@@ -23,6 +26,8 @@ if ( class_exists( 'Pwca_Admin_Dashboard_Dashboard' ) ) {
 <div
 	class="wrap pwca-admin-dashboard"
 	data-ajax-url="<?php echo esc_url( $ajax_url ); ?>"
+	data-admin-page-url="<?php echo esc_url( $admin_page_url ); ?>"
+	data-store-url="<?php echo esc_url( $store_url ); ?>"
 	data-rest-product-base="<?php echo esc_url( $rest_product_base ); ?>"
 	data-save-token-nonce="<?php echo esc_attr( $save_token_nonce ); ?>"
 	data-clear-cache-nonce="<?php echo esc_attr( $clear_cache_nonce ); ?>"
@@ -51,15 +56,37 @@ if ( class_exists( 'Pwca_Admin_Dashboard_Dashboard' ) ) {
 
 	<section class="pwca-admin-dashboard__section pwca-admin-dashboard__section--token">
 		<h2 class="pwca-admin-dashboard__section-title">Token</h2>
+		<div class="pwca-admin-dashboard__key-row">
+			<input
+				type="password"
+				name="pw_secret_key"
+				id="pwca-secret-key-input"
+				class="regular-text"
+				placeholder="Enter Secret Key"
+				autocomplete="off"
+			>
+			<p class="pwca-admin-dashboard__field-hint" id="pwca-secret-key-hint" aria-live="polite">Please enter secret key (at least 8 characters)</p>
+		</div>
+		<div class="pwca-admin-dashboard__key-row">
+			<input
+				type="text"
+				id="pwca-store-id-input"
+				class="regular-text"
+				placeholder="Store ID"
+				value="<?php echo esc_attr( $current_store_id ); ?>"
+				readonly
+			>
+		</div>
 		<div class="pwca-admin-dashboard__token-row">
 			<input
 				type="text"
 				name="pw_token"
 				id="pwca-token-input"
 				class="regular-text"
-				placeholder="Enter API Token"
+				placeholder="Token will be synced after Connect callback"
 				value="<?php echo esc_attr( $current_token ); ?>"
 				autocomplete="off"
+				readonly
 			>
 			<button type="button" class="button" id="pwca-token-connect">Connect</button>
 		</div>

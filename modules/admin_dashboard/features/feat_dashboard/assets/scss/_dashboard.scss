@@ -29,6 +29,24 @@
 		flex-wrap: wrap;
 	}
 
+	&__key-row {
+		margin-bottom: 12px;
+	}
+
+	&__field-hint {
+		margin: 8px 0 0;
+		color: #8c8f94;
+		font-size: 12px;
+
+		&.is-error {
+			color: #d63638;
+		}
+
+		&.is-success {
+			color: #00a32a;
+		}
+	}
+
 	&__token-status {
 		margin-top: 10px;
 	}

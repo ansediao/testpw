@@ -4,12 +4,14 @@
 
 	const ajaxUrl = root.dataset.ajaxUrl || ''
 	const restProductBase = root.dataset.restProductBase || ''
-	const saveTokenNonce = root.dataset.saveTokenNonce || ''
+	const adminPageUrl = root.dataset.adminPageUrl || ''
+	const storeUrl = root.dataset.storeUrl || ''
 	const clearCacheNonce = root.dataset.clearCacheNonce || ''
 	const cacheStatusNonce = root.dataset.cacheStatusNonce || ''
 	const productRequestNonce = root.dataset.productRequestNonce || ''
 	const saveMockModeNonce = root.dataset.saveMockModeNonce || ''
 	const initialApiMockMode = root.dataset.apiMockMode === '1' ? 1 : 0
+	const connectBaseUrl = 'https://www.promowares.xyz/api/store/bind-entry'
 
 	const buildNotice = (type, message) => {
 		const notice = document.createElement('div')
@@ -71,22 +73,110 @@
 		}
 	}
 
+	const normalizeStoreUrl = (value) => {
+		const raw = String(value || '').trim()
+		if (!raw) return ''
+		return raw.endsWith('/') ? raw : `${raw}/`
+	}
+
+	const toHex = (buffer) =>
+		Array.from(new Uint8Array(buffer))
+			.map((byte) => byte.toString(16).padStart(2, '0'))
+			.join('')
+
+	const createConnectSignature = async (secretKey, payload) => {
+		if (!window.crypto || !window.crypto.subtle) {
+			throw new Error('Current browser does not support crypto signing')
+		}
+
+		const encoder = new TextEncoder()
+		const cryptoKey = await window.crypto.subtle.importKey(
+			'raw',
+			encoder.encode(secretKey),
+			{ name: 'HMAC', hash: 'SHA-256' },
+			false,
+			['sign'],
+		)
+		const signatureBuffer = await window.crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(payload))
+		return toHex(signatureBuffer)
+	}
+
+	const buildConnectRedirectUrl = async (secretKey, callbackPage, callbackTab = '') => {
+		const callbackBase = adminPageUrl || `${window.location.origin}/wp-admin/admin.php`
+		const callbackUrl = new URL(callbackBase, window.location.origin)
+		callbackUrl.searchParams.set('page', callbackPage)
+		if (callbackPage === 'pw-dashboard-settings' && callbackTab) {
+			callbackUrl.searchParams.set('tab', callbackTab)
+		}
+		const state = JSON.stringify({
+			page: callbackPage,
+			tab: callbackTab,
+		})
+		callbackUrl.searchParams.set('state', state)
+
+		const normalizedStoreUrl = normalizeStoreUrl(storeUrl || window.location.origin)
+		const timestamp = String(Math.floor(Date.now() / 1000))
+		const callback = callbackUrl.toString()
+		const payload = `callback=${callback}&store_url=${normalizedStoreUrl}&timestamp=${timestamp}`
+		const sign = await createConnectSignature(secretKey, payload)
+
+		const params = new URLSearchParams()
+		params.set('callback', callback)
+		params.set('store_url', normalizedStoreUrl)
+		params.set('timestamp', timestamp)
+		params.set('sign', sign)
+
+		return `${connectBaseUrl}?${params.toString()}`
+	}
+
+	const initSecretKeyValidation = () => {
+		const secretKeyInput = document.getElementById('pwca-secret-key-input')
+		const hint = document.getElementById('pwca-secret-key-hint')
+		if (!secretKeyInput || !hint) return
+
+		const updateHint = () => {
+			const value = secretKeyInput.value.trim()
+
+			if (!value) {
+				hint.textContent = 'Please enter secret key (at least 8 characters)'
+				hint.classList.remove('is-success')
+				hint.classList.add('is-error')
+				return
+			}
+
+			if (value.length < 8) {
+				hint.textContent = 'Secret key must be at least 8 characters'
+				hint.classList.remove('is-success')
+				hint.classList.add('is-error')
+				return
+			}
+
+			hint.textContent = 'Secret key format looks valid'
+			hint.classList.remove('is-error')
+			hint.classList.add('is-success')
+		}
+
+		secretKeyInput.addEventListener('input', updateHint)
+		secretKeyInput.addEventListener('blur', updateHint)
+	}
+
 	const initTokenConnect = () => {
 		const tokenInput = document.getElementById('pwca-token-input')
 		const connectButton = document.getElementById('pwca-token-connect')
 		const statusContainer = document.getElementById('pwca-token-status')
+		const secretKeyInput = document.getElementById('pwca-secret-key-input')
 
-		if (!tokenInput || !connectButton || !statusContainer) return
+		if (!tokenInput || !connectButton || !statusContainer || !secretKeyInput) return
 
 		const setBusy = (busy) => {
 			connectButton.disabled = busy
-			connectButton.textContent = busy ? 'Verifying...' : 'Connect'
+			connectButton.textContent = busy ? 'Connecting...' : 'Connect'
 		}
 
 		connectButton.addEventListener('click', async () => {
-			const token = tokenInput.value.trim()
-			if (!token) {
-				setNotice(statusContainer, 'error', 'Please enter Token')
+			const secretKey = secretKeyInput.value.trim()
+			if (!secretKey) {
+				setNotice(statusContainer, 'error', 'Please enter Secret key')
 				return
 			}
 
@@ -94,37 +184,10 @@
 			statusContainer.innerHTML = ''
 
 			try {
-				const response = await postUrlEncoded({
-					action: 'pw_proxy_api_request',
-					endpoint: 'auth/user-info',
-					token,
-				})
-
-				const isValid =
-					response &&
-					response.code === 200 &&
-					response.message === 'success' &&
-					response.data
-
-				if (!isValid) {
-					setNotice(statusContainer, 'error', 'Verification failed: Invalid response format')
-					return
-				}
-
-				const saveResult = await postUrlEncoded({
-					action: 'pw_save_token',
-					token,
-					nonce: saveTokenNonce,
-				})
-
-				if (saveResult && saveResult.success) {
-					setNotice(statusContainer, 'success', 'Verification successful, Token saved')
-					return
-				}
-
-				setNotice(statusContainer, 'warning', 'Verification successful, but Token save failed')
+				const redirectUrl = await buildConnectRedirectUrl(secretKey, 'pw-dashboard')
+				window.location.href = redirectUrl
 			} catch (error) {
-				setNotice(statusContainer, 'error', `Verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+				setNotice(statusContainer, 'error', `Connect failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
 			} finally {
 				setBusy(false)
 			}
@@ -404,9 +467,35 @@
 
 	const initSettingsTab = () => {
 		const reconnectButton = document.getElementById('pwca-reconnect-button')
+		const statusContainer = document.getElementById('pwca-settings-connect-status')
+		const settingsSecretInput = document.getElementById('pwca-settings-secret-key-input')
 		if (reconnectButton) {
-			reconnectButton.addEventListener('click', () => {
-				window.alert('Reconnect feature will be implemented here')
+			reconnectButton.addEventListener('click', async () => {
+				const secretKey = settingsSecretInput ? settingsSecretInput.value.trim() : ''
+				if (!secretKey) {
+					if (statusContainer) {
+						setNotice(statusContainer, 'error', 'Please fill API integration secret first')
+					}
+					return
+				}
+
+				reconnectButton.disabled = true
+				reconnectButton.textContent = 'Connecting...'
+				if (statusContainer) {
+					statusContainer.innerHTML = ''
+				}
+
+				try {
+					const redirectUrl = await buildConnectRedirectUrl(secretKey, 'pw-dashboard-settings', 'settings')
+					window.location.href = redirectUrl
+				} catch (error) {
+					if (statusContainer) {
+						setNotice(statusContainer, 'error', `Reconnect failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+					}
+				} finally {
+					reconnectButton.disabled = false
+					reconnectButton.textContent = 'Reconnect'
+				}
 			})
 		}
 
@@ -478,6 +567,7 @@
 		})
 	}
 
+	initSecretKeyValidation()
 	initTokenConnect()
 	initApiMockToggle()
 	initImportProgress()
