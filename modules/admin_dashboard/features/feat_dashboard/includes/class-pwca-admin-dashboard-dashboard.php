@@ -35,6 +35,7 @@ final class Pwca_Admin_Dashboard_Dashboard {
 		add_action( 'admin_init', array( $this, 'handle_sync_request' ) );
 		add_action( 'admin_init', array( $this, 'handle_connect_callback' ) );
 		add_action( 'wp_ajax_pwca_get_bind_entry_url', array( $this, 'handle_get_bind_entry_url' ) );
+		add_action( 'wp_ajax_pwca_disconnect_store', array( $this, 'handle_disconnect_store' ) );
 	}
 
 	/**
@@ -61,10 +62,12 @@ final class Pwca_Admin_Dashboard_Dashboard {
 			'rest_product_base'    => trailingslashit( rest_url( 'pw/v1/product-data' ) ),
 			'save_token_nonce'     => wp_create_nonce( 'pw_save_token_nonce' ),
 			'connect_nonce'        => wp_create_nonce( 'pwca_get_bind_entry_url' ),
+			'disconnect_nonce'     => wp_create_nonce( 'pwca_disconnect_store' ),
 			'clear_cache_nonce'    => wp_create_nonce( 'pw_clear_cache_nonce' ),
 			'cache_status_nonce'   => wp_create_nonce( 'pw_cache_status_nonce' ),
 			'current_token'        => get_option( 'pw_api_token', '' ),
 			'current_store_id'     => get_option( 'pw_store_id', '' ),
+			'has_connected_token'  => '' !== (string) get_option( 'pw_api_token', '' ) ? 1 : 0,
 			'api_mock_mode'        => (int) get_option( 'pw_api_mock_mode', 0 ),
 			'save_mock_mode_nonce' => wp_create_nonce( 'pw_save_mock_mode_nonce' ),
 		);
@@ -158,6 +161,31 @@ final class Pwca_Admin_Dashboard_Dashboard {
 				'url' => $bind_url,
 			)
 		);
+	}
+
+	public function handle_disconnect_store() {
+		check_ajax_referer( 'pwca_disconnect_store', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( '权限不足' );
+			return;
+		}
+
+		delete_option( 'pw_store_id' );
+		delete_option( 'pw_api_token' );
+
+		set_transient(
+			'pwca_dashboard_messages',
+			array(
+				array(
+					'type' => 'success',
+					'text' => 'Store disconnected successfully',
+				),
+			),
+			30
+		);
+
+		wp_send_json_success( 'Store disconnected successfully' );
 	}
 
 	public function handle_connect_callback() {

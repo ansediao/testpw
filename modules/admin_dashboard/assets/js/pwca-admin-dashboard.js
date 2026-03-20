@@ -7,6 +7,8 @@
 	const adminPageUrl = root.dataset.adminPageUrl || ''
 	const storeUrl = root.dataset.storeUrl || ''
 	const connectNonce = root.dataset.connectNonce || ''
+	const disconnectNonce = root.dataset.disconnectNonce || ''
+	const hasConnectedToken = root.dataset.hasConnectedToken === '1'
 	const clearCacheNonce = root.dataset.clearCacheNonce || ''
 	const cacheStatusNonce = root.dataset.cacheStatusNonce || ''
 	const productRequestNonce = root.dataset.productRequestNonce || ''
@@ -131,15 +133,19 @@
 	}
 
 	const initTokenConnect = () => {
-		const tokenInput = document.getElementById('pwca-token-input')
 		const connectButton = document.getElementById('pwca-token-connect')
 		const statusContainer = document.getElementById('pwca-token-status')
 
-		if (!tokenInput || !connectButton || !statusContainer) return
+		if (!connectButton || !statusContainer) return
+		let isConnected = hasConnectedToken
 
 		const setBusy = (busy) => {
 			connectButton.disabled = busy
-			connectButton.textContent = busy ? 'Connecting...' : 'Connect'
+			if (busy) {
+				connectButton.textContent = isConnected ? 'Disconnecting...' : 'Connecting...'
+				return
+			}
+			connectButton.textContent = isConnected ? 'Disconnect' : 'Connect'
 		}
 
 		connectButton.addEventListener('click', async () => {
@@ -147,6 +153,19 @@
 			statusContainer.innerHTML = ''
 
 			try {
+				if (isConnected) {
+					const response = await postUrlEncoded({
+						action: 'pwca_disconnect_store',
+						nonce: disconnectNonce,
+					})
+					if (!response || !response.success) {
+						setNotice(statusContainer, 'error', String((response && response.data) || 'Disconnect failed'))
+						return
+					}
+					window.location.reload()
+					return
+				}
+
 				const response = await postUrlEncoded({
 					action: 'pwca_get_bind_entry_url',
 					nonce: connectNonce,
@@ -159,7 +178,7 @@
 				}
 				window.location.href = redirectUrl
 			} catch (error) {
-				setNotice(statusContainer, 'error', `Connect failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+				setNotice(statusContainer, 'error', `${isConnected ? 'Disconnect' : 'Connect'} failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
 			} finally {
 				setBusy(false)
 			}
