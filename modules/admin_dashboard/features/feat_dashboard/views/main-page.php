@@ -59,7 +59,6 @@ if ( class_exists( 'Pwca_Admin_Dashboard_Dashboard' ) ) {
 	<?php endforeach; ?>
 
 	<section class="pwca-admin-dashboard__section pwca-admin-dashboard__section--token">
-		<h2 class="pwca-admin-dashboard__section-title">Token</h2>
 		<div class="pwca-admin-dashboard__token-row">
 			<button type="button" class="button" id="pwca-token-connect"><?php echo $has_connected_token ? 'Disconnect' : 'Connect'; ?></button>
 		</div>
