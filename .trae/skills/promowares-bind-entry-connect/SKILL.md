@@ -67,10 +67,12 @@ description: "规范后台 Connect/Disconnect 与中台回跳保存 token/store_
 - 必须做：
   - `check_ajax_referer`
   - `current_user_can( 'manage_options' )`
-- 执行动作：
-  - 删除 `pw_store_id`
-  - 删除 `pw_api_token`
-  - 写入成功 notice
+- 执行动作（按顺序）：
+  1. 删除所有 `pw_isSyncProduct = '1'` 的同步产品（使用 `wp_delete_post` 永久删除）
+  2. 删除所有 `pw_is_composite_group = '1'` 的组合产品组
+  3. 删除 `pw_store_id` 选项
+  4. 删除 `pw_api_token` 选项
+  5. 写入成功 notice
 - 前端收到成功后刷新当前页面
 
 ### 5) 展示规范

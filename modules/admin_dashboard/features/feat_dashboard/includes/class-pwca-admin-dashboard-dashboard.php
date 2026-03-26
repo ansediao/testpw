@@ -171,6 +171,8 @@ final class Pwca_Admin_Dashboard_Dashboard {
 			return;
 		}
 
+		$this->delete_sync_products();
+
 		delete_option( 'pw_store_id' );
 		delete_option( 'pw_api_token' );
 
@@ -186,6 +188,49 @@ final class Pwca_Admin_Dashboard_Dashboard {
 		);
 
 		wp_send_json_success( 'Store disconnected successfully' );
+	}
+
+	private function delete_sync_products() {
+		global $wpdb;
+
+		$post_ids_to_delete = array();
+
+		$sync_product_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT pm.post_id FROM {$wpdb->postmeta} pm WHERE pm.meta_key = %s AND pm.meta_value = %s",
+				'pw_isSyncProduct',
+				'1'
+			)
+		);
+
+		if ( ! empty( $sync_product_ids ) ) {
+			$post_ids_to_delete = array_merge( $post_ids_to_delete, $sync_product_ids );
+		}
+
+		$composite_group_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT pm.post_id FROM {$wpdb->postmeta} pm WHERE pm.meta_key = %s AND pm.meta_value = %s",
+				'pw_is_composite_group',
+				'1'
+			)
+		);
+
+		if ( ! empty( $composite_group_ids ) ) {
+			$post_ids_to_delete = array_merge( $post_ids_to_delete, $composite_group_ids );
+		}
+
+		if ( empty( $post_ids_to_delete ) ) {
+			return;
+		}
+
+		$post_ids_to_delete = array_map( 'intval', $post_ids_to_delete );
+		$post_ids_to_delete = array_unique( array_filter( $post_ids_to_delete, function ( $id ) {
+			return $id > 0;
+		} ) );
+
+		foreach ( $post_ids_to_delete as $post_id ) {
+			wp_delete_post( $post_id, true );
+		}
 	}
 
 	public function handle_connect_callback() {
