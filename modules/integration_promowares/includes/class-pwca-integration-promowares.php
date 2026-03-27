@@ -73,6 +73,12 @@ final class Pwca_Integration_Promowares {
 		$total     = count( $pending_actions ) + count( $completed_actions );
 		$completed = count( $completed_actions );
 
+		if ( $total > 0 && $total === $completed ) {
+			$this->clear_stale_import_actions();
+			$total = 0;
+			$completed = 0;
+		}
+
 		wp_send_json(
 			array(
 				'total'     => (int) $total,
@@ -226,16 +232,28 @@ final class Pwca_Integration_Promowares {
 			);
 		}
 
+		$this->clear_stale_import_actions();
+
 		$api = $this->get_api_client();
 
 		$products = $api->get_products_from_api();
+		$composite_products = $api->get_composite_products_from_api();
+
+		$total_products = is_array( $products ) ? count( $products ) : 0;
+		$total_composite = is_array( $composite_products ) ? count( $composite_products ) : 0;
+
+		if ( 0 === $total_products && 0 === $total_composite ) {
+			return array(
+				array( 'type' => 'warning', 'text' => '没有可同步的产品（API 返回空列表）' ),
+			);
+		}
+
 		if ( is_array( $products ) && ! empty( $products ) ) {
 			foreach ( $products as $product ) {
 				as_schedule_single_action( time(), 'import_single_product', array( $product ) );
 			}
 		}
 
-		$composite_products = $api->get_composite_products_from_api();
 		if ( is_array( $composite_products ) && ! empty( $composite_products ) ) {
 			foreach ( $composite_products as $composite_group ) {
 				as_schedule_single_action( time(), 'import_composite_product_group', array( $composite_group ) );
@@ -243,8 +261,33 @@ final class Pwca_Integration_Promowares {
 		}
 
 		return array(
-			array( 'type' => 'success', 'text' => '产品导入已开始' ),
+			array( 'type' => 'success', 'text' => sprintf( '产品导入已开始（%d 个单品 + %d 个组合产品）', $total_products, $total_composite ) ),
 		);
+	}
+
+	private function clear_stale_import_actions() {
+		if ( ! $this->is_action_scheduler_available() ) {
+			return;
+		}
+
+		$hooks = array( 'import_single_product', 'import_composite_product_group' );
+
+		foreach ( $hooks as $hook ) {
+			$completed_actions = as_get_scheduled_actions(
+				array(
+					'status'   => 'complete',
+					'hook'     => $hook,
+					'per_page' => -1,
+				)
+			);
+
+			foreach ( $completed_actions as $action ) {
+				$action_id = is_object( $action ) && isset( $action->get_id ) ? $action->get_id() : null;
+				if ( $action_id ) {
+					as_delete_action( $action_id );
+				}
+			}
+		}
 	}
 
 	private function is_action_scheduler_available() {
