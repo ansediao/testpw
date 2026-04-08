@@ -274,20 +274,23 @@ final class Pwca_Integration_Promowares {
 		}
 
 		$hooks = array( 'import_single_product', 'import_composite_product_group' );
+		$statuses = array( 'pending', 'complete' );
 
 		foreach ( $hooks as $hook ) {
-			$completed_actions = as_get_scheduled_actions(
-				array(
-					'status'   => 'complete',
-					'hook'     => $hook,
-					'per_page' => -1,
-				)
-			);
+			foreach ( $statuses as $status ) {
+				$actions = as_get_scheduled_actions(
+					array(
+						'status'   => $status,
+						'hook'     => $hook,
+						'per_page' => -1,
+					)
+				);
 
-			foreach ( $completed_actions as $action ) {
-				$action_id = is_object( $action ) && isset( $action->get_id ) ? $action->get_id() : null;
-				if ( $action_id ) {
-					as_delete_action( $action_id );
+				foreach ( $actions as $action ) {
+					$action_id = is_object( $action ) && isset( $action->get_id ) ? $action->get_id() : null;
+					if ( $action_id ) {
+						as_delete_action( $action_id );
+					}
 				}
 			}
 		}
