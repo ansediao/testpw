@@ -233,6 +233,7 @@ final class Pwca_Integration_Promowares {
 		}
 
 		$this->clear_stale_import_actions();
+		$this->delete_existing_sync_products();
 
 		$api = $this->get_api_client();
 
@@ -286,6 +287,28 @@ final class Pwca_Integration_Promowares {
 				if ( $action_id ) {
 					as_delete_action( $action_id );
 				}
+			}
+		}
+	}
+
+	private function delete_existing_sync_products() {
+		global $wpdb;
+
+		$sync_product_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT pm.post_id FROM {$wpdb->postmeta} pm WHERE pm.meta_key = %s AND pm.meta_value = %s",
+				'pw_isSyncProduct',
+				'1'
+			)
+		);
+
+		if ( empty( $sync_product_ids ) ) {
+			return;
+		}
+
+		foreach ( $sync_product_ids as $post_id ) {
+			if ( (int) $post_id > 0 ) {
+				wp_delete_post( (int) $post_id, true );
 			}
 		}
 	}
