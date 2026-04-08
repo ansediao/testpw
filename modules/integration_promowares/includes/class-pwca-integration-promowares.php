@@ -54,29 +54,31 @@ final class Pwca_Integration_Promowares {
 			return;
 		}
 
-		$pending_actions = as_get_scheduled_actions(
-			array(
-				'status'   => 'pending',
-				'hook'     => 'import_single_product',
-				'per_page' => -1,
-			)
-		);
+		$hooks = array( 'import_single_product', 'import_composite_product_group' );
 
-		$completed_actions = as_get_scheduled_actions(
-			array(
-				'status'   => 'complete',
-				'hook'     => 'import_single_product',
-				'per_page' => -1,
-			)
-		);
+		foreach ( $hooks as $hook ) {
+			$pending_actions = as_get_scheduled_actions(
+				array(
+					'status'   => 'pending',
+					'hook'     => $hook,
+					'per_page' => -1,
+				)
+			);
 
-		$total     = count( $pending_actions ) + count( $completed_actions );
-		$completed = count( $completed_actions );
+			$completed_actions = as_get_scheduled_actions(
+				array(
+					'status'   => 'complete',
+					'hook'     => $hook,
+					'per_page' => -1,
+				)
+			);
+
+			$total     += count( $pending_actions ) + count( $completed_actions );
+			$completed += count( $completed_actions );
+		}
 
 		if ( $total > 0 && $total === $completed ) {
 			$this->clear_stale_import_actions();
-			$total = 0;
-			$completed = 0;
 		}
 
 		wp_send_json(
