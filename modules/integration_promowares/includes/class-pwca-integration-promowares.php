@@ -285,9 +285,11 @@ final class Pwca_Integration_Promowares {
 			);
 
 			foreach ( $completed_actions as $action ) {
-				$action_id = is_object( $action ) && isset( $action->get_id ) ? $action->get_id() : null;
-				if ( $action_id ) {
-					as_delete_action( $action_id );
+				if ( is_object( $action ) && method_exists( $action, 'get_id' ) ) {
+					$action_id = (int) $action->get_id();
+					if ( $action_id > 0 ) {
+						as_delete_action( $action_id );
+					}
 				}
 			}
 		}
