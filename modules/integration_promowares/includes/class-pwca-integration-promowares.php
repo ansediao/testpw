@@ -78,7 +78,15 @@ final class Pwca_Integration_Promowares {
 		}
 
 		if ( $total > 0 && $total === $completed ) {
+			set_transient( 'pwca_import_completed', true, 300 );
+		}
+
+		$is_page_refresh = isset( $_POST['is_page_refresh'] ) && '1' === $_POST['is_page_refresh'];
+		if ( $is_page_refresh && get_transient( 'pwca_import_completed' ) ) {
+			delete_transient( 'pwca_import_completed' );
 			$this->clear_stale_import_actions();
+			$total     = 0;
+			$completed = 0;
 		}
 
 		wp_send_json(

@@ -270,13 +270,15 @@
 		if (!progressBar || !progressText) return
 
 		let isPolling = false
+		let isFirstRequest = true
 
 		const updateProgress = async () => {
 			if (isPolling) return
 			isPolling = true
 
 			try {
-				const data = await postUrlEncoded({ action: 'check_import_progress' })
+				const data = await postUrlEncoded({ action: 'check_import_progress', is_page_refresh: isFirstRequest ? '1' : '0' })
+				isFirstRequest = false
 				const total = typeof data?.total === 'number' ? data.total : 0
 				const completed = typeof data?.completed === 'number' ? data.completed : 0
 				const percentage = total > 0 ? (completed / total) * 100 : 0
