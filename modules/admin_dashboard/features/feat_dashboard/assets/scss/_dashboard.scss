@@ -66,33 +66,9 @@
 		min-width: 220px;
 	}
 
-	// 进度条
-	&__progress {
-		position: relative;
-		width: 100%;
-		height: 30px;
-		background-color: #f1f1f1;
-		margin-top: 12px;
-		border-radius: 4px;
-		overflow: hidden;
-	}
-
-	&__progress-bar {
-		width: 0;
-		height: 100%;
-		background-color: #4caf50;
-		transition: width 0.2s ease;
-	}
-
-	&__progress-text {
-		position: absolute;
-		inset: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: #fff;
-		font-weight: 600;
-		text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+	&__sync-status {
+		margin-left: 12px;
+		color: #666;
 	}
 
 	// 缓存管理

@@ -96,15 +96,11 @@ if ( class_exists( 'Pwca_Admin_Dashboard_Dashboard' ) ) {
 		<h2 class="pwca-admin-dashboard__section-title">Product Importer</h2>
 		<form method="post" action="">
 			<?php wp_nonce_field( 'pwca_sync_products', 'pwca_sync_products_nonce' ); ?>
-			<button type="submit" name="pwca_sync_products" id="pwca-sync-products" class="button button-primary">
+			<button type="submit" name="pwca_sync_products" id="pwca-sync-products" class="button button-primary" <?php echo ! $has_connected_token ? 'disabled' : ''; ?>>
 				Sync Products
 			</button>
+			<span id="pwca-sync-status" class="pwca-admin-dashboard__sync-status" hidden>同步中，请稍等</span>
 		</form>
-
-		<div class="pwca-admin-dashboard__progress" id="pwca-import-progress">
-			<div class="pwca-admin-dashboard__progress-bar" id="pwca-progress-bar"></div>
-			<div class="pwca-admin-dashboard__progress-text" id="pwca-progress-text">0/0</div>
-		</div>
 	</section>
 
 	<section class="pwca-admin-dashboard__section pwca-admin-dashboard__section--cache">

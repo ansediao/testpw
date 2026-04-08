@@ -264,41 +264,35 @@
 		})
 	}
 
-	const initImportProgress = () => {
-		const progressBar = document.getElementById('pwca-progress-bar')
-		const progressText = document.getElementById('pwca-progress-text')
-		if (!progressBar || !progressText) return
+	const initSyncStatus = () => {
+		const form = document.querySelector('form[action=""]')
+		const syncButton = document.getElementById('pwca-sync-products')
+		const syncStatus = document.getElementById('pwca-sync-status')
 
-		let isPolling = false
-		let isFirstRequest = true
+		if (!form || !syncButton || !syncStatus) return
 
-		const updateProgress = async () => {
-			if (isPolling) return
-			isPolling = true
+		form.addEventListener('submit', async (event) => {
+			event.preventDefault()
+			syncButton.disabled = true
+			syncStatus.hidden = false
 
 			try {
-				const data = await postUrlEncoded({ action: 'check_import_progress', is_page_refresh: isFirstRequest ? '1' : '0' })
-				isFirstRequest = false
-				const total = typeof data?.total === 'number' ? data.total : 0
-				const completed = typeof data?.completed === 'number' ? data.completed : 0
-				const percentage = total > 0 ? (completed / total) * 100 : 0
-
-				progressBar.style.width = `${percentage}%`
-				progressText.textContent = `${completed}/${total}`
-
-				if (completed < total) {
-					window.setTimeout(updateProgress, 1000)
+				const formData = new FormData(form)
+				formData.append('action', 'pwca_sync_products')
+				const response = await postFormData(formData)
+				if (response?.success) {
+					setNotice(syncStatus.parentElement, 'success', String(response.data || '同步完成'))
+				} else {
+					setNotice(syncStatus.parentElement, 'error', String(response?.data || '同步失败'))
 				}
-			} catch {
+			} catch (error) {
+				setNotice(syncStatus.parentElement, 'error', `同步失败: ${error instanceof Error ? error.message : 'Unknown error'}`)
 			} finally {
-				isPolling = false
+				syncStatus.hidden = true
+				syncButton.disabled = false
 			}
-		}
-
-		updateProgress()
+		})
 	}
-
-	
 
 	const initCacheManagement = () => {
 		const cacheStatusBox = document.getElementById('pwca-cache-status')
@@ -562,7 +556,7 @@
 
 	initTokenConnect()
 	initApiMockToggle()
-	initImportProgress()
+	initSyncStatus()
 	initCacheManagement()
 	initSettingsTab()
 	initProductRequest()

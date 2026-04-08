@@ -34,6 +34,7 @@ final class Pwca_Admin_Dashboard_Dashboard {
 	private function register() {
 		add_action( 'admin_init', array( $this, 'handle_sync_request' ) );
 		add_action( 'admin_init', array( $this, 'handle_connect_callback' ) );
+		add_action( 'wp_ajax_pwca_sync_products', array( $this, 'handle_sync_request_ajax' ) );
 		add_action( 'wp_ajax_pwca_get_bind_entry_url', array( $this, 'handle_get_bind_entry_url' ) );
 		add_action( 'wp_ajax_pwca_disconnect_store', array( $this, 'handle_disconnect_store' ) );
 	}
@@ -104,7 +105,37 @@ final class Pwca_Admin_Dashboard_Dashboard {
 		}
 	}
 
+	public function handle_sync_request_ajax() {
+		check_ajax_referer( 'pwca_sync_products', 'pwca_sync_products_nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( '权限不足' );
+			return;
+		}
+
+		if ( ! class_exists( 'Pwca_Integration_Promowares' ) ) {
+			wp_send_json_error( 'Promowares sync module unavailable' );
+			return;
+		}
+
+		if ( ! method_exists( 'Pwca_Integration_Promowares', 'schedule_product_import' ) ) {
+			wp_send_json_error( 'Product import feature unavailable' );
+			return;
+		}
+
+		$messages = Pwca_Integration_Promowares::schedule_product_import();
+		set_transient( 'pwca_dashboard_messages', $messages, 30 );
+
+		if ( ! empty( $messages ) && 'error' === $messages[0]['type'] ) {
+			wp_send_json_error( $messages[0]['text'] );
+		} else {
+			wp_send_json_success( $messages[0]['text'] );
+		}
+	}
+
 	public function handle_sync_request() {
+		$is_ajax = ! empty( $_SERVER['HTTP_X_REQUESTED_WITH'] ) && strtolower( sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_REQUESTED_WITH'] ) ) ) === 'xmlhttprequest';
+
 		if ( 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
 			return;
 		}
@@ -114,10 +145,16 @@ final class Pwca_Admin_Dashboard_Dashboard {
 		}
 
 		$messages = $this->process_sync_request();
-		
-		// 将消息存储到 transient 以便在页面显示
-		if ( ! empty( $messages ) ) {
-			set_transient( 'pwca_dashboard_messages', $messages, 30 );
+
+		set_transient( 'pwca_dashboard_messages', $messages, 30 );
+
+		if ( $is_ajax ) {
+			if ( ! empty( $messages ) && 'error' === $messages[0]['type'] ) {
+				wp_send_json_error( $messages[0]['text'] );
+			} else {
+				wp_send_json_success( $messages[0]['text'] );
+			}
+			return;
 		}
 	}
 
