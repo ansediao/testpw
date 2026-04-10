@@ -1436,7 +1436,6 @@ class Pw_Admin_Promowares_Api
         // 定义要比较的字段映射（远程字段 => 本地字段）
         $fields_to_compare = array(
             'name' => 'name',
-            'title' => 'name',
             'description' => 'description',
             'short_description' => 'short_description',
             'sku' => 'sku',
@@ -1450,8 +1449,8 @@ class Pw_Admin_Promowares_Api
         $changes = array();
 
         foreach ($fields_to_compare as $remote_field => $local_field) {
-            $remote_value = isset($remote_data[$remote_field]) ? trim($remote_data[$remote_field]) : '';
-            $local_value = isset($local_data[$local_field]) ? trim($local_data[$local_field]) : '';
+            $remote_value = isset($remote_data[$remote_field]) ? $this->normalize_compare_value($remote_data[$remote_field], $remote_field) : '';
+            $local_value = isset($local_data[$local_field]) ? $this->normalize_compare_value($local_data[$local_field], $remote_field) : '';
 
             // 标准化价格比较
             if (in_array($remote_field, array('price', 'regular_price', 'sale_price'))) {
@@ -1492,6 +1491,30 @@ class Pw_Admin_Promowares_Api
         // 移除货币符号和空格，保留数字和小数点
         $price = preg_replace('/[^0-9.]/', '', $price);
         return number_format((float) $price, 2, '.', '');
+    }
+
+    private function normalize_compare_value($value, $field)
+    {
+        if (is_null($value)) {
+            return '';
+        }
+
+        if (is_bool($value)) {
+            return $value ? '1' : '0';
+        }
+
+        if (is_array($value) || is_object($value)) {
+            $value = wp_json_encode($value);
+        }
+
+        $value = (string) $value;
+
+        if (in_array($field, array('name', 'description', 'short_description', 'sku'), true)) {
+            $value = wp_strip_all_tags($value);
+            $value = preg_replace('/\s+/u', ' ', $value);
+        }
+
+        return trim($value);
     }
 
     /**
@@ -1589,7 +1612,6 @@ class Pw_Admin_Promowares_Api
 
             switch ($field) {
                 case 'name':
-                case 'title':
                     $product->set_name($remote_value);
                     $updated = true;
                     break;

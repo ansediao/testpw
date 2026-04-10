@@ -37,12 +37,33 @@ window.ProductDataAPI = {
             try {
                 const updatedFlag = response.headers.get('x-pw-product-updated') || response.headers.get('X-PW-Product-Updated');
                 if (updatedFlag && String(updatedFlag).toLowerCase() === 'true') {
-                    // eslint-disable-next-line no-console
-                    console.info('[PW Product] 产品数据已更新，即将刷新页面', { pwId });
-                    // 延迟刷新，让用户看到提示
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
+                    const reloadGuardKey = `pw_product_reload_guard_${pwId}`;
+                    const now = Date.now();
+                    let shouldReload = true;
+
+                    try {
+                        const lastReloadAt = Number(sessionStorage.getItem(reloadGuardKey) || 0);
+                        if (lastReloadAt && now - lastReloadAt < 30000) {
+                            shouldReload = false;
+                        }
+                    } catch (e) {
+                    }
+
+                    if (shouldReload) {
+                        try {
+                            sessionStorage.setItem(reloadGuardKey, String(now));
+                        } catch (e) {
+                        }
+
+                        // eslint-disable-next-line no-console
+                        console.info('[PW Product] 产品数据已更新，即将刷新页面', { pwId });
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        // eslint-disable-next-line no-console
+                        console.warn('[PW Product] 已阻止短时间内重复自动刷新', { pwId });
+                    }
                 }
             } catch (e) {
             }
