@@ -450,10 +450,80 @@ final class Pwca_Integration_Promowares {
 			return null;
 		}
 
+		$normalized = $this->normalize_image_to_square( $image_body );
+
 		return array(
 			'filename' => $filename,
-			'body'     => $image_body,
+			'body'     => $normalized,
 		);
+	}
+
+	private function normalize_image_to_square( $image_body ) {
+		$image_body = (string) $image_body;
+		if ( $image_body === '' || ! function_exists( 'imagecreatefromstring' ) || ! function_exists( 'imagecreatetruecolor' ) ) {
+			return $image_body;
+		}
+
+		$image_info = @getimagesizefromstring( $image_body );
+		if ( ! is_array( $image_info ) || empty( $image_info[0] ) || empty( $image_info[1] ) || empty( $image_info['mime'] ) ) {
+			return $image_body;
+		}
+
+		$width = (int) $image_info[0];
+		$height = (int) $image_info[1];
+		$mime = (string) $image_info['mime'];
+		if ( $width <= 0 || $height <= 0 || $width === $height ) {
+			return $image_body;
+		}
+
+		$is_jpeg = in_array( $mime, array( 'image/jpeg', 'image/jpg' ), true );
+		$is_png  = 'image/png' === $mime;
+		if ( ! $is_jpeg && ! $is_png ) {
+			return $image_body;
+		}
+
+		$source = @imagecreatefromstring( $image_body );
+		if ( ! $source ) {
+			return $image_body;
+		}
+
+		$size = max( $width, $height );
+		$canvas = imagecreatetruecolor( $size, $size );
+		if ( ! $canvas ) {
+			imagedestroy( $source );
+			return $image_body;
+		}
+
+		if ( $is_png ) {
+			imagealphablending( $canvas, false );
+			$transparent = imagecolorallocatealpha( $canvas, 0, 0, 0, 127 );
+			imagefilledrectangle( $canvas, 0, 0, $size, $size, $transparent );
+			imagesavealpha( $canvas, true );
+		} else {
+			$white = imagecolorallocate( $canvas, 255, 255, 255 );
+			imagefilledrectangle( $canvas, 0, 0, $size, $size, $white );
+		}
+
+		$dst_x = (int) floor( ( $size - $width ) / 2 );
+		$dst_y = (int) floor( ( $size - $height ) / 2 );
+		imagecopy( $canvas, $source, $dst_x, $dst_y, 0, 0, $width, $height );
+
+		ob_start();
+		if ( $is_png ) {
+			imagepng( $canvas );
+		} else {
+			imagejpeg( $canvas, null, 90 );
+		}
+		$normalized = ob_get_clean();
+
+		imagedestroy( $canvas );
+		imagedestroy( $source );
+
+		if ( ! is_string( $normalized ) || $normalized === '' ) {
+			return $image_body;
+		}
+
+		return $normalized;
 	}
 
 	private function resolve_image_filename( $image_url, $image_data ) {

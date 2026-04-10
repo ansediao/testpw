@@ -120,7 +120,12 @@ final class Pwca_Admin_WooCommerce {
 			return;
 		}
 
-		if ( 'product' !== $query->get( 'post_type' ) ) {
+		$post_type = $query->get( 'post_type' );
+		if ( is_array( $post_type ) ) {
+			if ( ! in_array( 'product', $post_type, true ) ) {
+				return;
+			}
+		} elseif ( 'product' !== $post_type ) {
 			return;
 		}
 
@@ -132,13 +137,30 @@ final class Pwca_Admin_WooCommerce {
 				'1'
 			)
 		);
+		$child_post_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT pm.post_id
+				FROM {$wpdb->postmeta} pm
+				WHERE pm.meta_key = %s
+					AND CAST(pm.meta_value AS UNSIGNED) > 0
+					AND CAST(pm.meta_value AS UNSIGNED) <> pm.post_id",
+				'pw_composite_main_post_id'
+			)
+		);
 
-		if ( empty( $group_post_ids ) ) {
+		$excluded_ids = array_unique(
+			array_merge(
+				array_map( 'intval', (array) $group_post_ids ),
+				array_map( 'intval', (array) $child_post_ids )
+			)
+		);
+
+		if ( empty( $excluded_ids ) ) {
 			return;
 		}
 
 		$existing = (array) $query->get( 'post__not_in' );
-		$query->set( 'post__not_in', array_unique( array_merge( $existing, array_map( 'intval', $group_post_ids ) ) ) );
+		$query->set( 'post__not_in', array_unique( array_merge( $existing, $excluded_ids ) ) );
 	}
 
 	private function is_product_list_screen() {
