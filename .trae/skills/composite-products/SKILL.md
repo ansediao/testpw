@@ -9,6 +9,62 @@ description: "PWCA组合产品导入、显示/隐藏逻辑及相关元数据。I
 
 Promowares API 导入组合产品时，会创建三类产品 Post，通过不同的 meta 标识区分显示/隐藏行为。
 
+## API 返回值结构
+
+### `composite_products` 字段说明
+
+Promowares API 返回的 `composite_products` 数组中，每个元素包含以下字段：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `main_product_id` | int | **该产品组合的主产品 ID**（在 Promowares 系统中的 store_product_id） |
+| `container_name` | string | 容器名称（如 "test1"） |
+| `container_label` | string | 容器标签（如 "size"），用于前台显示选项卡 |
+| `products` | array | **该组合所有的产品信息数组**（包含主产品和所有子产品） |
+
+### `products` 数组中产品的角色判断
+
+在 `products` 数组中，通过 `main_product_id` 判断主产品和子产品：
+
+- **主产品**：`product_id === main_product_id`
+- **子产品**：其他所有产品均为子产品，它们的 `pw_composite_main_id` 会关联到主产品的 `product_id`
+
+### 示例
+
+```json
+{
+  "composite_products": [
+    {
+      "main_product_id": 50,
+      "container_name": "test1",
+      "container_label": "size",
+      "products": [
+        {
+          "id": 50, // 这是主产品 (id === main_product_id)
+          "product_id": 94,    
+          "name": "test3",
+          "label_value": "s"
+        },
+        {
+          "id": 51, // 子产品
+          "product_id": 95,    
+          "name": "test4",
+          "label_value": "l"
+        },
+        {
+          "id": 52, // 子产品
+          "product_id": 96,    
+          "name": "test55",
+          "label_value": "m"
+        }
+      ]
+    }
+  ]
+}
+```
+
+> **注意**：`products` 数组中的 `id` 是 Promowares 系统中的产品 ID。主产品通过 `id === main_product_id` 来识别。
+
 ## 三类 Post
 
 | 类型 | Meta 标识 | 显示位置 | 后台列表 | 前台商城 |
