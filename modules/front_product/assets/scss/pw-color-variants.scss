@@ -1,29 +1,38 @@
-@import 'variables';
-@import 'mixins';
+@import "variables";
+@import "mixins";
 
-.color-variants-section { 
-    .pw-color-variants-module { 
-        .pw-color-variants-grid { 
-            display: flex; 
-            gap: 10px; 
+.color-variants-section {
+  .pw-color-variants-module {
+    .pw-color-variants-header {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .pw-color-variants-grid {
+      display: flex;
+      gap: 10px;
 
-            .pw-variants-container { 
-                display: flex; 
-                gap: 5px; 
-                .pw-color-variant-item { 
-                    cursor: pointer; 
-                    transition: opacity 0.2s ease, transform 0.2s ease; 
+      .pw-variants-container {
+        display: flex;
+        gap: 10px;
+        .pw-color-variant-item {
+          cursor: pointer;
+          transition:
+            opacity 0.2s ease,
+            transform 0.2s ease;
 
-                    &:hover { 
-                        transform: scale(1.05); 
-                    } 
+          &:hover {
+            transform: scale(1.05);
+          }
 
-                    .pw-color-swatch { 
-                        width: 50px; 
-                        height: 50px; 
-                    } 
-                } 
-            } 
-        } 
-    } 
-} 
+          .pw-color-swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            border: 2px solid #ccc;
+          }
+        }
+      }
+    }
+  }
+}
