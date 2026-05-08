@@ -69,9 +69,9 @@ Promowares API 返回的 `composite_products` 数组中，每个元素包含以�
 
 | 类型 | Meta 标识 | 显示位置 | 后台列表 | 前台商城 |
 |------|-----------|----------|----------|----------|
-| 主产品 (Main) | `pw_is_composite_main=true` | 前台产品页 | 显示 | 显示 |
-| 子产品 (Child) | `pw_composite_main_id` 关联 | 前台组件列表 | 显示 | 显示 |
-| 分组产品 (Group) | `pw_is_composite_group=true` | 不适用 | **隐藏** | **隐藏** |
+| 主产品 (Main) | `pw_is_composite_main=true` | 前台产品页 | **隐藏** | 显示 |
+| 子产品 (Child) | `pw_composite_main_id` 关联 | 前台组件列表 | **隐藏** | 显示 |
+| 分组产品 (Group) | `pw_is_composite_group=true` | 不适用 | **显示** | **隐藏** |
 
 ## 关键元数据
 
@@ -115,11 +115,18 @@ if ( $label === '' ) {
 }
 ```
 
-### 后台产品列表隐藏
+### 后台产品列表
 
-在 `class-pwca-admin-woocommerce.php` 的 `exclude_composite_group_products()` 方法中通过 `pre_get_posts` 排除 `pw_is_composite_group=true` 的产品。
+在 `class-pwca-admin-woocommerce.php` 中通过 `pre_get_posts` 排除主产品和子产品。
 
-**仅在后台环境执行**：`is_admin()` + `is_main_query()`
+**仅在后台环境执行**：`is_admin()`
+- 隐藏 `pw_is_composite_main=true` 的主产品
+- 隐藏 `pw_composite_main_post_id` 关联的子产品
+- **只显示** `pw_is_composite_group=true` 的分组产品
+
+**组产品特殊处理**：
+1. **封面图片**：通过 `posts_results` filter 拦截，将组产品的 `_thumbnail_id` 替换为主产品的封面图片
+2. **产品列表 Tooltip**：在组产品标题下显示主产品和所有子产品列表（带 `icon-xiaji` 图标）
 
 ### 前台商城隐藏
 

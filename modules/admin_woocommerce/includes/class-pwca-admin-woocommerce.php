@@ -27,6 +27,7 @@ final class Pwca_Admin_WooCommerce {
 		add_filter( 'post_row_actions', array( $this, 'filter_product_row_actions' ), 10, 2 );
 		add_filter( 'bulk_actions-edit-product', array( $this, 'filter_product_bulk_actions' ) );
 		add_action( 'manage_product_posts_custom_column', array( $this, 'render_product_name_column_badges' ), 20, 2 );
+		add_filter( 'posts_results', array( $this, 'override_group_product_thumbnails_in_posts' ), 10, 2 );
 	}
 
 	public function enqueue_assets( $hook ) {
@@ -88,24 +89,36 @@ final class Pwca_Admin_WooCommerce {
 			echo '<span style="background-color: #000; color: #fff; padding: 2px 4px; border-radius: 2px; font-size: 10px; font-weight: bold; display: inline-block;">SYNC</span> ';
 		}
 
-		$all_ids = get_post_meta( $post_id, 'pw_composite_all_product_ids', true );
-		if ( ! is_array( $all_ids ) || empty( $all_ids ) ) {
+		$is_composite_group = get_post_meta( $post_id, 'pw_is_composite_group', true );
+		if ( '1' !== (string) $is_composite_group ) {
 			return;
 		}
 
-		$child_ids = array_values( array_diff( array_map( 'intval', $all_ids ), array( (int) $post_id ) ) );
-		if ( empty( $child_ids ) ) {
+		$main_post_id = get_post_meta( $post_id, 'pw_composite_main_post_id', true );
+		$child_ids    = get_post_meta( $post_id, '_children', true );
+
+		$product_ids = array();
+		if ( ! empty( $main_post_id ) && (int) $main_post_id > 0 ) {
+			$product_ids[] = (int) $main_post_id;
+		}
+		if ( is_array( $child_ids ) && ! empty( $child_ids ) ) {
+			$child_ids = array_map( 'intval', $child_ids );
+			$child_ids = array_values( array_diff( $child_ids, array( (int) $post_id ) ) );
+			$product_ids = array_merge( $product_ids, $child_ids );
+		}
+
+		if ( empty( $product_ids ) ) {
 			return;
 		}
 
-		echo '<div class="cross-sells-tooltip">▲ ' . count( $child_ids ) . ' sub-products
+		echo '<div class="cross-sells-tooltip">▲ ' . count( $product_ids ) . ' products
 			<div class="tooltip">' . implode(
 			'<br>',
 			array_map(
-				function ( $cid ) {
-					return '<i class="iconfont icon-xiaji"></i> ' . get_the_title( $cid );
+				function ( $pid ) {
+					return '<i class="iconfont icon-xiaji"></i> ' . get_the_title( $pid );
 				},
-				$child_ids
+				$product_ids
 			)
 		) . '</div>
 		</div>';
@@ -116,7 +129,7 @@ final class Pwca_Admin_WooCommerce {
 			return;
 		}
 
-		if ( ! is_admin() || ! $query->is_main_query() ) {
+		if ( ! is_admin() ) {
 			return;
 		}
 
@@ -130,10 +143,10 @@ final class Pwca_Admin_WooCommerce {
 		}
 
 		global $wpdb;
-		$group_post_ids = $wpdb->get_col(
+		$main_post_ids = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT pm.post_id FROM {$wpdb->postmeta} pm WHERE pm.meta_key = %s AND pm.meta_value = %s",
-				'pw_is_composite_group',
+				'pw_is_composite_main',
 				'1'
 			)
 		);
@@ -143,14 +156,17 @@ final class Pwca_Admin_WooCommerce {
 				FROM {$wpdb->postmeta} pm
 				WHERE pm.meta_key = %s
 					AND CAST(pm.meta_value AS UNSIGNED) > 0
-					AND CAST(pm.meta_value AS UNSIGNED) <> pm.post_id",
+					AND CAST(pm.meta_value AS UNSIGNED) <> pm.post_id
+					AND pm.post_id NOT IN (
+						SELECT pm2.post_id FROM {$wpdb->postmeta} pm2 WHERE pm2.meta_key = 'pw_is_composite_group' AND pm2.meta_value = '1'
+					)",
 				'pw_composite_main_post_id'
 			)
 		);
 
 		$excluded_ids = array_unique(
 			array_merge(
-				array_map( 'intval', (array) $group_post_ids ),
+				array_map( 'intval', (array) $main_post_ids ),
 				array_map( 'intval', (array) $child_post_ids )
 			)
 		);
@@ -161,6 +177,42 @@ final class Pwca_Admin_WooCommerce {
 
 		$existing = (array) $query->get( 'post__not_in' );
 		$query->set( 'post__not_in', array_unique( array_merge( $existing, $excluded_ids ) ) );
+	}
+
+	public function override_group_product_thumbnails_in_posts( $posts, $query ) {
+		if ( empty( $posts ) || ! is_array( $posts ) ) {
+			return $posts;
+		}
+
+		if ( ! is_admin() ) {
+			return $posts;
+		}
+
+		$post_type = $query->get( 'post_type' );
+		if ( 'product' !== $post_type ) {
+			return $posts;
+		}
+
+		foreach ( $posts as $post ) {
+			$is_composite_group = get_post_meta( $post->ID, 'pw_is_composite_group', true );
+			if ( '1' !== (string) $is_composite_group ) {
+				continue;
+			}
+
+			$main_post_id = get_post_meta( $post->ID, 'pw_composite_main_post_id', true );
+			if ( empty( $main_post_id ) || (int) $main_post_id <= 0 ) {
+				continue;
+			}
+
+			$main_thumbnail_id = get_post_meta( (int) $main_post_id, '_thumbnail_id', true );
+			if ( empty( $main_thumbnail_id ) ) {
+				continue;
+			}
+
+			update_post_meta( $post->ID, '_thumbnail_id', (int) $main_thumbnail_id );
+		}
+
+		return $posts;
 	}
 
 	private function is_product_list_screen() {
