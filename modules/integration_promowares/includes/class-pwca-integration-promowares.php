@@ -667,7 +667,8 @@ final class Pwca_Integration_Promowares {
 			'sku'               => isset( $product['sku'] ) ? sanitize_text_field( (string) $product['sku'] ) : '',
 			'product_type'      => isset( $product['product_type'] ) ? sanitize_text_field( (string) $product['product_type'] ) : '',
 			'product_image'     => isset( $product['product_image'] ) ? esc_url_raw( (string) $product['product_image'] ) : '',
-			'container_id'      => isset( $product['container_id'] ) ? (int) $product['container_id'] : 0,
+			'container_id'     => isset( $product['container_id'] ) ? (int) $product['container_id'] : 0,
+			'label_value'      => isset( $product['label_value'] ) ? sanitize_text_field( (string) $product['label_value'] ) : '',
 		);
 	}
 
@@ -682,6 +683,7 @@ final class Pwca_Integration_Promowares {
 		update_post_meta( $post_id, 'pw_product_type', $payload['product_type'] );
 		update_post_meta( $post_id, 'pw_composite_main_id', (int) $main_product_id );
 		update_post_meta( $post_id, 'pw_composite_main_post_id', 0 );
+		update_post_meta( $post_id, 'pw_container_value', $payload['label_value'] );
 		if ( isset( $payload['original_name'] ) ) {
 			update_post_meta( $post_id, 'pw_composite_original_name', $payload['original_name'] );
 		}
