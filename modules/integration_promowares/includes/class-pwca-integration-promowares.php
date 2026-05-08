@@ -723,6 +723,7 @@ final class Pwca_Integration_Promowares {
 		}
 
 		wp_set_object_terms( (int) $group_post_id, 'grouped', 'product_type' );
+		update_post_meta( (int) $group_post_id, 'pw_isSyncProduct', true );
 		update_post_meta( (int) $group_post_id, 'pw_is_composite_group', true );
 		update_post_meta( (int) $group_post_id, 'pw_composite_main_post_id', (int) $main_post_id );
 		update_post_meta( (int) $group_post_id, '_children', $related_product_ids );
