@@ -26,8 +26,8 @@ Promowares API 返回的 `composite_products` 数组中，每个元素包含以�
 
 在 `products` 数组中，通过 `main_product_id` 判断主产品和子产品：
 
-- **主产品**：`product_id === main_product_id`
-- **子产品**：其他所有产品均为子产品，它们的 `pw_composite_main_id` 会关联到主产品的 `product_id`
+- **主产品**：`id === main_product_id`
+- **子产品**：其他所有产品均为子产品，它们的 `pw_composite_main_id` 会关联到主产品的 `id`
 
 ### 示例
 
@@ -40,21 +40,30 @@ Promowares API 返回的 `composite_products` 数组中，每个元素包含以�
       "container_label": "size",
       "products": [
         {
-          "id": 50, // 这是主产品 (id === main_product_id)
-          "product_id": 94,    
+          "id": 50,
+          "product_id": 94,
+          "product_type": "composite",
+          "container_id": 8,
           "name": "test3",
+          "price": 5.94,
           "label_value": "s"
         },
         {
-          "id": 51, // 子产品
-          "product_id": 95,    
+          "id": 51,
+          "product_id": 95,
+          "product_type": "composite",
+          "container_id": 8,
           "name": "test4",
+          "price": 6.93,
           "label_value": "l"
         },
         {
-          "id": 52, // 子产品
-          "product_id": 96,    
+          "id": 52,
+          "product_id": 96,
+          "product_type": "composite",
+          "container_id": 8,
           "name": "test55",
+          "price": 44.53,
           "label_value": "m"
         }
       ]
@@ -63,7 +72,7 @@ Promowares API 返回的 `composite_products` 数组中，每个元素包含以�
 }
 ```
 
-> **注意**：`products` 数组中的 `id` 是 Promowares 系统中的产品 ID。主产品通过 `id === main_product_id` 来识别。
+> **注意**：`products` 数组中每个产品包含完整的产品信息（id, product_id, store_id, status, category_id, product_image, sku, price, variants, attributes 等），此处仅列出与组合产品逻辑相关的字段。
 
 ## 三类 Post
 
@@ -82,6 +91,7 @@ pw_composite_main_id = <main_product_id>
 pw_composite_related_products = [<related_ids>]
 pw_composite_all_product_ids = [<all_product_ids>]
 pw_composite_original_name = <API原始名称>  # 存储API返回的name
+pw_container_value = <label_value>           # 直接从API获取
 ```
 
 ### 子产品
@@ -90,8 +100,8 @@ pw_id = <product_id>
 pw_composite_main_id = <main_product_id>
 pw_composite_main_post_id = <main_post_id>
 pw_composite_original_name = <API原始名称>  # 存储API返回的name
+pw_container_value = <label_value>           # 直接从API获取（如 "s", "l", "m"）
 pw_container_id = <container_id>
-pw_container_value = <显示名称>
 pw_container_name = <容器名称>
 pw_container_label = <容器标签>
 pw_container_is_default = <是否默认>
@@ -134,14 +144,9 @@ get_post_meta( $product_id, 'pw_isSyncProduct', true ) === '1'
 除 Block 过滤器外，还通过以下方式隐藏：
 
 ```php
-// 移除单产品页的 add-to-cart action
 remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30 );
 remove_action( 'woocommerce_grouped_add_to_cart', 'woocommerce_grouped_add_to_cart', 30 );
-
-// 移除循环中的 add-to-cart
 remove_action( 'woocommerce_after_shop_loop_item', 'woocommerce_template_loop_add_to_cart' );
-
-// 价格显示返回空字符串
 add_filter( 'woocommerce_get_price_html', fn($price, $product) => '' );
 ```
 
@@ -179,12 +184,15 @@ if ( $label === '' ) {
 
 ## 导入流程
 
-1. `import_composite_product_group()` 接收组合数据，获取 `container_name`
-2. `create_composite_products()` 使用 `container_name` 作为主产品/子产品的标题，原始 `name` 存入 `pw_composite_original_name`
-3. `link_composite_products()` 建立关联关系
-4. `maybe_create_grouped_product()` 创建分组产品（隐藏）
-5. `maybe_schedule_container_rules_processing()` 调度容器规则处理
-6. `apply_container_rules()` 为子产品设置容器元数据
+1. `import_composite_product_group()` 接收组合数据
+2. `resolve_composite_product_payload()` 解析每个产品的 payload，**直接获取 `label_value`**
+3. `create_composite_products()` 创建产品，使用 `container_name` 作为 post_title
+4. `store_composite_product_meta()` **直接保存 `pw_container_value`（从 API 的 `label_value` 字段）**
+5. `link_composite_products()` 建立关联关系
+6. `maybe_create_grouped_product()` 创建分组产品（隐藏）
+7. `maybe_schedule_container_rules_processing()` 仅当 `container_id > 0` 时调度（用于获取额外容器信息）
+
+> **重要**：`pw_container_value` 直接从 API 的 `products[].label_value` 获取，不再依赖后续的 API 调用。
 
 ## 相关文件
 
