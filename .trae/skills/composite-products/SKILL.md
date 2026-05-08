@@ -108,6 +108,43 @@ _children = [<child_product_ids>]
 > **主产品/子产品标题**：使用 API 的 `container_name` 作为 post_title
 > **原始名称**：API 返回的 `name` 存储在 `pw_composite_original_name` meta 中
 
+## 同步产品（pw_isSyncProduct）
+
+从 Promowares API 同步的产品会设置 `pw_isSyncProduct = true`，用于在前台产品页隐藏 WooCommerce 原生的 Gutenberg Block 组件。
+
+### 标识条件
+```php
+get_post_meta( $product_id, 'pw_isSyncProduct', true ) === '1'
+```
+
+### Block 隐藏逻辑
+
+在 `class-pwca-front-product-woo-adjustments.php` 中，通过 `render_block_woocommerce/*` 过滤器隐藏以下 Block：
+
+| Block 名称 | Filter 方法 | 隐藏内容 |
+|------------|-------------|----------|
+| `woocommerce/add-to-cart-form` | `filter_block_add_to_cart_form` | 完整表单 |
+| `woocommerce/product-add-to-cart` | `filter_block_product_add_to_cart` | 添加到购物车组件 |
+| `woocommerce/product-button` | `filter_block_product_button` | 按钮 |
+| `woocommerce/product-price` | `filter_block_product_price` | 价格显示 |
+| `woocommerce/product-image` | `filter_block_product_image` | 添加 `pwca-sync-product-image-area` class |
+
+### 传统模板隐藏（已存在）
+
+除 Block 过滤器外，还通过以下方式隐藏：
+
+```php
+// 移除单产品页的 add-to-cart action
+remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30 );
+remove_action( 'woocommerce_grouped_add_to_cart', 'woocommerce_grouped_add_to_cart', 30 );
+
+// 移除循环中的 add-to-cart
+remove_action( 'woocommerce_after_shop_loop_item', 'woocommerce_template_loop_add_to_cart' );
+
+// 价格显示返回空字符串
+add_filter( 'woocommerce_get_price_html', fn($price, $product) => '' );
+```
+
 ## 显示控制
 
 ### 前台组件列表显示条件

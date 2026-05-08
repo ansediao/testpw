@@ -18,6 +18,10 @@ final class Pwca_Front_Product_Woo_Adjustments {
 		add_filter( 'woocommerce_single_product_image_gallery_classes', array( $this, 'filter_single_image_gallery_classes' ), 10, 1 );
 		add_filter( 'post_class', array( $this, 'filter_post_classes' ), 10, 3 );
 		add_filter( 'render_block_woocommerce/product-image', array( $this, 'filter_block_product_image' ), 10, 2 );
+		add_filter( 'render_block_woocommerce/add-to-cart-form', array( $this, 'filter_block_add_to_cart_form' ), 10, 2 );
+		add_filter( 'render_block_woocommerce/product-add-to-cart', array( $this, 'filter_block_product_add_to_cart' ), 10, 2 );
+		add_filter( 'render_block_woocommerce/product-button', array( $this, 'filter_block_product_button' ), 10, 2 );
+		add_filter( 'render_block_woocommerce/product-price', array( $this, 'filter_block_product_price' ), 10, 2 );
 		add_action( 'woocommerce_after_shop_loop_item', array( $this, 'maybe_remove_loop_add_to_cart' ), 1 );
 		add_action( 'woocommerce_single_product_summary', array( $this, 'maybe_remove_single_add_to_cart' ), 25 );
 		add_filter( 'pre_get_posts', array( $this, 'exclude_composite_group_from_shop' ) );
@@ -229,6 +233,106 @@ final class Pwca_Front_Product_Woo_Adjustments {
 		}
 
 		return $block_content;
+	}
+
+	public function filter_block_add_to_cart_form( $block_content, $block ) {
+		$product_id = 0;
+		if ( is_array( $block ) && isset( $block['context']['postId'] ) ) {
+			$product_id = absint( $block['context']['postId'] );
+		}
+
+		if ( ! $product_id ) {
+			$product_id = $this->context->get_current_product_id();
+		}
+
+		if ( ! $product_id ) {
+			return $block_content;
+		}
+
+		if ( get_post_type( $product_id ) !== 'product' ) {
+			return $block_content;
+		}
+
+		if ( ! $this->context->is_sync_product_id( $product_id ) ) {
+			return $block_content;
+		}
+
+		return '';
+	}
+
+	public function filter_block_product_add_to_cart( $block_content, $block ) {
+		$product_id = 0;
+		if ( is_array( $block ) && isset( $block['context']['postId'] ) ) {
+			$product_id = absint( $block['context']['postId'] );
+		}
+
+		if ( ! $product_id ) {
+			$product_id = $this->context->get_current_product_id();
+		}
+
+		if ( ! $product_id ) {
+			return $block_content;
+		}
+
+		if ( get_post_type( $product_id ) !== 'product' ) {
+			return $block_content;
+		}
+
+		if ( ! $this->context->is_sync_product_id( $product_id ) ) {
+			return $block_content;
+		}
+
+		return '';
+	}
+
+	public function filter_block_product_button( $block_content, $block ) {
+		$product_id = 0;
+		if ( is_array( $block ) && isset( $block['context']['postId'] ) ) {
+			$product_id = absint( $block['context']['postId'] );
+		}
+
+		if ( ! $product_id ) {
+			$product_id = $this->context->get_current_product_id();
+		}
+
+		if ( ! $product_id ) {
+			return $block_content;
+		}
+
+		if ( get_post_type( $product_id ) !== 'product' ) {
+			return $block_content;
+		}
+
+		if ( ! $this->context->is_sync_product_id( $product_id ) ) {
+			return $block_content;
+		}
+
+		return '';
+	}
+
+	public function filter_block_product_price( $block_content, $block ) {
+		$product_id = 0;
+		if ( is_array( $block ) && isset( $block['context']['postId'] ) ) {
+			$product_id = absint( $block['context']['postId'] );
+		}
+
+		if ( ! $product_id ) {
+			$product_id = $this->context->get_current_product_id();
+		}
+
+		if ( ! $product_id ) {
+			return $block_content;
+		}
+
+		if ( get_post_type( $product_id ) !== 'product' ) {
+			return $block_content;
+		}
+
+		if ( ! $this->context->is_sync_product_id( $product_id ) ) {
+			return $block_content;
+		}
+
+		return '';
 	}
 }
 
