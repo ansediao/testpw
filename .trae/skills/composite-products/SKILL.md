@@ -97,10 +97,13 @@ pw_container_is_default = <是否默认>
 
 ### 分组产品
 ```php
+pw_isSyncProduct = true
 pw_is_composite_group = true
 pw_composite_main_post_id = <main_post_id>
 _children = [<child_product_ids>]
 ```
+
+> **组产品标题**：使用 API 的 `container_name` 作为 post_title
 
 ## 显示控制
 

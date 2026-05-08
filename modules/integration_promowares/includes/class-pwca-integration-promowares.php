@@ -195,7 +195,8 @@ final class Pwca_Integration_Promowares {
 		}
 
 		$this->link_composite_products( $created['main_post_id'], $created['created_product_ids'] );
-		$this->maybe_create_grouped_product( $created['main_post_id'], $created['created_product_ids'] );
+		$container_name = isset( $composite_group['container_name'] ) ? sanitize_text_field( $composite_group['container_name'] ) : '';
+		$this->maybe_create_grouped_product( $created['main_post_id'], $created['created_product_ids'], $container_name );
 		$this->maybe_schedule_container_rules_processing( $main_product_id, $products, $composite_group, $created['created_product_ids'], $created['main_post_id'] );
 	}
 
@@ -692,7 +693,7 @@ final class Pwca_Integration_Promowares {
 		update_post_meta( (int) $main_post_id, 'pw_composite_all_product_ids', array_values( array_map( 'intval', $created_product_ids ) ) );
 	}
 
-	private function maybe_create_grouped_product( $main_post_id, array $created_product_ids ) {
+	private function maybe_create_grouped_product( $main_post_id, array $created_product_ids, $container_name = '' ) {
 		if ( ! function_exists( 'wp_set_object_terms' ) ) {
 			return 0;
 		}
@@ -708,7 +709,7 @@ final class Pwca_Integration_Promowares {
 			return 0;
 		}
 
-		$group_title = get_the_title( (int) $main_post_id ) . ' - Group';
+		$group_title = ! empty( $container_name ) ? sanitize_text_field( $container_name ) : ( get_the_title( (int) $main_post_id ) . ' - Group' );
 		$group_post_id = wp_insert_post(
 			array(
 				'post_title'   => $group_title,
