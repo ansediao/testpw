@@ -28,6 +28,10 @@ final class Pwca_Front_Product_Woo_Adjustments {
 			return $query;
 		}
 
+		if ( is_admin() ) {
+			return $query;
+		}
+
 		if ( ! is_shop() && ! is_product_category() && ! is_product_tag() && ! is_tax( 'product_cat' ) && ! is_tax( 'product_tag' ) ) {
 			return $query;
 		}

@@ -117,11 +117,15 @@ if ( $label === '' ) {
 
 ### 后台产品列表隐藏
 
-在 `class-pwca-admin-woocommerce.php` 中通过 `pre_get_posts` 排除 `pw_is_composite_group=true` 的产品。
+在 `class-pwca-admin-woocommerce.php` 的 `exclude_composite_group_products()` 方法中通过 `pre_get_posts` 排除 `pw_is_composite_group=true` 的产品。
+
+**仅在后台环境执行**：`is_admin()` + `is_main_query()`
 
 ### 前台商城隐藏
 
-在 `class-pwca-front-product-woo-adjustments.php` 中通过 `pre_get_posts` 排除 `pw_is_composite_group=true` 的产品。
+在 `class-pwca-front-product-woo-adjustments.php` 的 `exclude_composite_group_from_shop()` 方法中通过 `pre_get_posts` 排除 `pw_is_composite_group=true` 的产品。
+
+**仅在前台环境执行**：排除 `is_admin()` 检查，仅在 `is_shop()`、`is_product_category()`、`is_product_tag()` 等前台页面生效。
 
 ## 导入流程
 
