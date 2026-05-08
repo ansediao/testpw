@@ -116,7 +116,9 @@ final class Pwca_Admin_WooCommerce {
 			'<br>',
 			array_map(
 				function ( $pid ) {
-					return '<i class="iconfont icon-xiaji"></i> ' . get_the_title( $pid );
+					$original_name = get_post_meta( $pid, 'pw_composite_original_name', true );
+					$display_name  = ! empty( $original_name ) ? $original_name : get_the_title( $pid );
+					return '<i class="iconfont icon-xiaji"></i> ' . esc_html( $display_name );
 				},
 				$product_ids
 			)

@@ -189,13 +189,13 @@ final class Pwca_Integration_Promowares {
 			return;
 		}
 
-		$created = $this->create_composite_products( $main_product_id, $products );
+		$container_name = isset( $composite_group['container_name'] ) ? sanitize_text_field( $composite_group['container_name'] ) : '';
+		$created = $this->create_composite_products( $main_product_id, $products, $container_name );
 		if ( ! $created['main_post_id'] ) {
 			return;
 		}
 
 		$this->link_composite_products( $created['main_post_id'], $created['created_product_ids'] );
-		$container_name = isset( $composite_group['container_name'] ) ? sanitize_text_field( $composite_group['container_name'] ) : '';
 		$this->maybe_create_grouped_product( $created['main_post_id'], $created['created_product_ids'], $container_name );
 		$this->maybe_schedule_container_rules_processing( $main_product_id, $products, $composite_group, $created['created_product_ids'], $created['main_post_id'] );
 	}
@@ -592,7 +592,7 @@ final class Pwca_Integration_Promowares {
 		return '';
 	}
 
-	private function create_composite_products( $main_product_id, array $products ) {
+	private function create_composite_products( $main_product_id, array $products, $container_name = '' ) {
 		$created_product_ids = array();
 		$main_post_id        = null;
 
@@ -606,9 +606,11 @@ final class Pwca_Integration_Promowares {
 				continue;
 			}
 
+			$post_title = ! empty( $container_name ) ? sanitize_text_field( $container_name ) : $payload['name'];
+
 			$post_id = wp_insert_post(
 				array(
-					'post_title'   => $payload['name'],
+					'post_title'   => $post_title,
 					'post_content' => $payload['description'],
 					'post_excerpt' => $payload['short_description'],
 					'post_status'  => 'publish',
@@ -620,6 +622,7 @@ final class Pwca_Integration_Promowares {
 				continue;
 			}
 
+			$payload['original_name'] = $payload['name'];
 			$this->store_composite_product_meta( $post_id, $payload, (int) $main_product_id );
 			$this->maybe_set_product_featured_image( $post_id, $payload['product_image'] );
 
@@ -679,6 +682,9 @@ final class Pwca_Integration_Promowares {
 		update_post_meta( $post_id, 'pw_product_type', $payload['product_type'] );
 		update_post_meta( $post_id, 'pw_composite_main_id', (int) $main_product_id );
 		update_post_meta( $post_id, 'pw_composite_main_post_id', 0 );
+		if ( isset( $payload['original_name'] ) ) {
+			update_post_meta( $post_id, 'pw_composite_original_name', $payload['original_name'] );
+		}
 	}
 
 	private function link_composite_products( $main_post_id, array $created_product_ids ) {

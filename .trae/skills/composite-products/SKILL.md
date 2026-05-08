@@ -81,6 +81,7 @@ pw_is_composite_main = true
 pw_composite_main_id = <main_product_id>
 pw_composite_related_products = [<related_ids>]
 pw_composite_all_product_ids = [<all_product_ids>]
+pw_composite_original_name = <API原始名称>  # 存储API返回的name
 ```
 
 ### 子产品
@@ -88,6 +89,7 @@ pw_composite_all_product_ids = [<all_product_ids>]
 pw_id = <product_id>
 pw_composite_main_id = <main_product_id>
 pw_composite_main_post_id = <main_post_id>
+pw_composite_original_name = <API原始名称>  # 存储API返回的name
 pw_container_id = <container_id>
 pw_container_value = <显示名称>
 pw_container_name = <容器名称>
@@ -103,7 +105,8 @@ pw_composite_main_post_id = <main_post_id>
 _children = [<child_product_ids>]
 ```
 
-> **组产品标题**：使用 API 的 `container_name` 作为 post_title
+> **主产品/子产品标题**：使用 API 的 `container_name` 作为 post_title
+> **原始名称**：API 返回的 `name` 存储在 `pw_composite_original_name` meta 中
 
 ## 显示控制
 
@@ -129,7 +132,7 @@ if ( $label === '' ) {
 
 **组产品特殊处理**：
 1. **封面图片**：通过 `posts_results` filter 拦截，将组产品的 `_thumbnail_id` 替换为主产品的封面图片
-2. **产品列表 Tooltip**：在组产品标题下显示主产品和所有子产品列表（带 `icon-xiaji` 图标）
+2. **产品列表 Tooltip**：在组产品标题下显示主产品和所有子产品列表（带 `icon-xiaji` 图标），**优先显示 `pw_composite_original_name`**，若无则回退到 post_title
 
 ### 前台商城隐藏
 
@@ -139,8 +142,8 @@ if ( $label === '' ) {
 
 ## 导入流程
 
-1. `import_composite_product_group()` 接收组合数据
-2. `create_composite_products()` 创建主产品和所有子产品
+1. `import_composite_product_group()` 接收组合数据，获取 `container_name`
+2. `create_composite_products()` 使用 `container_name` 作为主产品/子产品的标题，原始 `name` 存入 `pw_composite_original_name`
 3. `link_composite_products()` 建立关联关系
 4. `maybe_create_grouped_product()` 创建分组产品（隐藏）
 5. `maybe_schedule_container_rules_processing()` 调度容器规则处理
