@@ -4,6 +4,69 @@
 // Pinia 是 Vue 官方推荐的状态管理库，用于管理全局数据（类似于 Vuex，但更轻量易用）
 const { createPinia, defineStore } = window.Pinia;
 
+const pwcaDecodePromowaresUnicodeText = (value) => {
+    if (typeof value !== 'string' || value === '') {
+        return value;
+    }
+
+    try {
+        const decodeHex = (hex) => String.fromCharCode(parseInt(hex, 16));
+
+        let normalized = value.replace(/\\u([0-9a-fA-F]{4})/g, (match, hex) =>
+            decodeHex(hex)
+        );
+
+        if (/^(?:u[0-9a-fA-F]{4})+$/.test(normalized)) {
+            return normalized.replace(/u([0-9a-fA-F]{4})/g, (match, hex) =>
+                decodeHex(hex)
+            );
+        }
+
+        return normalized.replace(/(^|[^0-9A-Za-z_\\])u([0-9a-fA-F]{4})/g, (match, prefix, hex) =>
+            prefix + decodeHex(hex)
+        );
+    } catch (error) {
+        return value;
+    }
+};
+
+const pwcaNormalizeTemplateViewNames = (productData) => {
+    if (!productData || !productData.templates) {
+        return productData;
+    }
+
+    const templates = productData.templates;
+
+    if (Array.isArray(templates.views)) {
+        templates.views = templates.views.map((view) => ({
+            ...view,
+            view_name: pwcaDecodePromowaresUnicodeText(view && view.view_name),
+            name: pwcaDecodePromowaresUnicodeText(view && view.name)
+        }));
+    }
+
+    const customView = templates.data && templates.data.custom_view;
+    if (!customView) {
+        return productData;
+    }
+
+    if (customView.main_custom_view) {
+        customView.main_custom_view = {
+            ...customView.main_custom_view,
+            view_name: pwcaDecodePromowaresUnicodeText(customView.main_custom_view.view_name)
+        };
+    }
+
+    if (Array.isArray(customView.sub_custom_view)) {
+        customView.sub_custom_view = customView.sub_custom_view.map((view) => ({
+            ...view,
+            view_name: pwcaDecodePromowaresUnicodeText(view && view.view_name)
+        }));
+    }
+
+    return productData;
+};
+
 // 2. 定义一个全局画布状态仓库（store）
 // defineStore 用于创建一个“仓库”，可以在任意组件中访问和修改数据
 // 'canvas' 是仓库的名字，后续通过 useCanvasStore() 获取仓库实例
@@ -384,6 +447,7 @@ export const useCanvasStore = defineStore('canvas', {
                 }
 
                 const data = await response.json();
+                pwcaNormalizeTemplateViewNames(data);
 
                 try {
                     const headerValue = response.headers.get('x-pw-cache') || response.headers.get('X-PW-Cache');

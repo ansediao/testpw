@@ -242,6 +242,27 @@ GET /api/v1/products/{product_id}/customization
 | printing_methods | array | 印刷方式配置 |
 | design_folders | array | 设计文件夹配置 |
 
+## 已知兼容问题
+
+### `view_name` 可能以 Unicode 转义串返回
+
+- 某些产品的 `custom_views[*].view_name` 不是直接返回中文，而是以下格式之一：
+  - `u4e3bu5b9au5236u89c6u56fe`
+  - `\u4e3b\u5b9a\u5236\u89c6\u56fe`
+  - `主u5b9a制u89c6图`
+- 如果前端直接将该值写入按钮文本，在线设计界面会显示乱码样式的转义串，而不是中文。
+- 如果页面已经从整串乱码变成“半中文半转义”，通常不是缓存再次写坏，而是前端解码器漏掉了连续或残留的 `uXXXX` 片段。
+- 当前项目的推荐处理方式：
+  - 在产品数据入口统一标准化 `view_name`
+  - 再将标准化后的数据交给视图切换、画布渲染、多视图导出等模块使用
+- 当前项目已落地位置：
+  - `modules/front_canvas/assets/js/design/stores/index.js`
+  - 在 `fetchProductData()` 中对 `templates.views` 与 `templates.data.custom_view` 的相关 `view_name/name` 做统一解码
+- 兼容要求：
+  - 同时兼容普通中文、`uXXXX`、`\uXXXX`、半解码残留串
+  - 建议按顺序处理：先解 `\uXXXX`，再解整串连续 `uXXXX`，最后补解夹在中文中的残留 `uXXXX`
+  - 解码失败时回退原值
+
 ### layers (图层)
 | 字段 | 类型 | 说明 |
 |------|------|------|

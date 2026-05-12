@@ -1,6 +1,6 @@
 ---
 name: "external-api-guide"
-description: "项目外部Promowares API使用指南。Invoke when user needs to call external Promowares API or understand which internal interface to use."
+description: "项目外部Promowares API使用指南与常见返回数据兼容规范。Invoke when user needs to call Promowares API, map internal interfaces, or troubleshoot API response issues."
 ---
 
 # 外部API使用指南
@@ -59,3 +59,33 @@ $headers = [
   - [validate.md](references/auth/validate.md) - 验证Token
   - [get-user-customization-settings.md](references/auth/get-user-customization-settings.md) - 获取用户定制化设置
   - [get_user_points_info.md](references/auth/get_user_points_info.md) - 获取用户积分信息
+
+## 常见兼容问题
+
+### `custom_views.view_name` 中文乱码
+
+- 现象：
+  - 在线设计界面视图切换按钮显示 `u4e3bu5b9a...`、`u6b21u7ea7...`
+  - DOM 中 `button.viewer-switch-btn` 文本不是中文，而是 Unicode 转义串
+- 典型来源：
+  - Promowares `GET /api/v1/products/{product_id}/customization` 的 `custom_views[*].view_name`
+  - 返回值可能不是正常中文，而是以下任一格式：
+    - `u4e3bu5b9au5236u89c6u56fe`
+    - `\u4e3b\u5b9a\u5236\u89c6\u56fe`
+    - `主u5b9a制u89c6图`、`次u7ea7视u56fe` 这类半解码残留串
+- 项目内推荐修复点：
+  - 优先在前端产品数据入口统一标准化，再进入视图按钮、多视图导出、画布状态等后续链路
+  - 当前项目已在 `modules/front_canvas/assets/js/design/stores/index.js` 的 `fetchProductData()` 中对 `templates.views` 与 `templates.data.custom_view` 的 `view_name/name` 做统一解码
+- 排查结论：
+  - 若页面出现半解码残留串，优先检查前端解码器是否只处理了部分连续片段
+  - 不要先把问题归因到产品缓存；当前项目缓存命中与未命中都会继续走前端 `fetchProductData()` 的标准化逻辑
+- 解码范围建议：
+  - `templates.views[*].view_name`
+  - `templates.views[*].name`
+  - `templates.data.custom_view.main_custom_view.view_name`
+  - `templates.data.custom_view.sub_custom_view[*].view_name`
+- 修复原则：
+  - 不改前端按钮渲染组件的职责，只在数据入口做一次标准化
+  - 兼容普通字符串、`uXXXX`、`\uXXXX`、半解码残留串四种输入
+  - 解码顺序建议：先解 `\uXXXX`，再解整串连续 `uXXXX`，最后补解混在中文中的残留 `uXXXX`
+  - 解码失败时回退原值，避免破坏已有英文或数字视图名
