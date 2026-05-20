@@ -16,14 +16,10 @@ const pwcaDecodePromowaresUnicodeText = (value) => {
             decodeHex(hex)
         );
 
-        if (/^(?:u[0-9a-fA-F]{4})+$/.test(normalized)) {
-            return normalized.replace(/u([0-9a-fA-F]{4})/g, (match, hex) =>
+        return normalized.replace(/(?:u[0-9a-fA-F]{4})+/g, (segment) =>
+            segment.replace(/u([0-9a-fA-F]{4})/g, (match, hex) =>
                 decodeHex(hex)
-            );
-        }
-
-        return normalized.replace(/(^|[^0-9A-Za-z_\\])u([0-9a-fA-F]{4})/g, (match, prefix, hex) =>
-            prefix + decodeHex(hex)
+            )
         );
     } catch (error) {
         return value;
@@ -61,6 +57,109 @@ const pwcaNormalizeTemplateViewNames = (productData) => {
         customView.sub_custom_view = customView.sub_custom_view.map((view) => ({
             ...view,
             view_name: pwcaDecodePromowaresUnicodeText(view && view.view_name)
+        }));
+    }
+
+    return productData;
+};
+
+const pwcaNormalizePromowaresImageUrl = (value) => {
+    if (typeof value !== 'string' || value === '') {
+        return value;
+    }
+
+    let normalized = value.trim();
+
+    if (
+        (normalized.startsWith('"') && normalized.endsWith('"')) ||
+        (normalized.startsWith("'") && normalized.endsWith("'")) ||
+        (normalized.startsWith('`') && normalized.endsWith('`'))
+    ) {
+        normalized = normalized.slice(1, -1).trim();
+    }
+
+    normalized = pwcaDecodePromowaresUnicodeText(normalized);
+
+    try {
+        return encodeURI(normalized);
+    } catch (error) {
+        return normalized;
+    }
+};
+
+const pwcaNormalizeLayerImageUrls = (layers) => {
+    if (!Array.isArray(layers)) {
+        return layers;
+    }
+
+    return layers.map((layer) => {
+        if (!layer || typeof layer !== 'object') {
+            return layer;
+        }
+
+        const imageURL = layer?.layer_data?.content?.imageURL;
+        if (typeof imageURL !== 'string' || imageURL === '') {
+            return layer;
+        }
+
+        return {
+            ...layer,
+            layer_data: {
+                ...layer.layer_data,
+                content: {
+                    ...layer.layer_data.content,
+                    imageURL: pwcaNormalizePromowaresImageUrl(imageURL)
+                }
+            }
+        };
+    });
+};
+
+const pwcaNormalizeTemplateImageUrls = (productData) => {
+    if (!productData || !productData.templates) {
+        return productData;
+    }
+
+    const templates = productData.templates;
+
+    if (Array.isArray(templates.views)) {
+        templates.views = templates.views.map((view) => ({
+            ...view,
+            layers: pwcaNormalizeLayerImageUrls(view && view.layers),
+            data: view && view.data ? {
+                ...view.data,
+                layer_config: view.data.layer_config ? {
+                    ...view.data.layer_config,
+                    layers: pwcaNormalizeLayerImageUrls(view.data.layer_config.layers)
+                } : view.data.layer_config
+            } : view.data
+        }));
+    }
+
+    const customView = templates.data && templates.data.custom_view;
+    if (!customView) {
+        return productData;
+    }
+
+    if (customView.main_custom_view) {
+        customView.main_custom_view = {
+            ...customView.main_custom_view,
+            layers: pwcaNormalizeLayerImageUrls(customView.main_custom_view.layers),
+            layer_config: customView.main_custom_view.layer_config ? {
+                ...customView.main_custom_view.layer_config,
+                layers: pwcaNormalizeLayerImageUrls(customView.main_custom_view.layer_config.layers)
+            } : customView.main_custom_view.layer_config
+        };
+    }
+
+    if (Array.isArray(customView.sub_custom_view)) {
+        customView.sub_custom_view = customView.sub_custom_view.map((view) => ({
+            ...view,
+            layers: pwcaNormalizeLayerImageUrls(view && view.layers),
+            layer_config: view && view.layer_config ? {
+                ...view.layer_config,
+                layers: pwcaNormalizeLayerImageUrls(view.layer_config.layers)
+            } : view.layer_config
         }));
     }
 
@@ -448,6 +547,7 @@ export const useCanvasStore = defineStore('canvas', {
 
                 const data = await response.json();
                 pwcaNormalizeTemplateViewNames(data);
+                pwcaNormalizeTemplateImageUrls(data);
 
                 try {
                     const headerValue = response.headers.get('x-pw-cache') || response.headers.get('X-PW-Cache');
