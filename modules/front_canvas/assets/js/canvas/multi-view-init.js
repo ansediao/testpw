@@ -450,7 +450,11 @@ async function handleFourGridContentArea(view) {
         baseCanvas.renderAll();
     }
 
-    const contentAreaLayer = viewLayers.find((layer) => layer.name === 'Content Area Layer');
+    const contentAreaLayer =
+        viewLayers.find((layer) => layer.name === 'Content Area Layer') ||
+        viewLayers.find((layer) => layer.name === 'Mapping Layer') ||
+        viewLayers.find((layer) => layer.name === 'FlexiCurve Layer') ||
+        viewLayers.find((layer) => layer.name === 'Base Layer');
     if (!contentAreaLayer) {
         clearContentAreaClip(view.id);
         return;
@@ -528,7 +532,8 @@ async function initializeMultiLayerCanvases(view, store) {
 
     let targetLayer = layers[0];
     if (productViewFlow === '4-Grid Flow') {
-        const gridFlowLayer = layers.find((layer) => layer.name === '4-Grid Flow');
+        const gridFlowLayer =
+            layers.find((layer) => layer.name === '4-Grid Layer');
         if (gridFlowLayer) {
             targetLayer = gridFlowLayer;
         }
@@ -561,7 +566,7 @@ async function initializeMultiLayerCanvases(view, store) {
         { layerName: 'Custom Layer', canvasId: `mainCanvas-${view.id}` }
     ];
     if (productViewFlow === '4-Grid Flow') {
-        canvasConfigs = [{ layerName: '4-Grid Flow', canvasId: `baseCanvas-${view.id}` }];
+        canvasConfigs = [{ layerName: '4-Grid Layer', canvasId: `baseCanvas-${view.id}` }];
     }
 
     for (const config of canvasConfigs) {
@@ -941,7 +946,8 @@ function createViewContainers(views, store) {
         if (view.layers && view.layers.length > 0) {
             let targetLayer = view.layers[0];
             if (view.view_flow === '4-Grid Flow') {
-                const gridFlowLayer = view.layers.find((layer) => layer.name === '4-Grid Flow');
+                const gridFlowLayer =
+                    view.layers.find((layer) => layer.name === '4-Grid Layer');
                 if (gridFlowLayer) {
                     targetLayer = gridFlowLayer;
                 }
