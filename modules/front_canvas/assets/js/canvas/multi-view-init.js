@@ -455,13 +455,13 @@ async function handleFourGridContentArea(view) {
         clearContentAreaClip(view.id);
         return;
     }
-
-    const imageURL = contentAreaLayer?.layer_data?.content?.imageURL;
-    if (!isValidImageURL(imageURL)) {
-        console.warn('Content Area Layer 不包含可用的图片资源，将跳过渲染与裁剪。');
-        clearContentAreaClip(view.id);
-        return;
-    }
+    // 不考虑内容视图的图片资源，直接渲染
+    // const imageURL = contentAreaLayer?.layer_data?.content?.imageURL;
+    // if (!isValidImageURL(imageURL)) {
+    //     console.warn('Content Area Layer 不包含可用的图片资源，将跳过渲染与裁剪。');
+    //     clearContentAreaClip(view.id);
+    //     return;
+    // }
 
     try {
         const contentAreaObject = await createFabricObjectFromLayer(baseCanvas, contentAreaLayer);
