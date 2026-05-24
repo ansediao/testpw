@@ -549,6 +549,12 @@ class Pw_Admin_Promowares_Api
             ),
         ));
 
+        register_rest_route('pw-canvas/v1', '/store-customization-settings', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_store_customization_settings_data'),
+            'permission_callback' => '__return_true',
+        ));
+
         // Register print methods endpoint
         register_rest_route('pw-canvas/v1', '/print-methods', array(
             'methods' => 'POST',
@@ -591,6 +597,40 @@ class Pw_Admin_Promowares_Api
             'callback' => array($this, 'handle_image_upload'),
             'permission_callback' => '__return_true',
         ));
+    }
+
+    /**
+     * Get store-level customization settings.
+     *
+     * This endpoint proxies Promowares `/store/customization-settings`.
+     * It is different from the legacy `/customization-settings` endpoint and
+     * must remain an independent payload for downstream callers.
+     *
+     * @since    1.0.0
+     * @param    WP_REST_Request    $request    The REST request object.
+     * @return   WP_REST_Response              The REST response with settings data.
+     */
+    public function get_store_customization_settings_data($request)
+    {
+        $token = get_option('pw_api_token', '');
+        if (empty($token)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'Store token is not configured yet. Please connect the store first.',
+            ), 401);
+        }
+
+        $settings = $this->call_promowares_api('store/customization-settings', $token);
+        if (is_wp_error($settings)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'Failed to load store customization settings.',
+                'error' => $settings->get_error_message(),
+                'details' => $settings->get_error_data(),
+            ), 502);
+        }
+
+        return new WP_REST_Response($settings, 200);
     }
 
     /**
@@ -750,6 +790,16 @@ class Pw_Admin_Promowares_Api
         } else {
             $aggregated_data['has_customization_settings'] = false;
             $aggregated_data['customization_settings_error'] = $customization_settings->get_error_message();
+        }
+
+        // 4.1 Get store-level customization settings (separate from legacy customization settings)
+        $store_customization_settings = $this->call_promowares_api("store/customization-settings", $token);
+        if (!is_wp_error($store_customization_settings)) {
+            $aggregated_data['store_customization_settings'] = $store_customization_settings;
+            $aggregated_data['has_store_customization_settings'] = true;
+        } else {
+            $aggregated_data['has_store_customization_settings'] = false;
+            $aggregated_data['store_customization_settings_error'] = $store_customization_settings->get_error_message();
         }
 
         // 5. Get user points info
