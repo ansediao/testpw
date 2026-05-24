@@ -52,6 +52,45 @@ description: "规范店铺级 /store/customization-settings 对接、字段使�
 - 推荐使用 WordPress transient 或现有聚合缓存
 - 换店、重新绑定、后台运营修改店铺设置后主动失效
 
+## PRD 补充
+
+### 后台入口
+
+根据 PRD，`Customization Setting` 选项卡位于：
+
+- 管理中台
+- 店铺
+- 产品推送设置
+
+它承载的是大量“前台交互控制项”，不是单纯的数据展示配置。
+
+### 字段业务语义
+
+以下字段含义应优先按 PRD 业务语义理解，并与接口字段说明一起使用：
+
+| PRD 字段名称 | 接口字段 | 主要用途 / 功能描述 |
+|------|------|------|
+| Image Format | `image_format` | 控制支持上传的图片格式。通常用于上传组件 `accept` 或文件类型校验。 |
+| Size Unit | `size_unit` | 设置在线定制页面的长度单位，如 `inch`、`cm`。影响产品尺寸、设计器标尺、印刷区域尺寸展示。 |
+| Auto-Select | `auto_select` | 控制添加或上传的图片图层进入画板后是否默认被选中。 |
+| Stay On Top | `stay_on_top` | 控制上传的图片图层是否强制保持在画板最顶层。 |
+| MOVABLE | `moveable` | 控制上传的图片图层是否允许在画板中移动。 |
+| ROTATABLE | `rotatable` | 控制上传的图片图层是否允许在画板中旋转。 |
+| SCALABLE | `scalable` | 控制上传的图片图层是否允许在画板中缩放。关闭后需同步限制相关缩放 UI。 |
+| ALLOW UNPROPORTIONAL SCALING | `allow_unproportional_scaling` | 控制上传的图片图层是否允许非等比缩放。 |
+| REMOVABLE | `removable` | 控制上传的图片图层是否允许被最终用户删除。 |
+| Bitmap Image Consent | `bitmap_image_consent` | 位图颜色验证开关。开启后，当用户上传位图且印刷方式颜色受限时，需要用户确认。 |
+| Vector Image Color Compliance | `vector_image_color_compliance` | 矢量图颜色合规性开关。开启后，要校验矢量图颜色是否与印刷方式允许颜色匹配。 |
+| Item/Design | `fields_visibility.moq_fields[] -> items_design` | 控制底栏“只 / 设计”字段显示。 |
+| Item/Color | `fields_visibility.moq_fields[] -> items_color` | 控制底栏“只 / 颜色”字段显示。 |
+| RTS Date | `fields_visibility.delivery_time_fields[] -> rts_date` | 控制底栏“发货日期”字段显示。 |
+| Arrival Date | `fields_visibility.delivery_time_fields[] -> arrival_date` | 控制底栏“到货日期”字段显示。 |
+| Sample Order | `fields_visibility.moq_fields[] -> sample_order` | 控制整个前端“样品单”勾选框显示，包括产品页和定制页。 |
+| Blank Item | `fields_visibility.cost_breakdown_fields[] -> blank_item` | 控制“基础价格”字段的显示与计算。若 PRD 中配置值为 `Blank Only`，还需隐藏相关按钮。 |
+| Custom Fee | `fields_visibility.cost_breakdown_fields[] -> custom_fee` | 控制定制费用字段显示。 |
+| Layer Depth | `layer_depth` | 控制上传图片图层在图层列表中的初始深度顺序。 |
+| Scale Mode | `scale_mode` | 控制上传图片图层的缩放模式，例如平铺、覆盖、原始尺寸。 |
+
 ## 字段分层
 
 ### 一、直接读取店铺接口的字段
@@ -149,6 +188,13 @@ description: "规范店铺级 /store/customization-settings 对接、字段使�
 
 - 发货日期
 - 到货日期
+
+## 前台字段落地提示
+
+- `Sample Order` 不是只影响底栏文案，而是影响整个前端样品单勾选框是否显示，范围包括产品页和定制页。
+- `Blank Item` 不只是显示控制，也影响基础价格区域和部分按钮显隐；如果业务值出现 `Blank Only`，要额外处理按钮隐藏，不要只做字段显示。
+- `SCALABLE` 关闭后，除了禁用缩放，还应同步隐藏或禁用 `scale_by`、`min_scale_limit`、非等比缩放相关交互。
+- `Layer Depth` 和 `Scale Mode` 是上传图片进入画布时的初始化策略，建议在上传入画布入口统一处理，不要在多个图层组件分散处理。
 
 ## 前端联动规则
 
