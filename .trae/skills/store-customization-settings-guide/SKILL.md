@@ -30,9 +30,9 @@ description: "规范店铺级 /store/customization-settings 对接、字段使�
 - 新接口是店铺级默认配置
 - 产品/视图级配置仍来自产品定制接口中的 `custom_views`
 - 最终优先级始终是：
-  - `custom_view` 视图配置
-  - `store/customization-settings`
-  - 插件内置默认值
+  - `custom_view` 视图配置（`selected_modules`）
+  - `store/customization-settings`（`active_modules`）
+  - 插件内置默认值（`TEXT`, `UPLOAD`, `DESIGN`）
 
 ## 推荐接入顺序
 
@@ -62,7 +62,7 @@ description: "规范店铺级 /store/customization-settings 对接、字段使�
 - 店铺
 - 产品推送设置
 
-它承载的是大量“前台交互控制项”，不是单纯的数据展示配置。
+它承载的是大量"前台交互控制项"，不是单纯的数据展示配置。
 
 ### 字段业务语义
 
@@ -81,15 +81,39 @@ description: "规范店铺级 /store/customization-settings 对接、字段使�
 | REMOVABLE | `removable` | 控制上传的图片图层是否允许被最终用户删除。 |
 | Bitmap Image Consent | `bitmap_image_consent` | 位图颜色验证开关。开启后，当用户上传位图且印刷方式颜色受限时，需要用户确认。 |
 | Vector Image Color Compliance | `vector_image_color_compliance` | 矢量图颜色合规性开关。开启后，要校验矢量图颜色是否与印刷方式允许颜色匹配。 |
-| Item/Design | `fields_visibility.moq_fields[] -> items_design` | 控制底栏“只 / 设计”字段显示。 |
-| Item/Color | `fields_visibility.moq_fields[] -> items_color` | 控制底栏“只 / 颜色”字段显示。 |
-| RTS Date | `fields_visibility.delivery_time_fields[] -> rts_date` | 控制底栏“发货日期”字段显示。 |
-| Arrival Date | `fields_visibility.delivery_time_fields[] -> arrival_date` | 控制底栏“到货日期”字段显示。 |
-| Sample Order | `fields_visibility.moq_fields[] -> sample_order` | 控制整个前端“样品单”勾选框显示，包括产品页和定制页。 |
-| Blank Item | `fields_visibility.cost_breakdown_fields[] -> blank_item` | 控制“基础价格”字段的显示与计算。若 PRD 中配置值为 `Blank Only`，还需隐藏相关按钮。 |
+| Item/Design | `fields_visibility.moq_fields[] -> items_design` | 控制底栏"只 / 设计"字段显示。 |
+| Item/Color | `fields_visibility.moq_fields[] -> items_color` | 控制底栏"只 / 颜色"字段显示。 |
+| RTS Date | `fields_visibility.delivery_time_fields[] -> rts_date` | 控制底栏"发货日期"字段显示。 |
+| Arrival Date | `fields_visibility.delivery_time_fields[] -> arrival_date` | 控制底栏"到货日期"字段显示。 |
+| Sample Order | `fields_visibility.moq_fields[] -> sample_order` | 控制整个前端"样品单"勾选框显示，包括产品页和定制页。 |
+| Blank Item | `fields_visibility.cost_breakdown_fields[] -> blank_item` | 控制"基础价格"字段的显示与计算。若 PRD 中配置值为 `Blank Only`，还需隐藏相关按钮。 |
 | Custom Fee | `fields_visibility.cost_breakdown_fields[] -> custom_fee` | 控制定制费用字段显示。 |
 | Layer Depth | `layer_depth` | 控制上传图片图层在图层列表中的初始深度顺序。 |
 | Scale Mode | `scale_mode` | 控制上传图片图层的缩放模式，例如平铺、覆盖、原始尺寸。 |
+
+### 上传图片三项落地细则（实现口径）
+
+#### 1) `image_format` → 上传 accept 与前端校验
+
+- 推荐用法：同时用于
+  - `<input type="file">` 的 `accept` 限制
+  - 拖拽/选择文件时的前端格式校验（避免无效文件进上传接口）
+- 兼容点：`JPG,PNG` 需要兼容 `.jpg/.jpeg/.png`（大小写不敏感，允许带点号）。
+
+#### 2) `layer_depth` → 入画布初始层级
+
+- `-1`：入画布后默认置顶（最上层）。
+- `>= 0`：按 Fabric 对象索引尝试移动到对应层级；无法移动时可退化为默认添加顺序。
+
+#### 3) `scale_mode` → 入画布初始缩放基准
+
+- 常规视图：相对于当前舞台（canvas）的宽高计算
+  - `fit`：等比完整放入（类似 CSS contain）
+  - `cover`：等比铺满（类似 CSS cover）
+  - `original`：保持原始尺寸（scale=1）
+- **4-Grid Flow 特殊规则**：当画布上已存在"产品底图/轮廓"时，缩放与落点应相对于"产品边缘"而不是整张舞台
+  - 查找顺序（仅用于确定产品边缘基准）：`FlexiCurve Layer` → `Base Layer`
+  - 基准尺寸来源：优先取这两个层对应图片的 `dimensions.contentArea` / `dimensions.layerSize` 的宽高；若同名 Fabric 对象存在，可取对象渲染后的边界。
 
 ## 字段分层
 
@@ -123,13 +147,22 @@ description: "规范店铺级 /store/customization-settings 对接、字段使�
 
 ### 二、必须参与视图覆盖的字段
 
-#### 1. 可用模块
+#### 1. 可用模块（控制 Operation Panel Tab 显隐）
 
 - 店铺字段：`active_modules`
 - 视图字段：`selected_modules`
-- 规则：
-  - 如果 `selected_modules` 为非空数组，则用视图值
-  - 否则回退到店铺 `active_modules`
+- 最终优先级（已在 `pwcaBuildMergedViewCustomizationSettings` 中实现）：
+  1. `selected_modules` 非空 → 用视图值
+  2. 否则 `active_modules` 非空 → 用店铺值
+  3. 否则 → 插件默认值 `['TEXT', 'UPLOAD', 'DESIGN']`
+- 模块名归一化：所有模块值统一转为大写后参与比较和判断（`pwcaNormalizeModuleName`）
+- **Tab 映射**（已在前端 `core-init.js` 中实现）：
+  | 接口模块值 | Operation Panel Tab |
+  |-----------|---------------------|
+  | `UPLOAD`  | `tab-pianquan`（Image） |
+  | `TEXT`    | `tab-wenzi`（Text） |
+  | `DESIGN`  | `tab-sheji`（Designs） |
+- 模块禁用时：Tab 导航和对应内容面板直接 `display:none`，对应初始化入口（`pwcaInitImageTab`、`pwcaInitTextTab`、`ListJS`）也会被守卫跳过。
 
 #### 2. 单一印刷方式限制
 
@@ -149,7 +182,7 @@ description: "规范店铺级 /store/customization-settings 对接、字段使�
 
 ## `fields_visibility` 使用规则
 
-`fields_visibility` 下的数组采用“包含即显示，不包含即隐藏”的规则。
+`fields_visibility` 下的数组采用"包含即显示，不包含即隐藏"的规则。
 
 ### `moq_fields`
 
@@ -195,8 +228,27 @@ description: "规范店铺级 /store/customization-settings 对接、字段使�
 - `Blank Item` 不只是显示控制，也影响基础价格区域和部分按钮显隐；如果业务值出现 `Blank Only`，要额外处理按钮隐藏，不要只做字段显示。
 - `SCALABLE` 关闭后，除了禁用缩放，还应同步隐藏或禁用 `scale_by`、`min_scale_limit`、非等比缩放相关交互。
 - `Layer Depth` 和 `Scale Mode` 是上传图片进入画布时的初始化策略，建议在上传入画布入口统一处理，不要在多个图层组件分散处理。
+- `google_font`、`font_size` 建议作为"新增文字默认值"的唯一来源：新增文字时默认 `fontFamily=google_font[0]`、`fontSize=font_size`，并将字体下拉 `#fontFamily` 的可选项限制为 `google_font` 列表（避免硬编码全量字体）。
+- `google_font` 兼容两种输入：字符串 `Arial,Helvetica`（按逗号分割、trim、去重）或数组 `["Arial","Helvetica"]`（trim、去重）。为空时回退插件内置默认字体列表。
 
 ## 前端联动规则
+
+### 可用模块 → Operation Panel Tab 显隐（已实现）
+
+核心实现在 `core-init.js`：
+
+- `pwcaOptionalTabModuleMap`：tabId → 模块名映射
+- `pwcaGetEnabledOperationModules()`：从 `currentViewEnabledModules` 获取最终启用模块列表；若 store 还未加载任何产品上下文则返回空（保守策略，避免提前初始化）
+- `pwcaIsOperationPanelTabAvailable(tabId)`：给定 tab 是否在当前启用模块中
+- `pwcaApplyOperationPanelModuleVisibility()`：对三个可选 tab 实际应用 `display` 显隐；如当前激活 tab 被禁用则自动回退到第一个可用 tab
+- `switchOperationPanelTab(tabId)`：增加了模块可用性守卫，被禁用 tab 会自动回退，不会切换到空功能
+
+监听策略：
+
+- `canvasPiniaReady` 事件触发时执行首次同步（store 已 ready）
+- `store.$subscribe` 监听视图切换/产品数据变化，自动重新应用模块显隐
+
+### 其他前台联动
 
 - 当 `scalable === false`：
   - 禁用缩放能力
@@ -212,6 +264,9 @@ description: "规范店铺级 /store/customization-settings 对接、字段使�
   - `store_customization_settings`
 - 不要覆盖现有旧字段：
   - `customization_settings`
+- 模块名归一化、合并逻辑集中在 `design/stores/index.js` 的 `pwcaNormalizeModuleName` / `pwcaNormalizeModuleList` / `pwcaBuildMergedViewCustomizationSettings`
+- Tab 显隐控制集中在 `main/core-init.js` 的 `pwcaApplyOperationPanelModuleVisibility`
+- 各模块初始化入口（图片/文字/设计搜索）自行守卫模块可用性，不要在 DOMContentLoaded 里无条件初始化
 
 ## 实施原则
 
@@ -219,15 +274,20 @@ description: "规范店铺级 /store/customization-settings 对接、字段使�
 - 保留旧 `/customization-settings` 兼容链路，除非明确要求迁移
 - 合并逻辑尽量集中在单一数据入口，不要在多个组件零散判断
 - 用户友好提示必须保留，尤其是 token 缺失、接口失败、返回结构异常
+- 模块名统一大写归一化后再比较，确保接口返回的大小写变体都能正确匹配
 
 ## 验收清单
 
-- 已新增独立的店铺定制设置代理接口
-- 未误改或替换旧 `/customization-settings`
-- 前端或聚合层能拿到独立的 `store_customization_settings`
-- `active_modules`、`single_printing_method_only`、`printing_method_list_id` 的优先级实现正确
-- `fields_visibility` 按“数组包含即显示”使用
-- 店铺设置支持按 `store_id` 缓存和失效
+- [x] 已新增独立的店铺定制设置代理接口
+- [x] 未误改或替换旧 `/customization-settings`
+- [x] 前端或聚合层能拿到独立的 `store_customization_settings`
+- [x] `active_modules`、`selected_modules`、`single_printing_method_only`、`printing_method_list_id` 的优先级实现正确
+- [x] 模块名归一化（大写）后参与比较
+- [x] `fields_visibility` 按"数组包含即显示"使用
+- [x] 店铺设置支持按 `store_id` 缓存和失效
+- [x] `tab-pianquan`/`tab-wenzi`/`tab-sheji` 显隐受 `active_modules` 控制
+- [x] 切换到已禁用 tab 时自动回退，不出现空功能面板
+- [x] 对应模块禁用时初始化入口被守卫跳过
 
 ## 常见错误
 
@@ -235,3 +295,4 @@ description: "规范店铺级 /store/customization-settings 对接、字段使�
 - 在前端直接请求外部接口并暴露 token
 - 把店铺默认配置写死进单个组件，而不是统一合并
 - 忽略 `custom_views` 的更高优先级
+- 模块名大小写不一致导致匹配失败（未归一化）

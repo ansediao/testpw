@@ -90,6 +90,22 @@ $headers = [
   - 解码顺序建议：先解 `\uXXXX`，再解整串连续 `uXXXX`，最后补解混在中文中的残留 `uXXXX`
   - 解码失败时回退原值，避免破坏已有英文或数字视图名
 
+### 店铺定制设置 `google_font` / `font_size` 字段落地
+
+- 背景：
+  - 新增接口 `GET /api/v1/store/customization-settings` 返回店铺级默认配置，其中包含字体相关字段 `google_font`、`font_size`。
+  - 该配置应作为在线设计器“新增文字”的默认值来源，并用于限制字体下拉的可选项。
+- 推荐前端使用方式：
+  - 新增文字默认值：
+    - `fontFamily` 取 `google_font` 的首个字体
+    - `fontSize` 取 `font_size`
+  - 字体下拉 `#fontFamily`：
+    - 只展示 `google_font` 列表中的字体（不要硬编码全量字体）
+- 兼容点：
+  - `google_font` 可能是字符串 `Arial,Helvetica` 或数组 `["Arial","Helvetica"]`，都需要 `trim` + 去重
+  - 当 `google_font` / `font_size` 缺失或无效时，应回退到插件内置默认值
+  - 合并优先级仍遵循：`custom_view` 视图配置 > `store/customization-settings` 店铺默认配置 > 插件内置默认值（字体字段通常直接使用店铺默认即可）
+
 ### `4-Grid Flow` 图层渲染规则
 
 - 现象：
