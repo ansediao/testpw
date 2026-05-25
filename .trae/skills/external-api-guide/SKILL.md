@@ -89,3 +89,12 @@ $headers = [
   - 兼容普通字符串、`uXXXX`、`\uXXXX`、半解码残留串四种输入
   - 解码顺序建议：先解 `\uXXXX`，再解整串连续 `uXXXX`，最后补解混在中文中的残留 `uXXXX`
   - 解码失败时回退原值，避免破坏已有英文或数字视图名
+
+### `4-Grid Flow` 图层渲染规则
+
+- 现象：
+  - Promowares customization 返回 `layers` 里包含 `Background Layer`，但 4-Grid Flow 的舞台不应加载该图层
+- 项目内规则：
+  - `view_flow === "4-Grid Flow"` 时，前端渲染会跳过 `Background Layer`
+  - 其余图层按名称分发到多画布：`Base Layer/4-Grid Layer -> baseCanvas`，`Overlay Layer -> overlayCanvas`，其他图层（含文本/自定义图片/Mapping/FlexiCurve）-> `mainCanvas`
+  - 相关逻辑集中在 `modules/front_canvas/assets/js/canvas/multi-view-init.js`

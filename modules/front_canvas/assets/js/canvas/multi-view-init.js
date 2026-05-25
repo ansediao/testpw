@@ -66,6 +66,38 @@ function convertCoordinatesForOrigin(x, y, width, height, originX, originY) {
     };
 }
 
+function getLayerRenderSize(layer, fallback = {}) {
+    const dimensions = layer?.layer_data?.dimensions || {};
+    const layerSize = dimensions.layerSize || {};
+    const contentArea = dimensions.contentArea || {};
+
+    const width = Number(layerSize.width || contentArea.width || fallback.width || 0);
+    const height = Number(layerSize.height || contentArea.height || fallback.height || 0);
+
+    return {
+        width: Number.isFinite(width) && width > 0 ? width : Number(fallback.width || 0),
+        height: Number.isFinite(height) && height > 0 ? height : Number(fallback.height || 0)
+    };
+}
+
+function getTargetCanvasIdForLayer(layer, view) {
+    const layerName = String(layer?.name || '').trim();
+
+    if (view?.view_flow === '4-Grid Flow' && layerName === 'Background Layer') {
+        return null;
+    }
+
+    if (layerName === 'Background Layer' || layerName === 'Base Layer' || layerName === '4-Grid Layer') {
+        return `baseCanvas-${view.id}`;
+    }
+
+    if (layerName === 'Overlay Layer') {
+        return `overlayCanvas-${view.id}`;
+    }
+
+    return `mainCanvas-${view.id}`;
+}
+
 /**
  * 辅助函数，用于从图层数据对象创建一个 Fabric.js 对象。
  * @param {fabric.Canvas} canvas - 目标画布
@@ -99,23 +131,23 @@ function createFabricObjectFromLayer(canvas, layer) {
                             return;
                         }
 
-                        const canvasWidth = canvas.getWidth();
-                        const canvasHeight = canvas.getHeight();
                         const imgWidth = img.width || 1;
                         const imgHeight = img.height || 1;
+                        const renderSize = getLayerRenderSize(layer, {
+                            width: imgWidth,
+                            height: imgHeight
+                        });
 
-                        const scale = Math.min(
-                            canvasWidth / imgWidth,
-                            canvasHeight / imgHeight
-                        );
+                        const scaleX = renderSize.width / imgWidth;
+                        const scaleY = renderSize.height / imgHeight;
 
                         const origins = getOriginFromAnchorPoint(position.anchorPoint || 'top-left');
 
                         const convertedCoords = convertCoordinatesForOrigin(
                             position.coordinates?.x || 0,
                             position.coordinates?.y || 0,
-                            data.dimensions?.layerSize?.width || imgWidth,
-                            data.dimensions?.layerSize?.height || imgHeight,
+                            renderSize.width || imgWidth,
+                            renderSize.height || imgHeight,
                             origins.originX,
                             origins.originY
                         );
@@ -130,12 +162,17 @@ function createFabricObjectFromLayer(canvas, layer) {
                             selectable: !!controls.movable,
                             evented: !!controls.movable,
                             lockRotation: !controls.rotatable,
+                            lockScalingX: !controls.scalable,
+                            lockScalingY: !controls.scalable,
                             hasControls: !!(controls.movable && controls.scalable),
                             hasBorders: !!controls.movable,
                             name: layer.name
                         });
 
-                        img.scale(scale);
+                        img.set({
+                            scaleX: scaleX > 0 ? scaleX : 1,
+                            scaleY: scaleY > 0 ? scaleY : 1
+                        });
 
                         if (position.anchorPoint === 'center') {
                             canvas.centerObject(img);
@@ -173,6 +210,7 @@ function createFabricObjectFromLayer(canvas, layer) {
                     angle: position.rotation || 0,
                     originX: origins.originX,
                     originY: origins.originY,
+                    fontSize: data.content.fontSize || 40,
                     fontFamily: data.content.fontFamily || 'Arial',
                     fill: data.content.fontColor || '#000000',
                     opacity: (data.content.opacity ?? 100) / 100,
@@ -539,38 +577,41 @@ async function initializeMultiLayerCanvases(view, store) {
         }
     }
 
-    const canvasWidth =
-        targetLayer.layer_data.dimensions.contentArea.width ||
-        targetLayer.layer_data.dimensions.layerSize.width;
-    const canvasHeight =
-        targetLayer.layer_data.dimensions.contentArea.height ||
-        targetLayer.layer_data.dimensions.layerSize.height;
+    const canvasSize = getLayerRenderSize(targetLayer, { width: 0, height: 0 });
+    const canvasWidth = canvasSize.width;
+    const canvasHeight = canvasSize.height;
 
-    let allCanvasIds = [
+    const allCanvasIds = [
         `baseCanvas-${view.id}`,
         `mainCanvas-${view.id}`,
         `overlayCanvas-${view.id}`
     ];
-    if (productViewFlow === '4-Grid Flow') {
-        allCanvasIds = [`baseCanvas-${view.id}`, `mainCanvas-${view.id}`];
-    }
 
     for (const canvasId of allCanvasIds) {
         await initializeEmptyCanvas(canvasId, canvasWidth, canvasHeight, view, store);
     }
 
-    let canvasConfigs = [
-        { layerName: 'Base Layer', canvasId: `baseCanvas-${view.id}` },
-        { layerName: 'Overlay Layer', canvasId: `overlayCanvas-${view.id}` },
-        { layerName: '4-Grid Flow', canvasId: `mainCanvas-${view.id}` },
-        { layerName: 'Custom Layer', canvasId: `mainCanvas-${view.id}` }
-    ];
-    if (productViewFlow === '4-Grid Flow') {
-        canvasConfigs = [{ layerName: '4-Grid Layer', canvasId: `baseCanvas-${view.id}` }];
+    const canvasConfigs = allCanvasIds.map((canvasId) => ({
+        canvasId,
+        layers: []
+    }));
+    const canvasConfigMap = new Map(
+        canvasConfigs.map((config) => [config.canvasId, config])
+    );
+
+    for (const layer of layers) {
+        const canvasId = getTargetCanvasIdForLayer(layer, view);
+        if (!canvasId) {
+            continue;
+        }
+        const targetConfig = canvasConfigMap.get(canvasId);
+        if (targetConfig) {
+            targetConfig.layers.push(layer);
+        }
     }
 
     for (const config of canvasConfigs) {
-        const targetLayers = layers.filter((layer) => layer.name === config.layerName);
+        const targetLayers = config.layers;
         if (targetLayers.length > 0) {
             const canvasEl = document.getElementById(config.canvasId);
             const canvas = canvasEl && canvasEl.__fabricCanvas;

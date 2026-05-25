@@ -1,0 +1,41 @@
+{
+	"code": 200,
+	"message": "success",
+	"data": {
+		"store_id": 16,
+		"sync_mode": "same_as_library",
+		"size_unit": "cm",
+		"active_modules": [
+			"TEXT",
+			"UPLOAD",
+			"DESIGN"
+		],
+		"google_font": "Arial,Helvetica",
+		"font_size": 13,
+		"single_printing_method_only": "enable",
+		"printing_method_restrictions": "enable",
+		"print_method_helper_link": "enable",
+		"image_format": "JPG,PNG",
+		"layer_depth": -1,
+		"scale_mode": "fit",
+		"stay_on_top": false,
+		"auto_select": true,
+		"rotatable": true,
+		"removable": true,
+		"moveable": true,
+		"scalable": true,
+		"allow_unproportional_scaling": false,
+		"min_scale_limit": 0.2,
+		"scale_by": "factor",
+		"bitmap_image_consent": true,
+		"vector_image_color_compliance": true,
+		"fields_visibility": {
+			"moq_fields": [],
+			"cost_breakdown_fields": [],
+			"delivery_time_fields": []
+		},
+		"sent_print_file_to_customer": true,
+		"file_dpi": 300,
+		"background_image": "https://promowares-cloud-storage.s3.amazonaws.com/uploads/1779333226799325801-背景.png"
+	}
+}
