@@ -88,6 +88,15 @@ const pwcaNormalizePromowaresImageUrl = (value) => {
 };
 
 const PWCA_DEFAULT_ACTIVE_MODULES = ['TEXT', 'UPLOAD', 'DESIGN'];
+const PWCA_DEFAULT_TEXT_FONT_FAMILY = 'Arial';
+const PWCA_DEFAULT_TEXT_FONT_SIZE = 30;
+const PWCA_FALLBACK_TEXT_FONT_OPTIONS = [
+    'Arial',
+    'Times New Roman',
+    'Courier New',
+    'SimSun',
+    'Microsoft YaHei'
+];
 
 const pwcaNormalizeModuleName = (value) => {
     if (typeof value !== 'string') {
@@ -307,6 +316,56 @@ const pwcaResolveEnabledModules = (settings) => {
     return [...PWCA_DEFAULT_ACTIVE_MODULES];
 };
 
+const pwcaResolveTextFontOptions = (settings) => {
+    const normalizedSettings = settings && typeof settings === 'object' ? settings : {};
+    const googleFontValue = normalizedSettings.google_font;
+
+    if (Array.isArray(googleFontValue)) {
+        const normalizedFonts = Array.from(
+            new Set(
+                googleFontValue
+                    .map((fontName) => String(fontName || '').trim())
+                    .filter(Boolean)
+            )
+        );
+        if (normalizedFonts.length > 0) {
+            return normalizedFonts;
+        }
+    }
+
+    if (typeof googleFontValue === 'string') {
+        const normalizedFonts = Array.from(
+            new Set(
+                googleFontValue
+                    .split(',')
+                    .map((fontName) => fontName.trim())
+                    .filter(Boolean)
+            )
+        );
+        if (normalizedFonts.length > 0) {
+            return normalizedFonts;
+        }
+    }
+
+    return [...PWCA_FALLBACK_TEXT_FONT_OPTIONS];
+};
+
+const pwcaResolveDefaultTextFontFamily = (settings) => {
+    const fontOptions = pwcaResolveTextFontOptions(settings);
+    return fontOptions[0] || PWCA_DEFAULT_TEXT_FONT_FAMILY;
+};
+
+const pwcaResolveDefaultTextFontSize = (settings) => {
+    const normalizedSettings = settings && typeof settings === 'object' ? settings : {};
+    const fontSize = Number(normalizedSettings.font_size);
+
+    if (Number.isFinite(fontSize) && fontSize > 0) {
+        return fontSize;
+    }
+
+    return PWCA_DEFAULT_TEXT_FONT_SIZE;
+};
+
 // 2. 定义一个全局画布状态仓库（store）
 // defineStore 用于创建一个“仓库”，可以在任意组件中访问和修改数据
 // 'canvas' 是仓库的名字，后续通过 useCanvasStore() 获取仓库实例
@@ -517,6 +576,33 @@ export const useCanvasStore = defineStore('canvas', {
                 view,
                 state.storeCustomizationSettings
             );
+        },
+        currentTextFontOptions(state) {
+            const view = state.views.find((item) => item && item.id === state.activeViewId);
+            const mergedSettings = pwcaBuildMergedViewCustomizationSettings(
+                view,
+                state.storeCustomizationSettings
+            );
+
+            return pwcaResolveTextFontOptions(mergedSettings);
+        },
+        currentDefaultTextFontFamily(state) {
+            const view = state.views.find((item) => item && item.id === state.activeViewId);
+            const mergedSettings = pwcaBuildMergedViewCustomizationSettings(
+                view,
+                state.storeCustomizationSettings
+            );
+
+            return pwcaResolveDefaultTextFontFamily(mergedSettings);
+        },
+        currentDefaultTextFontSize(state) {
+            const view = state.views.find((item) => item && item.id === state.activeViewId);
+            const mergedSettings = pwcaBuildMergedViewCustomizationSettings(
+                view,
+                state.storeCustomizationSettings
+            );
+
+            return pwcaResolveDefaultTextFontSize(mergedSettings);
         },
         // 当前视图最终启用模块：selected_modules > active_modules > 插件默认值
         currentViewEnabledModules(state) {

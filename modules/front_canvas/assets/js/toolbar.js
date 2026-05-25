@@ -8,6 +8,44 @@ function pwUpdateRangeFill(rangeEl) {
     const percent = ((value - min) / (max - min)) * 100;
     rangeEl.style.setProperty('--value-percent', `${percent}%`);
 }
+
+function pwcaEscapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function pwcaGetAvailableTextFonts() {
+    const fallbackFonts = ['Arial', 'Times New Roman', 'Courier New', 'SimSun', 'Microsoft YaHei'];
+
+    if (typeof window.useCanvasStore !== 'function') {
+        return fallbackFonts;
+    }
+
+    try {
+        const store = window.useCanvasStore();
+        if (Array.isArray(store.currentTextFontOptions) && store.currentTextFontOptions.length > 0) {
+            return store.currentTextFontOptions;
+        }
+    } catch (error) {
+    }
+
+    return fallbackFonts;
+}
+
+function pwcaBuildFontOptionsMarkup(selectedFontFamily) {
+    return pwcaGetAvailableTextFonts()
+        .map((fontName) => {
+            const escapedFontName = pwcaEscapeHtml(fontName);
+            const isSelected = fontName === selectedFontFamily ? ' selected' : '';
+            return `<option value="${escapedFontName}"${isSelected}>${escapedFontName}</option>`;
+        })
+        .join('');
+}
+
 function updateDynamicToolbar(obj) {
     // 获取当前活动的 canvas 实例
     const canvas = getActiveCanvas();
@@ -55,11 +93,7 @@ function updateDynamicToolbar(obj) {
             <label for="fontFamily" class="tab_control_title">Font：</label>
             <br>
             <select id="fontFamily">
-              <option value="Arial" ${obj.fontFamily === 'Arial' ? 'selected' : ''}>Arial</option>
-              <option value="Times New Roman" ${obj.fontFamily === 'Times New Roman' ? 'selected' : ''}>Times New Roman</option>
-              <option value="Courier New" ${obj.fontFamily === 'Courier New' ? 'selected' : ''}>Courier New</option>
-              <option value="SimSun" ${obj.fontFamily === 'SimSun' ? 'selected' : ''}>SimSun</option>
-              <option value="Microsoft YaHei" ${obj.fontFamily === 'Microsoft YaHei' ? 'selected' : ''}>Microsoft YaHei</option>
+              ${pwcaBuildFontOptionsMarkup(obj.fontFamily)}
             </select>
           `;
             textToolbarArea.appendChild(fontSelector);

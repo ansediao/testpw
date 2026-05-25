@@ -1,6 +1,27 @@
 (function () {
     'use strict';
 
+    function pwcaGetTextDefaults() {
+        const fallbackDefaults = {
+            fontFamily: 'Arial',
+            fontSize: 30
+        };
+
+        if (typeof window.useCanvasStore !== 'function') {
+            return fallbackDefaults;
+        }
+
+        try {
+            const store = window.useCanvasStore();
+            return {
+                fontFamily: store.currentDefaultTextFontFamily || fallbackDefaults.fontFamily,
+                fontSize: store.currentDefaultTextFontSize || fallbackDefaults.fontSize
+            };
+        } catch (error) {
+            return fallbackDefaults;
+        }
+    }
+
     function pwcaIsTextModuleEnabled() {
         if (typeof window.pwcaIsOperationPanelTabAvailable !== 'function') {
             return true;
@@ -17,12 +38,13 @@
     }
 
     function pwcaCreateFabricText(canvas, text, layerId) {
+        const textDefaults = pwcaGetTextDefaults();
         return new fabric.Text(text, {
             left: canvas.width / 2,
             top: canvas.height / 2,
-            fontSize: 30,
+            fontSize: textDefaults.fontSize,
             fill: '#000000',
-            fontFamily: 'Arial',
+            fontFamily: textDefaults.fontFamily,
             originX: 'center',
             originY: 'center',
             id: layerId,
