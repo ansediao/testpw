@@ -16,41 +16,6 @@
         return window.canvas || window.fabricCanvas || null;
     }
 
-    function pwcaHasPrintMethodBinding(activeObject) {
-        if (!activeObject) {
-            return false;
-        }
-
-        if (activeObject.groupId) {
-            return true;
-        }
-
-        if (!window.usePrintMethodStore) {
-            return false;
-        }
-
-        const store = window.usePrintMethodStore();
-        if (!store) {
-            return false;
-        }
-
-        if (typeof store.getLayerPrintMethod === 'function') {
-            const layerMethod = store.getLayerPrintMethod(activeObject.id);
-            if (layerMethod) {
-                return true;
-            }
-        }
-
-        if (activeObject.groupId && typeof store.getGroupPrintMethod === 'function') {
-            const groupMethod = store.getGroupPrintMethod(activeObject.groupId);
-            if (groupMethod) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     function showPrintMethodBindingAlert(targetObject) {
         const assignBtn = document.querySelector('#content-tuan .layer-item.ungrouped.active .assign-btn');
         if (assignBtn) {
@@ -81,16 +46,11 @@
                     ? activeCanvas.getActiveObject()
                     : null;
 
-                if (activeObject && !pwcaHasPrintMethodBinding(activeObject)) {
-                    showPrintMethodBindingAlert(activeObject);
-                    return;
-                }
-
                 if (typeof window.switchOperationPanelTab === 'function') {
                     window.switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
                 }
 
-                document.querySelectorAll('.toolbar_button').forEach(function (btn) {
+                toolbar.querySelectorAll('.toolbar_button').forEach(function (btn) {
                     btn.classList.remove('active');
                 });
                 button.classList.add('active');
@@ -125,11 +85,6 @@
                     ? activeCanvas.getActiveObject()
                     : null;
 
-                if (activeObject && !pwcaHasPrintMethodBinding(activeObject)) {
-                    showPrintMethodBindingAlert(activeObject);
-                    return;
-                }
-
                 if (typeof window.switchOperationPanelTab === 'function') {
                     window.switchOperationPanelTab('tab-pianquan');
                 }
@@ -148,7 +103,7 @@
                     }
                 }
 
-                document.querySelectorAll('.toolbar_button').forEach(function (btn) {
+                toolbar.querySelectorAll('.toolbar_button').forEach(function (btn) {
                     btn.classList.remove('active');
                 });
                 button.classList.add('active');
