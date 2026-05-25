@@ -180,6 +180,65 @@ description: "规范店铺级 /store/customization-settings 对接、字段使�
 - 店铺接口不提供替代值
 - 该字段用于后续调用 `GET /print-methods`
 
+### 三、图层控制属性（#11-19）店铺默认值与图层自有定义合并
+
+店铺设置对所有图层有默认的交互属性（#11-19），但图层可以有自己的定义。如果图层有自己的定义，就用图层自己的；否则用店铺设置的默认值。
+
+#### 店铺设置字段 → 图层控制属性映射
+
+| 店铺设置字段 | 对应图层控制属性 | 说明 |
+|------------|----------------|------|
+| `moveable` | `movable` | 是否可移动 |
+| `scalable` | `scalable` | 是否可缩放 |
+| `rotatable` | `rotatable` | 是否可旋转 |
+| `removable` | `deletable` | 是否可删除 |
+| `allow_unproportional_scaling` | `allowUnproportionalScaling` | 是否允许非等比缩放 |
+| `min_scale_limit` | `minScaleLimit` | 最小缩放限制 |
+| `scale_by` | `scaleBy` | 缩放方式：`factor` 或 `dimension` |
+
+#### 合并规则
+
+图层控制属性合并优先级：
+
+1. **图层自有定义**（`layer.layer_data.controls`）> **店铺设置默认值** > **插件内置默认值**
+
+#### 实现落点
+
+核心实现在 `design/stores/index.js`：
+
+- `PWCA_DEFAULT_LAYER_CONTROLS`：插件内置默认值常量
+- `pwcaNormalizeLayerControlBoolean`：布尔值归一化函数（支持 `true/false/1/0/enable/disable` 等）
+- `pwcaBuildMergedLayerControls`：图层控制属性合并函数
+
+调用链：
+
+1. `multi-view-init.js` 的 `createFabricObjectFromLayer` 函数
+2. 获取店铺设置：`window.useCanvasStore().getStoreCustomizationSettings()`
+3. 调用 `window.pwcaBuildMergedLayerControls(rawControls, storeSettings)`
+4. 应用合并后的控制属性到 Fabric 对象
+
+#### 应用到 Fabric 对象的属性
+
+| 合并后属性 | Fabric 对象属性 | 说明 |
+|-----------|----------------|------|
+| `movable` | `selectable`, `evented`, `hasBorders` | 可移动则可选择和显示边框 |
+| `scalable` | `lockScalingX`, `lockScalingY`, `hasControls` | 可缩放则解锁缩放并显示控制点 |
+| `rotatable` | `lockRotation` | 可旋转则解锁旋转 |
+| `allowUnproportionalScaling` | `lockUniScaling` | 非等比缩放时解锁等比锁定 |
+| - | `layerControls` | 保存完整控制属性供后续参考 |
+
+#### 示例
+
+```javascript
+// 店铺设置：moveable=true, scalable=false
+// 图层定义：movable=false
+// 合并结果：movable=false（图层定义优先）
+
+// 店铺设置：moveable=true
+// 图层定义：无（controls 为空）
+// 合并结果：movable=true（使用店铺默认值）
+```
+
 ## `fields_visibility` 使用规则
 
 `fields_visibility` 下的数组采用"包含即显示，不包含即隐藏"的规则。
@@ -288,6 +347,9 @@ description: "规范店铺级 /store/customization-settings 对接、字段使�
 - [x] `tab-pianquan`/`tab-wenzi`/`tab-sheji` 显隐受 `active_modules` 控制
 - [x] 切换到已禁用 tab 时自动回退，不出现空功能面板
 - [x] 对应模块禁用时初始化入口被守卫跳过
+- [x] 图层控制属性（#11-19）实现店铺默认值与图层自有定义的合并逻辑
+- [x] 图层控制属性合并优先级：图层定义 > 店铺设置 > 插件默认值
+- [x] `pwcaBuildMergedLayerControls` 正确处理布尔值归一化
 
 ## 常见错误
 
@@ -296,3 +358,5 @@ description: "规范店铺级 /store/customization-settings 对接、字段使�
 - 把店铺默认配置写死进单个组件，而不是统一合并
 - 忽略 `custom_views` 的更高优先级
 - 模块名大小写不一致导致匹配失败（未归一化）
+- 图层控制属性直接使用图层定义而忽略店铺默认值（图层应有更高优先级）
+- 布尔值未正确归一化（只检查 `=== true` 而忽略 `1`、`'true'`、`'enable'` 等变体）

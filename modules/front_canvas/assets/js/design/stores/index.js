@@ -241,6 +241,111 @@ const pwcaNormalizeBooleanLike = (value) => {
     return undefined;
 };
 
+const PWCA_DEFAULT_LAYER_CONTROLS = {
+    movable: true,
+    scalable: true,
+    rotatable: true,
+    deletable: true,
+    exportable: true,
+    visibility: true,
+    allowUnproportionalScaling: false,
+    minScaleLimit: 0.2,
+    scaleBy: 'factor'
+};
+
+const pwcaNormalizeLayerControlBoolean = (value, defaultValue) => {
+    if (value === true || value === false) {
+        return value;
+    }
+
+    if (value === 1 || value === '1') {
+        return true;
+    }
+
+    if (value === 0 || value === '0') {
+        return false;
+    }
+
+    if (typeof value !== 'string') {
+        return defaultValue;
+    }
+
+    const normalized = value.trim().toLowerCase();
+
+    if (['true', 'enable', 'enabled', 'yes', 'on'].includes(normalized)) {
+        return true;
+    }
+
+    if (['false', 'disable', 'disabled', 'no', 'off'].includes(normalized)) {
+        return false;
+    }
+
+    return defaultValue;
+};
+
+const pwcaBuildMergedLayerControls = (layerControls, storeSettings) => {
+    const storeSettingsData = pwcaExtractStoreCustomizationSettings(storeSettings);
+    const layerControlsData = layerControls && typeof layerControls === 'object' ? layerControls : {};
+
+    const getStoreValue = (key, defaultVal) => {
+        const storeVal = storeSettingsData[key];
+        return storeVal !== undefined && storeVal !== null ? storeVal : defaultVal;
+    };
+
+    const getLayerValue = (key, defaultVal) => {
+        const layerVal = layerControlsData[key];
+        return layerVal !== undefined && layerVal !== null ? layerVal : defaultVal;
+    };
+
+    const storeMovable = getStoreValue('moveable', PWCA_DEFAULT_LAYER_CONTROLS.movable);
+    const layerMovable = getLayerValue('movable', undefined);
+    const movable = layerMovable !== undefined ? layerMovable : storeMovable;
+
+    const storeScalable = getStoreValue('scalable', PWCA_DEFAULT_LAYER_CONTROLS.scalable);
+    const layerScalable = getLayerValue('scalable', undefined);
+    const scalable = layerScalable !== undefined ? layerScalable : storeScalable;
+
+    const storeRotatable = getStoreValue('rotatable', PWCA_DEFAULT_LAYER_CONTROLS.rotatable);
+    const layerRotatable = getLayerValue('rotatable', undefined);
+    const rotatable = layerRotatable !== undefined ? layerRotatable : storeRotatable;
+
+    const storeDeletable = getStoreValue('removable', PWCA_DEFAULT_LAYER_CONTROLS.deletable);
+    const layerDeletable = getLayerValue('deletable', undefined);
+    const deletable = layerDeletable !== undefined ? layerDeletable : storeDeletable;
+
+    const storeAllowUnproportional = getStoreValue('allow_unproportional_scaling', PWCA_DEFAULT_LAYER_CONTROLS.allowUnproportionalScaling);
+    const layerAllowUnproportional = getLayerValue('allowUnproportionalScaling', undefined);
+    const allowUnproportionalScaling = layerAllowUnproportional !== undefined ? layerAllowUnproportional : storeAllowUnproportional;
+
+    const storeMinScaleLimit = getStoreValue('min_scale_limit', PWCA_DEFAULT_LAYER_CONTROLS.minScaleLimit);
+    const layerMinScaleLimit = getLayerValue('minScaleLimit', undefined);
+    const minScaleLimit = layerMinScaleLimit !== undefined ? layerMinScaleLimit : storeMinScaleLimit;
+
+    const storeScaleBy = getStoreValue('scale_by', PWCA_DEFAULT_LAYER_CONTROLS.scaleBy);
+    const layerScaleBy = getLayerValue('scaleBy', undefined);
+    const scaleBy = layerScaleBy !== undefined ? layerScaleBy : storeScaleBy;
+
+    const storeExportable = PWCA_DEFAULT_LAYER_CONTROLS.exportable;
+    const layerExportable = getLayerValue('exportable', undefined);
+    const exportable = layerExportable !== undefined ? layerExportable : storeExportable;
+
+    const storeVisibility = PWCA_DEFAULT_LAYER_CONTROLS.visibility;
+    const layerVisibility = getLayerValue('visibility', undefined);
+    const visibility = layerVisibility !== undefined ? layerVisibility : storeVisibility;
+
+    return {
+        movable: pwcaNormalizeLayerControlBoolean(movable, PWCA_DEFAULT_LAYER_CONTROLS.movable),
+        scalable: pwcaNormalizeLayerControlBoolean(scalable, PWCA_DEFAULT_LAYER_CONTROLS.scalable),
+        rotatable: pwcaNormalizeLayerControlBoolean(rotatable, PWCA_DEFAULT_LAYER_CONTROLS.rotatable),
+        deletable: pwcaNormalizeLayerControlBoolean(deletable, PWCA_DEFAULT_LAYER_CONTROLS.deletable),
+        exportable: pwcaNormalizeLayerControlBoolean(exportable, PWCA_DEFAULT_LAYER_CONTROLS.exportable),
+        visibility: pwcaNormalizeLayerControlBoolean(visibility, PWCA_DEFAULT_LAYER_CONTROLS.visibility),
+        allowUnproportionalScaling: pwcaNormalizeLayerControlBoolean(allowUnproportionalScaling, PWCA_DEFAULT_LAYER_CONTROLS.allowUnproportionalScaling),
+        minScaleLimit: typeof minScaleLimit === 'number' && Number.isFinite(minScaleLimit) ? minScaleLimit : PWCA_DEFAULT_LAYER_CONTROLS.minScaleLimit,
+        scaleBy: ['factor', 'dimension'].includes(scaleBy) ? scaleBy : PWCA_DEFAULT_LAYER_CONTROLS.scaleBy
+    };
+};
+
 const pwcaBuildMergedViewCustomizationSettings = (view, storeSettings) => {
     const normalizedView = view && typeof view === 'object' ? view : {};
     const storeSettingsData = pwcaExtractStoreCustomizationSettings(storeSettings);
@@ -1075,7 +1180,11 @@ const useDesignUsageStore = defineStore('designUsage', {
 export { useDesignUsageStore };
 window.useDesignUsageStore = useDesignUsageStore;
 
-// 9. 通知其他脚本stores已准备就绪
+// 9. 暴露工具函数到全局，让其他脚本也能访问
+window.pwcaBuildMergedLayerControls = pwcaBuildMergedLayerControls;
+window.pwcaExtractStoreCustomizationSettings = pwcaExtractStoreCustomizationSettings;
+
+// 10. 通知其他脚本stores已准备就绪
 let eventTriggered = false;
 
 const triggerReadyEvent = () => {

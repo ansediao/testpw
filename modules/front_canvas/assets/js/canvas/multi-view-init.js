@@ -112,8 +112,34 @@ function createFabricObjectFromLayer(canvas, layer) {
         }
 
         const data = layer.layer_data;
-        const controls = data.controls || {};
+        const rawControls = data.controls || {};
         const position = data.position || {};
+
+        let storeSettings = null;
+        try {
+            if (typeof window.useCanvasStore === 'function') {
+                const store = window.useCanvasStore();
+                if (store && typeof store.getStoreCustomizationSettings === 'function') {
+                    storeSettings = store.getStoreCustomizationSettings();
+                }
+            }
+        } catch (e) {
+            console.warn('[PW Canvas] 无法获取店铺设置，将使用图层默认值');
+        }
+
+        const mergedControls = typeof window.pwcaBuildMergedLayerControls === 'function'
+            ? window.pwcaBuildMergedLayerControls(rawControls, storeSettings)
+            : {
+                movable: rawControls.movable !== undefined ? rawControls.movable : true,
+                scalable: rawControls.scalable !== undefined ? rawControls.scalable : true,
+                rotatable: rawControls.rotatable !== undefined ? rawControls.rotatable : true,
+                deletable: rawControls.deletable !== undefined ? rawControls.deletable : true,
+                exportable: rawControls.exportable !== undefined ? rawControls.exportable : true,
+                visibility: rawControls.visibility !== undefined ? rawControls.visibility : true,
+                allowUnproportionalScaling: false,
+                minScaleLimit: 0.2,
+                scaleBy: 'factor'
+            };
 
         switch (layer.type) {
             case 'image': {
@@ -159,14 +185,16 @@ function createFabricObjectFromLayer(canvas, layer) {
                             originX: origins.originX,
                             originY: origins.originY,
                             opacity: (data.content.opacity ?? 100) / 100,
-                            selectable: !!controls.movable,
-                            evented: !!controls.movable,
-                            lockRotation: !controls.rotatable,
-                            lockScalingX: !controls.scalable,
-                            lockScalingY: !controls.scalable,
-                            hasControls: !!(controls.movable && controls.scalable),
-                            hasBorders: !!controls.movable,
-                            name: layer.name
+                            selectable: !!mergedControls.movable,
+                            evented: !!mergedControls.movable,
+                            lockRotation: !mergedControls.rotatable,
+                            lockScalingX: !mergedControls.scalable,
+                            lockScalingY: !mergedControls.scalable,
+                            lockUniScaling: !mergedControls.allowUnproportionalScaling,
+                            hasControls: !!(mergedControls.movable && mergedControls.scalable),
+                            hasBorders: !!mergedControls.movable,
+                            name: layer.name,
+                            layerControls: mergedControls
                         });
 
                         img.set({
@@ -214,14 +242,16 @@ function createFabricObjectFromLayer(canvas, layer) {
                     fontFamily: data.content.fontFamily || 'Arial',
                     fill: data.content.fontColor || '#000000',
                     opacity: (data.content.opacity ?? 100) / 100,
-                    selectable: !!controls.movable,
-                    evented: !!controls.movable,
-                    lockRotation: !controls.rotatable,
-                    lockScalingX: !controls.scalable,
-                    lockScalingY: !controls.scalable,
-                    hasControls: !!(controls.movable && controls.scalable),
-                    hasBorders: !!controls.movable,
-                    name: layer.name
+                    selectable: !!mergedControls.movable,
+                    evented: !!mergedControls.movable,
+                    lockRotation: !mergedControls.rotatable,
+                    lockScalingX: !mergedControls.scalable,
+                    lockScalingY: !mergedControls.scalable,
+                    lockUniScaling: !mergedControls.allowUnproportionalScaling,
+                    hasControls: !!(mergedControls.movable && mergedControls.scalable),
+                    hasBorders: !!mergedControls.movable,
+                    name: layer.name,
+                    layerControls: mergedControls
                 });
 
                 resolve(textObj);
