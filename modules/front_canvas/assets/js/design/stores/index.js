@@ -87,6 +87,30 @@ const pwcaNormalizePromowaresImageUrl = (value) => {
     }
 };
 
+const PWCA_DEFAULT_ACTIVE_MODULES = ['TEXT', 'UPLOAD', 'DESIGN'];
+
+const pwcaNormalizeModuleName = (value) => {
+    if (typeof value !== 'string') {
+        return '';
+    }
+
+    return value.trim().toUpperCase();
+};
+
+const pwcaNormalizeModuleList = (modules) => {
+    if (!Array.isArray(modules)) {
+        return [];
+    }
+
+    return Array.from(
+        new Set(
+            modules
+                .map((moduleName) => pwcaNormalizeModuleName(moduleName))
+                .filter(Boolean)
+        )
+    );
+};
+
 const pwcaNormalizeLayerImageUrls = (layers) => {
     if (!Array.isArray(layers)) {
         return layers;
@@ -216,18 +240,20 @@ const pwcaBuildMergedViewCustomizationSettings = (view, storeSettings) => {
         ...normalizedView
     };
 
-    const viewSelectedModules = Array.isArray(normalizedView.selected_modules)
-        ? normalizedView.selected_modules.filter(Boolean)
-        : [];
-    const storeActiveModules = Array.isArray(storeSettingsData.active_modules)
-        ? storeSettingsData.active_modules.filter(Boolean)
-        : [];
+    const viewSelectedModules = pwcaNormalizeModuleList(normalizedView.selected_modules);
+    const storeActiveModules = pwcaNormalizeModuleList(storeSettingsData.active_modules);
 
     if (viewSelectedModules.length > 0) {
         mergedSettings.selected_modules = [...viewSelectedModules];
     } else if (storeActiveModules.length > 0) {
         mergedSettings.selected_modules = [...storeActiveModules];
+    } else {
+        mergedSettings.selected_modules = [...PWCA_DEFAULT_ACTIVE_MODULES];
     }
+
+    mergedSettings.active_modules = storeActiveModules.length > 0
+        ? [...storeActiveModules]
+        : [...PWCA_DEFAULT_ACTIVE_MODULES];
 
     const viewSinglePrintMethodOnly = pwcaNormalizeBooleanLike(
         normalizedView.single_printing_method_only
@@ -264,6 +290,21 @@ const pwcaIsFieldVisible = (settings, groupName, fieldKey) => {
 
     const groupFields = fieldsVisibility[groupName];
     return Array.isArray(groupFields) && groupFields.includes(fieldKey);
+};
+
+const pwcaResolveEnabledModules = (settings) => {
+    const normalizedSettings = settings && typeof settings === 'object' ? settings : {};
+    const selectedModules = pwcaNormalizeModuleList(normalizedSettings.selected_modules);
+    if (selectedModules.length > 0) {
+        return selectedModules;
+    }
+
+    const activeModules = pwcaNormalizeModuleList(normalizedSettings.active_modules);
+    if (activeModules.length > 0) {
+        return activeModules;
+    }
+
+    return [...PWCA_DEFAULT_ACTIVE_MODULES];
 };
 
 // 2. 定义一个全局画布状态仓库（store）
@@ -476,6 +517,27 @@ export const useCanvasStore = defineStore('canvas', {
                 view,
                 state.storeCustomizationSettings
             );
+        },
+        // 当前视图最终启用模块：selected_modules > active_modules > 插件默认值
+        currentViewEnabledModules(state) {
+            const view = state.views.find((item) => item && item.id === state.activeViewId);
+            const mergedSettings = pwcaBuildMergedViewCustomizationSettings(
+                view,
+                state.storeCustomizationSettings
+            );
+
+            return pwcaResolveEnabledModules(mergedSettings);
+        },
+        // 判断当前视图某模块是否启用
+        isCurrentViewModuleEnabled() {
+            return (moduleName) => {
+                const normalizedModuleName = pwcaNormalizeModuleName(moduleName);
+                if (!normalizedModuleName) {
+                    return false;
+                }
+
+                return this.currentViewEnabledModules.includes(normalizedModuleName);
+            };
         },
         // 判断合并后的 fields_visibility 中某字段是否显示
         isCurrentViewFieldVisible(state) {

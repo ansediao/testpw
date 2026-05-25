@@ -32,22 +32,196 @@ function isUserInitiatedAction(obj) {
 window.CanvasInitializationState = CanvasInitializationState;
 window.isUserInitiatedAction = isUserInitiatedAction;
 
+const pwcaOptionalTabModuleMap = {
+    'tab-pianquan': 'UPLOAD',
+    'tab-wenzi': 'TEXT',
+    'tab-sheji': 'DESIGN'
+};
+
+const pwcaDefaultOptionalModules = ['UPLOAD', 'TEXT', 'DESIGN'];
+
+function pwcaGetCanvasStore() {
+    if (typeof window.useCanvasStore !== 'function') {
+        return null;
+    }
+
+    try {
+        return window.useCanvasStore();
+    } catch (error) {
+        return null;
+    }
+}
+
+function pwcaNormalizeOperationModules(modules) {
+    if (!Array.isArray(modules)) {
+        return [];
+    }
+
+    return modules
+        .map((moduleName) => String(moduleName || '').trim().toUpperCase())
+        .filter(Boolean);
+}
+
+function pwcaGetEnabledOperationModules() {
+    const store = pwcaGetCanvasStore();
+    if (!store) {
+        return [];
+    }
+
+    const hasResolvedProductContext = !!store.productData ||
+        !!store.productDataError ||
+        !!store.activeViewId ||
+        (Array.isArray(store.views) && store.views.length > 0) ||
+        store.hasStoreCustomizationSettings === true ||
+        !!store.storeCustomizationSettingsError;
+
+    if (!hasResolvedProductContext) {
+        return [];
+    }
+
+    if (Array.isArray(store.currentViewEnabledModules) && store.currentViewEnabledModules.length > 0) {
+        return pwcaNormalizeOperationModules(store.currentViewEnabledModules);
+    }
+
+    const mergedSettings = store.currentViewCustomizationSettings;
+    const selectedModules = pwcaNormalizeOperationModules(
+        mergedSettings && mergedSettings.selected_modules
+    );
+    if (selectedModules.length > 0) {
+        return selectedModules;
+    }
+
+    const activeModules = pwcaNormalizeOperationModules(
+        mergedSettings && mergedSettings.active_modules
+    );
+    if (activeModules.length > 0) {
+        return activeModules;
+    }
+
+    return [...pwcaDefaultOptionalModules];
+}
+
+function pwcaIsOperationPanelTabAvailable(tabId) {
+    if (!Object.prototype.hasOwnProperty.call(pwcaOptionalTabModuleMap, tabId)) {
+        return true;
+    }
+
+    return pwcaGetEnabledOperationModules().includes(pwcaOptionalTabModuleMap[tabId]);
+}
+
+function pwcaGetAvailableOperationPanelTabs() {
+    const validTabs = ['tab-pinming', 'tab-tuan', 'tab-pianquan', 'tab-wenzi', 'tab-sheji'];
+    return validTabs.filter((tabId) => pwcaIsOperationPanelTabAvailable(tabId));
+}
+
+function pwcaResolveOperationPanelFallbackTab(preferredTabId) {
+    const availableTabs = pwcaGetAvailableOperationPanelTabs();
+    if (availableTabs.length === 0) {
+        return null;
+    }
+
+    if (preferredTabId && availableTabs.includes(preferredTabId)) {
+        return preferredTabId;
+    }
+
+    const activeTab = document.querySelector('.tabs-nav .tab.active');
+    if (activeTab && availableTabs.includes(activeTab.id)) {
+        return activeTab.id;
+    }
+
+    return availableTabs[0];
+}
+
+function pwcaDispatchOperationPanelModulesUpdated() {
+    document.dispatchEvent(
+        new CustomEvent('pwcaOperationPanelModulesUpdated', {
+            detail: {
+                enabledModules: pwcaGetEnabledOperationModules(),
+                availableTabs: pwcaGetAvailableOperationPanelTabs()
+            }
+        })
+    );
+}
+
+function pwcaApplyOperationPanelModuleVisibility() {
+    Object.keys(pwcaOptionalTabModuleMap).forEach((tabId) => {
+        const shouldShow = pwcaIsOperationPanelTabAvailable(tabId);
+        const tabElement = document.getElementById(tabId);
+        const contentElement = document.getElementById(tabId.replace('tab-', 'content-'));
+
+        if (tabElement) {
+            tabElement.style.display = shouldShow ? '' : 'none';
+            tabElement.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+        }
+
+        if (contentElement) {
+            if (!shouldShow) {
+                contentElement.classList.remove('active');
+            }
+            contentElement.style.display = shouldShow ? '' : 'none';
+            contentElement.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+        }
+    });
+
+    const activeTab = document.querySelector('.tabs-nav .tab.active');
+    const activeTabId = activeTab ? activeTab.id : null;
+    if (!activeTabId || !pwcaIsOperationPanelTabAvailable(activeTabId)) {
+        const fallbackTabId = pwcaResolveOperationPanelFallbackTab();
+        if (fallbackTabId) {
+            switchOperationPanelTab(fallbackTabId, { force: true });
+        }
+    }
+
+    pwcaDispatchOperationPanelModulesUpdated();
+}
+
+let pwcaOperationPanelModuleSyncBound = false;
+
+function pwcaBindOperationPanelModuleSync() {
+    const store = pwcaGetCanvasStore();
+    if (!store) {
+        window.setTimeout(pwcaBindOperationPanelModuleSync, 150);
+        return;
+    }
+
+    if (pwcaOperationPanelModuleSyncBound) {
+        pwcaApplyOperationPanelModuleVisibility();
+        return;
+    }
+
+    pwcaApplyOperationPanelModuleVisibility();
+
+    if (typeof store.$subscribe === 'function') {
+        store.$subscribe((mutation) => {
+            if (mutation && mutation.storeId === 'canvas') {
+                pwcaApplyOperationPanelModuleVisibility();
+            }
+        });
+    }
+
+    pwcaOperationPanelModuleSyncBound = true;
+}
+
 function switchOperationPanelTab(tabId, opts = {}) {
     const validTabs = ['tab-pinming', 'tab-tuan', 'tab-pianquan', 'tab-wenzi', 'tab-sheji'];
     if (!validTabs.includes(tabId)) return false;
+    const resolvedTabId = opts.force === true
+        ? tabId
+        : pwcaResolveOperationPanelFallbackTab(tabId);
+    if (!resolvedTabId) return false;
     const tabs = document.querySelectorAll('.tabs-nav .tab');
     const contentPanes = document.querySelectorAll('.content-area .content-pane');
     if (tabs.length === 0 || contentPanes.length === 0) return false;
     tabs.forEach(tab => tab.classList.remove('active'));
     contentPanes.forEach(pane => pane.classList.remove('active'));
-    const targetTab = document.getElementById(tabId);
+    const targetTab = document.getElementById(resolvedTabId);
     if (!targetTab) return false;
     targetTab.classList.add('active');
-    const contentId = tabId.replace('tab-', 'content-');
+    const contentId = resolvedTabId.replace('tab-', 'content-');
     const targetContent = document.getElementById(contentId);
     if (!targetContent) return false;
     targetContent.classList.add('active');
-    if (tabId === 'tab-pianquan') {
+    if (resolvedTabId === 'tab-pianquan') {
         try {
             const preserveSelection = !!opts.preserveSelection;
             if (!preserveSelection) {
@@ -65,7 +239,7 @@ function switchOperationPanelTab(tabId, opts = {}) {
             }
         } catch (err) {}
     }
-    if (tabId === 'tab-wenzi') {
+    if (resolvedTabId === 'tab-wenzi') {
         const preserveSelection = !!opts.preserveSelection;
         if (!preserveSelection) {
             try {
@@ -113,6 +287,9 @@ function listAvailableTabs() {
 window.switchOperationPanelTab = switchOperationPanelTab;
 window.getCurrentActiveTab = getCurrentActiveTab;
 window.listAvailableTabs = listAvailableTabs;
+window.pwcaGetEnabledOperationModules = pwcaGetEnabledOperationModules;
+window.pwcaIsOperationPanelTabAvailable = pwcaIsOperationPanelTabAvailable;
+window.pwcaApplyOperationPanelModuleVisibility = pwcaApplyOperationPanelModuleVisibility;
 window.showTabControlHelp = function() {
     const help = {
         'switchOperationPanelTab(tabId)': 'Switch to the specified tab',
@@ -183,6 +360,15 @@ const defaultColor = '#3498db';
 let currentColor = defaultColor;
 window.defaultColor = defaultColor;
 window.currentColor = currentColor;
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', pwcaApplyOperationPanelModuleVisibility);
+} else {
+    pwcaApplyOperationPanelModuleVisibility();
+}
+
+document.addEventListener('canvasPiniaReady', pwcaBindOperationPanelModuleSync);
+pwcaBindOperationPanelModuleSync();
 
 const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
 const isMultiViewMode = canvasStore && canvasStore.views && canvasStore.views.length > 0;

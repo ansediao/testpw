@@ -1,6 +1,14 @@
 (function () {
     'use strict';
 
+    function pwcaIsTextModuleEnabled() {
+        if (typeof window.pwcaIsOperationPanelTabAvailable !== 'function') {
+            return true;
+        }
+
+        return window.pwcaIsOperationPanelTabAvailable('tab-wenzi');
+    }
+
     function pwcaGetActiveCanvasForText() {
         if (typeof window.getActiveCanvas === 'function') {
             return window.getActiveCanvas();
@@ -74,14 +82,24 @@
     }
 
     function pwcaInitTextTab() {
+        if (!pwcaIsTextModuleEnabled()) {
+            return;
+        }
+
         const addTextBtn = document.getElementById('addTextBtn');
         const textarea = document.getElementById('customText');
         if (!addTextBtn || !textarea) {
             return;
         }
 
+        if (addTextBtn.dataset.pwcaTextTabInited === '1') {
+            return;
+        }
+
+        addTextBtn.dataset.pwcaTextTabInited = '1';
         addTextBtn.addEventListener('click', pwcaHandleAddTextClick);
     }
 
     document.addEventListener('DOMContentLoaded', pwcaInitTextTab);
+    document.addEventListener('pwcaOperationPanelModulesUpdated', pwcaInitTextTab);
 })();

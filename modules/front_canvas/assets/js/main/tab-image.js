@@ -1,6 +1,14 @@
 (function () {
     'use strict';
 
+    function pwcaIsImageModuleEnabled() {
+        if (typeof window.pwcaIsOperationPanelTabAvailable !== 'function') {
+            return true;
+        }
+
+        return window.pwcaIsOperationPanelTabAvailable('tab-pianquan');
+    }
+
     function pwcaEnsureUploadedImagesStore() {
         if (!Array.isArray(window.uploadedImages)) {
             window.uploadedImages = [];
@@ -382,6 +390,10 @@
     }
 
     function pwcaInitImageTab() {
+        if (!pwcaIsImageModuleEnabled()) {
+            return;
+        }
+
         const dropZone = document.getElementById('dropZone');
         const imageInput = document.getElementById('imageInput');
         if (!dropZone || !imageInput) {
@@ -407,4 +419,6 @@
     } else {
         pwcaInitImageTab();
     }
+
+    document.addEventListener('pwcaOperationPanelModulesUpdated', pwcaInitImageTab);
 })();

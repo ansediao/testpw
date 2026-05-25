@@ -1,7 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
     let designCategoriesList = null;
+    let designSearchInitialized = false;
+
+    function pwcaIsDesignModuleEnabled() {
+        if (typeof window.pwcaIsOperationPanelTabAvailable !== 'function') {
+            return true;
+        }
+
+        return window.pwcaIsOperationPanelTabAvailable('tab-sheji');
+    }
 
     function initializeListJS() {
+        if (!pwcaIsDesignModuleEnabled() || designSearchInitialized) {
+            return;
+        }
+
         if (typeof List !== 'undefined') {
             const options = {
                 valueNames: ['name'],
@@ -9,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             designCategoriesList = new List('design-categories-list', options);
+            designSearchInitialized = true;
             setupSearchFunctionality();
         } else {
             setTimeout(initializeListJS, 100);
@@ -16,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     initializeListJS();
+    document.addEventListener('pwcaOperationPanelModulesUpdated', initializeListJS);
 
     function setupSearchFunctionality() {
         const filterToggleBtn = document.getElementById('filter-toggle-btn');
