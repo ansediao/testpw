@@ -166,6 +166,106 @@ const pwcaNormalizeTemplateImageUrls = (productData) => {
     return productData;
 };
 
+const pwcaExtractStoreCustomizationSettings = (settings) => {
+    if (!settings || typeof settings !== 'object') {
+        return {};
+    }
+
+    if (settings.data && typeof settings.data === 'object' && !Array.isArray(settings.data)) {
+        return settings.data;
+    }
+
+    return settings;
+};
+
+const pwcaNormalizeBooleanLike = (value) => {
+    if (value === true || value === false) {
+        return value;
+    }
+
+    if (value === 1 || value === '1') {
+        return true;
+    }
+
+    if (value === 0 || value === '0') {
+        return false;
+    }
+
+    if (typeof value !== 'string') {
+        return undefined;
+    }
+
+    const normalized = value.trim().toLowerCase();
+
+    if (['true', 'enable', 'enabled', 'yes', 'on'].includes(normalized)) {
+        return true;
+    }
+
+    if (['false', 'disable', 'disabled', 'no', 'off'].includes(normalized)) {
+        return false;
+    }
+
+    return undefined;
+};
+
+const pwcaBuildMergedViewCustomizationSettings = (view, storeSettings) => {
+    const normalizedView = view && typeof view === 'object' ? view : {};
+    const storeSettingsData = pwcaExtractStoreCustomizationSettings(storeSettings);
+    const mergedSettings = {
+        ...storeSettingsData,
+        ...normalizedView
+    };
+
+    const viewSelectedModules = Array.isArray(normalizedView.selected_modules)
+        ? normalizedView.selected_modules.filter(Boolean)
+        : [];
+    const storeActiveModules = Array.isArray(storeSettingsData.active_modules)
+        ? storeSettingsData.active_modules.filter(Boolean)
+        : [];
+
+    if (viewSelectedModules.length > 0) {
+        mergedSettings.selected_modules = [...viewSelectedModules];
+    } else if (storeActiveModules.length > 0) {
+        mergedSettings.selected_modules = [...storeActiveModules];
+    }
+
+    const viewSinglePrintMethodOnly = pwcaNormalizeBooleanLike(
+        normalizedView.single_printing_method_only
+    );
+    const storeSinglePrintMethodOnly = pwcaNormalizeBooleanLike(
+        storeSettingsData.single_printing_method_only
+    );
+
+    if (viewSinglePrintMethodOnly !== undefined) {
+        mergedSettings.single_printing_method_only = viewSinglePrintMethodOnly;
+    } else if (storeSinglePrintMethodOnly !== undefined) {
+        mergedSettings.single_printing_method_only = storeSinglePrintMethodOnly;
+    }
+
+    if (
+        !Array.isArray(normalizedView.printing_method_list_id) ||
+        normalizedView.printing_method_list_id.length === 0
+    ) {
+        delete mergedSettings.printing_method_list_id;
+    }
+
+    mergedSettings.store_customization_settings = storeSettingsData;
+
+    return mergedSettings;
+};
+
+const pwcaIsFieldVisible = (settings, groupName, fieldKey) => {
+    const normalizedSettings = settings && typeof settings === 'object' ? settings : {};
+    const fieldsVisibility = normalizedSettings.fields_visibility;
+
+    if (!fieldsVisibility || typeof fieldsVisibility !== 'object') {
+        return false;
+    }
+
+    const groupFields = fieldsVisibility[groupName];
+    return Array.isArray(groupFields) && groupFields.includes(fieldKey);
+};
+
 // 2. 定义一个全局画布状态仓库（store）
 // defineStore 用于创建一个“仓库”，可以在任意组件中访问和修改数据
 // 'canvas' 是仓库的名字，后续通过 useCanvasStore() 获取仓库实例
@@ -196,6 +296,9 @@ export const useCanvasStore = defineStore('canvas', {
         productData: null,      // 存储从API获取的产品数据
         isLoadingProductData: false, // 产品数据加载状态
         productDataError: null, // 产品数据加载错误信息
+        storeCustomizationSettings: null, // 店铺级 customization settings 原始响应
+        hasStoreCustomizationSettings: false, // 是否成功获取店铺级 settings
+        storeCustomizationSettingsError: null, // 店铺级 settings 错误信息
         // 视图相关状态
         views: [],              // 存储所有视图信息
         activeView: null,       // 当前激活的视图对象
@@ -350,6 +453,42 @@ export const useCanvasStore = defineStore('canvas', {
         getLanguage: (state) => {
             return state.userPreferences.language;
         },
+        // 店铺级 customization settings 原始响应
+        getStoreCustomizationSettings: (state) => {
+            return state.storeCustomizationSettings;
+        },
+        // 店铺级 customization settings 数据主体
+        getStoreCustomizationSettingsData: (state) => {
+            return pwcaExtractStoreCustomizationSettings(state.storeCustomizationSettings);
+        },
+        // 获取指定视图与店铺默认值合并后的最终配置
+        getMergedViewCustomizationSettings: (state) => (viewId) => {
+            const view = state.views.find((item) => item && item.id === viewId);
+            return pwcaBuildMergedViewCustomizationSettings(
+                view,
+                state.storeCustomizationSettings
+            );
+        },
+        // 获取当前激活视图与店铺默认值合并后的最终配置
+        currentViewCustomizationSettings(state) {
+            const view = state.views.find((item) => item && item.id === state.activeViewId);
+            return pwcaBuildMergedViewCustomizationSettings(
+                view,
+                state.storeCustomizationSettings
+            );
+        },
+        // 判断合并后的 fields_visibility 中某字段是否显示
+        isCurrentViewFieldVisible(state) {
+            return (groupName, fieldKey) => {
+                const view = state.views.find((item) => item && item.id === state.activeViewId);
+                const mergedSettings = pwcaBuildMergedViewCustomizationSettings(
+                    view,
+                    state.storeCustomizationSettings
+                );
+
+                return pwcaIsFieldVisible(mergedSettings, groupName, fieldKey);
+            };
+        },
     },
     // 5. actions 定义所有修改 state 的方法（类似于 class 的成员方法）
     actions: {
@@ -433,6 +572,15 @@ export const useCanvasStore = defineStore('canvas', {
         setProductData(data) { this.productData = data; },
         setLoadingProductData(loading) { this.isLoadingProductData = loading; },
         setProductDataError(error) { this.productDataError = error; },
+        setStoreCustomizationSettings(settings) {
+            this.storeCustomizationSettings = settings;
+        },
+        setHasStoreCustomizationSettings(hasSettings) {
+            this.hasStoreCustomizationSettings = !!hasSettings;
+        },
+        setStoreCustomizationSettingsError(error) {
+            this.storeCustomizationSettingsError = error;
+        },
         // 视图相关方法
         setViews(views) { this.views = views; },
         setActiveView(view) {
@@ -538,6 +686,7 @@ export const useCanvasStore = defineStore('canvas', {
         async fetchProductData(pwId) {
             this.setLoadingProductData(true);
             this.setProductDataError(null);
+            this.setStoreCustomizationSettingsError(null);
             try {
                 const response = await fetch(`/wp-json/pw/v1/product-data/${pwId}`);
 
@@ -559,6 +708,14 @@ export const useCanvasStore = defineStore('canvas', {
                 }
 
                 this.setProductData(data);
+                this.setStoreCustomizationSettings(data.store_customization_settings || null);
+                this.setHasStoreCustomizationSettings(
+                    data.has_store_customization_settings === true ||
+                    !!data.store_customization_settings
+                );
+                this.setStoreCustomizationSettingsError(
+                    data.store_customization_settings_error || null
+                );
                 // 从产品数据中提取视图信息
                 // this.extractViewsFromProductData(data);
                 this.setViewsFromProductData(data);
@@ -633,19 +790,27 @@ export const useCanvasStore = defineStore('canvas', {
             
 
             try {
-                this.setViews(productData.templates.views);
+                const mergedViews = productData.templates.views.map((view) =>
+                    pwcaBuildMergedViewCustomizationSettings(
+                        view,
+                        this.storeCustomizationSettings
+                    )
+                );
+
+                productData.templates.views = mergedViews;
+                this.setViews(mergedViews);
 
                 // 设置 productViewFlow
-                if (productData.templates.views.length > 0 && productData.templates.views[0].view_flow) {
-                    this.setProductViewFlow(productData.templates.views[0].view_flow);
+                if (mergedViews.length > 0 && mergedViews[0].view_flow) {
+                    this.setProductViewFlow(mergedViews[0].view_flow);
                 }
 
                 // 为每个视图加载印刷方式数据
                 this.loadPrintMethodsForAllViews();
 
                 // 默认激活第一个视图
-                if (productData.templates.views.length > 0) {
-                    const firstView = productData.templates.views[0];
+                if (mergedViews.length > 0) {
+                    const firstView = mergedViews[0];
 
                     if (firstView && firstView.id) {
                         this.setActiveViewId(firstView.id);
