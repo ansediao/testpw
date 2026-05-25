@@ -170,17 +170,190 @@
         imageInput.setAttribute('accept', pwcaGetCurrentUploadSettings().accept);
     }
 
+    function pwcaGetCurrentViewMeta() {
+        const store = pwcaGetCanvasStore();
+        if (!store) {
+            return null;
+        }
+
+        if (store.activeView && typeof store.activeView === 'object') {
+            return store.activeView;
+        }
+
+        if (Array.isArray(store.views) && store.activeViewId != null) {
+            return store.views.find(function (view) {
+                return view && String(view.id) === String(store.activeViewId);
+            }) || null;
+        }
+
+        return null;
+    }
+
+    function pwcaIsCurrentFourGridView() {
+        const store = pwcaGetCanvasStore();
+        const currentView = pwcaGetCurrentViewMeta();
+        const currentFlow = currentView && (
+            currentView.view_flow ||
+            (currentView.data && currentView.data.view_flow)
+        );
+        const productFlow = store && typeof store.getProductViewFlow === 'function'
+            ? store.getProductViewFlow()
+            : null;
+
+        return currentFlow === '4-Grid Flow' || productFlow === '4-Grid Flow';
+    }
+
+    function pwcaGetFourGridReferenceLayers(view) {
+        if (!view || typeof view !== 'object') {
+            return [];
+        }
+
+        const layerConfigLayers = view.data && view.data.layer_config && Array.isArray(view.data.layer_config.layers)
+            ? view.data.layer_config.layers
+            : [];
+        const viewLayers = Array.isArray(view.layers) ? view.layers : [];
+
+        return layerConfigLayers.length ? layerConfigLayers : viewLayers;
+    }
+
+    function pwcaGetBoundsFromLayerDimensions(layer, canvasWidth, canvasHeight) {
+        if (!layer || !layer.layer_data || !layer.layer_data.dimensions) {
+            return null;
+        }
+
+        const dimensions = layer.layer_data.dimensions;
+        const layerSize = dimensions.layerSize || {};
+        const contentArea = dimensions.contentArea || {};
+        const width = Number(contentArea.width || layerSize.width);
+        const height = Number(contentArea.height || layerSize.height);
+
+        if (
+            !Number.isFinite(width) || width <= 0 ||
+            !Number.isFinite(height) || height <= 0 ||
+            !Number.isFinite(canvasWidth) || canvasWidth <= 0 ||
+            !Number.isFinite(canvasHeight) || canvasHeight <= 0
+        ) {
+            return null;
+        }
+
+        const left = (canvasWidth - width) / 2;
+        const top = (canvasHeight - height) / 2;
+
+        return {
+            left: left,
+            top: top,
+            width: width,
+            height: height,
+            centerX: left + (width / 2),
+            centerY: top + (height / 2)
+        };
+    }
+
+    function pwcaGetFourGridProductBounds() {
+        if (!pwcaIsCurrentFourGridView()) {
+            return null;
+        }
+
+        const store = pwcaGetCanvasStore();
+        const currentView = pwcaGetCurrentViewMeta();
+        const viewId = store && store.activeViewId;
+        if (!viewId) {
+            return null;
+        }
+
+        const baseCanvasElement = document.getElementById('baseCanvas-' + viewId);
+        const baseCanvas = baseCanvasElement && baseCanvasElement.__fabricCanvas;
+        if (!baseCanvas || typeof baseCanvas.getObjects !== 'function') {
+            return null;
+        }
+
+        const objects = baseCanvas.getObjects().filter(function (obj) {
+            return obj && obj.visible !== false;
+        });
+        if (!objects.length) {
+            const referenceLayers = pwcaGetFourGridReferenceLayers(currentView);
+            const flexiCurveLayer = referenceLayers.find(function (layer) {
+                return layer && layer.name === 'FlexiCurve Layer';
+            });
+            const baseLayer = referenceLayers.find(function (layer) {
+                return layer && layer.name === 'Base Layer';
+            });
+
+            return (
+                pwcaGetBoundsFromLayerDimensions(
+                    flexiCurveLayer,
+                    Number(baseCanvas.width),
+                    Number(baseCanvas.height)
+                ) ||
+                pwcaGetBoundsFromLayerDimensions(
+                    baseLayer,
+                    Number(baseCanvas.width),
+                    Number(baseCanvas.height)
+                ) ||
+                null
+            );
+        }
+
+        const preferredObject =
+            objects.find(function (obj) { return obj && obj.name === 'FlexiCurve Layer'; }) ||
+            objects.find(function (obj) { return obj && obj.name === 'Base Layer'; }) ||
+            null;
+
+        if (preferredObject && typeof preferredObject.getBoundingRect === 'function') {
+            const bounds = preferredObject.getBoundingRect(true, true);
+            if (
+                bounds &&
+                Number.isFinite(bounds.width) &&
+                Number.isFinite(bounds.height) &&
+                bounds.width > 0 &&
+                bounds.height > 0
+            ) {
+                return {
+                    left: bounds.left,
+                    top: bounds.top,
+                    width: bounds.width,
+                    height: bounds.height,
+                    centerX: bounds.left + (bounds.width / 2),
+                    centerY: bounds.top + (bounds.height / 2)
+                };
+            }
+        }
+
+        const referenceLayers = pwcaGetFourGridReferenceLayers(currentView);
+        const flexiCurveLayer = referenceLayers.find(function (layer) {
+            return layer && layer.name === 'FlexiCurve Layer';
+        });
+        const baseLayer = referenceLayers.find(function (layer) {
+            return layer && layer.name === 'Base Layer';
+        });
+
+        return (
+            pwcaGetBoundsFromLayerDimensions(
+                flexiCurveLayer,
+                Number(baseCanvas.width),
+                Number(baseCanvas.height)
+            ) ||
+            pwcaGetBoundsFromLayerDimensions(
+                baseLayer,
+                Number(baseCanvas.width),
+                Number(baseCanvas.height)
+            ) ||
+            null
+        );
+    }
+
     function pwcaResolveImageScaleRatio(imgElement, canvas, scaleMode) {
         const imageWidth = Number(imgElement && imgElement.width);
         const imageHeight = Number(imgElement && imgElement.height);
-        const canvasWidth = Number(canvas && canvas.width);
-        const canvasHeight = Number(canvas && canvas.height);
+        const productBounds = pwcaGetFourGridProductBounds();
+        const targetWidth = Number(productBounds ? productBounds.width : (canvas && canvas.width));
+        const targetHeight = Number(productBounds ? productBounds.height : (canvas && canvas.height));
 
         if (
             !Number.isFinite(imageWidth) || imageWidth <= 0 ||
             !Number.isFinite(imageHeight) || imageHeight <= 0 ||
-            !Number.isFinite(canvasWidth) || canvasWidth <= 0 ||
-            !Number.isFinite(canvasHeight) || canvasHeight <= 0
+            !Number.isFinite(targetWidth) || targetWidth <= 0 ||
+            !Number.isFinite(targetHeight) || targetHeight <= 0
         ) {
             return 1;
         }
@@ -189,14 +362,34 @@
             return 1;
         }
 
-        const widthRatio = canvasWidth / imageWidth;
-        const heightRatio = canvasHeight / imageHeight;
+        const widthRatio = targetWidth / imageWidth;
+        const heightRatio = targetHeight / imageHeight;
 
         if (scaleMode === 'cover') {
             return Math.max(widthRatio, heightRatio);
         }
 
         return Math.min(widthRatio, heightRatio);
+    }
+
+    function pwcaResolveImagePlacement(canvas) {
+        const productBounds = pwcaGetFourGridProductBounds();
+
+        if (
+            productBounds &&
+            Number.isFinite(productBounds.centerX) &&
+            Number.isFinite(productBounds.centerY)
+        ) {
+            return {
+                left: productBounds.centerX,
+                top: productBounds.centerY
+            };
+        }
+
+        return {
+            left: canvas.width / 2,
+            top: canvas.height / 2
+        };
     }
 
     function pwcaApplyLayerDepth(canvas, fabricImage, layerDepth) {
@@ -432,6 +625,7 @@
             activeCanvas,
             uploadSettings.scaleMode
         );
+        const initialPlacement = pwcaResolveImagePlacement(activeCanvas);
         const layerId = 'layer_' + Date.now();
 
         const snapshots = pwcaSnapshotExistingImages(activeCanvas);
@@ -441,8 +635,8 @@
 
         if (!imageExists) {
             const fabricImage = new fabric.Image(imgElement, {
-                left: activeCanvas.width / 2,
-                top: activeCanvas.height / 2,
+                left: initialPlacement.left,
+                top: initialPlacement.top,
                 scaleX: scaleRatio,
                 scaleY: scaleRatio,
                 originX: 'center',
