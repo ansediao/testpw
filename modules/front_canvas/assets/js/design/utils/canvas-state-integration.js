@@ -17,6 +17,62 @@
 
 import { canvasStateManager, ErrorHandler } from './canvas-state-manager.js';
 
+function pwcaGetUiStateAccess() {
+    return window.pwcaUiStateAccess || null;
+}
+
+function pwcaGetCanvasStore() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getCanvasStore === 'function') {
+        return uiStateAccess.getCanvasStore();
+    }
+
+    return window.useCanvasStore ? window.useCanvasStore() : null;
+}
+
+function pwcaGetPrintMethodStore() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getPrintMethodStore === 'function') {
+        return uiStateAccess.getPrintMethodStore();
+    }
+
+    return window.usePrintMethodStore ? window.usePrintMethodStore() : null;
+}
+
+function pwcaGetViews() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getViews === 'function') {
+        return uiStateAccess.getViews();
+    }
+
+    const canvasStore = pwcaGetCanvasStore();
+    return canvasStore && Array.isArray(canvasStore.views) ? canvasStore.views : [];
+}
+
+function pwcaGetActiveViewId() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getActiveViewId === 'function') {
+        return uiStateAccess.getActiveViewId();
+    }
+
+    const canvasStore = pwcaGetCanvasStore();
+    return canvasStore && canvasStore.activeViewId ? canvasStore.activeViewId : null;
+}
+
+function pwcaGetCanvasByViewId(viewId) {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getCanvasByViewId === 'function') {
+        return uiStateAccess.getCanvasByViewId(viewId);
+    }
+
+    return window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+}
+
+function pwcaIsCanvasStateRestoring() {
+    const canvasStore = pwcaGetCanvasStore();
+    return !!(canvasStore && canvasStore.isRestoringState);
+}
+
 /**
  * 画布状态集成类
  * 负责将 CanvasStateManager 与现有系统集成
@@ -115,8 +171,9 @@ class CanvasStateIntegration {
      */
     async _restoreAllViewStates() {
         try {
-            const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
-            if (!canvasStore || !canvasStore.views || canvasStore.views.length === 0) {
+            const canvasStore = pwcaGetCanvasStore();
+            const views = pwcaGetViews();
+            if (!canvasStore || views.length === 0) {
                 ErrorHandler.logInfo('没有视图需要恢复状态');
                 return;
             }
@@ -129,7 +186,7 @@ class CanvasStateIntegration {
             }
             
             // 恢复每个视图的状态
-            for (const view of canvasStore.views) {
+            for (const view of views) {
                 if (state.views[view.id]) {
                     ErrorHandler.logInfo('正在恢复视图状态:', view.id);
                     await canvasStateManager.restoreViewState(view.id);
@@ -156,14 +213,14 @@ class CanvasStateIntegration {
      */
     _setupCanvasEventListeners() {
         try {
-            const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
-            if (!canvasStore || !canvasStore.views) {
+            const views = pwcaGetViews();
+            if (views.length === 0) {
                 ErrorHandler.logWarning('无法获取视图列表，跳过画布事件监听设置');
                 return;
             }
             
             // 为每个视图的画布设置事件监听
-            canvasStore.views.forEach(view => {
+            views.forEach(view => {
                 this._setupCanvasListenersForView(view.id);
             });
             
@@ -179,7 +236,7 @@ class CanvasStateIntegration {
      * @private
      */
     _setupCanvasListenersForView(viewId) {
-        const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+        const canvas = pwcaGetCanvasByViewId(viewId);
         if (!canvas) {
             ErrorHandler.logWarning('无法获取画布实例，viewId:', viewId);
             return;
@@ -188,8 +245,7 @@ class CanvasStateIntegration {
         // 创建防抖保存处理函数
         const debouncedSave = (e) => {
             // 检查是否正在恢复状态
-            const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
-            if (canvasStore && canvasStore.isRestoringState) {
+            if (pwcaIsCanvasStateRestoring()) {
                 return;
             }
             
@@ -226,8 +282,8 @@ class CanvasStateIntegration {
             const { watch } = window.Vue;
             
             // 获取 stores
-            const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
-            const printMethodStore = window.usePrintMethodStore ? window.usePrintMethodStore() : null;
+            const canvasStore = pwcaGetCanvasStore();
+            const printMethodStore = pwcaGetPrintMethodStore();
             
             if (!canvasStore) {
                 ErrorHandler.logWarning('Canvas Store 不可用，跳过 watcher 设置');
@@ -298,8 +354,7 @@ class CanvasStateIntegration {
      */
     _handleLayersChange(viewLayers) {
         // 检查是否正在恢复状态
-        const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
-        if (canvasStore && canvasStore.isRestoringState) {
+        if (pwcaIsCanvasStateRestoring()) {
             return;
         }
         
@@ -309,7 +364,7 @@ class CanvasStateIntegration {
         }
         
         this.debounceTimers.layers = setTimeout(() => {
-            const activeViewId = canvasStore ? canvasStore.activeViewId : null;
+            const activeViewId = pwcaGetActiveViewId();
             if (activeViewId) {
                 canvasStateManager.debouncedSaveViewState(activeViewId);
             }
@@ -323,8 +378,7 @@ class CanvasStateIntegration {
      */
     _handleLayerGroupsChange(viewLayerGroups) {
         // 检查是否正在恢复状态
-        const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
-        if (canvasStore && canvasStore.isRestoringState) {
+        if (pwcaIsCanvasStateRestoring()) {
             return;
         }
         
@@ -334,7 +388,7 @@ class CanvasStateIntegration {
         }
         
         this.debounceTimers.layerGroups = setTimeout(() => {
-            const activeViewId = canvasStore ? canvasStore.activeViewId : null;
+            const activeViewId = pwcaGetActiveViewId();
             if (activeViewId) {
                 canvasStateManager.debouncedSaveViewState(activeViewId);
             }
@@ -347,8 +401,7 @@ class CanvasStateIntegration {
      */
     _handlePrintMethodMappingsChange() {
         // 检查是否正在恢复状态
-        const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
-        if (canvasStore && canvasStore.isRestoringState) {
+        if (pwcaIsCanvasStateRestoring()) {
             return;
         }
         
@@ -358,7 +411,7 @@ class CanvasStateIntegration {
         }
         
         this.debounceTimers.printMethods = setTimeout(() => {
-            const activeViewId = canvasStore ? canvasStore.activeViewId : null;
+            const activeViewId = pwcaGetActiveViewId();
             if (activeViewId) {
                 canvasStateManager.debouncedSaveViewState(activeViewId);
             }
@@ -372,8 +425,7 @@ class CanvasStateIntegration {
      */
     _handleColorSelectionsChange(selectedColorsByView) {
         // 检查是否正在恢复状态
-        const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
-        if (canvasStore && canvasStore.isRestoringState) {
+        if (pwcaIsCanvasStateRestoring()) {
             return;
         }
         
@@ -396,8 +448,7 @@ class CanvasStateIntegration {
     async handleViewSwitch(previousViewId, newViewId) {
         try {
             // 检查是否正在恢复状态
-            const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
-            if (canvasStore && canvasStore.isRestoringState) {
+            if (pwcaIsCanvasStateRestoring()) {
                 return;
             }
             
@@ -426,7 +477,7 @@ class CanvasStateIntegration {
         try {
             // 1. 移除画布事件监听器
             this.canvasListeners.forEach((listeners, viewId) => {
-                const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+                const canvas = pwcaGetCanvasByViewId(viewId);
                 if (canvas) {
                     listeners.forEach(({ event, handler }) => {
                         canvas.off(event, handler);

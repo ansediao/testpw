@@ -9,6 +9,30 @@ import { useCanvasStore, pinia } from '../stores/index.js';
 // Get useRefHistory from VueUse
 const { useRefHistory } = window.VueUse || {};
 
+function pwcaGetUiStateAccess() {
+    return window.pwcaUiStateAccess || null;
+}
+
+function pwcaGetCanvasByViewId(viewId) {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getCanvasByViewId === 'function') {
+        return uiStateAccess.getCanvasByViewId(viewId);
+    }
+
+    return window.CanvasManager && typeof window.CanvasManager.getCanvas === 'function'
+        ? window.CanvasManager.getCanvas(viewId)
+        : null;
+}
+
+function pwcaGetAllViewCanvases() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getAllViewCanvases === 'function') {
+        return uiStateAccess.getAllViewCanvases();
+    }
+
+    return [];
+}
+
 const HeaderControls = {
     name: 'HeaderControls',
     setup() {
@@ -26,7 +50,7 @@ const HeaderControls = {
             if (!window.VueUse) return;
             if (viewHistories[viewId]) return;
 
-            const canvas = window.CanvasManager.getCanvas(viewId);
+            const canvas = pwcaGetCanvasByViewId(viewId);
             if (!canvas) {
                 console.warn(`HeaderControls: Canvas not found for view ${viewId} when initializing history.`);
                 return;
@@ -245,22 +269,20 @@ const HeaderControls = {
             if (tab === 'viewMockup') {
                 // Logic from old renderBtn click listener
                 // 1. Clear selection on all canvases
-                if (window.CanvasManager && typeof window.CanvasManager.getAllCanvasIds === 'function') {
-                    const allCanvasIds = window.CanvasManager.getAllCanvasIds();
-                    allCanvasIds.forEach(viewId => {
-                        const fc = window.CanvasManager.getCanvas(viewId);
-                        if (fc) {
-                            try {
-                                const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
-                                if (active && active.isEditing && typeof active.exitEditing === 'function') active.exitEditing();
-                                if (typeof fc.discardActiveObject === 'function') fc.discardActiveObject();
-                                fc.renderAll();
-                            } catch (e) {
-                                console.warn('Error clearing canvas selection:', e);
-                            }
-                        }
-                    });
-                }
+                pwcaGetAllViewCanvases().forEach((fc) => {
+                    if (!fc) {
+                        return;
+                    }
+
+                    try {
+                        const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
+                        if (active && active.isEditing && typeof active.exitEditing === 'function') active.exitEditing();
+                        if (typeof fc.discardActiveObject === 'function') fc.discardActiveObject();
+                        fc.renderAll();
+                    } catch (e) {
+                        console.warn('Error clearing canvas selection:', e);
+                    }
+                });
 
                 // 2. Show Universal View Preview if views exist
                 if (store.views && store.views.length > 0) {

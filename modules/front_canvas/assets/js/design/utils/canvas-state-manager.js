@@ -1355,26 +1355,58 @@ class CanvasStateManager {
                 }
                 
                 // 清理不兼容的属性（修复 Fabric.js 兼容性问题）
-                objectsToRestore = objectsToRestore.map(obj => {
-                    const cleanedObj = { ...obj };
+                objectsToRestore = objectsToRestore
+                    .filter(obj => {
+                        if (!DataValidator.isValidObject(obj)) {
+                            return false;
+                        }
+
+                        if (!DataValidator.isNonEmptyString(obj.type)) {
+                            ErrorHandler.logWarning('跳过缺少 type 的画布对象', obj);
+                            return false;
+                        }
+
+                        if (
+                            obj.type === 'image' &&
+                            !DataValidator.isNonEmptyString(obj.src) &&
+                            !DataValidator.isNonEmptyString(obj._src)
+                        ) {
+                            ErrorHandler.logWarning('跳过缺少 src 的图片对象', obj);
+                            return false;
+                        }
+
+                        return true;
+                    })
+                    .map(obj => {
+                        const cleanedObj = { ...obj };
                     // 移除 pathAlign 属性，它会导致 "alphabetical is not a valid enum value" 错误
-                    if (cleanedObj.pathAlign !== undefined) {
-                        delete cleanedObj.pathAlign;
-                    }
-                    // 移除其他可能导致问题的属性
-                    if (cleanedObj.pathSide !== undefined) {
-                        delete cleanedObj.pathSide;
-                    }
-                    if (cleanedObj.pathStartOffset !== undefined) {
-                        delete cleanedObj.pathStartOffset;
-                    }
-                    return cleanedObj;
-                });
+                        if (cleanedObj.pathAlign !== undefined) {
+                            delete cleanedObj.pathAlign;
+                        }
+                        // 移除其他可能导致问题的属性
+                        if (cleanedObj.pathSide !== undefined) {
+                            delete cleanedObj.pathSide;
+                        }
+                        if (cleanedObj.pathStartOffset !== undefined) {
+                            delete cleanedObj.pathStartOffset;
+                        }
+                        return cleanedObj;
+                    });
+
+                if (objectsToRestore.length === 0) {
+                    canvas.renderAll();
+                    resolve();
+                    return;
+                }
                 
                 // 使用 fabric.util.enlivenObjects 处理图片对象的异步加载
                 fabric.util.enlivenObjects(objectsToRestore, (objects) => {
                     try {
-                        objects.forEach(obj => {
+                        const restoredObjects = Array.isArray(objects)
+                            ? objects.filter(obj => DataValidator.isValidObject(obj))
+                            : [];
+
+                        restoredObjects.forEach(obj => {
                             // 跳过背景相关的对象
                             if (obj.isBackground || obj.name === 'background') {
                                 return;
@@ -1400,9 +1432,6 @@ class CanvasStateManager {
                         ErrorHandler.logError(ErrorTypes.CANVAS_ERROR, '恢复画布对象时出错', innerError);
                         reject(innerError);
                     }
-                }, null, (error) => {
-                    ErrorHandler.logError(ErrorTypes.CANVAS_ERROR, 'fabric.util.enlivenObjects 回调错误', error);
-                    reject(error);
                 });
             } catch (error) {
                 ErrorHandler.logError(ErrorTypes.CANVAS_ERROR, '恢复画布对象失败', error);

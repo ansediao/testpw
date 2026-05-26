@@ -336,7 +336,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-header-controls',
 			$this->module_url . 'assets/js/design/components/header-controls.js',
-			array( 'pwca-front-canvas-store-index', 'pwca-front-canvas-events' ),
+			array( 'pwca-front-canvas-store-index', 'pwca-front-canvas-events', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/design/components/header-controls.js'
 		);
 		wp_script_add_data( 'pwca-front-canvas-header-controls', 'type', 'module' );
