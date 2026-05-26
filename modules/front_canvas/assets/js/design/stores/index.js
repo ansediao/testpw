@@ -864,6 +864,7 @@ export const useCanvasStore = defineStore('canvas', {
 
             // 如果切换到相同视图，直接返回
             if (previousViewId === viewId) {
+                void this.ensureViewPrintMethodsLoaded(viewId);
                 return;
             }
 
@@ -893,6 +894,8 @@ export const useCanvasStore = defineStore('canvas', {
             if (printMethodStore) {
                 printMethodStore.switchToViewPrintMethods(viewId);
             }
+
+            void this.ensureViewPrintMethodsLoaded(viewId);
 
             // 切换视图时，触发画布状态保存/恢复
             if (window.canvasStateIntegration && typeof window.canvasStateIntegration.handleViewSwitch === 'function') {
@@ -1058,9 +1061,6 @@ export const useCanvasStore = defineStore('canvas', {
                     this.setProductViewFlow(mergedViews[0].view_flow);
                 }
 
-                // 为每个视图加载印刷方式数据
-                this.loadPrintMethodsForAllViews();
-
                 // 默认激活第一个视图
                 if (mergedViews.length > 0) {
                     const firstView = mergedViews[0];
@@ -1078,21 +1078,46 @@ export const useCanvasStore = defineStore('canvas', {
             
         },
 
-        // 为所有视图加载印刷方式数据
-        async loadPrintMethodsForAllViews() {
+        // 仅在当前视图需要时加载印刷方式，避免初始化阶段预取所有视图。
+        async ensureViewPrintMethodsLoaded(viewId) {
             const printMethodStore = window.usePrintMethodStore();
-            if (!printMethodStore) {
+            if (!printMethodStore || !viewId) {
                 return;
             }
 
-            for (const view of this.views) {
-                if (view.printing_method_list_id && Array.isArray(view.printing_method_list_id) && view.printing_method_list_id.length > 0) {
-                    
-                    await printMethodStore.setViewPrintMethods(view.id, view.printing_method_list_id);
-                } else {
-                    
-                }
+            const view = this.views.find((item) => item && item.id === viewId);
+            if (
+                !view ||
+                !Array.isArray(view.printing_method_list_id) ||
+                view.printing_method_list_id.length === 0
+            ) {
+                printMethodStore.switchToViewPrintMethods(viewId);
+                return;
             }
+
+            const existingPrintMethods =
+                typeof printMethodStore.retrieveViewPrintMethods === 'function'
+                    ? printMethodStore.retrieveViewPrintMethods(viewId)
+                    : [];
+
+            if (Array.isArray(existingPrintMethods) && existingPrintMethods.length > 0) {
+                printMethodStore.switchToViewPrintMethods(viewId);
+                return;
+            }
+
+            await printMethodStore.setViewPrintMethods(view.id, view.printing_method_list_id);
+            if (this.activeViewId === viewId) {
+                printMethodStore.switchToViewPrintMethods(viewId);
+            }
+        },
+
+        async ensureActiveViewPrintMethodsLoaded() {
+            return this.ensureViewPrintMethodsLoaded(this.activeViewId);
+        },
+
+        // 兼容旧调用，内部转为当前视图按需加载。
+        async loadPrintMethodsForAllViews() {
+            return this.ensureActiveViewPrintMethodsLoaded();
         }
 
 

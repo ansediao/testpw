@@ -268,9 +268,16 @@ window.CustomColorsButton = {
             
             // 清除产品状态管理中的自定义颜色状态
             if (productStore) {
-                productStore.selectedVariant = null;
-                productStore.customColor = null;
-                productStore.gradientApplied = false;
+                if (typeof productStore.resetCustomColorState === 'function') {
+                    productStore.resetCustomColorState();
+                } else {
+                    if (typeof productStore.setSelectedVariant === 'function') {
+                        productStore.setSelectedVariant(null);
+                    }
+                    if (typeof productStore.setGradientColorApplied === 'function') {
+                        productStore.setGradientColorApplied(false);
+                    }
+                }
             }
             
             // 重置组件内部状态

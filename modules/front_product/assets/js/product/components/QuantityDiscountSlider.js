@@ -19,7 +19,7 @@ const QuantityDiscountSlider = {
                 discount: discount.discount,
                 discountText: Math.round((1 - discount.discount) * 100) + '% OFF',
                 isActive: store.quantity >= discount.range_from && 
-                         (store.getCurrentDiscount === discount.discount)
+                         (store.currentDiscount === discount.discount)
             }));
         });
         
@@ -109,9 +109,9 @@ const QuantityDiscountSlider = {
             </div>
             
             <!-- 当前折扣显示 -->
-            <div v-if="store.getDiscountText" class="current-discount">
+            <div v-if="store.discountText" class="current-discount">
                 <span class="discount-label">Discount: </span>
-                <span class="discount-value">{{ store.getDiscountText }}</span>
+                <span class="discount-value">{{ store.discountText }}</span>
             </div>
         </div>
     `

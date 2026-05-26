@@ -48,66 +48,8 @@ const ProductPriceInfo = {
             return store.estimatedShipDate;
         });
 
-        // 获取预计到货时间
-        const estimatedDeliveryDate = computed(() => {
-            // 检查是否有 API 数据
-            if (store.productData && store.productData.apiData) {
-                const apiData = store.productData.apiData;
-
-                // 如果 API 直接提供了预计到货时间，优先使用
-                if (apiData.product && apiData.product.data && apiData.product.data.estimated_delivery_date) {
-                    return apiData.product.data.estimated_delivery_date;
-                }
-
-                // 否则根据公式计算
-                if (apiData.product && apiData.product.data) {
-                    const productData = apiData.product.data;
-
-                    // 获取计算所需的参数
-                    const avgShippingTime = parseInt(productData.avg_shipping_time) || 0;
-                    const rtsDateStartsFrom = store.rts_date_starts_from || 3;
-
-                    // 根据 blankProductChecked 状态选择不同的处理时间
-                    let processingTime = 0;
-                    if (store.blankProductChecked) {
-                        // 样品订单：使用 rts_for_sample_order
-                        processingTime = parseInt(productData.rts_for_sample_order) || store.rts_for_sample_order || 1;
-                    } else {
-                        // 批量订单：使用 rts_for_bulk_order
-                        processingTime = parseInt(productData.rts_for_bulk_order) || store.rts_for_bulk_order || 2;
-                    }
-
-                    // 计算总天数
-                    const totalDays = avgShippingTime + processingTime + rtsDateStartsFrom;
-
-                    // 计算目标日期
-                    const currentDate = new Date();
-                    const deliveryDate = new Date(currentDate);
-                    deliveryDate.setDate(currentDate.getDate() + totalDays);
-
-                    // 格式化日期为 MM/DD/YYYY 格式
-                    const month = String(deliveryDate.getMonth() + 1).padStart(2, '0');
-                    const day = String(deliveryDate.getDate()).padStart(2, '0');
-                    const year = deliveryDate.getFullYear();
-
-                    return `${month}/${day}/${year}`;
-                }
-            }
-
-            // 默认到货时间：7-10个工作日
-            return '7-10 business days';
-        });
-
-        // 检查是否应该显示预计到货时间
-        const shouldShowDeliveryDate = computed(() => {
-            if (store.productData && store.productData.apiData) {
-                const apiData = store.productData.apiData;
-                if (apiData.product && apiData.product.data) {
-                    return !!apiData.product.data.arrival_date;
-                }
-            }
-            return false;
-        });
+        const estimatedDeliveryDate = computed(() => store.estimatedDeliveryDate);
+        const shouldShowDeliveryDate = computed(() => store.shouldShowDeliveryDate);
 
         return {
             // 直接返回 store 而不是使用 toRefs
@@ -134,21 +76,21 @@ const ProductPriceInfo = {
                 <div class="price-item">
                     <label class="price-label">Unit Price:</label>
                     <div class="price-display">
-                        <span v-if="store.hasQuantityDiscounts && store.getCurrentDiscount > 0" class="original-price">{{ formatPrice(originalUnitPrice) }}</span>
-                        <span class="price-value unit-price" :class="{ 'discounted': store.hasQuantityDiscounts && store.getCurrentDiscount > 0 }">{{ formatPrice(unitPrice) }}</span>
-                        <span v-if="store.hasQuantityDiscounts && store.getCurrentDiscount > 0" class="discount-badge">{{ store.getDiscountText }}</span>
+                        <span v-if="store.hasQuantityDiscounts && store.currentDiscount > 0" class="original-price">{{ formatPrice(originalUnitPrice) }}</span>
+                        <span class="price-value unit-price" :class="{ 'discounted': store.hasQuantityDiscounts && store.currentDiscount > 0 }">{{ formatPrice(unitPrice) }}</span>
+                        <span v-if="store.hasQuantityDiscounts && store.currentDiscount > 0" class="discount-badge">{{ store.discountText }}</span>
                     </div>
                 </div>
                 
                 <div class="price-item">
                     <label class="price-label">Total Price:</label>
                     <div class="price-display">
-                        <span v-if="store.hasQuantityDiscounts && store.getCurrentDiscount > 0" class="original-price">{{ formatPrice(originalTotalPrice) }}</span>
-                        <span class="price-value total-price" :class="{ 'discounted': store.hasQuantityDiscounts && store.getCurrentDiscount > 0 }">{{ formatPrice(totalPrice) }}</span>
+                        <span v-if="store.hasQuantityDiscounts && store.currentDiscount > 0" class="original-price">{{ formatPrice(originalTotalPrice) }}</span>
+                        <span class="price-value total-price" :class="{ 'discounted': store.hasQuantityDiscounts && store.currentDiscount > 0 }">{{ formatPrice(totalPrice) }}</span>
                     </div>
                 </div>
                 
-                <div v-if="store.hasQuantityDiscounts && store.getCurrentDiscount > 0" class="discount-summary">
+                <div v-if="store.hasQuantityDiscounts && store.currentDiscount > 0" class="discount-summary">
                     <div class="price-item discount-item">
                         <label class="price-label">You Save:</label>
                         <span class="price-value savings-amount">{{ formatPrice(totalDiscountAmount) }}</span>

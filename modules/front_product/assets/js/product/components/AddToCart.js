@@ -10,16 +10,7 @@ const AddToCart = {
         const store = useProductStore();
         
         const addToCart = async () => {
-            // 获取页面上数量输入框的值
-            const qtyInput = document.querySelector('.qty-input');
-            let quantity = 100; // 默认值
-            
-            if (qtyInput) {
-                quantity = parseInt(qtyInput.value) || 100;
-            }
-            
-            // 将数量传递给 store 的 addToCart 方法
-            await store.addToCart(quantity);
+            await store.addToCart(store.quantity);
         };
         
         const customizeNow = () => {
@@ -38,7 +29,7 @@ const AddToCart = {
     template: `
             <div class="button-group">
                 <button 
-                    v-show="store.showAddToCartButton"
+                    v-show="store.shouldShowAddToCart"
                     @click="addToCart"
                     :disabled="!store.canAddToCart"
                     :class="['cart-btn', { 'loading': store.loading }]"
@@ -47,7 +38,7 @@ const AddToCart = {
                 </button>
                 
                 <button 
-                    v-show="store.showCustomizeButton"
+                    v-show="store.shouldShowCustomize"
                     @click="customizeNow"
                     class="customize-btn"
                 >

@@ -76,7 +76,6 @@
 
     // Quantity Discount related state
     const quantityDiscounts = Vue.ref([]);
-    const currentDiscount = Vue.ref(0);
 
     // Getters (computed)
     const isLoading = Vue.computed(() => loading.value);
@@ -139,7 +138,7 @@
         return quantityDiscountEnabled.value && !buySampleChecked.value && quantityDiscounts.value.length > 0;
     });
 
-    const getCurrentDiscount = Vue.computed(() => {
+    const currentDiscount = Vue.computed(() => {
         if (!quantityDiscountEnabled.value || buySampleChecked.value || !hasQuantityDiscounts.value) return 0;
 
         let applicableDiscount = 0;
@@ -153,22 +152,26 @@
         return applicableDiscount;
     });
 
-    const getDiscountText = Vue.computed(() => {
+    const getCurrentDiscount = Vue.computed(() => currentDiscount.value);
+
+    const discountText = Vue.computed(() => {
         if (!quantityDiscountEnabled.value || buySampleChecked.value) return '';
 
-        const discount = getCurrentDiscount.value;
+        const discount = currentDiscount.value;
         if (discount === 0) return '';
 
         const percentage = Math.round((1 - discount) * 100);
         return `${percentage}% OFF`;
     });
 
+    const getDiscountText = Vue.computed(() => discountText.value);
+
     const discountedPrice = Vue.computed(() => {
         if (!quantityDiscountEnabled.value || buySampleChecked.value) {
             return baseUnitPrice.value;
         }
 
-        const discount = getCurrentDiscount.value;
+        const discount = currentDiscount.value;
         return discount > 0 ? baseUnitPrice.value * discount : baseUnitPrice.value;
     });
 
@@ -200,16 +203,20 @@
     });
 
     // Button visibility getters
-    const showAddToCartButton = Vue.computed(() => {
+    const shouldShowAddToCart = Vue.computed(() => {
         // 当渐变颜色被应用时隐藏按钮
         // 当勾选Blank Product时显示，未勾选时隐藏
         return productData.value && !loading.value && !gradientColorApplied.value && blankProductChecked.value;
     });
 
-    const showCustomizeButton = Vue.computed(() => {
+    const showAddToCartButton = Vue.computed(() => shouldShowAddToCart.value);
+
+    const shouldShowCustomize = Vue.computed(() => {
         // 当勾选Blank Product时隐藏，未勾选时显示
         return productData.value && !loading.value && !blankProductChecked.value;
     });
+
+    const showCustomizeButton = Vue.computed(() => shouldShowCustomize.value);
 
     // Checkbox visibility getters
     const showBuySampleCheckbox = Vue.computed(() => {
@@ -220,6 +227,45 @@
     const showBlankProductCheckbox = Vue.computed(() => {
         // 当渐变颜色被应用时隐藏复选框
         return productData.value && !loading.value && !gradientColorApplied.value;
+    });
+
+    const estimatedDeliveryDate = Vue.computed(() => {
+        const productApiData = productData.value && productData.value.apiData && productData.value.apiData.product
+            ? productData.value.apiData.product.data
+            : null;
+
+        if (productApiData && productApiData.estimated_delivery_date) {
+            return productApiData.estimated_delivery_date;
+        }
+
+        if (productApiData) {
+            const avgShippingTime = parseInt(productApiData.avg_shipping_time) || 0;
+            const rtsDateStartsFrom = rts_date_starts_from.value || 3;
+            const processingTime = blankProductChecked.value
+                ? (parseInt(productApiData.rts_for_sample_order) || rts_for_sample_order.value || 1)
+                : (parseInt(productApiData.rts_for_bulk_order) || rts_for_bulk_order.value || 2);
+
+            const totalDays = avgShippingTime + processingTime + rtsDateStartsFrom;
+            const currentDate = new Date();
+            const deliveryDate = new Date(currentDate);
+            deliveryDate.setDate(currentDate.getDate() + totalDays);
+
+            const month = String(deliveryDate.getMonth() + 1).padStart(2, '0');
+            const day = String(deliveryDate.getDate()).padStart(2, '0');
+            const year = deliveryDate.getFullYear();
+
+            return `${month}/${day}/${year}`;
+        }
+
+        return '7-10 business days';
+    });
+
+    const shouldShowDeliveryDate = Vue.computed(() => {
+        const productApiData = productData.value && productData.value.apiData && productData.value.apiData.product
+            ? productData.value.apiData.product.data
+            : null;
+
+        return !!(productApiData && productApiData.arrival_date);
     });
 
     // Actions (methods)
@@ -241,6 +287,15 @@
 
     const setGradientColorApplied = (applied) => {
         gradientColorApplied.value = applied;
+    };
+
+    const resetSelectedVariant = () => {
+        selectedVariant.value = null;
+    };
+
+    const resetCustomColorState = () => {
+        resetSelectedVariant();
+        setGradientColorApplied(false);
     };
 
     const updateQuantity = (qty) => {
@@ -527,8 +582,11 @@
             if (productApiData.buySampleChecked !== undefined) {
                 setBuySampleChecked(productApiData.buySampleChecked);
             }
+
             if (productApiData.blankProductChecked !== undefined) {
                 setBlankProductChecked(productApiData.blankProductChecked);
+            } else if (productApiData.blank_item !== undefined) {
+                setBlankProductChecked(productApiData.blank_item);
             }
 
             // 处理配件数据
@@ -746,8 +804,8 @@
 
             // 折扣阶梯信息
             formData.append('pw_discount_enabled', quantityDiscountEnabled.value ? '1' : '0');
-            formData.append('pw_current_discount', String(getCurrentDiscount.value || 0));
-            formData.append('pw_discount_text', getDiscountText.value || '');
+            formData.append('pw_current_discount', String(currentDiscount.value || 0));
+            formData.append('pw_discount_text', discountText.value || '');
             try {
                 formData.append('pw_quantity_discounts', JSON.stringify(quantityDiscounts.value || []));
             } catch (e) {
@@ -825,8 +883,6 @@
         maxQuantity,
         stepQuantity,
         quantityDiscounts,
-        currentDiscount,
-
         // Getters
         isLoading,
         hasError,
@@ -838,11 +894,17 @@
         correctedQuantity,
         isValidQuantity,
         hasQuantityDiscounts,
+        currentDiscount,
         getCurrentDiscount,
+        discountText,
         getDiscountText,
         discountedPrice,
         estimatedShipDate,
+        estimatedDeliveryDate,
+        shouldShowDeliveryDate,
+        shouldShowAddToCart,
         showAddToCartButton,
+        shouldShowCustomize,
         showCustomizeButton,
         showBuySampleCheckbox,
         showBlankProductCheckbox,
@@ -853,6 +915,7 @@
         setLoading,
         setError,
         setGradientColorApplied,
+        resetCustomColorState,
         updateQuantity,
         setQuantityDirect,
         getNextValidQuantity,
@@ -860,6 +923,7 @@
         setSelectedOption,
         toggleDetails,
         setActiveTab,
+        resetSelectedVariant,
         setSelectedVariant,
         setVariants,
         setQuantityDiscountEnabled,
