@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const activeCanvas =
                 stateAccess && typeof stateAccess.getActiveCanvas === 'function'
                     ? stateAccess.getActiveCanvas()
-                    : (window.CanvasManager ? window.CanvasManager.getActiveCanvas() : null);
+                    : null;
             if (activeCanvas) {
                 if (currentView.base_layer.canvas) {
                     currentView.base_layer.canvas.renderAll();
@@ -296,9 +296,12 @@ document.addEventListener('DOMContentLoaded', () => {
             view.base_layer.applyFilters();
         }
 
+        const stateAccess = getUiStateAccess();
         const canvas =
             view.base_layer.canvas ||
-            (window.CanvasManager ? window.CanvasManager.getCanvas(view.id) : null);
+            (stateAccess && typeof stateAccess.getCanvasByViewId === 'function'
+                ? stateAccess.getCanvasByViewId(view.id)
+                : null);
         if (canvas) {
             if (view.base_layer.canvas && view.base_layer.canvas !== canvas) {
                 view.base_layer.canvas.renderAll();
@@ -428,11 +431,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const baseCanvasId = `baseCanvas-${view.id}`;
         let baseCanvas = null;
+        const stateAccess = getUiStateAccess();
 
-        if (window.CanvasManager && typeof window.CanvasManager.getCanvas === 'function') {
-            baseCanvas =
-                window.CanvasManager.getCanvas(baseCanvasId) ||
-                window.CanvasManager.getCanvas(view.id);
+        if (stateAccess && typeof stateAccess.getBaseCanvasByViewId === 'function') {
+            baseCanvas = stateAccess.getBaseCanvasByViewId(view.id);
+        }
+
+        if (!baseCanvas && stateAccess && typeof stateAccess.getCanvasByViewId === 'function') {
+            baseCanvas = stateAccess.getCanvasByViewId(view.id);
         }
 
         if (!baseCanvas) {
@@ -553,23 +559,14 @@ document.addEventListener('DOMContentLoaded', () => {
             ? currentSelected.getAttribute('data-color')
             : null;
 
-        if (typeof window.useCanvasStore === 'undefined') {
+        const stateAccess = getUiStateAccess();
+        const variants =
+            stateAccess && typeof stateAccess.getProductVariants === 'function'
+                ? stateAccess.getProductVariants()
+                : [];
+
+        if (variants.length === 0) {
             console.warn('CanvasStore 未加载，使用默认颜色');
-            generateDefaultColors(container, selectedColor);
-            return;
-        }
-
-        const store = window.useCanvasStore();
-
-        if (!store.productData || !store.productData.variants || !store.productData.variants.data) {
-            console.warn('产品变体数据未加载，使用默认颜色');
-            generateDefaultColors(container, selectedColor);
-            return;
-        }
-
-        const variants = store.productData.variants.data;
-        if (!variants || variants.length === 0) {
-            console.warn('没有找到产品变体，使用默认颜色');
             generateDefaultColors(container, selectedColor);
             return;
         }
@@ -630,33 +627,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function waitForCanvasData() {
-        if (typeof window.useCanvasStore !== 'undefined') {
-            const store = window.useCanvasStore();
+        const stateAccess = getUiStateAccess();
+        const store =
+            stateAccess && typeof stateAccess.getCanvasStore === 'function'
+                ? stateAccess.getCanvasStore()
+                : null;
 
-            if (
-                store.productData &&
-                store.productData.variants &&
-                store.productData.variants.data
-            ) {
-                generateColorSwatches();
-                return;
-            }
+        if (stateAccess && typeof stateAccess.hasProductVariants === 'function' && stateAccess.hasProductVariants()) {
+            generateColorSwatches();
+            return;
+        }
 
-            if (store.$subscribe) {
-                store.$subscribe((mutation, state) => {
-                    if (
-                        state.productData &&
-                        state.productData.variants &&
-                        state.productData.variants.data
-                    ) {
-                        generateColorSwatches();
-                    }
-                });
-            }
+        if (store && store.$subscribe) {
+            store.$subscribe((mutation, state) => {
+                const variants =
+                    state &&
+                    state.productData &&
+                    state.productData.variants &&
+                    state.productData.variants.data;
+
+                if (Array.isArray(variants) && variants.length > 0) {
+                    generateColorSwatches();
+                }
+            });
         }
 
         setTimeout(() => {
-            if (typeof window.useCanvasStore === 'undefined') {
+            const refreshedStateAccess = getUiStateAccess();
+            const hasVariants =
+                refreshedStateAccess &&
+                typeof refreshedStateAccess.hasProductVariants === 'function' &&
+                refreshedStateAccess.hasProductVariants();
+            if (!hasVariants) {
                 const container = colorSwatchesContainer;
                 if (container && container.children.length === 0) {
                     // 默认不渲染任何颜色
@@ -679,66 +681,70 @@ document.addEventListener('DOMContentLoaded', () => {
         const colorSwatches = document.querySelectorAll('.color-swatch');
         colorSwatches.forEach((s) => s.classList.remove('selected'));
 
-        if (window.useCanvasStore) {
-            const store = window.useCanvasStore();
-            if (store.views && store.views.length > 0) {
-                store.views.forEach((view) => {
-                    if (view.base_layer) {
-                        view.base_layer.filters = [];
+        const stateAccess = getUiStateAccess();
+        const views =
+            stateAccess && typeof stateAccess.getViews === 'function'
+                ? stateAccess.getViews()
+                : [];
 
-                        if (view.base_layer._element && view.base_layer._originalElement) {
-                            view.base_layer.setElement(view.base_layer._originalElement);
-                        } else if (view.base_layer._element) {
-                            const originalSrc = view.base_layer._element.src;
-                            if (originalSrc) {
-                                const img = new Image();
-                                img.crossOrigin = 'anonymous';
-                                img.onload = () => {
-                                    view.base_layer.setElement(img);
-                                    view.base_layer._originalElement = img;
-                                    view.base_layer.applyFilters();
+        if (views.length > 0) {
+            views.forEach((view) => {
+                if (!view.base_layer) {
+                    return;
+                }
 
-                                    if (window.CanvasManager) {
-                                        const canvas = window.CanvasManager.getCanvas(view.id);
-                                        if (canvas) {
-                                            canvas.renderAll();
+                view.base_layer.filters = [];
 
-                                            const baseCanvasId = `baseCanvas-${view.id}`;
-                                            const baseCanvas =
-                                                window.CanvasManager.getCanvas(baseCanvasId) ||
-                                                (document.getElementById(baseCanvasId) &&
-                                                    document.getElementById(baseCanvasId)
-                                                        .__fabricCanvas);
-                                            if (baseCanvas) {
-                                                baseCanvas.renderAll();
-                                            }
-                                        }
-                                    }
-                                };
-                                img.src = originalSrc;
-                            }
-                        }
+                if (view.base_layer._element && view.base_layer._originalElement) {
+                    view.base_layer.setElement(view.base_layer._originalElement);
+                } else if (view.base_layer._element) {
+                    const originalSrc = view.base_layer._element.src;
+                    if (originalSrc) {
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.onload = () => {
+                            view.base_layer.setElement(img);
+                            view.base_layer._originalElement = img;
+                            view.base_layer.applyFilters();
 
-                        view.base_layer.applyFilters();
+                            const canvas =
+                                stateAccess && typeof stateAccess.getCanvasByViewId === 'function'
+                                    ? stateAccess.getCanvasByViewId(view.id)
+                                    : null;
+                            const baseCanvas =
+                                stateAccess && typeof stateAccess.getBaseCanvasByViewId === 'function'
+                                    ? stateAccess.getBaseCanvasByViewId(view.id)
+                                    : null;
 
-                        if (window.CanvasManager) {
-                            const canvas = window.CanvasManager.getCanvas(view.id);
                             if (canvas) {
                                 canvas.renderAll();
-
-                                const baseCanvasId = `baseCanvas-${view.id}`;
-                                const baseCanvas =
-                                    window.CanvasManager.getCanvas(baseCanvasId) ||
-                                    (document.getElementById(baseCanvasId) &&
-                                        document.getElementById(baseCanvasId).__fabricCanvas);
-                                if (baseCanvas) {
-                                    baseCanvas.renderAll();
-                                }
                             }
-                        }
+                            if (baseCanvas) {
+                                baseCanvas.renderAll();
+                            }
+                        };
+                        img.src = originalSrc;
                     }
-                });
-            }
+                }
+
+                view.base_layer.applyFilters();
+
+                const canvas =
+                    stateAccess && typeof stateAccess.getCanvasByViewId === 'function'
+                        ? stateAccess.getCanvasByViewId(view.id)
+                        : null;
+                const baseCanvas =
+                    stateAccess && typeof stateAccess.getBaseCanvasByViewId === 'function'
+                        ? stateAccess.getBaseCanvasByViewId(view.id)
+                        : null;
+
+                if (canvas) {
+                    canvas.renderAll();
+                }
+                if (baseCanvas) {
+                    baseCanvas.renderAll();
+                }
+            });
         }
 
         if (colorStatusDisplay) {
@@ -840,18 +846,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             function applyCustomColorToBaseLayer() {
-                if (!window.useCanvasStore) return;
-
                 const tintFn =
                     typeof window.applyTintFilter === 'function' ? window.applyTintFilter : null;
                 if (!tintFn) return;
 
-                const store = window.useCanvasStore();
-                const activeViewId = store.activeViewId;
+                const stateAccess = getUiStateAccess();
+                const activeViewId =
+                    stateAccess && typeof stateAccess.getActiveViewId === 'function'
+                        ? stateAccess.getActiveViewId()
+                        : null;
+                const currentView =
+                    stateAccess && typeof stateAccess.getCurrentView === 'function'
+                        ? stateAccess.getCurrentView()
+                        : null;
 
-                if (!activeViewId || !store.views) return;
-
-                const currentView = store.views.find((v) => v.id === activeViewId);
+                if (!activeViewId || !currentView) return;
                 if (!currentView || !currentView.base_layer) return;
 
                 if (typeof isFourGridView === 'function' && isFourGridView(currentView)) {
@@ -876,17 +885,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentView.base_layer.applyFilters();
                 }
 
-                if (window.CanvasManager) {
-                    const activeCanvas = window.CanvasManager.getActiveCanvas();
-                    if (activeCanvas) {
-                        if (currentView.base_layer.canvas) {
-                            currentView.base_layer.canvas.renderAll();
-                        }
-                        activeCanvas.renderAll();
-                        requestAnimationFrame(() => {
-                            activeCanvas.renderAll();
-                        });
+                const activeCanvas =
+                    stateAccess && typeof stateAccess.getActiveCanvas === 'function'
+                        ? stateAccess.getActiveCanvas()
+                        : null;
+                if (activeCanvas) {
+                    if (currentView.base_layer.canvas) {
+                        currentView.base_layer.canvas.renderAll();
                     }
+                    activeCanvas.renderAll();
+                    requestAnimationFrame(() => {
+                        activeCanvas.renderAll();
+                    });
                 }
 
                 if (typeof window.applyColorToAllViews === 'function') {
@@ -1033,16 +1043,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             function applyGradientToBaseLayer() {
-                if (window.useCanvasStore) {
-                    const store = window.useCanvasStore();
-                    const activeViewId = store.activeViewId;
+                const stateAccess = getUiStateAccess();
+                const activeViewId =
+                    stateAccess && typeof stateAccess.getActiveViewId === 'function'
+                        ? stateAccess.getActiveViewId()
+                        : null;
+                const currentView =
+                    stateAccess && typeof stateAccess.getCurrentView === 'function'
+                        ? stateAccess.getCurrentView()
+                        : null;
+                const views =
+                    stateAccess && typeof stateAccess.getViews === 'function'
+                        ? stateAccess.getViews()
+                        : [];
 
-                    if (!activeViewId || !store.views) {
+                if (currentView) {
+                    if (!activeViewId || views.length === 0) {
                         console.warn('没有激活的视图或 store 不可用');
                         return;
                     }
 
-                    const currentView = store.views.find((v) => v.id === activeViewId);
                     if (!currentView || !currentView.base_layer) {
                         console.warn('当前视图没有 base_layer 或视图不存在');
                         return;
@@ -1058,9 +1078,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         const isMainView =
-                            store.views.length > 0 && store.views[0].id === activeViewId;
+                            stateAccess && typeof stateAccess.isFirstView === 'function'
+                                ? stateAccess.isFirstView(activeViewId)
+                                : false;
                         if (isMainView) {
-                            store.views.forEach((view) => {
+                            views.forEach((view) => {
                                 if (view.id !== currentView.id) {
                                     if (isFourGridView(view)) {
                                         return;
@@ -1256,8 +1278,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         function calculateSampleOrderRts() {
-            if (window.useCanvasStore) {
-                const store = window.useCanvasStore();
+            const stateAccess = getUiStateAccess();
+            if (stateAccess && typeof stateAccess.getCanvasStore === 'function') {
+                const store = stateAccess.getCanvasStore();
                 const totalRts = store.getTotalMaxRtsForSampleOrder;
 
                 document.dispatchEvent(
