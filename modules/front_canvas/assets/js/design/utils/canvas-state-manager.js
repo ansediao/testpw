@@ -1427,100 +1427,17 @@ class CanvasStateManager {
                 return;
             }
             
-            let layersToRestore = layers || [];
-            let layerGroupsToRestore = layerGroups || [];
-            
-            let userObjects = [];
-            if (canvas && typeof canvas.getObjects === 'function') {
-                const canvasObjects = canvas.getObjects();
-                userObjects = canvasObjects.filter(obj => {
-                    return obj && !obj.isBackground && obj.name !== 'background';
-                });
-            }
-            
-            if (layersToRestore.length > 0 && userObjects.length > 0) {
-                const minLen = Math.min(layersToRestore.length, userObjects.length);
-                for (let i = 0; i < minLen; i++) {
-                    const layer = layersToRestore[i];
-                    const obj = userObjects[i];
-                    if (!layer || !obj) {
-                        continue;
-                    }
-                    
-                    if (!obj.id) {
-                        obj.id = layer.id;
-                    }
-                    if (!obj.layerName && layer.name) {
-                        obj.layerName = layer.name;
-                    }
-                    if (!obj.layerType && layer.type) {
-                        obj.layerType = layer.type;
-                    }
-                    if (!obj.groupId && layer.groupId) {
-                        obj.groupId = layer.groupId;
-                    }
-                    if (typeof layer.groupOrder === 'number' && (obj.groupOrder === undefined || obj.groupOrder === null)) {
-                        obj.groupOrder = layer.groupOrder;
-                    }
-                }
-            }
-            
-            if (layersToRestore.length === 0 && userObjects.length > 0) {
-                ErrorHandler.logInfo('从画布对象重建图层列表，对象数:', userObjects.length);
-                layersToRestore = userObjects.map((obj, index) => {
-                    if (!obj) {
-                        return null;
-                    }
-                    
-                    if (!obj.id) {
-                        obj.id = `layer_${index}_${Date.now()}`;
-                    }
-                    
-                    let layerName = obj.layerName;
-                    if (!layerName) {
-                        if (obj.type === 'text' || obj.type === 'i-text') {
-                            const text = obj.text || '';
-                            layerName = text.length > 15 ? text.substring(0, 15) + '...' : text;
-                        } else if (obj.type === 'image') {
-                            layerName = 'Image ' + Date.now().toString().slice(-4);
-                        } else {
-                            layerName = 'Layer ' + (index + 1);
-                        }
-                    }
-                    
-                    let layerType = obj.layerType;
-                    if (!layerType) {
-                        if (obj.type === 'text' || obj.type === 'i-text') {
-                            layerType = 'text';
-                        } else if (obj.type === 'image') {
-                            layerType = 'image';
-                        } else {
-                            layerType = 'other';
-                        }
-                    }
-                    
-                    return {
-                        id: obj.id,
-                        name: layerName,
-                        type: layerType,
-                        visible: obj.visible !== false,
-                        locked: obj.selectable === false,
-                        groupId: obj.groupId || null,
-                        groupOrder: obj.groupOrder || 0
-                    };
-                }).filter(layerItem => layerItem !== null);
-            }
-            
             const normalizedRestorePayload =
-                typeof window.pwcaNormalizeViewRestorePayload === 'function'
-                    ? window.pwcaNormalizeViewRestorePayload({
-                        layers: layersToRestore,
-                        layerGroups: layerGroupsToRestore
+                typeof window.pwcaRebuildViewRestorePayload === 'function'
+                    ? window.pwcaRebuildViewRestorePayload({
+                        layers,
+                        layerGroups,
+                        canvas
                     })
                     : {
-                        layers: Array.isArray(layersToRestore) ? layersToRestore : [],
-                        layerGroups: Array.isArray(layerGroupsToRestore)
-                            ? layerGroupsToRestore
+                        layers: Array.isArray(layers) ? layers : [],
+                        layerGroups: Array.isArray(layerGroups)
+                            ? layerGroups
                             : []
                     };
 

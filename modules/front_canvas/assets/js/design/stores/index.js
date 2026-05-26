@@ -9,6 +9,7 @@ import {
     pwcaSetSelectedColorByView
 } from './color-selection-helper.js';
 import { pwcaNormalizeViewRestorePayload } from './view-restore-helper.js';
+import { pwcaRebuildViewRestorePayload } from './view-state-rebuild-helper.js';
 import {
     pwcaBuildMergedLayerControls,
     pwcaBuildMergedViewCustomizationSettings,
@@ -740,6 +741,7 @@ window.pwcaBuildMergedLayerControls = pwcaBuildMergedLayerControls;
 window.pwcaExtractStoreCustomizationSettings = pwcaExtractStoreCustomizationSettings;
 window.pwcaNormalizeSelectedColorsByView = pwcaNormalizeSelectedColorsByView;
 window.pwcaNormalizeViewRestorePayload = pwcaNormalizeViewRestorePayload;
+window.pwcaRebuildViewRestorePayload = pwcaRebuildViewRestorePayload;
 
 // 10. 通知其他脚本stores已准备就绪
 let eventTriggered = false;
