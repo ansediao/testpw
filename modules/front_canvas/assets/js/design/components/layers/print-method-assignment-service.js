@@ -150,7 +150,7 @@ export function assignLayerToPrintMethodWithGrouping({
     store.setViewLayers(currentViewId, nextLayers);
     printMethodStore.assignLayerPrintMethod(selectedLayer.id, methodId);
     printMethodStore.assignGroupPrintMethod(targetGroup.id, methodId);
-    printMethodStore.recomputeUsedPrintMethodsForView(currentViewId);
+    printMethodStore.recomputeUsedPrintMethodsForView(currentViewId, nextLayers);
 
     cleanupEmptyGroup(store, currentViewId, selectedLayer.groupId);
 
@@ -241,7 +241,7 @@ export function changeGroupPrintMethodWithGrouping({
     if (group.id !== targetGroup.id) {
         printMethodStore.unassignGroupPrintMethod(group.id);
     }
-    printMethodStore.recomputeUsedPrintMethodsForView(currentViewId);
+    printMethodStore.recomputeUsedPrintMethodsForView(currentViewId, nextLayers);
 
     cleanupEmptyGroup(store, currentViewId, group.id);
 

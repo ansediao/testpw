@@ -1531,7 +1531,11 @@ class CanvasStateManager {
             if (typeof printMethodStore.restorePrintMethodMappings === 'function') {
                 printMethodStore.restorePrintMethodMappings(viewId, {
                     layerMap: layerPrintMethodMap || {},
-                    groupMap: groupPrintMethodMap || {}
+                    groupMap: groupPrintMethodMap || {},
+                    viewLayers:
+                        canvasStore && typeof canvasStore.getViewLayers === 'function'
+                            ? (canvasStore.getViewLayers(viewId) || [])
+                            : []
                 });
             } else {
                 // 降级方案：手动恢复映射
@@ -1551,7 +1555,12 @@ class CanvasStateManager {
                 
                 // 重新计算已使用印刷方式
                 if (typeof printMethodStore.recomputeUsedPrintMethodsForView === 'function') {
-                    printMethodStore.recomputeUsedPrintMethodsForView(viewId);
+                    printMethodStore.recomputeUsedPrintMethodsForView(
+                        viewId,
+                        canvasStore && typeof canvasStore.getViewLayers === 'function'
+                            ? (canvasStore.getViewLayers(viewId) || [])
+                            : []
+                    );
                 }
             }
             

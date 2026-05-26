@@ -1105,7 +1105,9 @@ export const useCanvasStore = defineStore('canvas', {
                 return;
             }
 
-            await printMethodStore.setViewPrintMethods(view.id, view.printing_method_list_id);
+            await printMethodStore.setViewPrintMethods(view.id, view.printing_method_list_id, {
+                activeViewId: this.activeViewId
+            });
             if (this.activeViewId === viewId) {
                 printMethodStore.switchToViewPrintMethods(viewId);
             }

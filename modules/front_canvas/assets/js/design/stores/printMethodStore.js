@@ -472,15 +472,15 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
         },
         
         // 为视图设置打印方式数据
-        async setViewPrintMethods(viewId, printingMethodIds) {
+        async setViewPrintMethods(viewId, printingMethodIds, options = {}) {
             const printMethods = await this.fetchPrintMethods(printingMethodIds);
             this.viewPrintMethods[viewId] = printMethods;
             
             // 注意：不在此处写入“已使用”的集合，只有当元素实际分配时才记录
             
             // 如果当前没有激活的视图，或者设置的是当前激活视图，更新当前打印方式
-            const canvasStore = window.useCanvasStore();
-            if (!canvasStore.activeViewId || canvasStore.activeViewId === viewId) {
+            const activeViewId = options.activeViewId || null;
+            if (!activeViewId || activeViewId === viewId) {
                 this.currentViewPrintMethods = printMethods;
                 // 设置默认选中的打印方式
                 if (printMethods.length > 0 && !this.selectedPrintMethodId) {
@@ -585,10 +585,8 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
         },
 
         // 基于当前分配关系，重新计算某视图下“已使用”的印刷方式
-        recomputeUsedPrintMethodsForView(viewId) {
+        recomputeUsedPrintMethodsForView(viewId, layers = []) {
             if (!viewId) return;
-            const canvasStore = window.useCanvasStore();
-            const layers = canvasStore && typeof canvasStore.getViewLayers === 'function' ? (canvasStore.getViewLayers(viewId) || []) : [];
             const methodIds = new Set();
 
             // 1) 图层直接分配
@@ -622,14 +620,17 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
         },
 
         // 重新计算所有视图的“已使用”集合
-        recomputeUsedPrintMethodsForAllViews() {
+        recomputeUsedPrintMethodsForAllViews(viewLayersByView = {}) {
             for (const viewId of Object.keys(this.viewPrintMethods)) {
-                this.recomputeUsedPrintMethodsForView(viewId);
+                this.recomputeUsedPrintMethodsForView(
+                    viewId,
+                    Array.isArray(viewLayersByView[viewId]) ? viewLayersByView[viewId] : []
+                );
             }
         },
 
         // 批量恢复印刷方式映射（用于状态恢复）
-        restorePrintMethodMappings(viewId, { layerMap, groupMap }) {
+        restorePrintMethodMappings(viewId, { layerMap, groupMap, viewLayers = [] }) {
             // 恢复图层映射
             if (layerMap && typeof layerMap === 'object') {
                 Object.entries(layerMap).forEach(([layerId, methodId]) => {
@@ -645,7 +646,7 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
             }
             
             // 重新计算已使用的印刷方式
-            this.recomputeUsedPrintMethodsForView(viewId);
+            this.recomputeUsedPrintMethodsForView(viewId, viewLayers);
         },
 
         // 验证图层是否符合打印方式要求
