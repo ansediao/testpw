@@ -810,7 +810,11 @@ class CanvasStateManager {
                 migratedState.views = {};
             }
             
-            if (!migratedState.selectedColorsByView || typeof migratedState.selectedColorsByView !== 'object') {
+            if (typeof window.pwcaNormalizeSelectedColorsByView === 'function') {
+                migratedState.selectedColorsByView = window.pwcaNormalizeSelectedColorsByView(
+                    migratedState.selectedColorsByView
+                );
+            } else if (!migratedState.selectedColorsByView || typeof migratedState.selectedColorsByView !== 'object') {
                 migratedState.selectedColorsByView = {};
             }
             
@@ -1084,7 +1088,12 @@ class CanvasStateManager {
             if (canvasStore && canvasStore.selectedColorsByView) {
                 const state = this.getState();
                 if (state) {
-                    state.selectedColorsByView = { ...canvasStore.selectedColorsByView };
+                    state.selectedColorsByView =
+                        typeof window.pwcaNormalizeSelectedColorsByView === 'function'
+                            ? window.pwcaNormalizeSelectedColorsByView(
+                                canvasStore.selectedColorsByView
+                            )
+                            : { ...canvasStore.selectedColorsByView };
                     this._updateState(state);
                 }
             }
@@ -1122,7 +1131,12 @@ class CanvasStateManager {
             }
             
             // 保存颜色选择数据
-            state.selectedColorsByView = { ...canvasStore.selectedColorsByView };
+            state.selectedColorsByView =
+                typeof window.pwcaNormalizeSelectedColorsByView === 'function'
+                    ? window.pwcaNormalizeSelectedColorsByView(
+                        canvasStore.selectedColorsByView
+                    )
+                    : { ...canvasStore.selectedColorsByView };
             return this._updateState(state);
         } catch (error) {
             ErrorHandler.logError(ErrorTypes.SAVE_ERROR, '保存颜色选择失败', error);
@@ -1587,12 +1601,20 @@ class CanvasStateManager {
                 return;
             }
             
-            // 恢复每个视图的颜色选择
-            Object.entries(selectedColorsByView).forEach(([viewId, colorData]) => {
-                if (colorData && typeof canvasStore.setSelectedColorByView === 'function') {
-                    canvasStore.setSelectedColorByView(viewId, colorData);
-                }
-            });
+            const normalizedSelectedColors =
+                typeof window.pwcaNormalizeSelectedColorsByView === 'function'
+                    ? window.pwcaNormalizeSelectedColorsByView(selectedColorsByView)
+                    : selectedColorsByView;
+
+            if (typeof canvasStore.replaceSelectedColorsByView === 'function') {
+                canvasStore.replaceSelectedColorsByView(normalizedSelectedColors);
+            } else {
+                Object.entries(normalizedSelectedColors).forEach(([viewId, colorData]) => {
+                    if (colorData && typeof canvasStore.setSelectedColorByView === 'function') {
+                        canvasStore.setSelectedColorByView(viewId, colorData);
+                    }
+                });
+            }
             
             ErrorHandler.logInfo('颜色选择恢复成功');
         } catch (error) {

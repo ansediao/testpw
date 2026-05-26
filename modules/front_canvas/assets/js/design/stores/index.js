@@ -2,6 +2,13 @@
 
 import { fetchCanvasProductData } from '../api/product-data-api.js';
 import {
+    pwcaClearSelectedColorByView,
+    pwcaGetSelectedColorByView,
+    pwcaGetTotalSelectedColorRts,
+    pwcaNormalizeSelectedColorsByView,
+    pwcaSetSelectedColorByView
+} from './color-selection-helper.js';
+import {
     pwcaBuildMergedLayerControls,
     pwcaBuildMergedViewCustomizationSettings,
     pwcaBuildViewsFromProductData,
@@ -134,47 +141,31 @@ export const useCanvasStore = defineStore('canvas', {
         // ===== 新增：获取颜色选择状态 =====
         // 获取指定视图下的颜色选择
         getSelectedColorByView: (state) => (viewId) => {
-            return state.selectedColorsByView[viewId] || null;
+            return pwcaGetSelectedColorByView(state.selectedColorsByView, viewId);
         },
         // 获取当前激活视图下的颜色选择
         currentViewSelectedColor(state) {
             const vid = this.activeViewId;
             if (!vid) return null;
-            return state.selectedColorsByView[vid] || null;
+            return pwcaGetSelectedColorByView(state.selectedColorsByView, vid);
         },
         
         // ===== 新增：计算各视图 rts_for_bulk_order 最大值相加 =====
         // 获取所有视图中 rts_for_bulk_order 的最大值相加
         getTotalMaxRtsForBulkOrder: (state) => {
-            let total = 0;
-            const colorsMap = state.selectedColorsByView || {};
-            for (const viewId in colorsMap) {
-                if (!Object.prototype.hasOwnProperty.call(colorsMap, viewId)) continue;
-                const colorData = colorsMap[viewId];
-                if (!colorData) continue;
-                const rtsValue = Number(colorData.rts_for_bulk_order);
-                if (Number.isFinite(rtsValue) && rtsValue > 0) {
-                    total += rtsValue;
-                }
-            }
-            return total;
+            return pwcaGetTotalSelectedColorRts(
+                state.selectedColorsByView,
+                'rts_for_bulk_order'
+            );
         },
         
         // ===== 新增：计算各视图 rts_for_sample_order 最大值相加 =====
         // 获取所有视图中 rts_for_sample_order 的最大值相加
         getTotalMaxRtsForSampleOrder: (state) => {
-            let total = 0;
-            const colorsMap = state.selectedColorsByView || {};
-            for (const viewId in colorsMap) {
-                if (!Object.prototype.hasOwnProperty.call(colorsMap, viewId)) continue;
-                const colorData = colorsMap[viewId];
-                if (!colorData) continue;
-                const rtsValue = Number(colorData.rts_for_sample_order);
-                if (Number.isFinite(rtsValue) && rtsValue > 0) {
-                    total += rtsValue;
-                }
-            }
-            return total;
+            return pwcaGetTotalSelectedColorRts(
+                state.selectedColorsByView,
+                'rts_for_sample_order'
+            );
         },
         
         // ===== 用户偏好设置相关的 getter 方法 =====
@@ -454,11 +445,24 @@ export const useCanvasStore = defineStore('canvas', {
         // ===== 新增：颜色选择相关方法 =====
         // 设置指定视图的选中颜色
         setSelectedColorByView(viewId, colorData) {
-            this.selectedColorsByView[viewId] = colorData;
+            this.selectedColorsByView = pwcaSetSelectedColorByView(
+                this.selectedColorsByView,
+                viewId,
+                colorData
+            );
         },
         // 清除指定视图的选中颜色
         clearSelectedColorByView(viewId) {
-            delete this.selectedColorsByView[viewId];
+            this.selectedColorsByView = pwcaClearSelectedColorByView(
+                this.selectedColorsByView,
+                viewId
+            );
+        },
+        // 批量替换所有视图的选中颜色
+        replaceSelectedColorsByView(selectedColorsByView) {
+            this.selectedColorsByView = pwcaNormalizeSelectedColorsByView(
+                selectedColorsByView
+            );
         },
         // 清除所有视图的选中颜色
         clearAllSelectedColors() {
@@ -728,6 +732,7 @@ window.useDesignUsageStore = useDesignUsageStore;
 // 9. 暴露工具函数到全局，让其他脚本也能访问
 window.pwcaBuildMergedLayerControls = pwcaBuildMergedLayerControls;
 window.pwcaExtractStoreCustomizationSettings = pwcaExtractStoreCustomizationSettings;
+window.pwcaNormalizeSelectedColorsByView = pwcaNormalizeSelectedColorsByView;
 
 // 10. 通知其他脚本stores已准备就绪
 let eventTriggered = false;
