@@ -1,5 +1,15 @@
 // src/stores/printMethodStore.js
 
+import {
+    fetchCustomColorsByListId,
+    fetchPrintMethodsByIds
+} from '../api/print-method-api.js';
+import {
+    attachCustomColorsToMethod,
+    convertApiDataToInternalFormat,
+    normalizePrintMethodsApiPayload
+} from './print-method-mapper.js';
+
 // 确保Pinia已加载
 if (!window.Pinia) {
     throw new Error('Pinia is not loaded. Please ensure Pinia is loaded before this script.');
@@ -284,109 +294,24 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
             this.printMethodsError = null;
 
             try {
-                // 通过后端聚合层的REST API端点获取数据
-                const response = await fetch('/wp-json/pw-canvas/v1/print-methods', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        printing_method_ids: printingMethodIds
-                    })
-                });
+                const result = await fetchPrintMethodsByIds(printingMethodIds);
+                const apiMethods = normalizePrintMethodsApiPayload(result);
+                const convertedData = await Promise.all(
+                    apiMethods.map(async (apiMethod) => {
+                        let convertedMethod = convertApiDataToInternalFormat(apiMethod);
 
-                if (!response.ok) {
-                    throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
-                }
-
-                const result = await response.json();
-                
-                if (!result.success) {
-                    throw new Error(result.error || '获取印刷方式数据失败');
-                }
-                
-                // 验证并转换API数据格式
-                let convertedData = [];
-                // 检查API返回的数据结构，可能是嵌套的data字段
-                const apiData = result.data?.data || result.data;
-                
-                if (apiData && Array.isArray(apiData)) {
-                    // 为每个印刷方式获取颜色数据
-                    const methodsWithColors = await Promise.all(
-                        apiData.map(async (item) => {
-                            const convertedMethod = this.convertApiDataToInternalFormat(item);
-                            
-                            // 如果color_list_id有值，获取颜色数据
-                            if (item.color_list_id) {
-                                try {
-                                    const colorResponse = await fetch('/wp-json/pw-canvas/v1/custom-colors', {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                        },
-                                        body: JSON.stringify({
-                                            color_list_id: item.color_list_id
-                                        })
-                                    });
-                                    
-                                    if (colorResponse.ok) {
-                                         const colorResult = await colorResponse.json();
-                                         if (colorResult.success && colorResult.data) {
-                                             // 将颜色数据整合到印刷方式对象中
-                                             convertedMethod.customColors = colorResult.data;
-                                             convertedMethod.apiData.customColors = colorResult.data;
-                                             convertedMethod.settings.color.availableColors = colorResult.data;
-                                             
-                                         }
-                                     } else {
-                                     }
-                                } catch (colorError) {
-                                }
+                        if (apiMethod.color_list_id) {
+                            try {
+                                const customColors = await fetchCustomColorsByListId(apiMethod.color_list_id);
+                                convertedMethod = attachCustomColorsToMethod(convertedMethod, customColors);
+                            } catch (colorError) {
                             }
-                            
-                            return convertedMethod;
-                        })
-                    );
-                    convertedData = methodsWithColors;
-                } else if (apiData) {
-                    // 如果data不是数组，尝试将其包装为数组
-                    const convertedMethod = this.convertApiDataToInternalFormat(apiData);
-                    
-                    // 为单个印刷方式获取颜色数据
-                    if (apiData.color_list_id) {
-                        try {
-                            const colorResponse = await fetch('/wp-json/pw-canvas/v1/custom-colors', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    color_list_id: apiData.color_list_id
-                                })
-                            });
-                            
-                            if (colorResponse.ok) {
-                                 const colorResult = await colorResponse.json();
-                                 if (colorResult.success && colorResult.data) {
-                                     convertedMethod.customColors = colorResult.data;
-                                     convertedMethod.apiData.customColors = colorResult.data;
-                                     convertedMethod.settings.color.availableColors = colorResult.data;
-                                     
-                                 }
-                             }
-                        } catch (colorError) {
                         }
-                    }
-                    
-                    convertedData = [convertedMethod];
-                } else {
-                }
-                
-                // 如果有部分错误，记录警告
-                if (result.has_errors && result.errors) {
-                }
-                
-                
+
+                        return convertedMethod;
+                    })
+                );
+
                 return convertedData;
             } catch (error) {
                 this.printMethodsError = error.message;
@@ -395,82 +320,6 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
                 this.loadingPrintMethods = false;
             }
         },
-        
-        // 转换 API 数据格式为内部格式
-        convertApiDataToInternalFormat(apiMethod) {
-            return {
-                id: apiMethod.id,
-                name: apiMethod.name,
-                label: apiMethod.name,
-                print_method_area_height:apiMethod.print_method_area_height,
-                print_method_area_width:apiMethod.print_method_area_width,
-                size_unit:apiMethod.size_unit,
-                code: apiMethod.code,
-                description: apiMethod.description,
-                // 初始化customColors字段，后续会在fetchPrintMethods中填充
-                customColors: null,
-                features: {
-                    allowCopy: apiMethod.copyable,
-                    allowDelete: true, // API 中没有对应字段，默认为 true
-                    allowMove: true,
-                    allowResize: true,
-                    allowRotate: true,
-                    maxLayers: null, // API 中没有对应字段
-                    supportedTypes: ['text', 'image', 'shape'], // API 中没有对应字段，默认支持所有类型
-                    colorLimitations: apiMethod.printable_color === 'All Color' ? null : apiMethod.color_list_id,
-                    minQuantity: apiMethod.moq_quantity,
-                    printArea: {
-                        width: apiMethod.print_method_area_width,
-                        height: apiMethod.print_method_area_height,
-                        unit: apiMethod.size_unit
-                    }
-                },
-                settings: {
-                    color: {
-                        maxColors: apiMethod.printable_color === 'All Color' ? null : apiMethod.color_list_id,
-                        colorType: apiMethod.printable_color === 'All Color' ? 'full' : 'limited',
-                        pantoneSupport: true, // API 中没有对应字段，默认为 true
-                        // 添加颜色列表字段，后续会在fetchPrintMethods中填充
-                        availableColors: null
-                    },
-                    moq: {
-                        minimum: apiMethod.moq_quantity,
-                        increments: 1 // API 中没有对应字段，默认为 1
-                    },
-                    printArea: {
-                        maxWidth: apiMethod.print_method_area_width,
-                        maxHeight: apiMethod.print_method_area_height,
-                        shape: 'rectangle' // API 中没有对应字段，默认为矩形
-                    },
-                    pricing: {
-                        printCost: apiMethod.print_cost,
-                        anchorPrice: apiMethod.anchor_price,
-                        sampleCost: apiMethod.sample_cost,
-                        sampleEnabled: apiMethod.sample_enabled
-                    },
-                    processing: {
-                        processTime: apiMethod.process_time,
-                        discountEnabled: apiMethod.discount_enabled,
-                        ranges: apiMethod.ranges || []
-                    },
-                    marks: {
-                        cropMark: apiMethod.crop_mark,
-                        bleedMark: apiMethod.bleed_mark,
-                        bleedValue: apiMethod.bleed_value,
-                        showPrintArea: apiMethod.show_print_area,
-                        showContentOut: apiMethod.show_content_out,
-                        sizeMark: apiMethod.size_mark
-                    },
-                    helper: {
-                        text: apiMethod.helper_text,
-                        image: apiMethod.helper_image
-                    }
-                },
-                // 保留原始 API 数据
-                apiData: apiMethod
-            };
-        },
-        
         // 为视图设置打印方式数据
         async setViewPrintMethods(viewId, printingMethodIds, options = {}) {
             const printMethods = await this.fetchPrintMethods(printingMethodIds);
