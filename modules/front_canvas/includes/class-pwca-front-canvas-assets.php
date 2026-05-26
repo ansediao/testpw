@@ -124,9 +124,16 @@ final class Pwca_Front_Canvas_Assets {
 		);
 
 		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-ui-state-access',
+			$this->module_url . 'assets/js/main/ui-state-access.js',
+			array(),
+			$this->module_path . '/assets/js/main/ui-state-access.js'
+		);
+
+		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-toolbar',
 			$this->module_url . 'assets/js/toolbar.js',
-			array(),
+			array( 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/toolbar.js'
 		);
 
@@ -189,7 +196,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-layers-sync',
 			$this->module_url . 'assets/js/main/layers-sync.js',
-			array( 'pwca-front-canvas-preview-init' ),
+			array( 'pwca-front-canvas-preview-init', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/layers-sync.js'
 		);
 
@@ -301,7 +308,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-operation-panel-colors',
 			$this->module_url . 'assets/js/main/operation-panel-colors.js',
-			array( 'pwca-front-canvas-events', 'pwca-front-canvas-multi-view-init' ),
+			array( 'pwca-front-canvas-events', 'pwca-front-canvas-multi-view-init', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/operation-panel-colors.js'
 		);
 

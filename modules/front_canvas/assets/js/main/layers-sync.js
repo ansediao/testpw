@@ -27,13 +27,18 @@ function addCanvasLayerListeners(fabricCanvas) {
     });
 }
 
+function pwcaGetUiStateAccess() {
+    return window.pwcaUiStateAccess || null;
+}
+
 function syncCanvasObjectToStore(obj, action) {
     if (window.CanvasInitializationState && window.CanvasInitializationState.isInitializing) return;
     if (!window.isUserInitiatedAction || !window.isUserInitiatedAction(obj)) return;
-    if (typeof window.useCanvasStore === 'function') {
+    const stateAccess = pwcaGetUiStateAccess();
+    if (stateAccess && typeof stateAccess.getCanvasStore === 'function') {
         try {
-            const store = window.useCanvasStore();
-            const currentViewId = store.activeViewId;
+            const store = stateAccess.getCanvasStore();
+            const currentViewId = stateAccess.getActiveViewId();
             if (!currentViewId) return;
             if (action === 'added' && obj.id) {
                 const currentViewLayers = store.getViewLayers(currentViewId);
@@ -61,9 +66,10 @@ function syncCanvasObjectToStore(obj, action) {
 }
 
 function syncSelectionToStore(objectId) {
-    if (typeof window.useCanvasStore === 'function') {
+    const stateAccess = pwcaGetUiStateAccess();
+    if (stateAccess && typeof stateAccess.getCanvasStore === 'function') {
         try {
-            const store = window.useCanvasStore();
+            const store = stateAccess.getCanvasStore();
             store.setActiveObjectId(objectId);
             updateDongtaiAreaButtons(objectId);
             controlMaskCanvasFromMain(objectId);
@@ -75,7 +81,11 @@ function syncSelectionToStore(objectId) {
 function updateDongtaiAreaButtons(objectId) {
     const dongtaiArea = document.querySelector('.dongtai-area');
     if (!dongtaiArea) return;
-    const canvas = typeof window.getActiveCanvas === 'function' ? window.getActiveCanvas() : null;
+    const stateAccess = pwcaGetUiStateAccess();
+    const canvas =
+        stateAccess && typeof stateAccess.getActiveCanvas === 'function'
+            ? stateAccess.getActiveCanvas()
+            : (typeof window.getActiveCanvas === 'function' ? window.getActiveCanvas() : null);
     if (!canvas || !objectId) { dongtaiArea.style.display = 'none'; return; }
     const selectedObject = canvas.getObjects().find(obj => obj.id === objectId);
     if (selectedObject) { dongtaiArea.style.display = 'block'; showRelevantButtonGroup(selectedObject); }
@@ -94,25 +104,32 @@ function showRelevantButtonGroup(selectedObject) {
 }
 
 function controlMaskCanvasFromMain(objectId) {
-    const store = window.useCanvasStore();
-    if (!store || !store.activeViewId) return;
-    const currentViewId = store.activeViewId;
+    const stateAccess = pwcaGetUiStateAccess();
+    const store = stateAccess && stateAccess.getCanvasStore ? stateAccess.getCanvasStore() : null;
+    const currentViewId = stateAccess && stateAccess.getActiveViewId ? stateAccess.getActiveViewId() : null;
+    if (!store || !currentViewId) return;
     const maskWrapper = document.getElementById(`maskWrapper-${currentViewId}`);
     if (!maskWrapper) return;
     let isGrouped = false;
     if (objectId) {
-        const currentViewLayers = store.getViewLayers(currentViewId);
-        const layer = currentViewLayers.find(l => l.id === objectId);
+        const layer =
+            stateAccess && typeof stateAccess.findCurrentViewLayerById === 'function'
+                ? stateAccess.findCurrentViewLayerById(objectId)
+                : null;
         isGrouped = layer && layer.groupId;
     }
     maskWrapper.style.display = isGrouped ? 'block' : 'none';
 }
 
 function controlMainWrapperDisplayArea(objectId) {
-    const store = window.useCanvasStore();
-    if (!store || !store.activeViewId) return;
-    const currentViewId = store.activeViewId;
-    const mainCanvas = window.CanvasManager?.getCanvas(currentViewId);
+    const stateAccess = pwcaGetUiStateAccess();
+    const store = stateAccess && stateAccess.getCanvasStore ? stateAccess.getCanvasStore() : null;
+    const currentViewId = stateAccess && stateAccess.getActiveViewId ? stateAccess.getActiveViewId() : null;
+    if (!store || !currentViewId) return;
+    const mainCanvas =
+        stateAccess && typeof stateAccess.getCanvasByViewId === 'function'
+            ? stateAccess.getCanvasByViewId(currentViewId)
+            : window.CanvasManager?.getCanvas(currentViewId);
     if (!mainCanvas) return;
     const maskCanvasElement = document.getElementById(`maskCanvas-${currentViewId}`);
     if (!maskCanvasElement || !maskCanvasElement.__fabricCanvas) return;
@@ -149,7 +166,10 @@ function controlMainWrapperDisplayArea(objectId) {
         if (window.PrintAreaValidator && typeof window.PrintAreaValidator.hasPrintMethodAssigned === 'function') {
             isBound = !!window.PrintAreaValidator.hasPrintMethodAssigned(obj);
         } else {
-            const pmStore = typeof window.usePrintMethodStore === 'function' ? window.usePrintMethodStore() : null;
+            const pmStore =
+                stateAccess && typeof stateAccess.getPrintMethodStore === 'function'
+                    ? stateAccess.getPrintMethodStore()
+                    : null;
             if (pmStore) {
                 const methodId = pmStore.layerPrintMethodMap[obj.id];
                 if (methodId) { isBound = true; }

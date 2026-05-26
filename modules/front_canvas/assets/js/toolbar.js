@@ -20,13 +20,14 @@ function pwcaEscapeHtml(value) {
 
 function pwcaGetAvailableTextFonts() {
     const fallbackFonts = ['Arial', 'Times New Roman', 'Courier New', 'SimSun', 'Microsoft YaHei'];
+    const stateAccess = window.pwcaUiStateAccess;
 
-    if (typeof window.useCanvasStore !== 'function') {
+    if (!stateAccess || typeof stateAccess.getCanvasStore !== 'function') {
         return fallbackFonts;
     }
 
     try {
-        const store = window.useCanvasStore();
+        const store = stateAccess.getCanvasStore();
         if (Array.isArray(store.currentTextFontOptions) && store.currentTextFontOptions.length > 0) {
             return store.currentTextFontOptions;
         }
@@ -48,7 +49,11 @@ function pwcaBuildFontOptionsMarkup(selectedFontFamily) {
 
 function updateDynamicToolbar(obj) {
     // 获取当前活动的 canvas 实例
-    const canvas = getActiveCanvas();
+    const stateAccess = window.pwcaUiStateAccess;
+    const canvas =
+        stateAccess && typeof stateAccess.getActiveCanvas === 'function'
+            ? stateAccess.getActiveCanvas()
+            : getActiveCanvas();
     if (!canvas) {
         return;
     }
@@ -123,14 +128,10 @@ function updateDynamicToolbar(obj) {
 
         // 创建颜色选择器（优先使用印刷方式的自定义颜色）
         if (activeButtonId === 'text_color') {
-            const printMethodStore = window.usePrintMethodStore ? window.usePrintMethodStore() : null;
-            let method = null;
-            if (printMethodStore) {
-                method = printMethodStore.getLayerPrintMethod ? printMethodStore.getLayerPrintMethod(obj.id) : null;
-                if (!method && obj.groupId && printMethodStore.getGroupPrintMethod) {
-                    method = printMethodStore.getGroupPrintMethod(obj.groupId);
-                }
-            }
+            const method =
+                stateAccess && typeof stateAccess.getPrintMethodForObject === 'function'
+                    ? stateAccess.getPrintMethodForObject(obj)
+                    : null;
 
             const colors = method && method.customColors && method.customColors.data && Array.isArray(method.customColors.data.colors)
                 ? method.customColors.data.colors

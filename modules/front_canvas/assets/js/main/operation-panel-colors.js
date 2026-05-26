@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const colorSwatchesContainer = document.getElementById('color-swatches-container');
+    const getUiStateAccess = () => window.pwcaUiStateAccess || null;
 
     function isLightColor(color) {
         const hex = String(color || '').replace('#', '');
@@ -54,13 +55,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function saveColorToStore(selectedColor) {
-            if (!window.useCanvasStore) {
+            const stateAccess = getUiStateAccess();
+            const store =
+                stateAccess && typeof stateAccess.getCanvasStore === 'function'
+                    ? stateAccess.getCanvasStore()
+                    : null;
+            const activeViewId =
+                stateAccess && typeof stateAccess.getActiveViewId === 'function'
+                    ? stateAccess.getActiveViewId()
+                    : null;
+
+            if (!store) {
                 console.warn('CanvasStore 不可用');
                 return;
             }
-
-            const store = window.useCanvasStore();
-            const activeViewId = store.activeViewId;
 
             if (!activeViewId) {
                 console.warn('没有激活的视图ID');
@@ -76,13 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const variantId = selectedSwatch.getAttribute('data-variant-id');
             let completeVariantData = null;
 
-            if (
-                variantId &&
-                store.productData &&
-                store.productData.variants &&
-                store.productData.variants.data
-            ) {
-                const variants = store.productData.variants.data;
+            if (variantId) {
+                const variants =
+                    stateAccess && typeof stateAccess.getProductVariants === 'function'
+                        ? stateAccess.getProductVariants()
+                        : [];
                 completeVariantData = variants.find(
                     (variant) => String(variant.id) === String(variantId)
                 );
@@ -149,8 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
         saveColorToStore(color);
 
         (function calculateBulkOrderRts() {
-            if (window.useCanvasStore) {
-                const store = window.useCanvasStore();
+            const stateAccess = getUiStateAccess();
+            if (stateAccess && typeof stateAccess.getCanvasStore === 'function') {
+                const store = stateAccess.getCanvasStore();
                 const totalRts = store.getTotalMaxRtsForBulkOrder;
                 document.dispatchEvent(
                     new CustomEvent('pw-bulk-order-rts-calculated', {
@@ -161,24 +168,30 @@ document.addEventListener('DOMContentLoaded', () => {
         })();
 
         function applyColorTint() {
-            if (!window.useCanvasStore) {
-                return;
-            }
             const tintFn =
                 typeof window.applyTintFilter === 'function' ? window.applyTintFilter : null;
             if (!tintFn) {
                 return;
             }
 
-            const store = window.useCanvasStore();
-            const activeViewId = store.activeViewId;
+            const stateAccess = getUiStateAccess();
+            const store =
+                stateAccess && typeof stateAccess.getCanvasStore === 'function'
+                    ? stateAccess.getCanvasStore()
+                    : null;
+            const activeViewId =
+                stateAccess && typeof stateAccess.getActiveViewId === 'function'
+                    ? stateAccess.getActiveViewId()
+                    : null;
+            const currentView =
+                stateAccess && typeof stateAccess.getCurrentView === 'function'
+                    ? stateAccess.getCurrentView()
+                    : null;
 
-            if (!activeViewId || !store.views) {
+            if (!store || !activeViewId || !currentView) {
                 console.warn('没有激活的视图或 store 不可用');
                 return;
             }
-
-            const currentView = store.views.find((v) => v.id === activeViewId);
             if (!currentView || !currentView.base_layer) {
                 console.warn('当前视图没有 base_layer 或视图不存在');
                 return;
@@ -189,25 +202,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentView.base_layer.applyFilters();
             }
 
-            if (window.CanvasManager) {
-                const activeCanvas = window.CanvasManager.getActiveCanvas();
-                if (activeCanvas) {
-                    if (currentView.base_layer.canvas) {
-                        currentView.base_layer.canvas.renderAll();
-                    }
-                    activeCanvas.renderAll();
-                    requestAnimationFrame(() => {
-                        activeCanvas.renderAll();
-                    });
+            const activeCanvas =
+                stateAccess && typeof stateAccess.getActiveCanvas === 'function'
+                    ? stateAccess.getActiveCanvas()
+                    : (window.CanvasManager ? window.CanvasManager.getActiveCanvas() : null);
+            if (activeCanvas) {
+                if (currentView.base_layer.canvas) {
+                    currentView.base_layer.canvas.renderAll();
                 }
+                activeCanvas.renderAll();
+                requestAnimationFrame(() => {
+                    activeCanvas.renderAll();
+                });
             }
         }
 
         function isFirstView() {
-            if (!window.useCanvasStore) return false;
-            const store = window.useCanvasStore();
-            if (!store.views || store.views.length === 0) return false;
-            return store.activeViewId === store.views[0].id;
+            const stateAccess = getUiStateAccess();
+            const views =
+                stateAccess && typeof stateAccess.getViews === 'function'
+                    ? stateAccess.getViews()
+                    : [];
+            const activeViewId =
+                stateAccess && typeof stateAccess.getActiveViewId === 'function'
+                    ? stateAccess.getActiveViewId()
+                    : null;
+            if (views.length === 0 || !activeViewId) return false;
+            return views[0].id === activeViewId;
         }
 
         if (isFirstView()) {
@@ -290,12 +311,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.applyColorToAllViews = function (color) {
-        if (!window.useCanvasStore) {
-            return;
-        }
-
-        const store = window.useCanvasStore();
-        if (!store.views || store.views.length === 0) {
+        const stateAccess = getUiStateAccess();
+        const views =
+            stateAccess && typeof stateAccess.getViews === 'function'
+                ? stateAccess.getViews()
+                : [];
+        if (views.length === 0) {
             console.warn('没有视图数据');
             return;
         }
@@ -309,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let hasFourGrid = false;
 
-        store.views.forEach((view) => {
+        views.forEach((view) => {
             if (isFourGridView(view)) {
                 hasFourGrid = true;
                 return;
@@ -333,12 +354,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!viewId || !color || color === '#000000') {
                 return;
             }
-            if (!window.useCanvasStore) return;
-            const store = window.useCanvasStore();
+            const stateAccess = getUiStateAccess();
+            const store =
+                stateAccess && typeof stateAccess.getCanvasStore === 'function'
+                    ? stateAccess.getCanvasStore()
+                    : null;
+            if (!store) return;
             let attempts = 0;
 
             const tryApply = () => {
-                const view = store.views ? store.views.find((v) => v.id === viewId) : null;
+                const view =
+                    stateAccess && typeof stateAccess.findViewById === 'function'
+                        ? stateAccess.findViewById(viewId)
+                        : null;
                 if (!view) return;
 
                 if (typeof isFourGridView === 'function' && isFourGridView(view)) {
