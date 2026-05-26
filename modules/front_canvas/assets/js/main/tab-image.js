@@ -1,6 +1,10 @@
 (function () {
     'use strict';
 
+    function pwcaGetUiStateAccess() {
+        return window.pwcaUiStateAccess || null;
+    }
+
     function pwcaIsImageModuleEnabled() {
         if (typeof window.pwcaIsOperationPanelTabAvailable !== 'function') {
             return true;
@@ -17,6 +21,11 @@
     }
 
     function pwcaGetCanvasStore() {
+        const uiStateAccess = pwcaGetUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getCanvasStore === 'function') {
+            return uiStateAccess.getCanvasStore();
+        }
+
         if (typeof window.useCanvasStore !== 'function') {
             return null;
         }
@@ -556,7 +565,7 @@
     }
 
     function pwcaRefreshActiveView(canvas) {
-        const store = window.useCanvasStore && window.useCanvasStore();
+        const store = pwcaGetCanvasStore();
         if (!store || !store.activeViewId) {
             return;
         }
@@ -602,6 +611,11 @@
     }
 
     function pwcaGetActiveCanvasForImage() {
+        const uiStateAccess = pwcaGetUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getActiveCanvas === 'function') {
+            return uiStateAccess.getActiveCanvas();
+        }
+
         if (typeof window.getActiveCanvas === 'function') {
             return window.getActiveCanvas();
         }

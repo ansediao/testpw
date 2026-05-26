@@ -259,14 +259,14 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-tab-text',
 			$this->module_url . 'assets/js/main/tab-text.js',
-			array( 'pwca-front-canvas-dynamic-toolbar' ),
+			array( 'pwca-front-canvas-dynamic-toolbar', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/tab-text.js'
 		);
 
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-tab-image',
 			$this->module_url . 'assets/js/main/tab-image.js',
-			array( 'pwca-front-canvas-dynamic-toolbar' ),
+			array( 'pwca-front-canvas-dynamic-toolbar', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/tab-image.js'
 		);
 

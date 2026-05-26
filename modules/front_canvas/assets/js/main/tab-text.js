@@ -1,25 +1,42 @@
 (function () {
     'use strict';
 
+    function pwcaGetUiStateAccess() {
+        return window.pwcaUiStateAccess || null;
+    }
+
+    function pwcaGetCanvasStore() {
+        const uiStateAccess = pwcaGetUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getCanvasStore === 'function') {
+            return uiStateAccess.getCanvasStore();
+        }
+
+        if (typeof window.useCanvasStore !== 'function') {
+            return null;
+        }
+
+        try {
+            return window.useCanvasStore();
+        } catch (error) {
+            return null;
+        }
+    }
+
     function pwcaGetTextDefaults() {
         const fallbackDefaults = {
             fontFamily: 'Arial',
             fontSize: 30
         };
 
-        if (typeof window.useCanvasStore !== 'function') {
+        const store = pwcaGetCanvasStore();
+        if (!store) {
             return fallbackDefaults;
         }
 
-        try {
-            const store = window.useCanvasStore();
-            return {
-                fontFamily: store.currentDefaultTextFontFamily || fallbackDefaults.fontFamily,
-                fontSize: store.currentDefaultTextFontSize || fallbackDefaults.fontSize
-            };
-        } catch (error) {
-            return fallbackDefaults;
-        }
+        return {
+            fontFamily: store.currentDefaultTextFontFamily || fallbackDefaults.fontFamily,
+            fontSize: store.currentDefaultTextFontSize || fallbackDefaults.fontSize
+        };
     }
 
     function pwcaIsTextModuleEnabled() {
@@ -31,6 +48,11 @@
     }
 
     function pwcaGetActiveCanvasForText() {
+        const uiStateAccess = pwcaGetUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getActiveCanvas === 'function') {
+            return uiStateAccess.getActiveCanvas();
+        }
+
         if (typeof window.getActiveCanvas === 'function') {
             return window.getActiveCanvas();
         }
