@@ -1,5 +1,5 @@
 // src/components/layers.js
-// 图层面板主入口：负责创建并挂载 Vue 应用，本文件只做“组装”，具体逻辑拆分到子模块中
+// 图层面板主入口：负责创建并挂载 Vue 应用，本文件只做"组装"，具体逻辑拆分到子模块中
 
 import { useCanvasStore, usePrintMethodStore, pinia } from '../stores/index.js';
 import { layerModalsTemplate } from './layer-modals.js';
@@ -9,6 +9,7 @@ import { createThumbnailHelpers } from './layers/thumbnail.js';
 import { createGroupHelpers } from './layers/groups.js';
 import { createLayerOperations } from './layers/operations.js';
 import { createPrintMethodHelpers } from './layers/print-methods.js';
+import { openPrintMethodBindingModal } from './layers/print-method-binding-modal.js';
 
 const layersApp = Vue.createApp({
     template: `
@@ -507,6 +508,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.pwcaOpenPrintMethodBindingModal = function(layerId) {
+    if (typeof openPrintMethodBindingModal === 'function') {
+        return openPrintMethodBindingModal(layerId);
+    }
+    
     const stateAccess = window.pwcaUiStateAccess;
     if (!stateAccess) return false;
     
@@ -523,9 +528,6 @@ window.pwcaOpenPrintMethodBindingModal = function(layerId) {
     const layer = viewLayers.find(l => l.id === layerId);
     
     if (!layer) return false;
-    
-    const container = document.getElementById('layers-box');
-    if (!container) return false;
     
     canvasStore.setActiveObjectId(layerId);
     
