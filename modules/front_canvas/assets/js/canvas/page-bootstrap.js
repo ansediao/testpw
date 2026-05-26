@@ -50,6 +50,26 @@ const waitFor = async (predicate, { timeoutMs = 8000, intervalMs = 50 } = {}) =>
   return null;
 };
 
+const pwcaGetUiStateAccess = () => window.pwcaUiStateAccess || null;
+
+const pwcaGetPageBootstrapCanvasStore = () => {
+  const uiStateAccess = pwcaGetUiStateAccess();
+  if (uiStateAccess && typeof uiStateAccess.getCanvasStore === 'function') {
+    return uiStateAccess.getCanvasStore();
+  }
+
+  return typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null;
+};
+
+const pwcaGetPageBootstrapAllViewCanvases = () => {
+  const uiStateAccess = pwcaGetUiStateAccess();
+  if (uiStateAccess && typeof uiStateAccess.getAllViewCanvases === 'function') {
+    return uiStateAccess.getAllViewCanvases();
+  }
+
+  return [];
+};
+
 const initColorSwitchButtons = () => {
   const buttons = document.querySelectorAll('.color-switch-btn');
   if (!buttons || buttons.length === 0) return;
@@ -190,29 +210,25 @@ const capturePrimaryImage = async (previewContainerExists) => {
 const buildViewImagesPayload = async (previewContainerExists) => {
   let viewImagesPayload = [];
   try {
-    if (window.CanvasManager && typeof window.CanvasManager.getAllCanvasIds === 'function') {
-      const allCanvasIds = window.CanvasManager.getAllCanvasIds();
-      allCanvasIds.forEach((viewId) => {
-        const fc = window.CanvasManager.getCanvas(viewId);
-        if (!fc) return;
-        try {
-          const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
-          if (active && active.isEditing && typeof active.exitEditing === 'function') {
-            active.exitEditing();
-          }
-          if (typeof fc.discardActiveObject === 'function') {
-            fc.discardActiveObject();
-          }
-          if (typeof fc.renderAll === 'function') {
-            fc.renderAll();
-          }
-        } catch (e) {
-          console.warn('清除单视图选中状态异常：', viewId, e);
+    pwcaGetPageBootstrapAllViewCanvases().forEach((fc, index) => {
+      if (!fc) return;
+      try {
+        const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
+        if (active && active.isEditing && typeof active.exitEditing === 'function') {
+          active.exitEditing();
         }
-      });
-    }
+        if (typeof fc.discardActiveObject === 'function') {
+          fc.discardActiveObject();
+        }
+        if (typeof fc.renderAll === 'function') {
+          fc.renderAll();
+        }
+      } catch (e) {
+        console.warn('清除单视图选中状态异常：', index, e);
+      }
+    });
 
-    const store = typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null;
+    const store = pwcaGetPageBootstrapCanvasStore();
     const views = store && Array.isArray(store.views) ? store.views : [];
 
     if (views.length > 0 && typeof window.generateUniversalViewImages === 'function') {

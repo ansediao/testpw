@@ -1,8 +1,39 @@
 const arcSliderEl = document.getElementById('arcSlider');
 if (arcSliderEl) { arcSliderEl.addEventListener('input', function () { if (typeof updatePreviewCanvas === 'function') updatePreviewCanvas(); }); }
 
+function pwcaGetUiStateAccess() {
+    return window.pwcaUiStateAccess || null;
+}
+
+function pwcaGetPreviewActiveCanvas() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getActiveCanvas === 'function') {
+        return uiStateAccess.getActiveCanvas();
+    }
+
+    return typeof window.getActiveCanvas === 'function' ? window.getActiveCanvas() : null;
+}
+
+function pwcaGetPreviewCanvasStore() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getCanvasStore === 'function') {
+        return uiStateAccess.getCanvasStore();
+    }
+
+    return typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null;
+}
+
+function pwcaGetAllViewCanvases() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getAllViewCanvases === 'function') {
+        return uiStateAccess.getAllViewCanvases();
+    }
+
+    return [];
+}
+
 function updatePreviewCanvas() {
-    const activeCanvas = typeof window.getActiveCanvas === 'function' ? window.getActiveCanvas() : null;
+    const activeCanvas = pwcaGetPreviewActiveCanvas();
     if (!activeCanvas) return;
     const designPreviewCanvas = document.getElementById('designPreviewCanvas');
     if (!designPreviewCanvas) return;
@@ -34,21 +65,18 @@ window.updatePreviewCanvas = updatePreviewCanvas;
 
 document.getElementById('renderBtn')?.addEventListener('click', async function () {
     try {
-        if (window.CanvasManager && typeof window.CanvasManager.getAllCanvasIds === 'function') {
-            const allCanvasIds = window.CanvasManager.getAllCanvasIds();
-            allCanvasIds.forEach(viewId => {
-                const fc = window.CanvasManager.getCanvas(viewId);
-                if (fc) {
-                    try {
-                        const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
-                        if (active && active.isEditing && typeof active.exitEditing === 'function') active.exitEditing();
-                        if (typeof fc.discardActiveObject === 'function') fc.discardActiveObject();
-                        fc.renderAll();
-                    } catch (e) {}
-                }
+        const allViewCanvases = pwcaGetAllViewCanvases();
+        if (allViewCanvases.length > 0) {
+            allViewCanvases.forEach((fc) => {
+                try {
+                    const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
+                    if (active && active.isEditing && typeof active.exitEditing === 'function') active.exitEditing();
+                    if (typeof fc.discardActiveObject === 'function') fc.discardActiveObject();
+                    fc.renderAll();
+                } catch (e) {}
             });
-        } else if (typeof window.getActiveCanvas === 'function') {
-            const fc = window.getActiveCanvas();
+        } else {
+            const fc = pwcaGetPreviewActiveCanvas();
             if (fc) {
                 const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
                 if (active && active.isEditing && typeof active.exitEditing === 'function') active.exitEditing();
@@ -57,13 +85,11 @@ document.getElementById('renderBtn')?.addEventListener('click', async function (
             }
         }
     } catch (e) {}
-    if (typeof window.useCanvasStore === 'function') {
-        try {
-            const store = window.useCanvasStore();
-            const views = store.views || [];
-            if (views.length > 0) { await window.showUniversalViewPreview(views); return; }
-        } catch (error) {}
-    }
+    try {
+        const store = pwcaGetPreviewCanvasStore();
+        const views = store && Array.isArray(store.views) ? store.views : [];
+        if (views.length > 0) { await window.showUniversalViewPreview(views); return; }
+    } catch (error) {}
     const previewContainer = document.querySelector('.preview-canvas-container');
     const imageData = await (previewContainer ? capturePreviewCanvas() : captureCanvas());
     const previewWindow = window.open('', '_blank');

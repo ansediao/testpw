@@ -68,6 +68,34 @@
         return window.CanvasManager.getCanvas(viewId);
     }
 
+    function getAllViewIds() {
+        const viewIdsFromStore = getViews()
+            .map((view) => (view && view.id ? view.id : null))
+            .filter((viewId) => typeof viewId === 'string' && viewId !== '');
+
+        if (viewIdsFromStore.length > 0) {
+            return viewIdsFromStore;
+        }
+
+        if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
+            return window.CanvasManager.getViewIds() || [];
+        }
+
+        if (window.CanvasManager && typeof window.CanvasManager.getAllCanvasIds === 'function') {
+            return (window.CanvasManager.getAllCanvasIds() || []).filter((canvasId) => {
+                return typeof canvasId === 'string' && canvasId.indexOf('baseCanvas-') !== 0;
+            });
+        }
+
+        return [];
+    }
+
+    function getAllViewCanvases() {
+        return getAllViewIds()
+            .map((viewId) => getCanvasByViewId(viewId))
+            .filter((canvas) => canvas !== null);
+    }
+
     function getBaseCanvasByViewId(viewId) {
         if (!viewId) {
             return null;
@@ -204,6 +232,8 @@
         getProductVariants,
         hasProductVariants,
         getCanvasByViewId,
+        getAllViewIds,
+        getAllViewCanvases,
         getBaseCanvasByViewId,
         getActiveCanvas,
         getActiveObject,

@@ -1,4 +1,37 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const getUiStateAccess = () => window.pwcaUiStateAccess || null;
+
+    const getAllViewCanvases = () => {
+        const uiStateAccess = getUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getAllViewCanvases === 'function') {
+            return uiStateAccess.getAllViewCanvases();
+        }
+
+        return [];
+    };
+
+    const getActiveCanvas = () => {
+        const uiStateAccess = getUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getActiveCanvas === 'function') {
+            return uiStateAccess.getActiveCanvas();
+        }
+
+        return window.canvas || window.fabricCanvas || null;
+    };
+
+    const discardSelectionForAllViewCanvases = () => {
+        getAllViewCanvases().forEach((canvas) => {
+            if (canvas && typeof canvas.discardActiveObject === 'function') {
+                canvas.discardActiveObject();
+                if (typeof canvas.requestRenderAll === 'function') {
+                    canvas.requestRenderAll();
+                } else if (typeof canvas.renderAll === 'function') {
+                    canvas.renderAll();
+                }
+            }
+        });
+    };
+
     window.canvasInitTextUI = function () {
         try {
             const textInputBtn = document.getElementById('text_input');
@@ -40,23 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (tab.id === 'tab-pianquan') {
                 try {
-                    if (
-                        window.CanvasManager &&
-                        typeof window.CanvasManager.getViewIds === 'function'
-                    ) {
-                        const viewIds = window.CanvasManager.getViewIds();
-                        viewIds.forEach((viewId) => {
-                            const canvas = window.CanvasManager.getCanvas(viewId);
-                            if (canvas && typeof canvas.discardActiveObject === 'function') {
-                                canvas.discardActiveObject();
-                                if (typeof canvas.requestRenderAll === 'function') {
-                                    canvas.requestRenderAll();
-                                } else if (typeof canvas.renderAll === 'function') {
-                                    canvas.renderAll();
-                                }
-                            }
-                        });
-                    }
+                    discardSelectionForAllViewCanvases();
 
                     if (typeof window.updateDynamicToolbar === 'function') {
                         window.updateDynamicToolbar(null);
@@ -81,32 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 try {
-                    if (
-                        window.CanvasManager &&
-                        typeof window.CanvasManager.getViewIds === 'function'
-                    ) {
-                        const viewIds = window.CanvasManager.getViewIds();
-                        viewIds.forEach((viewId) => {
-                            const canvas = window.CanvasManager.getCanvas(viewId);
-                            if (canvas && typeof canvas.discardActiveObject === 'function') {
-                                canvas.discardActiveObject();
-                                if (typeof canvas.requestRenderAll === 'function') {
-                                    canvas.requestRenderAll();
-                                } else if (typeof canvas.renderAll === 'function') {
-                                    canvas.renderAll();
-                                }
-                            }
-                        });
-                    }
+                    discardSelectionForAllViewCanvases();
                 } catch (err) {
                     console.warn('点击文字选项卡时清空选区失败:', err);
                 }
 
-                const activeCanvas =
-                    window.CanvasManager &&
-                    typeof window.CanvasManager.getActiveCanvas === 'function'
-                        ? window.CanvasManager.getActiveCanvas()
-                        : window.canvas || window.fabricCanvas;
+                const activeCanvas = getActiveCanvas();
 
                 const activeObject =
                     activeCanvas && typeof activeCanvas.getActiveObject === 'function'

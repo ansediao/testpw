@@ -182,7 +182,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-preview',
 			$this->module_url . 'assets/js/main/preview.js',
-			array( 'pwca-front-canvas-core-init' ),
+			array( 'pwca-front-canvas-core-init', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/preview.js'
 		);
 
@@ -294,7 +294,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-operation-panel-tabs',
 			$this->module_url . 'assets/js/main/operation-panel-tabs.js',
-			array( 'pwca-front-canvas-events' ),
+			array( 'pwca-front-canvas-events', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/operation-panel-tabs.js'
 		);
 
@@ -362,7 +362,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-page-bootstrap',
 			$this->module_url . 'assets/js/canvas/page-bootstrap.js',
-			array( 'pwca-front-canvas-design-main' ),
+			array( 'pwca-front-canvas-design-main', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/canvas/page-bootstrap.js'
 		);
 		wp_script_add_data( 'pwca-front-canvas-page-bootstrap', 'type', 'module' );
