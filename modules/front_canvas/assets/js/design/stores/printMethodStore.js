@@ -5,6 +5,49 @@ if (!window.Pinia) {
     throw new Error('Pinia is not loaded. Please ensure Pinia is loaded before this script.');
 }
 
+function pwcaResolveGroupPrintMethodId(state, groupOrId) {
+    const groupId =
+        groupOrId && typeof groupOrId === 'object'
+            ? groupOrId.id
+            : groupOrId;
+
+    if (!groupId) {
+        return null;
+    }
+
+    let methodId = state.groupPrintMethodMap[groupId];
+    if (!methodId) {
+        const match = String(groupId).match(/print-method-(.+)$/);
+        if (match) {
+            methodId = match[1];
+        }
+    }
+
+    return methodId || null;
+}
+
+function pwcaResolveLayerPrintMethodId(state, layerOrId) {
+    const layerId =
+        layerOrId && typeof layerOrId === 'object'
+            ? layerOrId.id
+            : layerOrId;
+
+    if (!layerId) {
+        return null;
+    }
+
+    let methodId = state.layerPrintMethodMap[layerId];
+    if (methodId) {
+        return methodId;
+    }
+
+    if (layerOrId && typeof layerOrId === 'object' && layerOrId.groupId) {
+        return pwcaResolveGroupPrintMethodId(state, layerOrId.groupId);
+    }
+
+    return null;
+}
+
 // 打印方式管理 Store
 export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
     state: () => ({
@@ -67,8 +110,8 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
         },
 
         // 获取图层的打印方式
-        getLayerPrintMethod: (state) => (layerId) => {
-            const methodId = state.layerPrintMethodMap[layerId];
+        getLayerPrintMethod: (state) => (layerOrId) => {
+            const methodId = pwcaResolveLayerPrintMethodId(state, layerOrId);
             return methodId ? state.currentViewPrintMethods.find(method => method.id === methodId) : null;
         },
 
@@ -105,41 +148,19 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
         },
 
         // 检查图层是否允许复制
-        isLayerCopyAllowed: (state) => (layerId) => {
-            // 1. 检查直接映射
-            let methodId = state.layerPrintMethodMap[layerId];
-            
-            // 2. 如果没有直接映射，通过图层信息获取groupId
-            if (!methodId) {
-                const canvasStore = window.useCanvasStore();
-                if (canvasStore && canvasStore.activeViewId) {
-                    const currentLayers = canvasStore.getViewLayers(canvasStore.activeViewId);
-                    const layer = currentLayers.find(l => l.id === layerId);
-                    
-                    if (layer && layer.groupId) {
-                        // 从图层组ID推断打印方式ID
-                        const match = layer.groupId.match(/^print-method-(.+)$/);
-                        if (match) {
-                            methodId = match[1];
-                        }
-                    }
-                }
-            }
-            
-            // 3. 如果仍然没有找到打印方式，默认允许
+        isLayerCopyAllowed: (state) => (layerOrId) => {
+            const methodId = pwcaResolveLayerPrintMethodId(state, layerOrId);
             if (!methodId) return true;
-            
-            // 4. 在当前视图的打印方式中查找
+
             const method = state.currentViewPrintMethods.find(m => m.id === methodId);
             if (!method) return true;
-            
-            // 5. 检查features.allowCopy（基于apiData.copyable）
+
             return method.features.allowCopy;
         },
 
         // 检查图层是否允许删除
-        isLayerDeleteAllowed: (state) => (layerId) => {
-            const methodId = state.layerPrintMethodMap[layerId];
+        isLayerDeleteAllowed: (state) => (layerOrId) => {
+            const methodId = pwcaResolveLayerPrintMethodId(state, layerOrId);
             if (!methodId) return true;
 
             const method = state.currentViewPrintMethods.find(m => m.id === methodId);
@@ -147,18 +168,8 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
         },
 
         // 检查图层组是否允许复制（基于组的打印方式）
-        isGroupCopyAllowed: (state) => (groupId) => {
-            // 先检查直接映射
-            let methodId = state.groupPrintMethodMap[groupId];
-
-            // 如果没有直接映射，从组ID推断打印方式ID
-            if (!methodId) {
-                const match = groupId.match(/print-method-(.+)$/);
-                if (match) {
-                    methodId = match[1];
-                }
-            }
-
+        isGroupCopyAllowed: (state) => (groupOrId) => {
+            const methodId = pwcaResolveGroupPrintMethodId(state, groupOrId);
             if (!methodId) return true; // 如果没有指定打印方式，默认允许
 
             const method = state.currentViewPrintMethods.find(m => m.id === methodId);
@@ -166,18 +177,8 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
         },
 
         // 检查图层组是否允许删除（基于组的打印方式）
-        isGroupDeleteAllowed: (state) => (groupId) => {
-            // 先检查直接映射
-            let methodId = state.groupPrintMethodMap[groupId];
-
-            // 如果没有直接映射，从组ID推断打印方式ID
-            if (!methodId) {
-                const match = groupId.match(/print-method-(.+)$/);
-                if (match) {
-                    methodId = match[1];
-                }
-            }
-
+        isGroupDeleteAllowed: (state) => (groupOrId) => {
+            const methodId = pwcaResolveGroupPrintMethodId(state, groupOrId);
             if (!methodId) return true;
 
             const method = state.currentViewPrintMethods.find(m => m.id === methodId);
@@ -185,18 +186,8 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
         },
 
         // 根据图层组ID获取对应的打印方式
-        getGroupPrintMethod: (state) => (groupId) => {
-            // 先检查直接映射
-            let methodId = state.groupPrintMethodMap[groupId];
-
-            // 如果没有直接映射，从组ID推断打印方式ID
-            if (!methodId) {
-                const match = groupId.match(/print-method-(.+)$/);
-                if (match) {
-                    methodId = match[1];
-                }
-            }
-
+        getGroupPrintMethod: (state) => (groupOrId) => {
+            const methodId = pwcaResolveGroupPrintMethodId(state, groupOrId);
             return methodId ? state.currentViewPrintMethods.find(method => method.id === methodId) : null;
         },
 
@@ -565,22 +556,6 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
         assignLayerPrintMethod(layerId, methodId) {
             if (this.currentViewPrintMethods.find(method => method.id === methodId)) {
                 this.layerPrintMethodMap[layerId] = methodId;
-                const canvasStore = window.useCanvasStore();
-                const viewId = canvasStore && canvasStore.activeViewId ? canvasStore.activeViewId : null;
-                if (viewId) this.recordPrintMethodUsage(viewId, methodId);
-
-                if (viewId && window.CanvasManager && typeof window.CanvasManager.getCanvas === 'function') {
-                    const canvas = window.CanvasManager.getCanvas(viewId);
-                    if (canvas && typeof canvas.getObjects === 'function') {
-                        const obj = canvas.getObjects().find(o => String(o.id) === String(layerId));
-                        if (obj && window.PrintAreaValidator && typeof window.PrintAreaValidator.validateAndRepositionObject === 'function') {
-                            try {
-                                const result = window.PrintAreaValidator.validateAndRepositionObject(obj, viewId);
-                            } catch (e) {
-                            }
-                        }
-                    }
-                }
             }
         },
 
@@ -589,9 +564,6 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
             const methodId = this.layerPrintMethodMap[layerId];
             if (methodId != null) {
                 delete this.layerPrintMethodMap[layerId];
-                const canvasStore = window.useCanvasStore();
-                const viewId = canvasStore && canvasStore.activeViewId ? canvasStore.activeViewId : null;
-                if (viewId) this.unrecordPrintMethodUsage(viewId, methodId);
             }
         },
 
@@ -600,28 +572,6 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
             if (!groupId) return;
             if (this.currentViewPrintMethods.find(method => method.id === methodId)) {
                 this.groupPrintMethodMap[groupId] = methodId;
-                const canvasStore = window.useCanvasStore();
-                const viewId = canvasStore && canvasStore.activeViewId ? canvasStore.activeViewId : null;
-                if (viewId) this.recordPrintMethodUsage(viewId, methodId);
-
-                if (viewId && window.CanvasManager && typeof window.CanvasManager.getCanvas === 'function') {
-                    const canvas = window.CanvasManager.getCanvas(viewId);
-                    if (canvas && typeof canvas.getObjects === 'function' && canvasStore && typeof canvasStore.getViewLayers === 'function') {
-                        const layers = canvasStore.getViewLayers(viewId) || [];
-                        const groupLayers = layers.filter(l => String(l.groupId) === String(groupId));
-                        if (groupLayers.length > 0 && window.PrintAreaValidator && typeof window.PrintAreaValidator.validateAndRepositionObject === 'function') {
-                            try {
-                                for (const l of groupLayers) {
-                                    const obj = canvas.getObjects().find(o => String(o.id) === String(l.id));
-                                    if (obj) {
-                                        const result = window.PrintAreaValidator.validateAndRepositionObject(obj, viewId);
-                                    }
-                                }
-                            } catch (e) {
-                            }
-                        }
-                    }
-                }
             }
         },
 
@@ -631,9 +581,6 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
             const methodId = this.groupPrintMethodMap[groupId];
             if (methodId != null) {
                 delete this.groupPrintMethodMap[groupId];
-                const canvasStore = window.useCanvasStore();
-                const viewId = canvasStore && canvasStore.activeViewId ? canvasStore.activeViewId : null;
-                if (viewId) this.unrecordPrintMethodUsage(viewId, methodId);
             }
         },
 

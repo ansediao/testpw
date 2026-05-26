@@ -1,6 +1,12 @@
 // 打印方式相关逻辑
 // 负责：打印方式列表、按钮禁用状态、图层/图层组打印方式切换与弹窗交互
 
+import {
+    assignLayerToPrintMethodWithGrouping,
+    changeGroupPrintMethodWithGrouping,
+    getPrintMethodColor
+} from './print-method-assignment-service.js';
+
 export function createPrintMethodHelpers(options) {
     const {
         store,
@@ -140,76 +146,11 @@ export function createPrintMethodHelpers(options) {
         selectedLayerForAssign.value = null;
     };
 
-    const getPrintMethodColor = (methodId) => {
-        const colors = {
-            'method-a': '#FF6B6B',
-            'method-b': '#4ECDC4',
-            'method-c': '#45B7D1',
-            'method-d': '#96CEB4',
-            'method-e': '#FFEAA7',
-            'method-f': '#DDA0DD'
-        };
-        return colors[methodId] || '#999999';
-    };
-
-    const assignLayerToGroup = (groupId) => {
-        const currentViewId = store.activeViewId;
-        if (!currentViewId) {
-            return;
-        }
-
-        const viewLayers = store.getViewLayers(currentViewId);
-        const layerIndex = viewLayers.findIndex(
-            (l) => l.id === selectedLayerForAssign.value.id
-        );
-        if (layerIndex !== -1) {
-            const updatedLayers = [...viewLayers];
-            updatedLayers[layerIndex] = {
-                ...updatedLayers[layerIndex],
-                groupId,
-                printMethodId: selectedPrintMethodId.value,
-                groupOrder: getGroupLayers(groupId).length
-            };
-            store.setViewLayers(currentViewId, updatedLayers);
-
-            if (store.activeObjectId === selectedLayerForAssign.value.id) {
-                controlMaskCanvasVisibility(selectedLayerForAssign.value.id);
-            }
-        }
-
-        isPrintMethodModalOpen.value = false;
-        selectedLayerForAssign.value = null;
-    };
-
     const assignLayerToPrintMethod = () => {
         if (!selectedLayerForAssign.value || !selectedPrintMethodId.value) {
             window.alert('请选择一个打印方法');
             return;
         }
-
-        const selectedMethod = printMethodStore.getPrintMethodById(
-            selectedPrintMethodId.value
-        );
-        if (!selectedMethod) {
-            window.alert('选择的打印方法无效');
-            return;
-        }
-
-        const validation = printMethodStore.validateLayerForPrintMethod(
-            selectedLayerForAssign.value,
-            selectedPrintMethodId.value
-        );
-        if (!validation.valid) {
-            window.alert(
-                `图层不符合打印方式要求：\n${validation.errors.join('\n')}`
-            );
-            return;
-        }
-
-        printMethodStore.assignLayerPrintMethod(
-            selectedLayerForAssign.value.id,
-            selectedPrintMethodId.value
-        );
 
         let printMethodOption = 'merge';
         if (isSelectedLayerInExistingGroup.value) {
@@ -221,59 +162,23 @@ export function createPrintMethodHelpers(options) {
             }
         }
 
-        if (printMethodOption === 'separate') {
-            const timestamp = Date.now();
-            const groupId = `print-method-${selectedPrintMethodId.value}-${timestamp}`;
+        const result = assignLayerToPrintMethodWithGrouping({
+            store,
+            printMethodStore,
+            layerGroups,
+            selectedLayer: selectedLayerForAssign.value,
+            methodId: selectedPrintMethodId.value,
+            getGroupLayers,
+            controlMaskCanvasVisibility,
+            printMethodOption
+        });
 
-            const newGroup = {
-                id: groupId,
-                name: `${selectedMethod.name} (${timestamp})`,
-                color: getPrintMethodColor(selectedPrintMethodId.value),
-                visible: true,
-                locked: false,
-                expanded: true,
-                printMethodId: selectedPrintMethodId.value
-            };
-
-            const updatedGroups = [...layerGroups.value, newGroup];
-            const currentViewId = store.activeViewId;
-            if (currentViewId) {
-                store.setViewLayerGroups(currentViewId, updatedGroups);
-            } else {
-                store.setLayerGroups(updatedGroups);
-            }
-
-            assignLayerToGroup(groupId);
-        } else {
-            const groupId = `print-method-${selectedPrintMethodId.value}`;
-            const currentViewId = store.activeViewId;
-
-            let existingGroup = layerGroups.value.find(
-                (g) => g.id === groupId
-            );
-            if (!existingGroup) {
-                const newGroup = {
-                    id: groupId,
-                    name: selectedMethod.name,
-                    color: getPrintMethodColor(selectedPrintMethodId.value),
-                    visible: true,
-                    locked: false,
-                    expanded: true,
-                    printMethodId: selectedPrintMethodId.value
-                };
-                const updatedGroups = [...layerGroups.value, newGroup];
-
-                if (currentViewId) {
-                    store.setViewLayerGroups(currentViewId, updatedGroups);
-                } else {
-                    store.setLayerGroups(updatedGroups);
-                }
-
-                existingGroup = newGroup;
-            }
-
-            assignLayerToGroup(groupId);
+        if (!result.success) {
+            window.alert(result.error || '分配印刷方式失败');
+            return;
         }
+
+        closePrintMethodModal();
     };
 
     const showGroupPrintMethodDialog = (group) => {
@@ -312,115 +217,22 @@ export function createPrintMethodHelpers(options) {
             return;
         }
 
-        const selectedMethod = printMethodStore.getPrintMethodById(
-            selectedGroupPrintMethodId.value
-        );
-        if (!selectedMethod) {
-            window.alert('选择的印刷方式无效');
-            return;
-        }
-
-        const groupLayers = getGroupLayers(selectedGroupForPrintMethod.value.id);
-
-        const invalidLayers = [];
-        for (const layer of groupLayers) {
-            const validation = printMethodStore.validateLayerForPrintMethod(
-                layer,
-                selectedGroupPrintMethodId.value
-            );
-            if (!validation.valid) {
-                invalidLayers.push({
-                    layer,
-                    errors: validation.errors
-                });
-            }
-        }
-
-        if (invalidLayers.length > 0) {
-            let errorMessage = '以下图层不符合新印刷方式要求：\n';
-            invalidLayers.forEach((item) => {
-                errorMessage += `\n- ${
-                    item.layer.name || item.layer.type
-                }: ${item.errors.join(', ')}`;
-            });
-            window.alert(errorMessage);
-            return;
-        }
-
-        const currentViewId = store.activeViewId;
-        if (!currentViewId) {
-            return;
-        }
-
-        const newGroupId = `print-method-${selectedGroupPrintMethodId.value}`;
-        let newGroup = layerGroups.value.find((g) => g.id === newGroupId);
-
-        if (!newGroup) {
-            newGroup = {
-                id: newGroupId,
-                name: selectedMethod.name,
-                color: getPrintMethodColor(selectedGroupPrintMethodId.value),
-                visible: true,
-                locked: false,
-                expanded: true,
-                printMethodId: selectedGroupPrintMethodId.value
-            };
-
-            const currentViewGroups = store.getViewLayerGroups(currentViewId);
-            const updatedGroups = [...currentViewGroups, newGroup];
-            store.setViewLayerGroups(currentViewId, updatedGroups);
-        }
-
-        const viewLayers = store.getViewLayers(currentViewId);
-        const updatedLayers = [...viewLayers];
-
-        groupLayers.forEach((layer, index) => {
-            const layerIndex = updatedLayers.findIndex(
-                (l) => l.id === layer.id
-            );
-            if (layerIndex !== -1) {
-                printMethodStore.assignLayerPrintMethod(
-                    layer.id,
-                    selectedGroupPrintMethodId.value
-                );
-
-                updatedLayers[layerIndex] = {
-                    ...updatedLayers[layerIndex],
-                    groupId: newGroupId,
-                    printMethodId: selectedGroupPrintMethodId.value,
-                    groupOrder: index
-                };
-            }
+        const result = changeGroupPrintMethodWithGrouping({
+            store,
+            printMethodStore,
+            layerGroups,
+            group: selectedGroupForPrintMethod.value,
+            methodId: selectedGroupPrintMethodId.value,
+            getGroupLayers,
+            controlMaskCanvasVisibility
         });
 
-        store.setViewLayers(currentViewId, updatedLayers);
-
-        const oldGroupLayers = getGroupLayers(selectedGroupForPrintMethod.value.id);
-        if (oldGroupLayers.length === 0) {
-            const currentViewGroups = store.getViewLayerGroups(currentViewId);
-            const filteredGroups = currentViewGroups.filter(
-                (g) => g.id !== selectedGroupForPrintMethod.value.id
-            );
-            store.setViewLayerGroups(currentViewId, filteredGroups);
+        if (!result.success) {
+            window.alert(result.error || '修改印刷方式失败');
+            return;
         }
 
         closeGroupPrintMethodModal();
-
-        const event = new CustomEvent('pwcaGroupPrintMethodChanged', {
-            detail: {
-                groupId: selectedGroupForPrintMethod.value.id,
-                newPrintMethodId: selectedGroupPrintMethodId.value,
-                affectedLayers: groupLayers
-            }
-        });
-        document.dispatchEvent(event);
-
-        if (store.activeObjectId) {
-            const affectedLayerIds = groupLayers.map((layer) => layer.id);
-            if (affectedLayerIds.includes(store.activeObjectId)) {
-                controlMaskCanvasVisibility(store.activeObjectId);
-            }
-        }
     };
 
     return {

@@ -17,17 +17,17 @@ export function createLayerOperations(options) {
         controlMaskCanvasVisibility
     } = options;
 
-    const isLayerCopyAllowed = (layerId) =>
-        printMethodStore.isLayerCopyAllowed(layerId);
+    const isLayerCopyAllowed = (layer) =>
+        printMethodStore.isLayerCopyAllowed(layer);
 
-    const isLayerDeleteAllowed = (layerId) =>
-        printMethodStore.isLayerDeleteAllowed(layerId);
+    const isLayerDeleteAllowed = (layer) =>
+        printMethodStore.isLayerDeleteAllowed(layer);
 
-    const isGroupCopyAllowed = (groupId) =>
-        printMethodStore.isGroupCopyAllowed(groupId);
+    const isGroupCopyAllowed = (group) =>
+        printMethodStore.isGroupCopyAllowed(group);
 
-    const isGroupDeleteAllowed = (groupId) =>
-        printMethodStore.isGroupDeleteAllowed(groupId);
+    const isGroupDeleteAllowed = (group) =>
+        printMethodStore.isGroupDeleteAllowed(group);
 
     const addLayer = () => {
         const newLayer = {
@@ -93,7 +93,7 @@ export function createLayerOperations(options) {
     };
 
     const duplicateLayer = (layer, targetGroupId = null) => {
-        if (!isLayerCopyAllowed(layer.id)) {
+        if (!isLayerCopyAllowed(layer)) {
             return;
         }
         const currentViewId = store.activeViewId;
@@ -120,7 +120,7 @@ export function createLayerOperations(options) {
     };
 
     const deleteLayer = (layer, clearThumbnailCache) => {
-        if (!isLayerDeleteAllowed(layer.id)) {
+        if (!isLayerDeleteAllowed(layer)) {
             return;
         }
 
@@ -167,7 +167,7 @@ export function createLayerOperations(options) {
     };
 
     const duplicateGroup = (group) => {
-        if (!isGroupCopyAllowed(group.id)) {
+        if (!isGroupCopyAllowed(group)) {
             return;
         }
 
@@ -197,7 +197,7 @@ export function createLayerOperations(options) {
     };
 
     const deleteGroup = (group) => {
-        if (!isGroupDeleteAllowed(group.id)) {
+        if (!isGroupDeleteAllowed(group)) {
             return;
         }
 

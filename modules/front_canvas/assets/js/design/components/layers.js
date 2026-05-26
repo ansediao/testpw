@@ -59,10 +59,10 @@ const layersApp = Vue.createApp({
                                     <button
                                         @click.stop="duplicateLayer(layer)"
                                         class="layer-btn layer-copy"
-                                        :class="{ disabled: !isLayerCopyAllowed(layer.id) }"
-                                        :disabled="!isLayerCopyAllowed(layer.id)"
+                                        :class="{ disabled: !isLayerCopyAllowed(layer) }"
+                                        :disabled="!isLayerCopyAllowed(layer)"
                                         :title="
-                                            isLayerCopyAllowed(layer.id)
+                                            isLayerCopyAllowed(layer)
                                                 ? 'Copy layer'
                                                 : 'Copy not allowed for this print method'
                                         "
@@ -141,10 +141,10 @@ const layersApp = Vue.createApp({
                                 <button
                                     @click.stop="deleteGroup(group)"
                                     class="layer-btn delete"
-                                    :class="{ disabled: !isGroupDeleteAllowed(group.id) }"
-                                    :disabled="!isGroupDeleteAllowed(group.id)"
+                                    :class="{ disabled: !isGroupDeleteAllowed(group) }"
+                                    :disabled="!isGroupDeleteAllowed(group)"
                                     :title="
-                                        isGroupDeleteAllowed(group.id)
+                                        isGroupDeleteAllowed(group)
                                             ? 'Delete group'
                                             : 'Delete not allowed for this print method'
                                     "
@@ -154,10 +154,10 @@ const layersApp = Vue.createApp({
                                 <button
                                     @click.stop="duplicateGroup(group)"
                                     class="layer-btn group-copy"
-                                    :class="{ disabled: !isGroupCopyAllowed(group.id) }"
-                                    :disabled="!isGroupCopyAllowed(group.id)"
+                                    :class="{ disabled: !isGroupCopyAllowed(group) }"
+                                    :disabled="!isGroupCopyAllowed(group)"
                                     :title="
-                                        isGroupCopyAllowed(group.id)
+                                        isGroupCopyAllowed(group)
                                             ? 'Copy group'
                                             : 'Copy not allowed for this print method'
                                     "
@@ -213,11 +213,11 @@ const layersApp = Vue.createApp({
                                             @click.stop="duplicateLayer(layer)"
                                             class="layer-btn layer-copy"
                                             :class="{
-                                                disabled: !isLayerCopyAllowed(layer.id)
+                                                disabled: !isLayerCopyAllowed(layer)
                                             }"
-                                            :disabled="!isLayerCopyAllowed(layer.id)"
+                                            :disabled="!isLayerCopyAllowed(layer)"
                                             :title="
-                                                isLayerCopyAllowed(layer.id)
+                                                isLayerCopyAllowed(layer)
                                                     ? 'Copy layer'
                                                     : 'Copy not allowed for this print method'
                                             "
