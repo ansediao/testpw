@@ -8,6 +8,7 @@ import {
     pwcaNormalizeSelectedColorsByView,
     pwcaSetSelectedColorByView
 } from './color-selection-helper.js';
+import { pwcaNormalizeViewRestorePayload } from './view-restore-helper.js';
 import {
     pwcaBuildMergedLayerControls,
     pwcaBuildMergedViewCustomizationSettings,
@@ -291,12 +292,17 @@ export const useCanvasStore = defineStore('canvas', {
         },
         // 批量设置视图数据（用于状态恢复）
         restoreViewData(viewId, { layers, layerGroups }) {
-            this.viewLayers[viewId] = layers || [];
-            this.viewLayerGroups[viewId] = layerGroups || [];
+            const normalizedPayload = pwcaNormalizeViewRestorePayload({
+                layers,
+                layerGroups
+            });
+
+            this.viewLayers[viewId] = normalizedPayload.layers;
+            this.viewLayerGroups[viewId] = normalizedPayload.layerGroups;
             // 如果是当前激活视图，同时更新全局 layers 和 layerGroups
             if (viewId === this.activeViewId) {
-                this.layers = layers || [];
-                this.layerGroups = layerGroups || [];
+                this.layers = normalizedPayload.layers;
+                this.layerGroups = normalizedPayload.layerGroups;
             }
         },
         // 强制同步当前视图的图层数据到全局状态（用于状态恢复后的同步）
@@ -733,6 +739,7 @@ window.useDesignUsageStore = useDesignUsageStore;
 window.pwcaBuildMergedLayerControls = pwcaBuildMergedLayerControls;
 window.pwcaExtractStoreCustomizationSettings = pwcaExtractStoreCustomizationSettings;
 window.pwcaNormalizeSelectedColorsByView = pwcaNormalizeSelectedColorsByView;
+window.pwcaNormalizeViewRestorePayload = pwcaNormalizeViewRestorePayload;
 
 // 10. 通知其他脚本stores已准备就绪
 let eventTriggered = false;

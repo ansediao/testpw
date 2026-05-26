@@ -1511,16 +1511,36 @@ class CanvasStateManager {
                 }).filter(layerItem => layerItem !== null);
             }
             
+            const normalizedRestorePayload =
+                typeof window.pwcaNormalizeViewRestorePayload === 'function'
+                    ? window.pwcaNormalizeViewRestorePayload({
+                        layers: layersToRestore,
+                        layerGroups: layerGroupsToRestore
+                    })
+                    : {
+                        layers: Array.isArray(layersToRestore) ? layersToRestore : [],
+                        layerGroups: Array.isArray(layerGroupsToRestore)
+                            ? layerGroupsToRestore
+                            : []
+                    };
+
             // 检查是否有 restoreViewData 方法
             if (typeof canvasStore.restoreViewData === 'function') {
-                canvasStore.restoreViewData(viewId, { layers: layersToRestore, layerGroups: layerGroupsToRestore });
+                canvasStore.restoreViewData(viewId, normalizedRestorePayload);
             } else {
                 // 降级方案：使用现有方法
-                canvasStore.setViewLayers(viewId, layersToRestore);
-                canvasStore.setViewLayerGroups(viewId, layerGroupsToRestore);
+                canvasStore.setViewLayers(viewId, normalizedRestorePayload.layers);
+                canvasStore.setViewLayerGroups(viewId, normalizedRestorePayload.layerGroups);
             }
             
-            ErrorHandler.logInfo('图层数据恢复成功，viewId:', viewId + '，图层数: ' + layersToRestore.length + '，图层组数: ' + layerGroupsToRestore.length);
+            ErrorHandler.logInfo(
+                '图层数据恢复成功，viewId:',
+                viewId +
+                    '，图层数: ' +
+                    normalizedRestorePayload.layers.length +
+                    '，图层组数: ' +
+                    normalizedRestorePayload.layerGroups.length
+            );
         } catch (error) {
             ErrorHandler.logError(ErrorTypes.STORE_ERROR, `恢复图层数据失败，viewId: ${viewId}`, error);
         }
