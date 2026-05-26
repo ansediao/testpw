@@ -98,6 +98,16 @@ function isElementInLayerGroup(obj) {
 }
 
 function showPrintMethodBindingAlert(targetObject) {
+    if (!targetObject || !targetObject.id) {
+        window.alert('请先为此元素绑定印刷方式后再使用此工具。\n\n您可以在图层面板中点击"Switch Printing Method"按钮来绑定印刷方式。');
+        return;
+    }
+    
+    if (typeof window.pwcaOpenPrintMethodModal === 'function') {
+        window.pwcaOpenPrintMethodModal(targetObject.id);
+        return;
+    }
+    
     const assignBtn = document.querySelector('#content-tuan .layer-item.ungrouped.active .assign-btn');
     if (assignBtn) {
         const isTabTuanActive = document.getElementById('tab-tuan')?.classList.contains('active');
