@@ -2,6 +2,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let designCategoriesList = null;
     let designSearchInitialized = false;
 
+    function pwcaGetCanvasStore() {
+        const uiStateAccess = window.pwcaUiStateAccess || null;
+        if (!uiStateAccess || typeof uiStateAccess.getCanvasStore !== 'function') {
+            return null;
+        }
+
+        try {
+            return uiStateAccess.getCanvasStore();
+        } catch (error) {
+            return null;
+        }
+    }
+
     function pwcaIsDesignModuleEnabled() {
         if (typeof window.pwcaIsOperationPanelTabAvailable !== 'function') {
             return true;
@@ -176,27 +189,25 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const waitForStore = () => {
-            if (typeof window.useCanvasStore === 'function') {
-                try {
-                    const store = window.useCanvasStore();
-                    if (store) {
-                        // 初次应用
-                        applyVisibility(store.activeViewId);
+            try {
+                const store = pwcaGetCanvasStore();
+                if (store) {
+                    // 初次应用
+                    applyVisibility(store.activeViewId);
 
-                        // 监听视图切换
-                        if (typeof store.$subscribe === 'function') {
-                            store.$subscribe((mutation, state) => {
-                                if (mutation.storeId === 'canvas') {
-                                    applyVisibility(state.activeViewId);
-                                }
-                            });
-                        }
-
-                        return;
+                    // 监听视图切换
+                    if (typeof store.$subscribe === 'function') {
+                        store.$subscribe((mutation, state) => {
+                            if (mutation.storeId === 'canvas') {
+                                applyVisibility(state.activeViewId);
+                            }
+                        });
                     }
-                } catch (e) {
-                    // 安静失败，使用下面的退化逻辑
+
+                    return;
                 }
+            } catch (e) {
+                // 安静失败，使用下面的退化逻辑
             }
 
             // 如果 Pinia 还未准备好，继续等待
@@ -208,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 退化：若一段时间后仍无 store，则按单视图(main_view)处理
         window.setTimeout(() => {
-            if (typeof window.useCanvasStore !== 'function') {
+            if (!pwcaGetCanvasStore()) {
                 applyVisibility('main_view');
             }
         }, 1500);

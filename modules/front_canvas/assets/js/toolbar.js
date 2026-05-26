@@ -47,6 +47,32 @@ function pwcaBuildFontOptionsMarkup(selectedFontFamily) {
         .join('');
 }
 
+function pwcaGetToolbarPrintMethodStore() {
+    const stateAccess = window.pwcaUiStateAccess;
+    if (!stateAccess || typeof stateAccess.getPrintMethodStore !== 'function') {
+        return null;
+    }
+
+    try {
+        return stateAccess.getPrintMethodStore();
+    } catch (error) {
+    }
+
+    return null;
+}
+
+function pwcaGetToolbarActiveCanvas() {
+    const stateAccess = window.pwcaUiStateAccess;
+    if (stateAccess && typeof stateAccess.getActiveCanvas === 'function') {
+        const canvas = stateAccess.getActiveCanvas();
+        if (canvas) {
+            return canvas;
+        }
+    }
+
+    return getActiveCanvas();
+}
+
 function updateDynamicToolbar(obj) {
     // 获取当前活动的 canvas 实例
     const stateAccess = window.pwcaUiStateAccess;
@@ -878,7 +904,7 @@ function updateDynamicToolbar(obj) {
 
         // 创建颜色控制 (优先使用印刷方式的自定义颜色)
         if (activeButtonId === 'img_color') {
-            const printMethodStore = window.usePrintMethodStore ? window.usePrintMethodStore() : null;
+            const printMethodStore = pwcaGetToolbarPrintMethodStore();
             let method = null;
             if (printMethodStore) {
                 method = printMethodStore.getLayerPrintMethod ? printMethodStore.getLayerPrintMethod(obj.id) : null;
@@ -1092,7 +1118,7 @@ function addDesignToCanvas(designId) {
 // 添加键盘快捷键支持
 document.addEventListener('keydown', function (e) {
     // 获取当前激活的画布
-    const activeCanvas = window.CanvasManager ? window.CanvasManager.getActiveCanvas() : (window.canvas || window.fabricCanvas);
+    const activeCanvas = pwcaGetToolbarActiveCanvas();
     if (!activeCanvas) return;
     
     // 如果正在编辑文本，不处理快捷键

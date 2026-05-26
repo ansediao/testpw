@@ -231,7 +231,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-grid-preview',
 			$this->module_url . 'assets/js/main/grid-preview.js',
-			array( 'pwca-front-canvas-image-analyze' ),
+			array( 'pwca-front-canvas-image-analyze', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/grid-preview.js'
 		);
 
@@ -287,7 +287,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-operation-panel-design-search',
 			$this->module_url . 'assets/js/main/operation-panel-design-search.js',
-			array( 'pwca-front-canvas-events', 'pwca-vendor-listjs' ),
+			array( 'pwca-front-canvas-events', 'pwca-vendor-listjs', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/operation-panel-design-search.js'
 		);
 

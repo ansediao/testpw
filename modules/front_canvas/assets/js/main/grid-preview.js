@@ -1,3 +1,25 @@
+function pwcaGetUiStateAccess() {
+    return window.pwcaUiStateAccess || null;
+}
+
+function pwcaGetGridCanvasByViewId(viewId) {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getCanvasByViewId === 'function') {
+        return uiStateAccess.getCanvasByViewId(viewId);
+    }
+
+    return null;
+}
+
+function pwcaGetGridActiveCanvas() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getActiveCanvas === 'function') {
+        return uiStateAccess.getActiveCanvas();
+    }
+
+    return null;
+}
+
 async function generateUniversalViewImages(views) {
     const images = [];
     for (const view of views) {
@@ -39,8 +61,8 @@ async function generate4GridImagesForView(view, options = {}) {
         if (dimensions && dimensions.width && dimensions.height) { canvasWidth = dimensions.width; canvasHeight = dimensions.height; }
     }
     let activeCanvas = null;
-    if (window.CanvasManager && view.id) activeCanvas = window.CanvasManager.getCanvas(view.id);
-    if (!activeCanvas) activeCanvas = typeof window.getActiveCanvas === 'function' ? window.getActiveCanvas() : null;
+    if (view.id) activeCanvas = pwcaGetGridCanvasByViewId(view.id);
+    if (!activeCanvas) activeCanvas = pwcaGetGridActiveCanvas();
     if (!activeCanvas) {
         if (!activeCanvas) return 'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Failed to get canvas</text></svg>');
         return [
@@ -215,8 +237,8 @@ async function captureViewImage(view) {
         const mainCanvasElement = document.getElementById(`mainCanvas-${view.id}`);
         const overlayCanvasElement = document.getElementById(`overlayCanvas-${view.id}`);
         const maskCanvasElement = document.getElementById(`maskCanvas-${view.id}`);
-        if (mainCanvasElement && window.CanvasManager) {
-            const fabricCanvas = window.CanvasManager.getCanvas(view.id);
+        if (mainCanvasElement) {
+            const fabricCanvas = pwcaGetGridCanvasByViewId(view.id);
             if (fabricCanvas) {
                 fabricCanvas.renderAll();
                 const imageData = await window.captureMultiLayerCanvasWithMask({ baseCanvas: baseCanvasElement, mainCanvas: mainCanvasElement, overlayCanvas: overlayCanvasElement, maskCanvas: maskCanvasElement, fabricCanvas: fabricCanvas }, view);
