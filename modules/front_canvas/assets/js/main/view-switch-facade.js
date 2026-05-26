@@ -1,13 +1,62 @@
 (function () {
     'use strict';
 
+    function getUiStateAccess() {
+        return window.pwcaUiStateAccess || null;
+    }
+
+    function getCanvasStore() {
+        const uiStateAccess = getUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getCanvasStore === 'function') {
+            return uiStateAccess.getCanvasStore();
+        }
+
+        return null;
+    }
+
+    function getViews() {
+        const uiStateAccess = getUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getViews === 'function') {
+            return uiStateAccess.getViews();
+        }
+
+        const store = getCanvasStore();
+        return store && Array.isArray(store.views) ? store.views : [];
+    }
+
+    function getCurrentActiveViewId() {
+        const uiStateAccess = getUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getActiveViewId === 'function') {
+            return uiStateAccess.getActiveViewId();
+        }
+
+        const store = getCanvasStore();
+        return store && store.activeViewId ? store.activeViewId : null;
+    }
+
+    function getCanvasByViewId(viewId) {
+        const uiStateAccess = getUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getCanvasByViewId === 'function') {
+            return uiStateAccess.getCanvasByViewId(viewId);
+        }
+
+        return null;
+    }
+
+    function getAllViewCanvases() {
+        const uiStateAccess = getUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getAllViewCanvases === 'function') {
+            return uiStateAccess.getAllViewCanvases();
+        }
+
+        return [];
+    }
+
     function waitForStore(callback, attempts = 0) {
-        if (typeof window.useCanvasStore === 'function') {
-            const store = window.useCanvasStore();
-            if (store) {
-                callback(store);
-                return;
-            }
+        const store = getCanvasStore();
+        if (store) {
+            callback(store);
+            return;
         }
 
         if (attempts > 100) {
@@ -20,11 +69,12 @@
     }
 
     function getViewById(store, viewId) {
-        if (!store || !Array.isArray(store.views)) {
+        const views = store && Array.isArray(store.views) ? store.views : getViews();
+        if (!Array.isArray(views) || views.length === 0) {
             return null;
         }
 
-        return store.views.find((view) =>
+        return views.find((view) =>
             view &&
             (
                 view.id === viewId ||
@@ -56,19 +106,14 @@
         }
 
         const canvas = typeof canvasManager.getCanvas === 'function'
-            ? canvasManager.getCanvas(viewId)
-            : null;
+            ? (getCanvasByViewId(viewId) || canvasManager.getCanvas(viewId))
+            : getCanvasByViewId(viewId);
 
         if (!canvas) {
             return null;
         }
 
-        const allCanvasIds = typeof canvasManager.getAllCanvasIds === 'function'
-            ? canvasManager.getAllCanvasIds()
-            : [];
-
-        allCanvasIds.forEach((canvasId) => {
-            const viewCanvas = canvasManager.getCanvas(canvasId);
+        getAllViewCanvases().forEach((viewCanvas) => {
             if (viewCanvas && typeof viewCanvas.discardActiveObject === 'function') {
                 viewCanvas.discardActiveObject();
                 if (typeof viewCanvas.renderAll === 'function') {
@@ -116,7 +161,7 @@
                 store.setActiveViewId(targetView.id);
             }
 
-            if (forceDomSync || store.activeViewId === targetView.id) {
+            if (forceDomSync || getCurrentActiveViewId() === targetView.id) {
                 syncViewContainers(targetView.id);
                 syncCanvasManager(targetView.id);
             }

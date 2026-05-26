@@ -1,3 +1,25 @@
+function pwcaGetUiStateAccess() {
+    return window.pwcaUiStateAccess || null;
+}
+
+function pwcaGetCanvasByViewId(viewId) {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getCanvasByViewId === 'function') {
+        return uiStateAccess.getCanvasByViewId(viewId);
+    }
+
+    return null;
+}
+
+function pwcaGetPrintMethodStore() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getPrintMethodStore === 'function') {
+        return uiStateAccess.getPrintMethodStore();
+    }
+
+    return null;
+}
+
 async function captureAllViewsImages(views) {
     const images = [];
     for (const view of views) {
@@ -6,8 +28,8 @@ async function captureAllViewsImages(views) {
             const mainCanvasElement = document.getElementById(`mainCanvas-${view.id}`);
             const overlayCanvasElement = document.getElementById(`overlayCanvas-${view.id}`);
             const maskCanvasElement = document.getElementById(`maskCanvas-${view.id}`);
-            if (mainCanvasElement && window.CanvasManager) {
-                const fabricCanvas = window.CanvasManager.getCanvas(view.id);
+            if (mainCanvasElement) {
+                const fabricCanvas = pwcaGetCanvasByViewId(view.id);
                 if (fabricCanvas) {
                     fabricCanvas.renderAll();
                     const imageData = await captureMultiLayerCanvasWithMask({ baseCanvas: baseCanvasElement, mainCanvas: mainCanvasElement, overlayCanvas: overlayCanvasElement, maskCanvas: maskCanvasElement, fabricCanvas: fabricCanvas }, view);
@@ -31,7 +53,7 @@ async function captureViewForPDF(viewId) {
         const mainCanvas = document.getElementById(`mainCanvas-${viewId}`);
         const overlayCanvas = document.getElementById(`overlayCanvas-${viewId}`);
         const maskCanvas = document.getElementById(`maskCanvas-${viewId}`);
-        const fabricCanvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+        const fabricCanvas = pwcaGetCanvasByViewId(viewId);
         const canvasLayers = { baseCanvas, mainCanvas, overlayCanvas, maskCanvas, fabricCanvas };
         const view = { id: viewId, name: `View ${viewId}` };
         return await captureMultiLayerCanvasWithMask(canvasLayers, view);
@@ -45,8 +67,8 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
         try {
             const { baseCanvas, mainCanvas, overlayCanvas, maskCanvas, fabricCanvas } = canvasLayers;
             let printAreaWidth = 100; let printAreaHeight = 120;
-            if (window.usePrintMethodStore) {
-                const printMethodStore = window.usePrintMethodStore();
+            const printMethodStore = pwcaGetPrintMethodStore();
+            if (printMethodStore) {
                 const currentMethods = printMethodStore.currentViewPrintMethods;
                 if (currentMethods && currentMethods.length > 0) {
                     const firstMethod = currentMethods[0];

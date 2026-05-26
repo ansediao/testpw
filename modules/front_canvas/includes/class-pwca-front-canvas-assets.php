@@ -98,7 +98,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-view-switch-facade',
 			$this->module_url . 'assets/js/main/view-switch-facade.js',
-			array(),
+			array( 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/view-switch-facade.js'
 		);
 
@@ -217,7 +217,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-capture',
 			$this->module_url . 'assets/js/main/capture.js',
-			array( 'pwca-front-canvas-color-utils' ),
+			array( 'pwca-front-canvas-color-utils', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/capture.js'
 		);
 
