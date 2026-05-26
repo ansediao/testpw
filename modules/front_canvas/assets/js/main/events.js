@@ -102,50 +102,95 @@ function showPrintMethodBindingAlert(targetObject) {
     if (assignBtn) assignBtn.click();
 }
 
+function pwcaGetUiStateAccess() {
+    return window.pwcaUiStateAccess || null;
+}
+
+function pwcaGetSelectedObjectFromSelectionEvent(options) {
+    const selectedObj = options && options.selected ? options.selected[0] : null;
+    if (selectedObj) {
+        return selectedObj;
+    }
+
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getActiveObject === 'function') {
+        return uiStateAccess.getActiveObject();
+    }
+
+    return null;
+}
+
+function pwcaGetSelectionActiveTabId() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getCurrentActiveTab === 'function') {
+        return uiStateAccess.getCurrentActiveTab();
+    }
+
+    if (typeof window.getCurrentActiveTab === 'function') {
+        return window.getCurrentActiveTab();
+    }
+
+    return null;
+}
+
+function pwcaSyncToolbarBySelectedObject(selectedObj) {
+    if (typeof window.updateDynamicToolbar === 'function') {
+        window.updateDynamicToolbar(selectedObj);
+    }
+}
+
+function pwcaSyncOperationPanelBySelectedObject(selectedObj) {
+    if (!selectedObj) {
+        return;
+    }
+
+    const activeTabId = pwcaGetSelectionActiveTabId();
+    const fromLayerList = window.pw_selectionFromLayerList === true;
+
+    if (activeTabId === 'tab-tuan' && fromLayerList) {
+        window.pw_selectionFromLayerList = false;
+        return;
+    }
+
+    const type = selectedObj.type;
+
+    if (type === 'text' || type === 'i-text' || type === 'textbox') {
+        if (typeof window.switchOperationPanelTab === 'function') {
+            window.switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
+        }
+
+        const addTextBox = document.getElementById('addTextBtn_box');
+        if (addTextBox) {
+            addTextBox.style.display = 'block';
+        }
+
+        try {
+            document.querySelectorAll('.img_toolbar .toolbar_button').forEach((btn) => btn.classList.remove('active'));
+        } catch (err) {}
+        return;
+    }
+
+    if (type === 'image' && typeof window.switchOperationPanelTab === 'function') {
+        window.switchOperationPanelTab('tab-pianquan', { preserveSelection: true });
+    }
+}
+
+function pwcaHandleCanvasSelectionChange(options) {
+    const selectedObj = pwcaGetSelectedObjectFromSelectionEvent(options);
+    pwcaSyncToolbarBySelectedObject(selectedObj);
+    pwcaSyncOperationPanelBySelectedObject(selectedObj);
+}
+
 function addCanvasSelectionListeners(fabricCanvas) {
     if (!fabricCanvas) return;
     fabricCanvas.on('selection:created', function (options) {
-        const selectedObj = options && options.selected ? options.selected[0] : null;
-        if (typeof window.updateDynamicToolbar === 'function') window.updateDynamicToolbar(selectedObj);
-        if (selectedObj) {
-            const activeTabId = typeof window.getCurrentActiveTab === 'function' ? window.getCurrentActiveTab() : null;
-            const fromLayerList = window.pw_selectionFromLayerList === true;
-            if (activeTabId === 'tab-tuan' && fromLayerList) { window.pw_selectionFromLayerList = false; }
-            else {
-                const type = selectedObj.type;
-                if (type === 'text' || type === 'i-text' || type === 'textbox') {
-                    if (typeof window.switchOperationPanelTab === 'function') window.switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
-                    const addTextBox = document.getElementById('addTextBtn_box');
-                    if (addTextBox) addTextBox.style.display = 'block';
-                    try { document.querySelectorAll('.img_toolbar .toolbar_button').forEach(btn => btn.classList.remove('active')); } catch (err) {}
-                } else if (type === 'image') {
-                    if (typeof window.switchOperationPanelTab === 'function') window.switchOperationPanelTab('tab-pianquan', { preserveSelection: true });
-                }
-            }
-        }
+        pwcaHandleCanvasSelectionChange(options);
     });
     fabricCanvas.on('selection:updated', function (options) {
-        const selectedObj = options && options.selected ? options.selected[0] : null;
-        if (typeof window.updateDynamicToolbar === 'function') window.updateDynamicToolbar(selectedObj);
-        if (selectedObj) {
-            const activeTabId = typeof window.getCurrentActiveTab === 'function' ? window.getCurrentActiveTab() : null;
-            const fromLayerList = window.pw_selectionFromLayerList === true;
-            if (activeTabId === 'tab-tuan' && fromLayerList) { window.pw_selectionFromLayerList = false; }
-            else {
-                const type = selectedObj.type;
-                if (type === 'text' || type === 'i-text' || type === 'textbox') {
-                    if (typeof window.switchOperationPanelTab === 'function') window.switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
-                    const addTextBox = document.getElementById('addTextBtn_box');
-                    if (addTextBox) addTextBox.style.display = 'block';
-                    try { document.querySelectorAll('.img_toolbar .toolbar_button').forEach(btn => btn.classList.remove('active')); } catch (err) {}
-                } else if (type === 'image') {
-                    if (typeof window.switchOperationPanelTab === 'function') window.switchOperationPanelTab('tab-pianquan', { preserveSelection: true });
-                }
-            }
-        }
+        pwcaHandleCanvasSelectionChange(options);
     });
     fabricCanvas.on('selection:cleared', function () {
-        if (typeof window.updateDynamicToolbar === 'function') window.updateDynamicToolbar(null);
+        pwcaSyncToolbarBySelectedObject(null);
     });
 }
 

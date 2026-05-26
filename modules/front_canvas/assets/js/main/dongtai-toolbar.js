@@ -1,19 +1,31 @@
 (function () {
     'use strict';
 
-    function pwcaGetToolbarActiveCanvas() {
-        if (window.CanvasManager && typeof window.CanvasManager.getActiveCanvas === 'function') {
-            const managedCanvas = window.CanvasManager.getActiveCanvas();
-            if (managedCanvas) {
-                return managedCanvas;
-            }
-        }
+    function pwcaGetUiStateAccess() {
+        return window.pwcaUiStateAccess || null;
+    }
 
-        if (typeof window.getActiveCanvas === 'function') {
-            return window.getActiveCanvas();
+    function pwcaGetToolbarActiveCanvas() {
+        const uiStateAccess = pwcaGetUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getActiveCanvas === 'function') {
+            return uiStateAccess.getActiveCanvas();
         }
 
         return window.canvas || window.fabricCanvas || null;
+    }
+
+    function pwcaGetToolbarActiveObject() {
+        const uiStateAccess = pwcaGetUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getActiveObject === 'function') {
+            return uiStateAccess.getActiveObject();
+        }
+
+        const activeCanvas = pwcaGetToolbarActiveCanvas();
+        if (!activeCanvas || typeof activeCanvas.getActiveObject !== 'function') {
+            return null;
+        }
+
+        return activeCanvas.getActiveObject() || null;
     }
 
     function showPrintMethodBindingAlert(targetObject) {
@@ -42,9 +54,7 @@
         buttons.forEach(function (button) {
             button.addEventListener('click', function () {
                 const activeCanvas = pwcaGetToolbarActiveCanvas();
-                const activeObject = activeCanvas && typeof activeCanvas.getActiveObject === 'function'
-                    ? activeCanvas.getActiveObject()
-                    : null;
+                const activeObject = pwcaGetToolbarActiveObject();
 
                 if (typeof window.switchOperationPanelTab === 'function') {
                     window.switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
@@ -81,9 +91,7 @@
         buttons.forEach(function (button) {
             button.addEventListener('click', function () {
                 const activeCanvas = pwcaGetToolbarActiveCanvas();
-                const activeObject = activeCanvas && typeof activeCanvas.getActiveObject === 'function'
-                    ? activeCanvas.getActiveObject()
-                    : null;
+                const activeObject = pwcaGetToolbarActiveObject();
 
                 if (typeof window.switchOperationPanelTab === 'function') {
                     window.switchOperationPanelTab('tab-pianquan');

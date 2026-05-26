@@ -92,15 +92,51 @@
 
     function getActiveCanvas() {
         if (typeof window.getActiveCanvas === 'function') {
-            return window.getActiveCanvas();
+            const activeCanvas = window.getActiveCanvas();
+            if (activeCanvas) {
+                return activeCanvas;
+            }
         }
 
         if (window.CanvasManager && typeof window.CanvasManager.getActiveCanvas === 'function') {
-            return window.CanvasManager.getActiveCanvas();
+            const activeCanvas = window.CanvasManager.getActiveCanvas();
+            if (activeCanvas) {
+                return activeCanvas;
+            }
         }
 
         const activeViewId = getActiveViewId();
-        return activeViewId ? getCanvasByViewId(activeViewId) : null;
+        if (activeViewId) {
+            const activeCanvas = getCanvasByViewId(activeViewId);
+            if (activeCanvas) {
+                return activeCanvas;
+            }
+        }
+
+        return window.canvas || window.fabricCanvas || null;
+    }
+
+    function getActiveObject() {
+        const activeCanvas = getActiveCanvas();
+
+        if (!activeCanvas || typeof activeCanvas.getActiveObject !== 'function') {
+            return null;
+        }
+
+        return activeCanvas.getActiveObject() || null;
+    }
+
+    function getCurrentActiveTab() {
+        if (typeof window.getCurrentActiveTab !== 'function') {
+            return null;
+        }
+
+        return window.getCurrentActiveTab();
+    }
+
+    function getActiveObjectType() {
+        const activeObject = getActiveObject();
+        return activeObject && activeObject.type ? activeObject.type : null;
     }
 
     function getCurrentBaseCanvas() {
@@ -170,6 +206,9 @@
         getCanvasByViewId,
         getBaseCanvasByViewId,
         getActiveCanvas,
+        getActiveObject,
+        getCurrentActiveTab,
+        getActiveObjectType,
         getCurrentBaseCanvas,
         getCurrentViewLayers,
         findCurrentViewLayerById,

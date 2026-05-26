@@ -245,14 +245,14 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-events',
 			$this->module_url . 'assets/js/main/events.js',
-			array( 'pwca-front-canvas-universal-preview' ),
+			array( 'pwca-front-canvas-universal-preview', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/events.js'
 		);
 
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-dynamic-toolbar',
 			$this->module_url . 'assets/js/main/dongtai-toolbar.js',
-			array( 'pwca-front-canvas-events' ),
+			array( 'pwca-front-canvas-events', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/dongtai-toolbar.js'
 		);
 
