@@ -453,6 +453,73 @@ class ErrorHandler {
     }
 }
 
+function pwcaGetUiStateAccess() {
+    return window.pwcaUiStateAccess || null;
+}
+
+function pwcaGetCanvasStore() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getCanvasStore === 'function') {
+        return uiStateAccess.getCanvasStore();
+    }
+
+    return window.useCanvasStore ? window.useCanvasStore() : null;
+}
+
+function pwcaGetPrintMethodStore() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getPrintMethodStore === 'function') {
+        return uiStateAccess.getPrintMethodStore();
+    }
+
+    return window.usePrintMethodStore ? window.usePrintMethodStore() : null;
+}
+
+function pwcaGetViews() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getViews === 'function') {
+        return uiStateAccess.getViews();
+    }
+
+    const canvasStore = pwcaGetCanvasStore();
+    return canvasStore && Array.isArray(canvasStore.views) ? canvasStore.views : [];
+}
+
+function pwcaGetActiveViewId() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getActiveViewId === 'function') {
+        return uiStateAccess.getActiveViewId();
+    }
+
+    const canvasStore = pwcaGetCanvasStore();
+    return canvasStore && canvasStore.activeViewId ? canvasStore.activeViewId : null;
+}
+
+function pwcaGetCanvasByViewId(viewId) {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getCanvasByViewId === 'function') {
+        return uiStateAccess.getCanvasByViewId(viewId);
+    }
+
+    return window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+}
+
+function pwcaGetAllViewIds() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getAllViewIds === 'function') {
+        return uiStateAccess.getAllViewIds();
+    }
+
+    return pwcaGetViews()
+        .map((view) => (view && view.id ? view.id : null))
+        .filter((viewId) => typeof viewId === 'string' && viewId !== '');
+}
+
+function pwcaIsCanvasStateRestoring() {
+    const canvasStore = pwcaGetCanvasStore();
+    return !!(canvasStore && canvasStore.isRestoringState);
+}
+
 /**
  * 画布状态管理器类
  */
@@ -929,13 +996,13 @@ class CanvasStateManager {
         
         try {
             // 检查是否正在恢复状态，防止循环保存
-            const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
-            if (canvasStore && canvasStore.isRestoringState) {
+            const canvasStore = pwcaGetCanvasStore();
+            if (pwcaIsCanvasStateRestoring()) {
                 return false;
             }
             
             // 从 CanvasManager 获取画布实例
-            const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+            const canvas = pwcaGetCanvasByViewId(viewId);
             if (!canvas) {
                 ErrorHandler.logWarning('无法获取画布实例，viewId:', viewId);
                 return false;
@@ -966,7 +1033,7 @@ class CanvasStateManager {
             }));
             
             // 从 Print Method Store 获取印刷方式映射
-            const printMethodStore = window.usePrintMethodStore ? window.usePrintMethodStore() : null;
+            const printMethodStore = pwcaGetPrintMethodStore();
             const layerPrintMethodMap = {};
             const groupPrintMethodMap = {};
             
@@ -1033,8 +1100,7 @@ class CanvasStateManager {
      */
     debouncedSaveViewState(viewId) {
         // 检查是否正在恢复状态，防止循环保存
-        const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
-        if (canvasStore && canvasStore.isRestoringState) {
+        if (pwcaIsCanvasStateRestoring()) {
             return;
         }
         
@@ -1062,13 +1128,13 @@ class CanvasStateManager {
         
         try {
             // 检查是否正在恢复状态，防止循环保存
-            const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
-            if (canvasStore && canvasStore.isRestoringState) {
+            const canvasStore = pwcaGetCanvasStore();
+            if (pwcaIsCanvasStateRestoring()) {
                 return false;
             }
             
             // 获取所有视图ID
-            const viewIds = window.CanvasManager ? window.CanvasManager.getViewIds() : [];
+            const viewIds = pwcaGetAllViewIds();
             
             if (viewIds.length === 0) {
                 ErrorHandler.logWarning('没有可保存的视图');
@@ -1115,13 +1181,13 @@ class CanvasStateManager {
         }
         
         try {
-            const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
+            const canvasStore = pwcaGetCanvasStore();
             if (!canvasStore) {
                 return false;
             }
             
             // 检查是否正在恢复状态
-            if (canvasStore.isRestoringState) {
+            if (pwcaIsCanvasStateRestoring()) {
                 return false;
             }
             
@@ -1233,7 +1299,7 @@ class CanvasStateManager {
         
         try {
             // 获取 Canvas Store 并设置恢复状态标记
-            const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
+            const canvasStore = pwcaGetCanvasStore();
             if (canvasStore && canvasStore.setRestoringState) {
                 canvasStore.setRestoringState(true);
             }
@@ -1272,7 +1338,7 @@ class CanvasStateManager {
                 }
                 
                 // 获取画布实例
-                const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+                const canvas = pwcaGetCanvasByViewId(viewId);
                 if (!canvas) {
                     ErrorHandler.logWarning('无法获取画布实例，viewId:', viewId);
                     return false;
@@ -1308,7 +1374,7 @@ class CanvasStateManager {
             ErrorHandler.logError(ErrorTypes.RESTORE_ERROR, `恢复视图状态失败，viewId: ${viewId}`, error);
             
             // 确保恢复状态标记被重置
-            const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
+            const canvasStore = pwcaGetCanvasStore();
             if (canvasStore && canvasStore.setRestoringState) {
                 canvasStore.setRestoringState(false);
             }
@@ -1450,7 +1516,7 @@ class CanvasStateManager {
      */
     _restoreLayerData(viewId, layers, layerGroups, canvas = null) {
         try {
-            const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
+            const canvasStore = pwcaGetCanvasStore();
             if (!canvasStore) {
                 ErrorHandler.logWarning('Canvas Store 不可用，无法恢复图层数据');
                 return;
@@ -1501,7 +1567,8 @@ class CanvasStateManager {
      */
     _restorePrintMethodMappings(viewId, layerPrintMethodMap, groupPrintMethodMap) {
         try {
-            const printMethodStore = window.usePrintMethodStore ? window.usePrintMethodStore() : null;
+            const printMethodStore = pwcaGetPrintMethodStore();
+            const canvasStore = pwcaGetCanvasStore();
             if (!printMethodStore) {
                 ErrorHandler.logWarning('Print Method Store 不可用，无法恢复印刷方式映射');
                 return;
@@ -1561,7 +1628,7 @@ class CanvasStateManager {
                 return;
             }
             
-            const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
+            const canvasStore = pwcaGetCanvasStore();
             if (!canvasStore) {
                 ErrorHandler.logWarning('Canvas Store 不可用，无法恢复颜色选择');
                 return;
