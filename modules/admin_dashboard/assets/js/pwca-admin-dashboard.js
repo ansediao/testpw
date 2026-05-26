@@ -11,6 +11,7 @@
 	const hasConnectedToken = root.dataset.hasConnectedToken === '1'
 	const clearCacheNonce = root.dataset.clearCacheNonce || ''
 	const cacheStatusNonce = root.dataset.cacheStatusNonce || ''
+	const toggleCacheNonce = root.dataset.toggleCacheNonce || ''
 	const productRequestNonce = root.dataset.productRequestNonce || ''
 	const saveMockModeNonce = root.dataset.saveMockModeNonce || ''
 	const initialApiMockMode = root.dataset.apiMockMode === '1' ? 1 : 0
@@ -308,8 +309,39 @@
 		const cacheTestButton = document.getElementById('pwca-test-cache')
 		const cacheTestResult = document.getElementById('pwca-cache-test-result')
 
+		const cacheToggle = document.getElementById('pwca-cache-toggle')
+		const cacheEnabledStatus = document.getElementById('pwca-cache-enabled-status')
+
 		if (!cacheStatusBox || !cacheResult || !clearCacheButton || !refreshStatusButton) {
 			return
+		}
+
+		// Cache toggle handler
+		if (cacheToggle && toggleCacheNonce) {
+			cacheToggle.addEventListener('change', async (e) => {
+				const enabled = e.target.checked
+
+				try {
+					const response = await postUrlEncoded({
+						action: 'pw_toggle_cache',
+						nonce: toggleCacheNonce,
+						enabled: enabled ? 1 : 0,
+					})
+
+					if (response && response.success) {
+						if (cacheEnabledStatus) {
+							cacheEnabledStatus.textContent = enabled ? 'Enabled' : 'Disabled (Debug Mode)'
+							cacheEnabledStatus.style.color = enabled ? '#00a000' : '#d63638'
+						}
+					} else {
+						// Revert toggle on failure
+						e.target.checked = !enabled
+					}
+				} catch {
+					// Revert toggle on error
+					e.target.checked = !enabled
+				}
+			})
 		}
 
 		const setStatusLoading = (loading) => {

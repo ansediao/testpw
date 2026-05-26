@@ -13,9 +13,11 @@ $connect_nonce        = isset( $view_model['connect_nonce'] ) ? (string) $view_m
 $disconnect_nonce     = isset( $view_model['disconnect_nonce'] ) ? (string) $view_model['disconnect_nonce'] : '';
 $clear_cache_nonce    = isset( $view_model['clear_cache_nonce'] ) ? (string) $view_model['clear_cache_nonce'] : '';
 $cache_status_nonce   = isset( $view_model['cache_status_nonce'] ) ? (string) $view_model['cache_status_nonce'] : '';
+$toggle_cache_nonce   = isset( $view_model['toggle_cache_nonce'] ) ? (string) $view_model['toggle_cache_nonce'] : '';
 $has_connected_token  = isset( $view_model['has_connected_token'] ) ? (int) $view_model['has_connected_token'] : 0;
 $save_mock_mode_nonce = isset( $view_model['save_mock_mode_nonce'] ) ? (string) $view_model['save_mock_mode_nonce'] : '';
 $api_mock_mode        = isset( $view_model['api_mock_mode'] ) ? (int) $view_model['api_mock_mode'] : 0;
+$cache_enabled        = isset( $view_model['cache_enabled'] ) ? (int) $view_model['cache_enabled'] : 1;
 // 从 Dashboard 子模块获取消息
 $messages = array();
 if ( class_exists( 'Pwca_Admin_Dashboard_Dashboard' ) ) {
@@ -36,6 +38,7 @@ if ( class_exists( 'Pwca_Admin_Dashboard_Dashboard' ) ) {
 	data-has-connected-token="<?php echo esc_attr( (string) $has_connected_token ); ?>"
 	data-clear-cache-nonce="<?php echo esc_attr( $clear_cache_nonce ); ?>"
 	data-cache-status-nonce="<?php echo esc_attr( $cache_status_nonce ); ?>"
+	data-toggle-cache-nonce="<?php echo esc_attr( $toggle_cache_nonce ); ?>"
 	data-save-mock-mode-nonce="<?php echo esc_attr( $save_mock_mode_nonce ); ?>"
 	data-api-mock-mode="<?php echo esc_attr( (string) $api_mock_mode ); ?>"
 >
@@ -105,6 +108,19 @@ if ( class_exists( 'Pwca_Admin_Dashboard_Dashboard' ) ) {
 
 	<section class="pwca-admin-dashboard__section pwca-admin-dashboard__section--cache">
 		<h2 class="pwca-admin-dashboard__section-title">Product Data Cache Management</h2>
+
+		<div class="pwca-admin-dashboard__cache-toggle-row">
+			<p class="pwca-admin-dashboard__cache-toggle-status">
+				<strong>Status:</strong>
+				<span id="pwca-cache-enabled-status" style="color:<?php echo $cache_enabled ? '#00a000' : '#d63638'; ?>">
+					<?php echo $cache_enabled ? 'Enabled' : 'Disabled (Debug Mode)'; ?>
+				</span>
+			</p>
+			<label class="pwca-admin-dashboard__toggle-label">
+				<input type="checkbox" id="pwca-cache-toggle" class="pwca-admin-dashboard__toggle-input" <?php checked(1, $cache_enabled); ?>>
+				<span class="pwca-admin-dashboard__toggle-switch"></span>
+			</label>
+		</div>
 
 		<div class="pwca-admin-dashboard__cache-status" id="pwca-cache-status">
 			<p><strong>Total Cache:</strong><span id="pwca-cache-total">-</span></p>

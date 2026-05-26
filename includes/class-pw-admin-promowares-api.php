@@ -516,7 +516,31 @@ class Pw_Admin_Promowares_Api
     public function register_ajax_hooks()
     {
         add_action('wp_ajax_pw_proxy_api_request', array($this, 'handle_proxy_api_request'));
+        add_action('wp_ajax_pw_toggle_cache', array($this, 'handle_toggle_cache'));
         // Note: Removed nopriv hook for security - only logged-in users should access API
+    }
+
+    /**
+     * Handle toggle cache AJAX request.
+     *
+     * @since    1.0.0
+     */
+    public function handle_toggle_cache()
+    {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'pw_toggle_cache_nonce')) {
+            wp_send_json_error(array('message' => 'Security verification failed'));
+            return;
+        }
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+            return;
+        }
+
+        $enabled = isset($_POST['enabled']) ? 1 : 0;
+        update_option('pw_cache_enabled', $enabled);
+
+        wp_send_json_success(array('cache_enabled' => $enabled));
     }
 
     /**
@@ -721,7 +745,8 @@ class Pw_Admin_Promowares_Api
         $product_id = $request['id'];
         $token = $this->hardcoded_token;
         $mock_mode = (int) get_option('pw_api_mock_mode', 0);
-        error_log("[PW Mock] get_aggregated_product_data called for product_id: {$product_id}, mock_mode: {$mock_mode}");
+        $cache_enabled = (int) get_option('pw_cache_enabled', 1);
+        error_log("[PW Mock] get_aggregated_product_data called for product_id: {$product_id}, mock_mode: {$mock_mode}, cache_enabled: {$cache_enabled}");
 
         if (empty($token)) {
             return new WP_REST_Response(array(
@@ -730,24 +755,29 @@ class Pw_Admin_Promowares_Api
         }
 
         // 检查缓存数据（启用缓存检查，通过 updated_at 判断）
-        $cached_data = $this->get_cached_product_data($product_id);
+        // 只有在缓存启用时才尝试读取缓存
+        $cached_data = false;
+        if ($cache_enabled) {
+            $cached_data = $this->get_cached_product_data($product_id);
 
-        // 如果缓存检查返回 WP_Error，表示远程检查失败
-        if (is_wp_error($cached_data)) {
-            error_log("[PW Cache] Cache freshness check failed: " . $cached_data->get_error_message());
-            return new WP_REST_Response(array(
-                'success' => false,
-                'error' => 'Failed to verify cache freshness: ' . $cached_data->get_error_message(),
-                'details' => $cached_data->get_error_data()
-            ), 503);
-        }
+            // 如果缓存检查返回 WP_Error，表示远程检查失败
+            if (is_wp_error($cached_data)) {
+                error_log("[PW Cache] Cache freshness check failed: " . $cached_data->get_error_message());
+                return new WP_REST_Response(array(
+                    'success' => false,
+                    'error' => 'Failed to verify cache freshness: ' . $cached_data->get_error_message(),
+                    'details' => $cached_data->get_error_data()
+                ), 503);
+            }
 
-        error_log("[PW Mock] Cache check result: " . ($cached_data !== false ? 'HIT' : 'MISS'));
-        if ($cached_data !== false) {
-            $response = new WP_REST_Response($cached_data, 200);
-            $response->header('X-PW-Cache', 'HIT');
-            error_log("[PW Mock] Returning cached data");
-            return $response;
+            if ($cached_data !== false) {
+                $response = new WP_REST_Response($cached_data, 200);
+                $response->header('X-PW-Cache', 'HIT');
+                error_log("[PW Mock] Returning cached data");
+                return $response;
+            }
+        } else {
+            error_log("[PW Cache] Debug mode - cache disabled, skipping cache read");
         }
 
         $aggregated_data = array();
@@ -857,9 +887,10 @@ class Pw_Admin_Promowares_Api
         $aggregated_data['computed'] = $this->compute_business_logic($aggregated_data);
 
         // 保存缓存数据（排除模拟数据，模拟数据不缓存）
-        // Mock Error 模式下不保存缓存，避免缓存错误数据
+        // 只有在缓存启用且非 Mock Error 模式下才保存缓存
+        $cache_enabled = (int) get_option('pw_cache_enabled', 1);
         $mock_mode = (int) get_option('pw_api_mock_mode', 0);
-        if ($mock_mode !== 1) {
+        if ($cache_enabled && $mock_mode !== 1) {
             $cache_data = $aggregated_data;
             if (isset($cache_data['mock_data'])) {
                 unset($cache_data['mock_data']);
@@ -903,7 +934,10 @@ class Pw_Admin_Promowares_Api
 
         $response = new WP_REST_Response($aggregated_data, 200);
         $response->header('X-PW-Cache', 'MISS');
-        
+        if (!$cache_enabled) {
+            $response->header('X-PW-Debug-Mode', 'true');
+        }
+
         // 检查产品是否有更新标记，如果有则通知前台刷新
         if ($this->check_product_update_flag($product_id)) {
             $response->header('X-PW-Product-Updated', 'true');

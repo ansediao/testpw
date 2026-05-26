@@ -66,10 +66,12 @@ final class Pwca_Admin_Dashboard_Dashboard {
 			'disconnect_nonce'     => wp_create_nonce( 'pwca_disconnect_store' ),
 			'clear_cache_nonce'    => wp_create_nonce( 'pw_clear_cache_nonce' ),
 			'cache_status_nonce'   => wp_create_nonce( 'pw_cache_status_nonce' ),
+			'toggle_cache_nonce'   => wp_create_nonce( 'pw_toggle_cache_nonce' ),
 			'current_token'        => get_option( 'pw_api_token', '' ),
 			'current_store_id'     => get_option( 'pw_store_id', '' ),
 			'has_connected_token'  => '' !== (string) get_option( 'pw_api_token', '' ) ? 1 : 0,
 			'api_mock_mode'        => (int) get_option( 'pw_api_mock_mode', 0 ),
+			'cache_enabled'        => (int) get_option( 'pw_cache_enabled', 1 ),
 			'save_mock_mode_nonce' => wp_create_nonce( 'pw_save_mock_mode_nonce' ),
 		);
 	}
