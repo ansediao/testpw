@@ -285,6 +285,41 @@
         error.value = err;
     };
 
+    const handleProductUpdatedMeta = (meta) => {
+        if (!meta || meta.productUpdated !== true) {
+            return;
+        }
+
+        const reloadGuardKey = meta.reloadGuardKey || `pw_product_reload_guard_${productId.value || 'current'}`;
+        const now = Date.now();
+        let shouldReload = true;
+
+        try {
+            const lastReloadAt = Number(sessionStorage.getItem(reloadGuardKey) || 0);
+            if (lastReloadAt && now - lastReloadAt < 30000) {
+                shouldReload = false;
+            }
+        } catch (e) {
+        }
+
+        if (!shouldReload) {
+            // eslint-disable-next-line no-console
+            console.warn('[PW Product] 已阻止短时间内重复自动刷新', { productId: productId.value });
+            return;
+        }
+
+        try {
+            sessionStorage.setItem(reloadGuardKey, String(now));
+        } catch (e) {
+        }
+
+        // eslint-disable-next-line no-console
+        console.info('[PW Product] 产品数据已更新，即将刷新页面', { productId: productId.value });
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+    };
+
     const setGradientColorApplied = (applied) => {
         gradientColorApplied.value = applied;
     };
@@ -490,128 +525,76 @@
         selectedAccessoriesNames.value = Array.isArray(names) ? names : [];
     };
 
+    const applyMappedProductData = (mappedData) => {
+        if (!mappedData) {
+            return;
+        }
+
+        if (mappedData.product) {
+            setProductData(mappedData.product);
+        }
+
+        if (mappedData.moqSettings && Object.keys(mappedData.moqSettings).length > 0) {
+            setMoqSettings(mappedData.moqSettings);
+        }
+
+        if (mappedData.quantityDiscounts) {
+            setQuantityDiscounts(mappedData.quantityDiscounts);
+        }
+
+        if (mappedData.quantityDiscountEnabled !== undefined) {
+            setQuantityDiscountEnabled(mappedData.quantityDiscountEnabled);
+        }
+
+        if (mappedData.colorSampleService !== undefined) {
+            setColorSampleService(mappedData.colorSampleService);
+        }
+
+        if (mappedData.rtsDate !== undefined) {
+            setRtsDate(mappedData.rtsDate);
+        }
+
+        if (mappedData.shippingInfo) {
+            if (mappedData.shippingInfo.rts_date_starts_from !== undefined) {
+                setRtsDateStartsFrom(mappedData.shippingInfo.rts_date_starts_from);
+            }
+
+            if (mappedData.shippingInfo.rts_for_bulk_order !== undefined) {
+                setRtsForBulkOrder(mappedData.shippingInfo.rts_for_bulk_order);
+            }
+
+            if (mappedData.shippingInfo.rts_for_sample_order !== undefined) {
+                setRtsForSampleOrder(mappedData.shippingInfo.rts_for_sample_order);
+            }
+        }
+
+        if (mappedData.buySampleChecked !== undefined) {
+            setBuySampleChecked(mappedData.buySampleChecked);
+        }
+
+        if (mappedData.blankProductChecked !== undefined) {
+            setBlankProductChecked(mappedData.blankProductChecked);
+        } else if (mappedData.blankItem !== undefined) {
+            setBlankProductChecked(mappedData.blankItem);
+        }
+
+        if (Array.isArray(mappedData.accessories) && productData.value) {
+            productData.value.accessories = mappedData.accessories;
+        }
+
+        if (Array.isArray(mappedData.variants)) {
+            setVariants(mappedData.variants);
+        }
+    };
+
     // 处理产品数据的核心逻辑
     const processProductData = (apiData) => {
-        // 处理 WooCommerce 产品数据
-        if (apiData.has_woocommerce_product && apiData.woocommerce) {
-            const wooData = apiData.woocommerce;
-            setProductData({
-                id: wooData.id,
-                name: wooData.name,
-                price: parseFloat(wooData.price) || 0,
-                price_html: wooData.price_html,
-                description: wooData.description || '',
-                sku: wooData.sku || '',
-                stock_status: wooData.stock_status,
-                in_stock: wooData.in_stock,
-                permalink: wooData.permalink,
-                apiData: apiData // 存储完整的 API 数据
-            });
-        }
+        const mapper = window.ProductResponseMapper;
+        const mappedData = mapper && typeof mapper.mapProductResponse === 'function'
+            ? mapper.mapProductResponse(apiData)
+            : null;
 
-        // 处理 MOQ 设置数据
-        if (apiData.has_product_data && apiData.product && apiData.product.data) {
-            const productApiData = apiData.product.data;
-
-            // 构建 MOQ 设置对象
-            const moqSettingsData = {};
-
-            // 处理批量销售设置
-            if (productApiData.sell_in_batch !== undefined) {
-                moqSettingsData.sell_in_batch = productApiData.sell_in_batch;
-            }
-
-            // 处理批量销售信息
-            if (productApiData.sell_in_batch_info) {
-                if (productApiData.sell_in_batch_info.batch_quantity !== undefined) {
-                    moqSettingsData.batch_quantity = productApiData.sell_in_batch_info.batch_quantity;
-                }
-                if (productApiData.sell_in_batch_info.moq_quantity !== undefined) {
-                    moqSettingsData.minimum_order_quantity = productApiData.sell_in_batch_info.moq_quantity;
-                }
-            }
-
-            // 兼容旧的 moq_setting 结构
-            if (productApiData.moq_setting) {
-                Object.assign(moqSettingsData, productApiData.moq_setting);
-            }
-
-            // 设置 MOQ 配置
-            if (Object.keys(moqSettingsData).length > 0) {
-                setMoqSettings(moqSettingsData);
-            }
-
-            // 提取数量折扣数据
-            if (productApiData.quantity_discount) {
-                setQuantityDiscounts(productApiData.quantity_discount);
-            }
-
-            // 处理数量折扣启用状态
-            if (productApiData.quantityDiscountEnabled !== undefined) {
-                setQuantityDiscountEnabled(productApiData.quantityDiscountEnabled);
-            }
-
-            // 处理颜色样品服务状态
-            if (productApiData.colorSampleService !== undefined) {
-                setColorSampleService(productApiData.colorSampleService);
-            }
-
-            // 处理 RTS Date 显示状态
-            if (productApiData.rts_date !== undefined) {
-                setRtsDate(productApiData.rts_date);
-            }
-
-            // 处理发货时间相关数据 - 从 shipping_info 中获取
-            if (productApiData.shipping_info) {
-                const shippingInfo = productApiData.shipping_info;
-
-                if (shippingInfo.rts_date_starts_from !== undefined) {
-                    setRtsDateStartsFrom(shippingInfo.rts_date_starts_from);
-                }
-
-                if (shippingInfo.rts_for_bulk_order !== undefined) {
-                    setRtsForBulkOrder(shippingInfo.rts_for_bulk_order);
-                }
-
-                if (shippingInfo.rts_for_sample_order !== undefined) {
-                    setRtsForSampleOrder(shippingInfo.rts_for_sample_order);
-                }
-            }
-
-            // 处理复选框状态
-            if (productApiData.buySampleChecked !== undefined) {
-                setBuySampleChecked(productApiData.buySampleChecked);
-            }
-
-            if (productApiData.blankProductChecked !== undefined) {
-                setBlankProductChecked(productApiData.blankProductChecked);
-            } else if (productApiData.blank_item !== undefined) {
-                setBlankProductChecked(productApiData.blank_item);
-            }
-
-            // 处理配件数据
-            if (productApiData.accessories && Array.isArray(productApiData.accessories)) {
-                // 将配件数据存储到产品数据中
-                if (productData.value) {
-                    productData.value.accessories = productApiData.accessories.map(accessory => ({
-                        id: accessory.id,
-                        testname: accessory.testname || accessory.name || 'Unknown Accessory',
-                        product_image: accessory.product_image || accessory.image || '',
-                        price: parseFloat(accessory.price) || 0
-                    }));
-                }
-            }
-        }
-
-        // 处理颜色变体数据
-        if (apiData.has_variants && apiData.variants && apiData.variants.data) {
-            setVariants(apiData.variants.data);
-
-            // 默认选择第一个变体
-            // if (apiData.variants.data.length > 0) {
-            //     setSelectedVariant(apiData.variants.data[0]);
-            // }
-        }
+        applyMappedProductData(mappedData);
     };
 
     // 添加请求状态跟踪
@@ -654,10 +637,12 @@
                     throw new Error('ProductDataAPI not loaded');
                 }
 
-                const apiData = await window.productDataAPI.fetchCurrentProductData();
+                const responsePayload = await window.productDataAPI.fetchCurrentProductData();
+                const apiData = responsePayload && responsePayload.data ? responsePayload.data : responsePayload;
 
                 // 处理数据并更新状态
                 processProductData(apiData);
+                handleProductUpdatedMeta(responsePayload && responsePayload.meta ? responsePayload.meta : null);
 
                 // 标记数据已获取
                 isDataFetched.value = true;
@@ -682,95 +667,9 @@
         try {
             // 使用传入的数量参数，如果没有则使用 store 中的数量
             const finalQuantity = customQuantity !== null ? customQuantity : quantity.value;
-            const precheckForm = new FormData();
-            precheckForm.append('action', 'pw_cart_blank_state');
-            precheckForm.append('security', window.pwAjax?.nonce || '');
-            const precheckResp = await fetch(window.pwAjax?.ajaxurl || '/wp-admin/admin-ajax.php', { method: 'POST', body: precheckForm });
-            const precheckResult = await precheckResp.json();
-            if (precheckResult && precheckResult.success && precheckResult.data) {
-                const state = precheckResult.data;
-                if (blankProductChecked.value) {
-                    if (state.non_blank_count > 0) {
-                        throw new Error('The cart contains customized products; cannot add this item');
-                    }
-                } else {
-                    if (state.blank_count > 0) {
-                        throw new Error('The cart already contains blank items; cannot add this item');
-                    }
-                }
-            }
-            
-            // 准备 WordPress AJAX 请求数据
-            const formData = new FormData();
-            formData.append('action', 'add_customized_product_to_cart');
-            formData.append('product_id', productId.value);
-            formData.append('quantity', finalQuantity);
-            // 触发与 #renderBtn 相同的渲染逻辑，捕获当前各视图图片
-            let firstImageDataUrl = '';
-            try {
-                // 1) 清除所有视图的选中状态，确保渲染干净
-                if (window.CanvasManager && typeof window.CanvasManager.getAllCanvasIds === 'function') {
-                    const allCanvasIds = window.CanvasManager.getAllCanvasIds();
-                    allCanvasIds.forEach(viewId => {
-                        const fc = window.CanvasManager.getCanvas(viewId);
-                        if (fc) {
-                            try {
-                                const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
-                                if (active && active.isEditing && typeof active.exitEditing === 'function') {
-                                    active.exitEditing();
-                                }
-                                if (typeof fc.discardActiveObject === 'function') {
-                                    fc.discardActiveObject();
-                                }
-                                fc.renderAll();
-                        } catch (e) {
-                            }
-                        }
-                    });
-                }
+            await window.ProductCartSubmitService.checkCartBlankState(blankProductChecked.value);
 
-                // 2) 通过多视图渲染函数生成图片数据
-                const canvasStore = (typeof window.useCanvasStore === 'function') ? window.useCanvasStore() : null;
-                const views = canvasStore && Array.isArray(canvasStore.views) ? canvasStore.views : [];
-                let viewImagesPayload = [];
-
-                if (views.length > 0 && typeof window.generateUniversalViewImages === 'function') {
-                    const images = await window.generateUniversalViewImages(views);
-                    // 组装带视图名的 JSON 结构
-                    viewImagesPayload = images.map((imgData, idx) => {
-                        const v = views[idx] || {};
-                        // 4-Grid Flow 视图返回数组，其它返回单张
-                        const imageArray = Array.isArray(imgData) ? imgData : [imgData];
-                        return {
-                            id: v.id || v.view_id || `view-${idx+1}`,
-                            name: v.name || v.view_name || `View ${idx+1}`,
-                            images: imageArray
-                        };
-                    });
-                } else {
-                    // 单视图模式：尝试使用捕获函数
-                    if (typeof window.captureCanvas === 'function') {
-                        const single = await window.captureCanvas();
-                        viewImagesPayload = [{ id: 'single', name: 'View', images: [single] }];
-                    }
-                }
-
-                // 取第一张作为 custom_image（用于兼容现有展示）
-                if (viewImagesPayload.length > 0 && Array.isArray(viewImagesPayload[0].images) && viewImagesPayload[0].images.length > 0) {
-                    firstImageDataUrl = viewImagesPayload[0].images[0];
-                }
-
-                // 写入多视图 JSON
-                try {
-                    formData.append('pw_view_images', JSON.stringify(viewImagesPayload));
-                } catch (e) {
-                }
-            } catch (e) {
-            }
-
-            // 兼容旧逻辑：custom_image 使用第一张图片，如果不可用则给占位
-            formData.append('custom_image', firstImageDataUrl || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
-            // 传递完整的颜色信息
+            const canvasPayload = await window.ProductCanvasPayloadBuilder.buildCanvasPayload();
             const variant = selectedVariant.value || (Array.isArray(variants.value) && variants.value.length > 0 ? variants.value[0] : null);
             const colorInfo = variant ? {
                 color_name: (variant.isCustom ? 'Custom Color' : (variant.variant_name || variant.name || '')),
@@ -781,74 +680,30 @@
                 color_value: '',
                 variant_id: ''
             };
-            
-            formData.append('color_name', colorInfo.color_name);
-            formData.append('color_value', colorInfo.color_value);
-            formData.append('variant_id', colorInfo.variant_id || '');
-            formData.append('color', colorInfo.color_value); // 保持向后兼容
-            if (variant && variant.isCustom && colorInfo.color_value) {
-                formData.append('custom_color', colorInfo.color_value);
-            }
-            formData.append('security', window.pwAjax?.nonce || '');
 
-            // 追加业务相关字段到 POST（起订量、批数量、样品/空白、折扣阶梯）
-            // 起订量与批数量
-            formData.append('pw_min_order_quantity', String(minQuantity.value));
-            formData.append('pw_batch_quantity', String(stepQuantity.value));
-            formData.append('pw_sell_in_batch', moqSettings.value.sell_in_batch ? '1' : '0');
+            const formData = window.ProductCartSubmitService.buildAddToCartFormData({
+                productId: productId.value,
+                quantity: finalQuantity,
+                variant,
+                colorInfo,
+                minQuantity: minQuantity.value,
+                stepQuantity: stepQuantity.value,
+                sellInBatch: !!moqSettings.value.sell_in_batch,
+                isSample: buySampleChecked.value,
+                isBlank: blankProductChecked.value,
+                discountEnabled: quantityDiscountEnabled.value,
+                currentDiscount: currentDiscount.value,
+                discountText: discountText.value,
+                quantityDiscounts: quantityDiscounts.value,
+                selectedAccessoriesNames: selectedAccessoriesNames.value
+            }, canvasPayload);
 
-            // 是否样品、是否空白件
-            formData.append('pw_is_sample', buySampleChecked.value ? '1' : '0');
-            formData.append('pw_is_blank', blankProductChecked.value ? '1' : '0');
-            formData.append('added_from', 'product');
-
-            // 折扣阶梯信息
-            formData.append('pw_discount_enabled', quantityDiscountEnabled.value ? '1' : '0');
-            formData.append('pw_current_discount', String(currentDiscount.value || 0));
-            formData.append('pw_discount_text', discountText.value || '');
-            try {
-                formData.append('pw_quantity_discounts', JSON.stringify(quantityDiscounts.value || []));
-            } catch (e) {
-                // JSON stringify 失败时传空数组字符串，避免后端报错
-                formData.append('pw_quantity_discounts', '[]');
-            }
-
-            if (blankProductChecked.value && selectedAccessoriesNames.value && selectedAccessoriesNames.value.length > 0) {
-                try {
-                    formData.append('pw_accessories_names', JSON.stringify(selectedAccessoriesNames.value));
-                } catch (e) {
-                    formData.append('pw_accessories_names', selectedAccessoriesNames.value.join(','));
-                }
-            }            
-
-             // 发送到 WordPress AJAX 端点
-             const response = await fetch(window.pwAjax?.ajaxurl || '/wp-admin/admin-ajax.php', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-            
-            if (!result.success) {
-                throw new Error(result.data || 'Failed to add to cart');
-            }
-            
-            // 成功添加到购物车
-            
-            // 显示成功提示
-            showSuccessMessage(`Successfully added ${finalQuantity} item(s) to the cart!`);
-            
-            // 可选：触发页面刷新购物车数量显示
-            if (typeof jQuery !== 'undefined' && jQuery(document.body).trigger) {
-                jQuery(document.body).trigger('added_to_cart');
-            }
+            await window.ProductCartSubmitService.submitAddToCart(formData);
+            window.ProductCartSubmitService.notifyAddToCartSuccess(finalQuantity);
             
         } catch (err) {
             setError(err.message);
-            // 显示错误提示
-            if (typeof showErrorMessage === 'function') {
-                showErrorMessage(err.message || 'An error occurred while adding to cart');
-            }
+            window.ProductCartSubmitService.notifyAddToCartError(err.message);
         } finally {
             setLoading(false);
         }

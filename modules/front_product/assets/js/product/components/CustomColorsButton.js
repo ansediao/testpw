@@ -268,16 +268,7 @@ window.CustomColorsButton = {
             
             // 清除产品状态管理中的自定义颜色状态
             if (productStore) {
-                if (typeof productStore.resetCustomColorState === 'function') {
-                    productStore.resetCustomColorState();
-                } else {
-                    if (typeof productStore.setSelectedVariant === 'function') {
-                        productStore.setSelectedVariant(null);
-                    }
-                    if (typeof productStore.setGradientColorApplied === 'function') {
-                        productStore.setGradientColorApplied(false);
-                    }
-                }
+                window.ProductColorSelectionBridge.resetSelection(productStore);
             }
             
             // 重置组件内部状态
@@ -491,45 +482,7 @@ window.CustomColorsButton = {
         
         // 处理颜色选择的核心逻辑（模拟.pw-color-swatch的行为）
         const handleColorSelection = (colorValue, type) => {
-            // 触发产品图片Canvas替换功能（参考ColorVariants组件的实现）
-            if (colorValue && window.ProductImageCanvas) {
-                window.ProductImageCanvas.switchToCanvas(colorValue);
-            }
-            
-            // 保存自定义颜色到 localStorage
-            if (colorValue && window.pwProductConfig && window.pwProductConfig.productId) {
-                try {
-                    const storageKey = `pw_product_color_${window.pwProductConfig.productId}`;
-                    localStorage.setItem(storageKey, colorValue);
-                } catch (e) {
-                    console.warn('Failed to save color to localStorage:', e);
-                }
-            }
-
-            // 更新Pinia store状态（如果存在）
-            if (productStore && productStore.setSelectedVariant) {
-                // 创建一个类似variant的对象
-                const customVariant = {
-                    id: 'custom-' + Date.now(),
-                    variant_color: colorValue,
-                    type: type,
-                    isCustom: true
-                };
-                productStore.setSelectedVariant(customVariant);
-            }
-            
-            // 发送自定义事件，与ColorVariants保持一致
-            const customEvent = new CustomEvent('pw-color-variant-selected', {
-                detail: { 
-                    variant: {
-                        variant_color: colorValue,
-                        type: type,
-                        isCustom: true
-                    }
-                },
-                bubbles: true
-            });
-            document.dispatchEvent(customEvent);
+            window.ProductColorSelectionBridge.applyCustomColorSelection(colorValue, type, productStore);
         };
         
         // 组件挂载时的初始化

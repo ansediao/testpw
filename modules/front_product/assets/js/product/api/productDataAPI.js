@@ -3,6 +3,31 @@
  * 使用 fetch 从 REST API 获取数据，供 Vue 使用
  */
 window.ProductDataAPI = {
+    getResponseMeta(response, pwId) {
+        const meta = {
+            cacheHit: false,
+            productUpdated: false,
+            reloadGuardKey: `pw_product_reload_guard_${pwId}`
+        };
+
+        try {
+            const headerValue = response.headers.get('x-pw-cache') || response.headers.get('X-PW-Cache');
+            meta.cacheHit = !!(headerValue && String(headerValue).toUpperCase() === 'HIT');
+            if (meta.cacheHit) {
+                // eslint-disable-next-line no-console
+                console.info('[PW Product] 使用缓存的产品数据', { pwId });
+            }
+        } catch (e) {
+        }
+
+        try {
+            const updatedFlag = response.headers.get('x-pw-product-updated') || response.headers.get('X-PW-Product-Updated');
+            meta.productUpdated = !!(updatedFlag && String(updatedFlag).toLowerCase() === 'true');
+        } catch (e) {
+        }
+
+        return meta;
+    },
     /**
      * 获取产品数据
      * @param {string} pwId - 产品的 pw_id
@@ -23,62 +48,15 @@ window.ProductDataAPI = {
             }
 
             const data = await response.json();
+            const meta = this.getResponseMeta(response, pwId);
 
-            try {
-                const headerValue = response.headers.get('x-pw-cache') || response.headers.get('X-PW-Cache');
-                if (headerValue && String(headerValue).toUpperCase() === 'HIT') {
-                    // eslint-disable-next-line no-console
-                    console.info('[PW Product] 使用缓存的产品数据', { pwId });
-                }
-            } catch (e) {
-            }
-
-            // 检查产品是否有更新，如果有则刷新页面
-            try {
-                const updatedFlag = response.headers.get('x-pw-product-updated') || response.headers.get('X-PW-Product-Updated');
-                if (updatedFlag && String(updatedFlag).toLowerCase() === 'true') {
-                    const reloadGuardKey = `pw_product_reload_guard_${pwId}`;
-                    const now = Date.now();
-                    let shouldReload = true;
-
-                    try {
-                        const lastReloadAt = Number(sessionStorage.getItem(reloadGuardKey) || 0);
-                        if (lastReloadAt && now - lastReloadAt < 30000) {
-                            shouldReload = false;
-                        }
-                    } catch (e) {
-                    }
-
-                    if (shouldReload) {
-                        try {
-                            sessionStorage.setItem(reloadGuardKey, String(now));
-                        } catch (e) {
-                        }
-
-                        // eslint-disable-next-line no-console
-                        console.info('[PW Product] 产品数据已更新，即将刷新页面', { pwId });
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
-                    } else {
-                        // eslint-disable-next-line no-console
-                        console.warn('[PW Product] 已阻止短时间内重复自动刷新', { pwId });
-                    }
-                }
-            } catch (e) {
-            }
-
-            return data;
+            return { data, meta };
         } catch (error) {
             if (error.message && error.message.includes('HTTP error')) {
-                const errorMsg = `API Error: ${error.message}`;
-                alert("Product Error, Please Contact Admin.");
-                throw new Error(errorMsg);
-            } else {
-                const errorMsg = '网络请求失败，请检查网络连接';
-                alert(errorMsg);
-                throw new Error(errorMsg);
+                throw new Error(`API Error: ${error.message}`);
             }
+
+            throw new Error('网络请求失败，请检查网络连接');
         }
     },
 
@@ -108,7 +86,8 @@ window.ProductDataAPI = {
             return results.map((result, index) => ({
                 pwId: pwIds[index],
                 success: result.status === 'fulfilled',
-                data: result.status === 'fulfilled' ? result.value : null,
+                data: result.status === 'fulfilled' ? result.value.data : null,
+                meta: result.status === 'fulfilled' ? result.value.meta : null,
                 error: result.status === 'rejected' ? result.reason.message : null
             }));
         } catch (error) {
