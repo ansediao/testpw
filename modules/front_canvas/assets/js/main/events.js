@@ -98,8 +98,19 @@ function isElementInLayerGroup(obj) {
 }
 
 function showPrintMethodBindingAlert(targetObject) {
-    const assignBtn = document.querySelector('#content-tuan .layer-item.ungrouped.active .assign-btn');
-    if (assignBtn) assignBtn.click();
+    if (!targetObject || !targetObject.id) {
+        return;
+    }
+    
+    if (typeof window.pwcaOpenPrintMethodBindingModal === 'function') {
+        window.pwcaOpenPrintMethodBindingModal(targetObject.id);
+        return;
+    }
+    
+    if (typeof window.pwcaOpenPrintMethodModal === 'function') {
+        window.pwcaOpenPrintMethodModal(targetObject.id);
+        return;
+    }
 }
 
 function pwcaGetUiStateAccess() {

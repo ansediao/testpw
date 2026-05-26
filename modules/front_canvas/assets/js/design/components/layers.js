@@ -1,5 +1,5 @@
 // src/components/layers.js
-// 图层面板主入口：负责创建并挂载 Vue 应用，本文件只做“组装”，具体逻辑拆分到子模块中
+// 图层面板主入口：负责创建并挂载 Vue 应用，本文件只做"组装"，具体逻辑拆分到子模块中
 
 import { useCanvasStore, usePrintMethodStore, pinia } from '../stores/index.js';
 import { layerModalsTemplate } from './layer-modals.js';
@@ -9,6 +9,7 @@ import { createThumbnailHelpers } from './layers/thumbnail.js';
 import { createGroupHelpers } from './layers/groups.js';
 import { createLayerOperations } from './layers/operations.js';
 import { createPrintMethodHelpers } from './layers/print-methods.js';
+import { openPrintMethodBindingModal } from './layers/print-method-binding-modal.js';
 
 const layersApp = Vue.createApp({
     template: `
@@ -505,6 +506,53 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 1000);
 });
+
+window.pwcaOpenPrintMethodBindingModal = function(layerId) {
+    if (typeof openPrintMethodBindingModal === 'function') {
+        return openPrintMethodBindingModal(layerId);
+    }
+    
+    const stateAccess = window.pwcaUiStateAccess;
+    if (!stateAccess) return false;
+    
+    const canvasStore = typeof stateAccess.getCanvasStore === 'function' 
+        ? stateAccess.getCanvasStore() 
+        : null;
+    
+    if (!canvasStore) return false;
+    
+    const currentViewId = canvasStore.activeViewId;
+    if (!currentViewId) return false;
+    
+    const viewLayers = canvasStore.getViewLayers(currentViewId);
+    const layer = viewLayers.find(l => l.id === layerId);
+    
+    if (!layer) return false;
+    
+    canvasStore.setActiveObjectId(layerId);
+    
+    if (typeof window.switchOperationPanelTab === 'function') {
+        window.switchOperationPanelTab('tab-tuan', { preserveSelection: true });
+    }
+    
+    setTimeout(() => {
+        const layerItem = document.querySelector(`#content-tuan .layer-item.ungrouped.active`);
+        if (layerItem) {
+            const assignBtn = layerItem.querySelector('.assign-btn');
+            if (assignBtn && !assignBtn.disabled) {
+                assignBtn.click();
+                return;
+            }
+        }
+        
+        const anyAssignBtn = document.querySelector('#content-tuan .assign-btn:not([disabled])');
+        if (anyAssignBtn) {
+            anyAssignBtn.click();
+        }
+    }, 200);
+    
+    return true;
+};
 
 window.addLayerToStore = function (layerId, layerName, layerType) {
     if (typeof window.useCanvasStore === 'function') {

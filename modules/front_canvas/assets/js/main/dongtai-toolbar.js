@@ -28,16 +28,45 @@
         return activeCanvas.getActiveObject() || null;
     }
 
+    function pwcaCheckObjectHasPrintMethod(obj) {
+        if (!obj || !obj.id) return false;
+        
+        const stateAccess = pwcaGetUiStateAccess();
+        if (!stateAccess) return false;
+        
+        const printMethodStore = typeof stateAccess.getPrintMethodStore === 'function' 
+            ? stateAccess.getPrintMethodStore() 
+            : null;
+        
+        if (!printMethodStore) return false;
+        
+        const layerMethodId = printMethodStore.layerPrintMethodMap ? printMethodStore.layerPrintMethodMap[obj.id] : null;
+        if (layerMethodId) return true;
+        
+        if (obj.groupId) {
+            const groupMethodId = printMethodStore.groupPrintMethodMap ? printMethodStore.groupPrintMethodMap[obj.groupId] : null;
+            if (groupMethodId) return true;
+            
+            const match = String(obj.groupId).match(/^print-method-(.+)$/);
+            if (match && match[1]) return true;
+        }
+        
+        return false;
+    }
+
+    function pwcaOpenPrintMethodModal(layerId) {
+        if (typeof window.pwcaOpenPrintMethodBindingModal === 'function') {
+            return window.pwcaOpenPrintMethodBindingModal(layerId);
+        }
+        return false;
+    }
+
     function showPrintMethodBindingAlert(targetObject) {
-        const assignBtn = document.querySelector('#content-tuan .layer-item.ungrouped.active .assign-btn');
-        if (assignBtn) {
-            assignBtn.click();
+        if (!targetObject || !targetObject.id) {
             return;
         }
-
-        const message = '请先为此元素绑定印刷方式后再使用此工具。\n\n您可以在图层面板中点击\"Switch Printing Method\"按钮来绑定印刷方式。';
-        // eslint-disable-next-line no-alert
-        window.alert(message);
+        
+        pwcaOpenPrintMethodModal(targetObject.id);
     }
 
     function pwcaInitTextToolbar() {
@@ -52,9 +81,15 @@
         }
 
         buttons.forEach(function (button) {
-            button.addEventListener('click', function () {
-                const activeCanvas = pwcaGetToolbarActiveCanvas();
+            button.addEventListener('click', function (e) {
                 const activeObject = pwcaGetToolbarActiveObject();
+                
+                if (activeObject && activeObject.id && !pwcaCheckObjectHasPrintMethod(activeObject)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    pwcaOpenPrintMethodModal(activeObject.id);
+                    return;
+                }
 
                 if (typeof window.switchOperationPanelTab === 'function') {
                     window.switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
@@ -89,9 +124,16 @@
         }
 
         buttons.forEach(function (button) {
-            button.addEventListener('click', function () {
+            button.addEventListener('click', function (e) {
                 const activeCanvas = pwcaGetToolbarActiveCanvas();
                 const activeObject = pwcaGetToolbarActiveObject();
+                
+                if (activeObject && activeObject.id && !pwcaCheckObjectHasPrintMethod(activeObject)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    pwcaOpenPrintMethodModal(activeObject.id);
+                    return;
+                }
 
                 if (typeof window.switchOperationPanelTab === 'function') {
                     window.switchOperationPanelTab('tab-pianquan');
@@ -129,4 +171,6 @@
     });
 
     window.showPrintMethodBindingAlert = showPrintMethodBindingAlert;
+    window.pwcaOpenPrintMethodModal = pwcaOpenPrintMethodModal;
+    window.pwcaCheckObjectHasPrintMethod = pwcaCheckObjectHasPrintMethod;
 })();
