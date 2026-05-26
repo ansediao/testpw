@@ -51,16 +51,10 @@ export function useLayerState(store) {
     });
 
     const switchToView = (viewId) => {
-        store.setActiveViewId(viewId);
-
-        if (window.CanvasManager) {
-            window.CanvasManager.setActiveCanvas(viewId);
-        }
-
-        const event = new CustomEvent('layerPanelViewSwitch', {
-            detail: { viewId }
+        window.pwcaViewSwitchFacade.switchToView(viewId, {
+            source: 'layers-state',
+            forceDomSync: true
         });
-        document.dispatchEvent(event);
     };
 
     const getCurrentViewName = () => {

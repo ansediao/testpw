@@ -123,39 +123,10 @@
                     );
                     
                     if (targetView) {
-                        // 设置激活视图
-                        store.setActiveViewId(targetView.id);
-                        
-                        // 隐藏所有视图容器，显示目标视图
-                        document.querySelectorAll('.view-container').forEach(container => {
-                            container.style.display = 'none';
+                        window.pwcaViewSwitchFacade.switchToView(targetView.id, {
+                            source: 'url-params-handler',
+                            forceDomSync: true
                         });
-                        
-                        const viewContainer = document.getElementById(`view-container-${targetView.id}`);
-                        if (viewContainer) {
-                            viewContainer.style.display = 'block';
-                        }
-                        
-                        // 更新 CanvasManager
-                        if (window.CanvasManager) {
-                            window.CanvasManager.setActiveCanvas(targetView.id);
-                            const canvas = window.CanvasManager.getCanvas(targetView.id);
-                            if (canvas) {
-                                if (window.setGlobalCanvas) {
-                                    window.setGlobalCanvas(canvas);
-                                } else {
-                                    window.canvas = canvas;
-                                    window.fabricCanvas = canvas;
-                                }
-                                canvas.renderAll();
-                            }
-                        }
-                        
-                        // 触发视图切换事件
-                        document.dispatchEvent(new CustomEvent('layerPanelViewSwitch', { 
-                            detail: { viewId: targetView.id } 
-                        }));
-                        
                         console.log('[URL Params] 已切换到视图:', targetView.id);
                     } else {
                         console.warn('[URL Params] 未找到视图:', viewId);
@@ -193,7 +164,10 @@
                     
                     // 确保 activeViewId 已设置
                     if (!store.activeViewId) {
-                        store.setActiveViewId(firstView.id);
+                        window.pwcaViewSwitchFacade.switchToView(firstView.id, {
+                            source: 'url-params-ensure-view',
+                            forceDomSync: true
+                        });
                     }
                     return;
                 }

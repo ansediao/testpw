@@ -65,31 +65,21 @@
                 });
                 button.classList.add('active');
 
-                if (typeof store.setActiveViewId === 'function') {
-                    store.setActiveViewId(view.id);
-                }
-
-                switchToView(view);
-
-                document.dispatchEvent(
-                    new CustomEvent('layerPanelViewSwitch', {
-                        detail: { viewId: view.id }
-                    })
-                );
+                window.pwcaViewSwitchFacade.switchToView(view.id, {
+                    source: 'customization-area-button',
+                    forceDomSync: true
+                });
             });
 
             container.appendChild(button);
         });
 
         const firstView = views[0];
-        if (firstView && typeof store.setActiveViewId === 'function') {
-            store.setActiveViewId(firstView.id);
-            switchToView(firstView);
-            document.dispatchEvent(
-                new CustomEvent('layerPanelViewSwitch', {
-                    detail: { viewId: firstView.id }
-                })
-            );
+        if (firstView) {
+            window.pwcaViewSwitchFacade.switchToView(firstView.id, {
+                source: 'customization-area-init',
+                forceDomSync: true
+            });
         }
 
         document.addEventListener('layerPanelViewSwitch', (event) => {
@@ -108,58 +98,10 @@
 
             const targetView = views.find((v) => v.id === viewId);
             if (targetView) {
-                switchToView(targetView);
+                window.pwcaViewSwitchFacade.syncViewContainers(targetView.id);
+                window.pwcaViewSwitchFacade.syncCanvasManager(targetView.id);
             }
         });
-    };
-
-    const switchToView = (view) => {
-        const allViewContainers = document.querySelectorAll('.view-container');
-        allViewContainers.forEach((container) => {
-            container.style.display = 'none';
-        });
-
-        const viewContainer = document.getElementById('view-container-' + view.id);
-        if (viewContainer) {
-            viewContainer.style.display = 'block';
-        }
-
-        const canvasManager = window.CanvasManager;
-        let canvas = null;
-
-        if (canvasManager && typeof canvasManager.getCanvas === 'function') {
-            canvas = canvasManager.getCanvas(view.id);
-        }
-
-        if (canvasManager && typeof canvasManager.setActiveCanvas === 'function') {
-            canvasManager.setActiveCanvas(view.id);
-        }
-
-        if (!canvas) {
-            return;
-        }
-
-        const allCanvasIds =
-            canvasManager && typeof canvasManager.getAllCanvasIds === 'function'
-                ? canvasManager.getAllCanvasIds()
-                : [];
-
-        allCanvasIds.forEach((canvasId) => {
-            const viewCanvas = canvasManager.getCanvas(canvasId);
-            if (viewCanvas && typeof viewCanvas.discardActiveObject === 'function') {
-                viewCanvas.discardActiveObject();
-                viewCanvas.renderAll();
-            }
-        });
-
-        if (typeof window.setGlobalCanvas === 'function') {
-            window.setGlobalCanvas(canvas);
-        } else {
-            window.canvas = canvas;
-            window.fabricCanvas = canvas;
-        }
-
-        canvas.renderAll();
     };
 
     const initViewSwitcher = () => {

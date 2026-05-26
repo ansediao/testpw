@@ -96,9 +96,16 @@ final class Pwca_Front_Canvas_Assets {
 
 	private function enqueue_local_scripts() {
 		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-view-switch-facade',
+			$this->module_url . 'assets/js/main/view-switch-facade.js',
+			array(),
+			$this->module_path . '/assets/js/main/view-switch-facade.js'
+		);
+
+		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-url-params',
 			$this->module_url . 'assets/js/design/url-params-handler.js',
-			array(),
+			array( 'pwca-front-canvas-view-switch-facade' ),
 			$this->module_path . '/assets/js/design/url-params-handler.js'
 		);
 
@@ -259,7 +266,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-customization-area',
 			$this->module_url . 'assets/js/main/customization-area.js',
-			array( 'pwca-front-canvas-events' ),
+			array( 'pwca-front-canvas-events', 'pwca-front-canvas-view-switch-facade' ),
 			$this->module_path . '/assets/js/main/customization-area.js'
 		);
 
