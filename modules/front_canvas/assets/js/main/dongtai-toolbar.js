@@ -55,56 +55,14 @@
     }
 
     function pwcaOpenPrintMethodModal(layerId) {
-        const stateAccess = pwcaGetUiStateAccess();
-        if (!stateAccess) return false;
-        
-        const canvasStore = typeof stateAccess.getCanvasStore === 'function' 
-            ? stateAccess.getCanvasStore() 
-            : null;
-        
-        if (!canvasStore) return false;
-        
-        if (typeof window.switchOperationPanelTab === 'function') {
-            window.switchOperationPanelTab('tab-tuan', { preserveSelection: true });
+        if (typeof window.pwcaOpenPrintMethodBindingModal === 'function') {
+            return window.pwcaOpenPrintMethodBindingModal(layerId);
         }
-        
-        setTimeout(() => {
-            if (canvasStore && typeof canvasStore.setActiveObjectId === 'function') {
-                canvasStore.setActiveObjectId(layerId);
-            }
-            
-            setTimeout(() => {
-                const layerItem = document.querySelector(`#content-tuan .layer-item.ungrouped.active .assign-btn`);
-                if (layerItem) {
-                    layerItem.click();
-                    return;
-                }
-                
-                const anyActiveLayer = document.querySelector(`#content-tuan .layer-item.ungrouped.active`);
-                if (anyActiveLayer) {
-                    const assignBtn = anyActiveLayer.querySelector('.assign-btn');
-                    if (assignBtn) {
-                        assignBtn.click();
-                        return;
-                    }
-                }
-                
-                const anyAssignBtn = document.querySelector('#content-tuan .assign-btn');
-                if (anyAssignBtn) {
-                    anyAssignBtn.click();
-                    return;
-                }
-                
-                window.alert('请先为此元素绑定印刷方式后再使用此工具。\n\n您可以在图层面板中点击"Switch Printing Method"按钮来绑定印刷方式。');
-            }, 200);
-        }, 100);
-        
-        return true;
+        return false;
     }
 
     function showPrintMethodBindingAlert(targetObject) {
         if (!targetObject || !targetObject.id) {
-            window.alert('请先为此元素绑定印刷方式后再使用此工具。\n\n您可以在图层面板中点击"Switch Printing Method"按钮来绑定印刷方式。');
             return;
         }
         

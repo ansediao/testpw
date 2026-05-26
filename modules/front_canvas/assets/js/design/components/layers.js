@@ -506,6 +506,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
 });
 
+window.pwcaOpenPrintMethodBindingModal = function(layerId) {
+    const stateAccess = window.pwcaUiStateAccess;
+    if (!stateAccess) return false;
+    
+    const canvasStore = typeof stateAccess.getCanvasStore === 'function' 
+        ? stateAccess.getCanvasStore() 
+        : null;
+    
+    if (!canvasStore) return false;
+    
+    const currentViewId = canvasStore.activeViewId;
+    if (!currentViewId) return false;
+    
+    const viewLayers = canvasStore.getViewLayers(currentViewId);
+    const layer = viewLayers.find(l => l.id === layerId);
+    
+    if (!layer) return false;
+    
+    const container = document.getElementById('layers-box');
+    if (!container) return false;
+    
+    canvasStore.setActiveObjectId(layerId);
+    
+    if (typeof window.switchOperationPanelTab === 'function') {
+        window.switchOperationPanelTab('tab-tuan', { preserveSelection: true });
+    }
+    
+    setTimeout(() => {
+        const layerItem = document.querySelector(`#content-tuan .layer-item.ungrouped.active`);
+        if (layerItem) {
+            const assignBtn = layerItem.querySelector('.assign-btn');
+            if (assignBtn && !assignBtn.disabled) {
+                assignBtn.click();
+                return;
+            }
+        }
+        
+        const anyAssignBtn = document.querySelector('#content-tuan .assign-btn:not([disabled])');
+        if (anyAssignBtn) {
+            anyAssignBtn.click();
+        }
+    }, 200);
+    
+    return true;
+};
+
 window.addLayerToStore = function (layerId, layerName, layerType) {
     if (typeof window.useCanvasStore === 'function') {
         try {

@@ -99,7 +99,11 @@ function isElementInLayerGroup(obj) {
 
 function showPrintMethodBindingAlert(targetObject) {
     if (!targetObject || !targetObject.id) {
-        window.alert('请先为此元素绑定印刷方式后再使用此工具。\n\n您可以在图层面板中点击"Switch Printing Method"按钮来绑定印刷方式。');
+        return;
+    }
+    
+    if (typeof window.pwcaOpenPrintMethodBindingModal === 'function') {
+        window.pwcaOpenPrintMethodBindingModal(targetObject.id);
         return;
     }
     
@@ -107,37 +111,6 @@ function showPrintMethodBindingAlert(targetObject) {
         window.pwcaOpenPrintMethodModal(targetObject.id);
         return;
     }
-    
-    const assignBtn = document.querySelector('#content-tuan .layer-item.ungrouped.active .assign-btn');
-    if (assignBtn) {
-        const isTabTuanActive = document.getElementById('tab-tuan')?.classList.contains('active');
-        if (!isTabTuanActive && typeof window.switchOperationPanelTab === 'function') {
-            window.switchOperationPanelTab('tab-tuan', { preserveSelection: true });
-            setTimeout(() => {
-                const btn = document.querySelector('#content-tuan .layer-item.ungrouped.active .assign-btn:not([disabled])');
-                if (btn) btn.click();
-            }, 100);
-            return;
-        }
-        assignBtn.click();
-        return;
-    }
-    
-    const currentTab = document.getElementById('tab-tuan');
-    if (!currentTab?.classList.contains('active') && typeof window.switchOperationPanelTab === 'function') {
-        window.switchOperationPanelTab('tab-tuan', { preserveSelection: true });
-        setTimeout(() => {
-            const btn = document.querySelector('#content-tuan .layer-item.ungrouped.active .assign-btn:not([disabled])');
-            if (btn) {
-                btn.click();
-            } else {
-                window.alert('请先为此元素绑定印刷方式后再使用此工具。\n\n您可以在图层面板中点击"Switch Printing Method"按钮来绑定印刷方式。');
-            }
-        }, 150);
-        return;
-    }
-    
-    window.alert('请先为此元素绑定印刷方式后再使用此工具。\n\n您可以在图层面板中点击"Switch Printing Method"按钮来绑定印刷方式。');
 }
 
 function pwcaGetUiStateAccess() {
