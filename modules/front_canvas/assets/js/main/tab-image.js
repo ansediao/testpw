@@ -26,15 +26,34 @@
             return uiStateAccess.getCanvasStore();
         }
 
-        if (typeof window.useCanvasStore !== 'function') {
-            return null;
+        return null;
+    }
+
+    function pwcaGetCurrentViewMeta() {
+        const uiStateAccess = pwcaGetUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getCurrentView === 'function') {
+            return uiStateAccess.getCurrentView();
         }
 
-        try {
-            return window.useCanvasStore();
-        } catch (error) {
-            return null;
+        return null;
+    }
+
+    function pwcaGetActiveViewId() {
+        const uiStateAccess = pwcaGetUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getActiveViewId === 'function') {
+            return uiStateAccess.getActiveViewId();
         }
+
+        return null;
+    }
+
+    function pwcaGetCurrentBaseCanvas() {
+        const uiStateAccess = pwcaGetUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getCurrentBaseCanvas === 'function') {
+            return uiStateAccess.getCurrentBaseCanvas();
+        }
+
+        return null;
     }
 
     function pwcaNormalizeImageFormatExtensions(imageFormatValue) {
@@ -179,25 +198,6 @@
         imageInput.setAttribute('accept', pwcaGetCurrentUploadSettings().accept);
     }
 
-    function pwcaGetCurrentViewMeta() {
-        const store = pwcaGetCanvasStore();
-        if (!store) {
-            return null;
-        }
-
-        if (store.activeView && typeof store.activeView === 'object') {
-            return store.activeView;
-        }
-
-        if (Array.isArray(store.views) && store.activeViewId != null) {
-            return store.views.find(function (view) {
-                return view && String(view.id) === String(store.activeViewId);
-            }) || null;
-        }
-
-        return null;
-    }
-
     function pwcaIsCurrentFourGridView() {
         const store = pwcaGetCanvasStore();
         const currentView = pwcaGetCurrentViewMeta();
@@ -265,13 +265,12 @@
 
         const store = pwcaGetCanvasStore();
         const currentView = pwcaGetCurrentViewMeta();
-        const viewId = store && store.activeViewId;
+        const viewId = pwcaGetActiveViewId();
         if (!viewId) {
             return null;
         }
 
-        const baseCanvasElement = document.getElementById('baseCanvas-' + viewId);
-        const baseCanvas = baseCanvasElement && baseCanvasElement.__fabricCanvas;
+        const baseCanvas = pwcaGetCurrentBaseCanvas();
         if (!baseCanvas || typeof baseCanvas.getObjects !== 'function') {
             return null;
         }
@@ -616,13 +615,7 @@
             return uiStateAccess.getActiveCanvas();
         }
 
-        if (typeof window.getActiveCanvas === 'function') {
-            return window.getActiveCanvas();
-        }
-        if (window.CanvasManager && typeof window.CanvasManager.getActiveCanvas === 'function') {
-            return window.CanvasManager.getActiveCanvas();
-        }
-        return window.canvas || window.fabricCanvas || null;
+        return null;
     }
 
     function pwcaAddImageToCanvas(imgElement, fileName) {

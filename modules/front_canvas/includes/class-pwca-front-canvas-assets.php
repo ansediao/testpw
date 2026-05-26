@@ -105,7 +105,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-url-params',
 			$this->module_url . 'assets/js/design/url-params-handler.js',
-			array( 'pwca-front-canvas-view-switch-facade' ),
+			array( 'pwca-front-canvas-view-switch-facade', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/design/url-params-handler.js'
 		);
 
@@ -175,7 +175,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-core-init',
 			$this->module_url . 'assets/js/main/core-init.js',
-			array( 'pwca-front-canvas-canvas-init' ),
+			array( 'pwca-front-canvas-canvas-init', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/core-init.js'
 		);
 
@@ -273,7 +273,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-customization-area',
 			$this->module_url . 'assets/js/main/customization-area.js',
-			array( 'pwca-front-canvas-events', 'pwca-front-canvas-view-switch-facade' ),
+			array( 'pwca-front-canvas-events', 'pwca-front-canvas-view-switch-facade', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/customization-area.js'
 		);
 

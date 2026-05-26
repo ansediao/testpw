@@ -40,16 +40,36 @@ const pwcaOptionalTabModuleMap = {
 
 const pwcaDefaultOptionalModules = ['UPLOAD', 'TEXT', 'DESIGN'];
 
+function pwcaGetUiStateAccess() {
+    return window.pwcaUiStateAccess || null;
+}
+
 function pwcaGetCanvasStore() {
-    if (typeof window.useCanvasStore !== 'function') {
-        return null;
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getCanvasStore === 'function') {
+        return uiStateAccess.getCanvasStore();
     }
 
-    try {
-        return window.useCanvasStore();
-    } catch (error) {
-        return null;
+    return null;
+}
+
+function pwcaGetActiveViewId() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getActiveViewId === 'function') {
+        return uiStateAccess.getActiveViewId();
     }
+
+    const store = pwcaGetCanvasStore();
+    return store && store.activeViewId ? store.activeViewId : null;
+}
+
+function pwcaGetAllViewCanvases() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getAllViewCanvases === 'function') {
+        return uiStateAccess.getAllViewCanvases();
+    }
+
+    return [];
 }
 
 function pwcaNormalizeOperationModules(modules) {
@@ -225,17 +245,13 @@ function switchOperationPanelTab(tabId, opts = {}) {
         try {
             const preserveSelection = !!opts.preserveSelection;
             if (!preserveSelection) {
-                if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
-                    const viewIds = window.CanvasManager.getViewIds();
-                    viewIds.forEach(viewId => {
-                        const canvas = window.CanvasManager.getCanvas(viewId);
-                        if (canvas && typeof canvas.discardActiveObject === 'function') {
-                            canvas.discardActiveObject();
-                            if (typeof canvas.requestRenderAll === 'function') canvas.requestRenderAll();
-                            else if (typeof canvas.renderAll === 'function') canvas.renderAll();
-                        }
-                    });
-                }
+                pwcaGetAllViewCanvases().forEach((canvas) => {
+                    if (canvas && typeof canvas.discardActiveObject === 'function') {
+                        canvas.discardActiveObject();
+                        if (typeof canvas.requestRenderAll === 'function') canvas.requestRenderAll();
+                        else if (typeof canvas.renderAll === 'function') canvas.renderAll();
+                    }
+                });
             }
         } catch (err) {}
     }
@@ -243,17 +259,13 @@ function switchOperationPanelTab(tabId, opts = {}) {
         const preserveSelection = !!opts.preserveSelection;
         if (!preserveSelection) {
             try {
-                if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
-                    const viewIds = window.CanvasManager.getViewIds();
-                    viewIds.forEach(viewId => {
-                        const canvas = window.CanvasManager.getCanvas(viewId);
-                        if (canvas && typeof canvas.discardActiveObject === 'function') {
-                            canvas.discardActiveObject();
-                            if (typeof canvas.requestRenderAll === 'function') canvas.requestRenderAll();
-                            else if (typeof canvas.renderAll === 'function') canvas.renderAll();
-                        }
-                    });
-                }
+                pwcaGetAllViewCanvases().forEach((canvas) => {
+                    if (canvas && typeof canvas.discardActiveObject === 'function') {
+                        canvas.discardActiveObject();
+                        if (typeof canvas.requestRenderAll === 'function') canvas.requestRenderAll();
+                        else if (typeof canvas.renderAll === 'function') canvas.renderAll();
+                    }
+                });
             } catch (err) {}
         }
         try {
@@ -301,12 +313,12 @@ window.showTabControlHelp = function() {
 };
 
 function getActiveCanvasElements() {
-    const store = window.useCanvasStore && window.useCanvasStore();
-    if (store && store.activeViewId) {
+    const activeViewId = pwcaGetActiveViewId();
+    if (activeViewId) {
         return {
-            colorCanvas: document.getElementById(`colorLayer-${store.activeViewId}`),
-            shadowCanvas: document.getElementById(`shadowLayer-${store.activeViewId}`),
-            mainCanvas: document.getElementById(`mainCanvas-${store.activeViewId}`)
+            colorCanvas: document.getElementById(`colorLayer-${activeViewId}`),
+            shadowCanvas: document.getElementById(`shadowLayer-${activeViewId}`),
+            mainCanvas: document.getElementById(`mainCanvas-${activeViewId}`)
         };
     }
     return {
@@ -334,9 +346,9 @@ function getActiveCanvas() {
         }
     }
 
-    const store = window.useCanvasStore && window.useCanvasStore();
-    if (store && store.activeViewId) {
-        const canvasElement = document.getElementById(`mainCanvas-${store.activeViewId}`);
+    const activeViewId = pwcaGetActiveViewId();
+    if (activeViewId) {
+        const canvasElement = document.getElementById(`mainCanvas-${activeViewId}`);
         if (canvasElement && canvasElement.__fabricCanvas) {
             return canvasElement.__fabricCanvas;
         }
@@ -370,7 +382,7 @@ if (document.readyState === 'loading') {
 document.addEventListener('canvasPiniaReady', pwcaBindOperationPanelModuleSync);
 pwcaBindOperationPanelModuleSync();
 
-const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
+const canvasStore = pwcaGetCanvasStore();
 const isMultiViewMode = canvasStore && canvasStore.views && canvasStore.views.length > 0;
 const hasMultiViewContainer = document.querySelector('.multi-view-container') !== null;
 if (!isMultiViewMode && !hasMultiViewContainer) {

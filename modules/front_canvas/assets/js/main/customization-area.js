@@ -1,9 +1,18 @@
 (function () {
     'use strict';
 
+    const pwcaGetCanvasStore = () => {
+        const uiStateAccess = window.pwcaUiStateAccess || null;
+        if (!uiStateAccess || typeof uiStateAccess.getCanvasStore !== 'function') {
+            return null;
+        }
+
+        return uiStateAccess.getCanvasStore();
+    };
+
     const waitForStore = (callback) => {
-        if (typeof window.useCanvasStore === 'function') {
-            const store = window.useCanvasStore();
+        const store = pwcaGetCanvasStore();
+        if (store) {
             callback(store);
             return;
         }

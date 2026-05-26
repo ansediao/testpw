@@ -11,15 +11,7 @@
             return uiStateAccess.getCanvasStore();
         }
 
-        if (typeof window.useCanvasStore !== 'function') {
-            return null;
-        }
-
-        try {
-            return window.useCanvasStore();
-        } catch (error) {
-            return null;
-        }
+        return null;
     }
 
     function pwcaGetTextDefaults() {
@@ -53,10 +45,7 @@
             return uiStateAccess.getActiveCanvas();
         }
 
-        if (typeof window.getActiveCanvas === 'function') {
-            return window.getActiveCanvas();
-        }
-        return window.canvas || window.fabricCanvas || null;
+        return null;
     }
 
     function pwcaCreateFabricText(canvas, text, layerId) {

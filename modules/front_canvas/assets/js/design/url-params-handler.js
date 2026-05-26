@@ -11,6 +11,39 @@
 (function() {
     'use strict';
 
+    function pwcaGetUiStateAccess() {
+        return window.pwcaUiStateAccess || null;
+    }
+
+    function pwcaGetCanvasStore() {
+        const uiStateAccess = pwcaGetUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getCanvasStore === 'function') {
+            return uiStateAccess.getCanvasStore();
+        }
+
+        return null;
+    }
+
+    function pwcaGetViews() {
+        const uiStateAccess = pwcaGetUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getViews === 'function') {
+            return uiStateAccess.getViews();
+        }
+
+        const store = pwcaGetCanvasStore();
+        return store && Array.isArray(store.views) ? store.views : [];
+    }
+
+    function pwcaGetActiveViewId() {
+        const uiStateAccess = pwcaGetUiStateAccess();
+        if (uiStateAccess && typeof uiStateAccess.getActiveViewId === 'function') {
+            return uiStateAccess.getActiveViewId();
+        }
+
+        const store = pwcaGetCanvasStore();
+        return store && store.activeViewId ? store.activeViewId : null;
+    }
+
     /**
      * 获取 URL 参数
      * @param {string} name - 参数名
@@ -112,27 +145,25 @@
         if (viewId === 'main') return;
 
         function trySwitch() {
-            if (typeof window.useCanvasStore === 'function') {
-                const store = window.useCanvasStore();
-                if (store && store.views && store.views.length > 0) {
-                    // 查找匹配的视图
-                    const targetView = store.views.find(v => 
-                        v.id === viewId || 
-                        v.view_id === viewId || 
-                        String(v.id) === String(viewId)
-                    );
-                    
-                    if (targetView) {
-                        window.pwcaViewSwitchFacade.switchToView(targetView.id, {
-                            source: 'url-params-handler',
-                            forceDomSync: true
-                        });
-                        console.log('[URL Params] 已切换到视图:', targetView.id);
-                    } else {
-                        console.warn('[URL Params] 未找到视图:', viewId);
-                    }
-                    return;
+            const views = pwcaGetViews();
+            if (views.length > 0) {
+                // 查找匹配的视图
+                const targetView = views.find(v =>
+                    v.id === viewId ||
+                    v.view_id === viewId ||
+                    String(v.id) === String(viewId)
+                );
+
+                if (targetView) {
+                    window.pwcaViewSwitchFacade.switchToView(targetView.id, {
+                        source: 'url-params-handler',
+                        forceDomSync: true
+                    });
+                    console.log('[URL Params] 已切换到视图:', targetView.id);
+                } else {
+                    console.warn('[URL Params] 未找到视图:', viewId);
                 }
+                return;
             }
             // 如果 store 还没准备好，继续等待
             setTimeout(trySwitch, 200);
@@ -152,25 +183,23 @@
         if (!isEditMode) return;
 
         function tryInit() {
-            if (typeof window.useCanvasStore === 'function') {
-                const store = window.useCanvasStore();
-                if (store && store.views && store.views.length > 0) {
-                    // 确保第一个视图容器是可见的
-                    const firstView = store.views[0];
-                    const viewContainer = document.getElementById(`view-container-${firstView.id}`);
-                    if (viewContainer) {
-                        viewContainer.style.display = 'block';
-                    }
-                    
-                    // 确保 activeViewId 已设置
-                    if (!store.activeViewId) {
-                        window.pwcaViewSwitchFacade.switchToView(firstView.id, {
-                            source: 'url-params-ensure-view',
-                            forceDomSync: true
-                        });
-                    }
-                    return;
+            const views = pwcaGetViews();
+            if (views.length > 0) {
+                // 确保第一个视图容器是可见的
+                const firstView = views[0];
+                const viewContainer = document.getElementById(`view-container-${firstView.id}`);
+                if (viewContainer) {
+                    viewContainer.style.display = 'block';
                 }
+
+                // 确保 activeViewId 已设置
+                if (!pwcaGetActiveViewId()) {
+                    window.pwcaViewSwitchFacade.switchToView(firstView.id, {
+                        source: 'url-params-ensure-view',
+                        forceDomSync: true
+                    });
+                }
+                return;
             }
             // 继续等待
             setTimeout(tryInit, 200);
