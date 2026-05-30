@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWCA 图片弯曲演示</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+        }
+
+        .canvas-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .canvas-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            min-height: 500px;
+            position: relative;
+        }
+
+        .canvas-wrapper canvas {
+            max-width: 100%;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            height: fit-content;
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .control-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .control-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            display: block;
+            font-size: 1.1em;
+        }
+
+        .control-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-value {
+            text-align: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .info-box code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .preview-text {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .preview-text.hint {
+            font-size: 13px;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: #f0f4ff;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .file-input-wrapper:hover .file-input-label {
+            background: #5568d3;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            z-index: 10;
+        }
+
+        .loading-text {
+            font-size: 18px;
+            color: #667eea;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 图片弯曲效果演示</h1>
+
+        <div class="main-content">
+            <div class="canvas-container">
+                <div class="canvas-wrapper" id="canvasWrapper">
+                    <canvas id="canvas" width="800" height="500"></canvas>
+                </div>
+            </div>
+
+            <div class="control-panel">
+                <div class="control-section">
+                    <label class="control-label">弯曲程度 (Arc Value)</label>
+                    <div class="slider-container">
+                        <input type="range" id="arcSlider" min="-50" max="50" value="0" step="0.5">
+                    </div>
+                    <div class="slider-value" id="arcValueDisplay">0</div>
+                    <p class="preview-text">当前值: <span id="currentArc">0</span></p>
+                    <p class="preview-text hint">💡 拖动滑块实时预览弯曲效果</p>
+                </div>
+
+                <div class="control-section">
+                    <label class="control-label">选择图片</label>
+                    <div class="file-input-wrapper">
+                        <div class="file-input-label">📁 选择本地图片</div>
+                        <input type="file" id="imageInput" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <button id="loadSampleBtn" class="btn btn-primary">🖼️ 加载示例图片</button>
+                    <button id="resetBtn" class="btn btn-secondary">🔄 重置图片</button>
+                </div>
+
+                <div class="info-box">
+                    <strong>📖 弯曲值说明</strong><br><br>
+                    <strong>Arc 值是什么？</strong><br>
+                    Arc 值控制图片的弯曲程度和方向。<br><br>
+                    <strong>数值效果：</strong><br>
+                    • <code>0</code> - 图片保持平直<br>
+                    • <code>+50</code> - 强烈向上拱形<br>
+                    • <code>-50</code> - 强烈向下碗形<br><br>
+                    <strong>实际应用：</strong><br>
+                    • 正值：帽子、拱门、圆形窗户<br>
+                    • 负值：杯子侧面、碗内侧、弧形表面<br><br>
+                    <strong>技术原理：</strong><br>
+                    使用横向切片 + 贝塞尔曲线计算，将图片分成50个切片并沿弧线排列
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let canvas;
+        let originalImage = null;
+        let originalImageData = null;
+        let arcDistortedImage = null;
+        let currentArcValue = 0;
+        let imageLoaded = false;
+        const SAMPLE_IMAGE_URL = 'https://images.unsplash.com/photo-1756142007526-a34f10dc36bc?q=80&w=800&auto=format&fit=crop';
+
+        function initCanvas() {
+            canvas = new fabric.Canvas('canvas', {
+                backgroundColor: '#ffffff',
+                selection: true,
+                preserveObjectStacking: true
+            });
+
+            canvas.on('selection:cleared', function() {
+                console.log('Selection cleared');
+            });
+
+            canvas.on('object:modified', function() {
+                console.log('Object modified');
+            });
+        }
+
+        function showLoading(show) {
+            const wrapper = document.getElementById('canvasWrapper');
+            let loadingEl = wrapper.querySelector('.loading-overlay');
+
+            if (show && !loadingEl) {
+                loadingEl = document.createElement('div');
+                loadingEl.className = 'loading-overlay';
+                loadingEl.innerHTML = '<div class="loading-text">加载中...</div>';
+                wrapper.appendChild(loadingEl);
+            } else if (!show && loadingEl) {
+                loadingEl.remove();
+            }
+        }
+
+        function loadImage(url) {
+            return new Promise((resolve, reject) => {
+                showLoading(true);
+                fabric.Image.fromURL(url, function(img) {
+                    if (!img) {
+                        showLoading(false);
+                        reject(new Error('图片加载失败'));
+                        return;
+                    }
+
+                    const maxWidth = 600;
+                    const maxHeight = 400;
+                    const scale = Math.min(
+                        maxWidth / img.width,
+                        maxHeight / img.height,
+                        1
+                    );
+
+                    img.set({
+                        left: canvas.width / 2,
+                        top: canvas.height / 2,
+                        originX: 'center',
+                        originY: 'center',
+                        scaleX: scale,
+                        scaleY: scale,
+                        selectable: true,
+                        hasControls: true,
+                        hasBorders: true,
+                        name: 'distortableImage'
+                    });
+
+                    originalImage = img;
+                    canvas.clear();
+                    canvas.backgroundColor = '#ffffff';
+                    canvas.add(img);
+                    canvas.setActiveObject(img);
+                    canvas.renderAll();
+
+                    originalImageData = {
+                        width: img.width * img.scaleX,
+                        height: img.height * img.scaleY,
+                        element: img.getElement()
+                    };
+
+                    imageLoaded = true;
+                    currentArcValue = 0;
+                    document.getElementById('arcSlider').value = 0;
+                    updateArcDisplay(0);
+                    showLoading(false);
+                    resolve(img);
+                }, { crossOrigin: 'anonymous' });
+            });
+        }
+
+        function applyArcEffect() {
+            const arcValue = parseFloat(document.getElementById('arcSlider').value);
+
+            if (!originalImage || !imageLoaded) {
+                alert('请先加载图片');
+                return;
+            }
+
+            if (arcValue === 0) {
+                resetImage();
+                return;
+            }
+
+            if (arcDistortedImage) {
+                canvas.remove(arcDistortedImage);
+            }
+
+            const imgElement = originalImage.getElement();
+            const imgWidth = originalImage.width * originalImage.scaleX;
+            const imgHeight = originalImage.height * originalImage.scaleY;
+            const left = originalImage.left;
+            const top = originalImage.top;
+
+            const steps = 50;
+            const stepWidth = imgWidth / steps;
+            const sliceObjects = [];
+
+            for (let i = 0; i < steps; i++) {
+                const normalizedX = i / (steps - 1);
+                const arcFactor = (normalizedX - 0.5) * 2;
+                const dy = Math.sin(normalizedX * Math.PI) * (arcValue * 0.5);
+
+                const sliceCanvas = document.createElement('canvas');
+                sliceCanvas.width = Math.ceil(stepWidth) + 2;
+                sliceCanvas.height = imgHeight;
+                const ctx = sliceCanvas.getContext('2d');
+
+                const sourceX = normalizedX * imgElement.width;
+                const sourceWidth = imgElement.width / steps;
+
+                ctx.drawImage(
+                    imgElement,
+                    sourceX, 0, sourceWidth, imgElement.height,
+                    0, 0, sliceCanvas.width, imgHeight
+                );
+
+                const sliceImg = new fabric.Image(sliceCanvas, {
+                    left: left - imgWidth / 2 + i * stepWidth,
+                    top: top + dy,
+                    originX: 'left',
+                    originY: 'center',
+                    selectable: false,
+                    evented: false,
+                    name: 'arcSlice'
+                });
+
+                sliceObjects.push(sliceImg);
+            }
+
+            arcDistortedImage = new fabric.Group(sliceObjects, {
+                left: left,
+                top: top,
+                originX: 'center',
+                originY: 'center',
+                selectable: true,
+                hasControls: false,
+                hasBorders: true,
+                _isArcDistorted: true,
+                _originalImage: originalImage,
+                _arcValue: arcValue
+            });
+
+            originalImage.visible = false;
+            canvas.remove(originalImage);
+            canvas.add(arcDistortedImage);
+            canvas.setActiveObject(arcDistortedImage);
+            canvas.renderAll();
+
+            currentArcValue = arcValue;
+            updateArcDisplay(arcValue);
+        }
+
+        function resetImage() {
+            if (!originalImage) return;
+
+            if (arcDistortedImage) {
+                canvas.remove(arcDistortedImage);
+                arcDistortedImage = null;
+            }
+
+            originalImage.visible = true;
+            if (!canvas.contains(originalImage)) {
+                canvas.add(originalImage);
+            }
+            canvas.setActiveObject(originalImage);
+            canvas.renderAll();
+
+            currentArcValue = 0;
+            document.getElementById('arcSlider').value = 0;
+            updateArcDisplay(0);
+        }
+
+        function updateArcDisplay(value) {
+            document.getElementById('arcValueDisplay').textContent = value;
+            document.getElementById('currentArc').textContent = value;
+        }
+
+        document.getElementById('arcSlider').addEventListener('input', function() {
+            updateArcDisplay(this.value);
+            applyArcEffect();
+        });
+
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    loadImage(event.target.result).catch(error => {
+                        alert('图片加载失败: ' + error.message);
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('loadSampleBtn').addEventListener('click', function() {
+            loadImage(SAMPLE_IMAGE_URL).catch(error => {
+                alert('示例图片加载失败: ' + error.message);
+            });
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            resetImage();
+        });
+
+        window.onload = function() {
+            initCanvas();
+            loadImage(SAMPLE_IMAGE_URL).catch(error => {
+                console.error('初始加载失败:', error);
+            });
+        };
+
+        window.getActiveCanvas = function() {
+            return canvas;
+        };
+    </script>
+</body>
+</html>

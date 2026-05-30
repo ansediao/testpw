@@ -1,0 +1,1 @@
+如果我让你创建演示或demo html。那么你做完后，你先起1个http服务器，你可以使用playwright cli 和内置浏览器 或者本机上的chrome一起测试
