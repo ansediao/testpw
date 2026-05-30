@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWCA 文字弯曲演示</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+        }
+
+        .canvas-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .canvas-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            min-height: 500px;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            height: fit-content;
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .control-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .control-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            display: block;
+            font-size: 1.1em;
+        }
+
+        .control-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-value {
+            text-align: center;
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .info-box code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .preview-text {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .preview-text.hint {
+            font-size: 13px;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: #f0f4ff;
+            border-radius: 6px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 文字弯曲效果演示</h1>
+        
+        <div class="main-content">
+            <div class="canvas-container">
+                <div class="canvas-wrapper">
+                    <canvas id="canvas" width="800" height="500"></canvas>
+                </div>
+            </div>
+
+            <div class="control-panel">
+                <div class="control-section">
+                    <label class="control-label">弯曲程度 (Arc Value)</label>
+                    <div class="slider-container">
+                        <input type="range" id="arcSlider" min="-50" max="50" value="0" step="0.5">
+                    </div>
+                    <div class="slider-value" id="arcValueDisplay">0</div>
+                    <p class="preview-text">当前值: <span id="currentArc">0</span></p>
+                    <p class="preview-text hint">💡 拖动滑块实时预览弯曲效果</p>
+                </div>
+
+                <div class="control-section">
+                    <label class="control-label">输入文字</label>
+                    <input type="text" id="textInput" class="control-input" value="Hello World" placeholder="输入要弯曲的文字">
+                </div>
+
+                <div class="info-box">
+                    <strong>� Arc 值说明</strong><br><br>
+                    <strong>Arc 是什么？</strong><br>
+                    Arc 值控制文字的弯曲程度和方向。<br><br>
+                    <strong>数值效果：</strong><br>
+                    • <code>0</code> - 文字保持直线<br>
+                    • <code>+50</code> - 强烈向上拱形<br>
+                    • <code>-50</code> - 强烈向下碗形<br><br>
+                    <strong>实际应用：</strong><br>
+                    • 正值常用于帽子、拱门等顶部弧线<br>
+                    • 负值常用于杯子、碗等底部弧线
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let canvas;
+        let originalText = null;
+        let arcDistortedGroup = null;
+        let currentArcValue = 0;
+
+        function initCanvas() {
+            canvas = new fabric.Canvas('canvas', {
+                backgroundColor: '#ffffff',
+                selection: true
+            });
+
+            canvas.on('selection:cleared', function() {
+                console.log('Selection cleared');
+            });
+        }
+
+        function addSampleText() {
+            canvas.clear();
+            canvas.backgroundColor = '#ffffff';
+            
+            const textInputEl = document.getElementById('textInput');
+            const textInput = textInputEl ? (textInputEl.value || 'Hello World') : 'Hello World';
+            
+            originalText = new fabric.Text(textInput, {
+                left: 400,
+                top: 250,
+                fontSize: 60,
+                fontFamily: 'Arial',
+                fill: '#333333',
+                originX: 'center',
+                originY: 'center',
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
+            });
+
+            canvas.add(originalText);
+            canvas.setActiveObject(originalText);
+            canvas.renderAll();
+            
+            currentArcValue = 0;
+            document.getElementById('arcSlider').value = 0;
+            updateArcDisplay(0);
+        }
+
+        function calculateArcTextProperties(textObject, arcValue) {
+            const originalText = textObject.text;
+            const chars = originalText.split('');
+            const totalWidth = textObject.width;
+            const fontSize = textObject.fontSize;
+            const charProperties = [];
+            let currentX = 0;
+            const avgCharWidth = totalWidth / chars.length;
+
+            chars.forEach((char, index) => {
+                const charRelativeCenterX = currentX + avgCharWidth / 2 - totalWidth / 2;
+                const normalizedX = charRelativeCenterX / totalWidth;
+                const dy = Math.sin((normalizedX + 0.5) * Math.PI) * (arcValue * 0.5);
+                const angle = Math.cos((normalizedX + 0.5) * Math.PI) * (arcValue * 0.1);
+                
+                charProperties.push({
+                    char: char,
+                    dx: charRelativeCenterX,
+                    dy: dy,
+                    angle: angle,
+                    width: avgCharWidth
+                });
+                
+                currentX += avgCharWidth;
+            });
+
+            return charProperties;
+        }
+
+        function applyArcEffect() {
+            try {
+                const arcValue = parseFloat(document.getElementById('arcSlider').value);
+                let activeObject = canvas.getActiveObject();
+
+                if (!activeObject) {
+                    const objects = canvas.getObjects();
+                    if (objects.length > 0) {
+                        activeObject = objects[objects.length - 1];
+                        canvas.setActiveObject(activeObject);
+                    }
+                }
+
+                if (!activeObject) {
+                    alert('请先在画布上创建文字或选中文字对象');
+                    return;
+                }
+
+                if (arcValue === 0) {
+                    resetText();
+                    return;
+                }
+
+                let originalText;
+                let originalOptions;
+
+                if (activeObject._isArcDistorted && activeObject._originalTextConfig) {
+                    originalText = activeObject._originalTextConfig.text;
+                    originalOptions = { ...activeObject._originalTextConfig.options };
+                } else if (activeObject.type === 'text' || activeObject.type === 'i-text') {
+                    originalText = activeObject.text;
+                    originalOptions = {
+                        left: activeObject.left,
+                        top: activeObject.top,
+                        fontFamily: activeObject.fontFamily,
+                        fontSize: activeObject.fontSize,
+                        fill: activeObject.fill,
+                        angle: activeObject.angle,
+                        scaleX: activeObject.scaleX,
+                        scaleY: activeObject.scaleY,
+                        originX: 'center',
+                        originY: 'center',
+                        width: activeObject.width,
+                        height: activeObject.height,
+                    };
+                } else {
+                    alert('请选择文字对象');
+                    return;
+                }
+
+                canvas.remove(activeObject);
+
+                const chars = originalText.split('');
+                const charObjects = [];
+
+                chars.forEach((char, index) => {
+                    const charProps = calculateArcTextProperties({
+                        text: originalText,
+                        width: originalOptions.width,
+                        fontSize: originalOptions.fontSize
+                    }, arcValue)[index];
+
+                    const charObject = new fabric.Text(char, {
+                        left: charProps.dx,
+                        top: charProps.dy,
+                        angle: charProps.angle,
+                        fontFamily: originalOptions.fontFamily,
+                        fontSize: originalOptions.fontSize,
+                        fill: originalOptions.fill,
+                        originX: 'center',
+                        originY: 'center',
+                        selectable: false,
+                        evented: false,
+                    });
+
+                    charObjects.push(charObject);
+                });
+
+                arcDistortedGroup = new fabric.Group(charObjects, {
+                    left: originalOptions.left,
+                    top: originalOptions.top,
+                    angle: 0,
+                    selectable: true,
+                    evented: true,
+                    originX: 'center',
+                    originY: 'center',
+                    _isArcDistorted: true,
+                    _originalTextConfig: { text: originalText, options: originalOptions },
+                });
+
+                canvas.add(arcDistortedGroup);
+                canvas.setActiveObject(arcDistortedGroup);
+                canvas.renderAll();
+
+                currentArcValue = arcValue;
+                updateArcDisplay(arcValue);
+            } catch (error) {
+                console.error('应用弯曲效果时出错:', error);
+                alert('应用弯曲效果时出错，请重试');
+            }
+        }
+
+        function resetText() {
+            const activeObject = canvas.getActiveObject();
+
+            if (!activeObject || !activeObject._isArcDistorted) {
+                return;
+            }
+
+            const originalConfig = activeObject._originalTextConfig;
+            
+            canvas.remove(activeObject);
+
+            originalText = new fabric.Text(originalConfig.text, {
+                left: originalConfig.options.left,
+                top: originalConfig.options.top,
+                fontFamily: originalConfig.options.fontFamily,
+                fontSize: originalConfig.options.fontSize,
+                fill: originalConfig.options.fill,
+                angle: originalConfig.options.angle,
+                scaleX: originalConfig.options.scaleX,
+                scaleY: originalConfig.options.scaleY,
+                originX: originalConfig.options.originX,
+                originY: originalConfig.options.originY,
+                selectable: true,
+                hasControls: true,
+                hasBorders: true
+            });
+
+            canvas.add(originalText);
+            canvas.setActiveObject(originalText);
+            canvas.renderAll();
+
+            currentArcValue = 0;
+            document.getElementById('arcSlider').value = 0;
+            updateArcDisplay(0);
+        }
+
+        function updateArcDisplay(value) {
+            document.getElementById('arcValueDisplay').textContent = value;
+            document.getElementById('currentArc').textContent = value;
+        }
+
+        document.getElementById('arcSlider').addEventListener('input', function() {
+            updateArcDisplay(this.value);
+            applyArcEffect();
+        });
+
+        document.getElementById('textInput').addEventListener('change', function() {
+            addSampleText();
+        });
+
+        window.onload = function() {
+            initCanvas();
+            addSampleText();
+        };
+
+        window.getActiveCanvas = function() {
+            return canvas;
+        };
+    </script>
+</body>
+</html>

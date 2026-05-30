@@ -100,20 +100,23 @@ export const pwcaNormalizeLayerImageUrls = (layers) => {
         }
 
         const imageURL = layer?.layer_data?.content?.imageURL;
-        if (typeof imageURL !== 'string' || imageURL === '') {
-            return layer;
+
+        // 即使 imageURL 已存在，仍然尝试清理（处理反引号、空格等情况）
+        if (typeof imageURL === 'string' && imageURL.trim()) {
+            const cleanedUrl = pwcaNormalizePromowaresImageUrl(imageURL);
+            return {
+                ...layer,
+                layer_data: {
+                    ...layer.layer_data,
+                    content: {
+                        ...layer.layer_data.content,
+                        imageURL: cleanedUrl
+                    }
+                }
+            };
         }
 
-        return {
-            ...layer,
-            layer_data: {
-                ...layer.layer_data,
-                content: {
-                    ...layer.layer_data.content,
-                    imageURL: pwcaNormalizePromowaresImageUrl(imageURL)
-                }
-            }
-        };
+        return layer;
     });
 };
 

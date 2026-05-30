@@ -11,3 +11,4 @@ acli.exe
 *.code-workspace
 old/
 *.zip
+node_modules/
