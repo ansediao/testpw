@@ -24,7 +24,7 @@ async function generateUniversalViewImages(views) {
     const images = [];
     for (const view of views) {
         try {
-            if (view.view_flow === '4-Grid Flow') {
+            if (window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view)) {
                 const currentImage = await captureViewImage(view);
                 const firstGridImage = await generate4GridImagesForView(view, { onlyFirst: true });
                 images.push([currentImage, firstGridImage]);

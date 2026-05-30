@@ -551,13 +551,79 @@ class CanvasStateIntegration {
 
 // 创建单例实例
 const canvasStateIntegration = new CanvasStateIntegration();
+const PWCA_CANVAS_STATE_INIT_TIMEOUT_MS = 15000;
+let pwcaCanvasStateIntegrationPromise = null;
+
+function pwcaEnsureCanvasStateIntegrationReady() {
+    if (canvasStateIntegration.isInitialized()) {
+        return Promise.resolve(canvasStateIntegration);
+    }
+
+    if (pwcaCanvasStateIntegrationPromise) {
+        return pwcaCanvasStateIntegrationPromise;
+    }
+
+    pwcaCanvasStateIntegrationPromise = new Promise((resolve, reject) => {
+        let settled = false;
+
+        const cleanup = () => {
+            document.removeEventListener('canvasStateIntegrationReady', handleReady);
+            clearTimeout(timeoutId);
+        };
+
+        const handleReady = (event) => {
+            if (settled) {
+                return;
+            }
+
+            settled = true;
+            cleanup();
+            resolve(
+                event && event.detail && event.detail.integration
+                    ? event.detail.integration
+                    : canvasStateIntegration
+            );
+        };
+
+        const timeoutId = setTimeout(() => {
+            if (settled) {
+                return;
+            }
+
+            settled = true;
+            cleanup();
+            pwcaCanvasStateIntegrationPromise = null;
+            reject(new Error('Timed out waiting for canvas state integration.'));
+        }, PWCA_CANVAS_STATE_INIT_TIMEOUT_MS);
+
+        document.addEventListener('canvasStateIntegrationReady', handleReady, { once: true });
+
+        Promise.resolve(canvasStateIntegration.init())
+            .then(() => {
+                if (canvasStateIntegration.isInitialized() && !settled) {
+                    handleReady({ detail: { integration: canvasStateIntegration } });
+                }
+            })
+            .catch((error) => {
+                if (settled) {
+                    return;
+                }
+
+                settled = true;
+                cleanup();
+                pwcaCanvasStateIntegrationPromise = null;
+                reject(error);
+            });
+    });
+
+    return pwcaCanvasStateIntegrationPromise;
+}
 
 // 监听 multiViewInitComplete 事件，自动初始化
 document.addEventListener('multiViewInitComplete', () => {
-    // 延迟初始化，确保所有画布和 stores 都已准备就绪
-    setTimeout(() => {
-        canvasStateIntegration.init();
-    }, 500);
+    pwcaEnsureCanvasStateIntegrationReady().catch((error) => {
+        ErrorHandler.logWarning('CanvasStateIntegration 自动初始化失败', error);
+    });
 });
 
 // 导出
@@ -566,3 +632,4 @@ export { CanvasStateIntegration, canvasStateIntegration };
 // 挂载到全局对象
 window.CanvasStateIntegration = CanvasStateIntegration;
 window.canvasStateIntegration = canvasStateIntegration;
+window.pwcaEnsureCanvasStateIntegrationReady = pwcaEnsureCanvasStateIntegrationReady;

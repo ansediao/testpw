@@ -260,10 +260,7 @@ function validateAndRepositionObject(obj, viewId) {
     // 读取视图流类型
     const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
     const viewObj = canvasStore && Array.isArray(canvasStore.views) ? canvasStore.views.find(v => v && v.id === viewId) : null;
-    const flow = (viewObj && (viewObj.view_flow || (viewObj.data && viewObj.data.view_flow))) || null;
-    // 兼容产品级视图流程设置（当视图对象未包含 view_flow 字段时，回退到全局 productViewFlow）
-    const productFlow = canvasStore && typeof canvasStore.getProductViewFlow === 'function' ? canvasStore.getProductViewFlow() : null;
-    const isFourGrid = (flow === '4-Grid Flow') || (productFlow === '4-Grid Flow');
+    const isFourGrid = !!(window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(viewObj, canvasStore));
 
     // 检查对象是否分配了打印方式（保持与其他视图一致）
     const hasPrintMethod = hasPrintMethodAssigned(obj);

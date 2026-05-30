@@ -95,7 +95,7 @@ async function showUniversalViewPreview(views) {
     thumbnailList.innerHTML = '';
     viewImages.forEach((imageData, index) => {
         const view = views[index];
-        const isGridView = view.view_flow === '4-Grid Flow';
+        const isGridView = !!(window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view));
         if (isGridView && Array.isArray(imageData)) {
             const gridLabels = ['Front View', 'Left View', 'Right View', 'Back View'];
             imageData.forEach((gridImageData, gridIndex) => {
@@ -124,7 +124,7 @@ async function showUniversalViewPreview(views) {
     if (viewImages.length > 0) {
         const firstView = views[0];
         const firstImageData = viewImages[0];
-        if (firstView.view_flow === '4-Grid Flow' && Array.isArray(firstImageData)) { mainPreview.innerHTML = `<img src="${firstImageData[0]}" alt="${firstView.name || 'View 1'} - Front View">`; }
+        if ((window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(firstView)) && Array.isArray(firstImageData)) { mainPreview.innerHTML = `<img src="${firstImageData[0]}" alt="${firstView.name || 'View 1'} - Front View">`; }
         else { mainPreview.innerHTML = `<img src="${firstImageData}" alt="${firstView.name || 'View 1'}">`; }
     }
 }

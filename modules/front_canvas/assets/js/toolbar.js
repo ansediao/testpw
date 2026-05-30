@@ -1067,52 +1067,67 @@ function addDesignToCanvas(designId) {
         return;
     }
     
-    // 获取设计图片的 URL
-    const designImg = document.querySelector('.design-item img[data-design-id="' + designId + '"]');
-    if (designImg) {
-        const imageUrl = designImg.src;
-        fabric.Image.fromURL(imageUrl, function (img) {
-            img.scaleToWidth(200);
-            // 初始化 layerCounter（如果不存在）
-            if (typeof window.layerCounter === 'undefined') {
-                window.layerCounter = 0;
-            }
-            const newId = 'layer_' + (++window.layerCounter);
-            
-            // ===== 核心修复：添加用户操作标记 =====
-            img.set({
-                left: canvas.width / 2,
-                top: canvas.height / 2,
-                originX: 'center',
-                originY: 'center',
-                id: newId,
-                userInitiated: true,
-                fromButton: true,
-                fromToolbar: true,
-                isDesignElement: true
-            });
-            img.designMeta = { id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl), sku: String(designImg.getAttribute('data-design-sku') || '') };
-            
-            // 检查画布上是否已经存在相同 ID 的对象
-            const existingObject = canvas.getObjects().find(obj => obj.id === newId);
-            if (!existingObject) {
-                canvas.add(img);
-                canvas.setActiveObject(img);
-                const meta = { id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl), sku: String(designImg.getAttribute('data-design-sku') || '') };
-                try {
-                    if (typeof recordDesignUsage === 'function') {
-                        recordDesignUsage(meta) || (typeof queueDesignUsage === 'function' && queueDesignUsage(meta));
-                    } else if (typeof window.useDesignUsageStore === 'function') {
-                        const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
-                        store.addDesign(meta);
-                    }
-                } catch (e) {}
-            } else {
-                
-            }
-        });
-    } else {
+    // 获取设计图片的 DOM 元素
+    const designImg = document.querySelector(`.design-item img[data-design-id="${designId}"]`);
+    if (!designImg) {
+        console.warn(`Design image not found for ID: ${designId}`);
+        return;
     }
+
+    const imageUrl = designImg.src;
+    const designName = designImg.alt || '';
+    const designSku = designImg.getAttribute('data-design-sku') || '';
+
+    fabric.Image.fromURL(imageUrl, function (img) {
+        img.scaleToWidth(200);
+        
+        // 初始化 layerCounter（如果不存在）
+        if (typeof window.layerCounter === 'undefined') {
+            window.layerCounter = 0;
+        }
+        const newId = 'layer_' + (++window.layerCounter);
+        
+        // 设置 Fabric 对象属性
+        img.set({
+            left: canvas.width / 2,
+            top: canvas.height / 2,
+            originX: 'center',
+            originY: 'center',
+            id: newId,
+            userInitiated: true,
+            fromButton: true,
+            fromToolbar: true,
+            isDesignElement: true
+        });
+
+        // 存储元数据
+        const meta = { 
+            id: String(designId), 
+            name: String(designName), 
+            image: String(imageUrl), 
+            sku: String(designSku) 
+        };
+        img.designMeta = meta;
+        
+        // 检查画布上是否已经存在相同 ID 的对象
+        const existingObject = canvas.getObjects().find(obj => obj.id === newId);
+        if (!existingObject) {
+            canvas.add(img);
+            canvas.setActiveObject(img);
+            
+            // 记录使用情况
+            try {
+                if (typeof recordDesignUsage === 'function') {
+                    recordDesignUsage(meta);
+                } else if (typeof window.useDesignUsageStore === 'function') {
+                    const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
+                    store.addDesign(meta);
+                }
+            } catch (e) {
+                console.error('Failed to record design usage:', e);
+            }
+        }
+    }, { crossOrigin: 'anonymous' }); // 确保跨域图片可以正常导出
 }
 
 // 添加键盘快捷键支持
@@ -1127,23 +1142,6 @@ document.addEventListener('keydown', function (e) {
     if ((e.key === 'Delete' || e.key === 'Backspace') && activeCanvas.getActiveObject()) {
         activeCanvas.remove(activeCanvas.getActiveObject());
     }
-});
-
-document.addEventListener('DOMContentLoaded', function () {
-    const designThumbnails = document.querySelectorAll('.design-item .pwca-design-thumbnail');
-    if (!designThumbnails.length) {
-        return;
-    }
-
-    designThumbnails.forEach(function (img) {
-        img.addEventListener('click', function () {
-            const designId = img.getAttribute('data-design-id');
-            if (!designId) {
-                return;
-            }
-            addDesignToCanvas(designId);
-        });
-    });
 });
 
 function recordDesignUsage(meta) {

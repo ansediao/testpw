@@ -55,6 +55,7 @@ final class Pwca_Front_Canvas_Assets {
 			'pwca-front-canvas-product-card-footer',
 			'pwca-front-canvas-design-main',
 			'pwca-front-canvas-page-bootstrap',
+			'pwca-front-canvas-operation-panel-design-search',
 		);
 	}
 
@@ -75,8 +76,6 @@ final class Pwca_Front_Canvas_Assets {
 		wp_enqueue_script( 'pwca-vendor-three', 'https://unpkg.com/three@0.128.0/build/three.min.js', array(), '0.128.0', true );
 		wp_enqueue_script( 'pwca-vendor-three-orbit', 'https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js', array( 'pwca-vendor-three' ), '0.128.0', true );
 		wp_enqueue_script( 'pwca-vendor-three-gltf', 'https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js', array( 'pwca-vendor-three' ), '0.128.0', true );
-
-		wp_enqueue_script( 'pwca-vendor-listjs', 'https://cdnjs.cloudflare.com/ajax/libs/list.js/2.3.1/list.min.js', array(), '2.3.1', true );
 	}
 
 	private function enqueue_local_styles() {
@@ -131,6 +130,13 @@ final class Pwca_Front_Canvas_Assets {
 		);
 
 		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-view-flow-resolver',
+			$this->module_url . 'assets/js/main/view-flow-resolver.js',
+			array( 'pwca-front-canvas-ui-state-access' ),
+			$this->module_path . '/assets/js/main/view-flow-resolver.js'
+		);
+
+		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-toolbar',
 			$this->module_url . 'assets/js/toolbar.js',
 			array( 'pwca-front-canvas-ui-state-access' ),
@@ -161,7 +167,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-print-area-validator',
 			$this->module_url . 'assets/js/design/utils/print-area-validator.js',
-			array(),
+			array( 'pwca-front-canvas-view-flow-resolver' ),
 			$this->module_path . '/assets/js/design/utils/print-area-validator.js'
 		);
 
@@ -231,14 +237,14 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-grid-preview',
 			$this->module_url . 'assets/js/main/grid-preview.js',
-			array( 'pwca-front-canvas-image-analyze', 'pwca-front-canvas-ui-state-access' ),
+			array( 'pwca-front-canvas-image-analyze', 'pwca-front-canvas-ui-state-access', 'pwca-front-canvas-view-flow-resolver' ),
 			$this->module_path . '/assets/js/main/grid-preview.js'
 		);
 
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-universal-preview',
 			$this->module_url . 'assets/js/main/universal-preview.js',
-			array( 'pwca-front-canvas-grid-preview' ),
+			array( 'pwca-front-canvas-grid-preview', 'pwca-front-canvas-view-flow-resolver' ),
 			$this->module_path . '/assets/js/main/universal-preview.js'
 		);
 
@@ -266,7 +272,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-tab-image',
 			$this->module_url . 'assets/js/main/tab-image.js',
-			array( 'pwca-front-canvas-dynamic-toolbar', 'pwca-front-canvas-ui-state-access' ),
+			array( 'pwca-front-canvas-dynamic-toolbar', 'pwca-front-canvas-ui-state-access', 'pwca-front-canvas-view-flow-resolver' ),
 			$this->module_path . '/assets/js/main/tab-image.js'
 		);
 
@@ -287,7 +293,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-operation-panel-design-search',
 			$this->module_url . 'assets/js/main/operation-panel-design-search.js',
-			array( 'pwca-front-canvas-events', 'pwca-vendor-listjs', 'pwca-front-canvas-ui-state-access' ),
+			array( 'pwca-front-canvas-events', 'pwca-vendor-vue', 'pwca-vendor-vueuse-core', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/operation-panel-design-search.js'
 		);
 
@@ -308,7 +314,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-operation-panel-colors',
 			$this->module_url . 'assets/js/main/operation-panel-colors.js',
-			array( 'pwca-front-canvas-events', 'pwca-front-canvas-multi-view-init', 'pwca-front-canvas-ui-state-access' ),
+			array( 'pwca-front-canvas-events', 'pwca-front-canvas-multi-view-init', 'pwca-front-canvas-ui-state-access', 'pwca-front-canvas-view-flow-resolver' ),
 			$this->module_path . '/assets/js/main/operation-panel-colors.js'
 		);
 
@@ -317,7 +323,7 @@ final class Pwca_Front_Canvas_Assets {
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-multi-view-init',
 			$this->module_url . 'assets/js/canvas/multi-view-init.js',
-			array( 'pwca-front-canvas-design-main', 'pwca-front-canvas-core-init' ),
+			array( 'pwca-front-canvas-design-main', 'pwca-front-canvas-core-init', 'pwca-front-canvas-view-flow-resolver' ),
 			$this->module_path . '/assets/js/canvas/multi-view-init.js'
 		);
 

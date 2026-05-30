@@ -50,6 +50,135 @@ const waitFor = async (predicate, { timeoutMs = 8000, intervalMs = 50 } = {}) =>
   return null;
 };
 
+const pwcaGetUseAsyncQueue = () => (
+  window.VueUse && typeof window.VueUse.useAsyncQueue === 'function'
+    ? window.VueUse.useAsyncQueue
+    : null
+);
+
+const pwcaLogAsyncFlow = (level, message, payload) => {
+  const method = typeof console[level] === 'function' ? console[level] : console.log;
+  if (payload === undefined) {
+    method.call(console, `[PW Canvas][AsyncFlow] ${message}`);
+    return;
+  }
+
+  method.call(console, `[PW Canvas][AsyncFlow] ${message}`, payload);
+};
+
+const pwcaCreateAsyncContext = () => ({
+  settings: getSettings(),
+  startedAt: Date.now(),
+  store: null,
+  productData: null,
+  activeViewPrintMethodsReady: false,
+  multiViewReady: false,
+  integration: null,
+  externalCanvasState: null,
+  errors: [],
+  tasks: [],
+  queueResults: [],
+});
+
+const pwcaRecordAsyncTask = (context, taskName, status, payload = {}) => {
+  context.tasks.push({
+    taskName,
+    status,
+    timestamp: Date.now(),
+    ...payload,
+  });
+};
+
+const pwcaRunAsyncTask = async (context, taskName, runner) => {
+  const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  pwcaLogAsyncFlow('info', `开始执行任务: ${taskName}`);
+
+  try {
+    await runner(context);
+    const durationMs = Math.round((typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt);
+    pwcaRecordAsyncTask(context, taskName, 'fulfilled', { durationMs });
+    pwcaLogAsyncFlow('info', `任务完成: ${taskName}`, { durationMs });
+  } catch (error) {
+    const normalizedError = error instanceof Error ? error : new Error(String(error || 'Unknown error'));
+    const durationMs = Math.round((typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt);
+    context.errors.push({
+      taskName,
+      message: normalizedError.message,
+    });
+    pwcaRecordAsyncTask(context, taskName, 'rejected', {
+      durationMs,
+      message: normalizedError.message,
+    });
+    pwcaLogAsyncFlow('error', `任务失败: ${taskName}`, normalizedError);
+  }
+
+  return context;
+};
+
+const pwcaWaitForCanvasStore = async () => {
+  const store = await waitFor(
+    () => (typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null),
+    { timeoutMs: 10000, intervalMs: 50 }
+  );
+
+  if (!store) {
+    throw new Error('Canvas store is not ready.');
+  }
+
+  return store;
+};
+
+const pwcaRunStartupQueueWithVueUse = async (tasks, context) => {
+  const useAsyncQueue = pwcaGetUseAsyncQueue();
+  if (!useAsyncQueue) {
+    return null;
+  }
+
+  // 2. 执行队列
+  // useAsyncQueue(tasks, { ...配置项 })
+  return new Promise((resolve) => {
+    let activeIndexRef = null;
+    const { activeIndex, result } = useAsyncQueue(tasks, {
+      interrupt: false,
+      onError: () => {
+        const activeTaskIndex = activeIndexRef ? activeIndexRef.value : -1;
+        pwcaLogAsyncFlow('warn', '异步队列捕获到任务异常', { activeTaskIndex });
+      },
+      onFinished: () => {
+        context.queueResults = Array.isArray(result)
+          ? result.map((item, index) => ({
+            index,
+            state: item.state,
+            hasData: item.data !== null,
+          }))
+          : [];
+        resolve(context);
+      },
+    });
+
+    activeIndexRef = activeIndex;
+  });
+};
+
+const pwcaRunStartupQueueSequentially = async (tasks, context) => {
+  let currentContext = context;
+  for (const task of tasks) {
+    currentContext = await task(currentContext);
+  }
+  return currentContext;
+};
+
+const pwcaRunStartupQueue = async (tasks, context) => {
+  const useAsyncQueue = pwcaGetUseAsyncQueue();
+
+  if (!useAsyncQueue) {
+    pwcaLogAsyncFlow('warn', 'VueUse.useAsyncQueue 不可用，降级为手动串行执行');
+    return pwcaRunStartupQueueSequentially(tasks, context);
+  }
+
+  return pwcaRunStartupQueueWithVueUse(tasks, context);
+};
+
 const pwcaGetUiStateAccess = () => window.pwcaUiStateAccess || null;
 
 const pwcaGetPageBootstrapCanvasStore = () => {
@@ -91,16 +220,15 @@ const initFetchProductData = async () => {
   const { pwId } = getSettings();
   if (!pwId) return;
 
-  const useCanvasStore = await waitFor(() => (typeof window.useCanvasStore === 'function' ? window.useCanvasStore : null));
-  if (!useCanvasStore) return;
+  const store = await pwcaWaitForCanvasStore();
 
   try {
-    const store = useCanvasStore();
     if (store && typeof store.fetchProductData === 'function') {
-      await store.fetchProductData(pwId);
+      return await store.fetchProductData(pwId);
     }
   } catch (error) {
     console.error('加载产品数据失败:', error);
+    throw error;
   }
 };
 
@@ -258,6 +386,104 @@ const buildViewImagesPayload = async (previewContainerExists) => {
   return viewImagesPayload;
 };
 
+const readAccessoriesNames = (productId) => {
+  const accessoriesStorageKey = `pwca-accessories-names-${productId}`;
+
+  try {
+    const raw = localStorage.getItem(accessoriesStorageKey);
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed
+      .filter((value) => typeof value === 'string' && value.trim() !== '')
+      .map((value) => value.trim());
+  } catch (e) {
+    return [];
+  }
+};
+
+const captureCanvasStateJson = () => {
+  try {
+    if (window.canvasStateManager && typeof window.canvasStateManager.saveAllViewStates === 'function') {
+      window.canvasStateManager.saveAllViewStates();
+      const state = window.canvasStateManager.getState();
+      if (state) {
+        return JSON.stringify(state);
+      }
+    }
+  } catch (e) {
+    console.warn('保存画布状态到购物车时发生错误，将继续提交但不携带画布状态:', e);
+  }
+
+  return '';
+};
+
+const buildAddToCartRequestBody = ({
+  settings,
+  productId,
+  quantity,
+  customImage,
+  moq,
+  designFeeTotal,
+  designs,
+  viewImagesPayload,
+  viewPrintMethods,
+  canvasStateJson,
+  accessoriesNames,
+}) => {
+  const body = new URLSearchParams();
+  body.set('action', 'add_customized_product_to_cart');
+  body.set('product_id', String(productId));
+  body.set('quantity', String(quantity));
+  body.set('custom_image', String(customImage || ''));
+  body.set('color', String(window.currentColor || ''));
+  body.set('security', String(settings.ajaxNonce || ''));
+  body.set('pw_min_order_quantity', String(moq.minOrderQuantity));
+  body.set('pw_batch_quantity', String(moq.batchQuantity));
+  body.set('pw_sell_in_batch', String(moq.sellInBatch));
+  body.set('pw_discount_enabled', String(moq.discountEnabled));
+  body.set('pw_current_discount', String(moq.currentDiscount));
+  body.set('pw_discount_text', String(moq.discountText));
+  body.set('pw_quantity_discounts', String(moq.quantityDiscountsJson));
+  body.set('pw_view_images', JSON.stringify(viewImagesPayload || []));
+  body.set('pw_design_fee_total', String(designFeeTotal));
+  body.set('pw_designs', JSON.stringify(designs));
+  body.set('pw_view_print_methods', JSON.stringify(viewPrintMethods));
+
+  const sampleCheckbox = document.querySelector('.sample-check input#sample');
+  const isSampleOrder = sampleCheckbox ? sampleCheckbox.checked : false;
+  body.set('pw_is_sample', isSampleOrder ? '1' : '0');
+
+  if (canvasStateJson) {
+    body.set('pw_canvas_state', canvasStateJson);
+  }
+
+  if (accessoriesNames.length > 0) {
+    body.set('pw_accessories_names', JSON.stringify(accessoriesNames));
+  }
+
+  return body;
+};
+
+const submitAddToCartRequest = async (settings, body) => {
+  const response = await fetch(settings.ajaxUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+    },
+    body: body.toString(),
+    credentials: 'same-origin',
+  });
+
+  return response.json();
+};
+
 /**
  * 从购物车获取当前行项目的完整画布状态
  * 仅在编辑模式下（edit=true 且具有 cart_key）使用
@@ -324,75 +550,24 @@ const addCustomizedProductToCart = async () => {
     return;
   }
 
-  // 在提交前尽量保存并获取当前产品的完整画布状态
-  let canvasStateJson = '';
-  try {
-    if (window.canvasStateManager && typeof window.canvasStateManager.saveAllViewStates === 'function') {
-      window.canvasStateManager.saveAllViewStates();
-      const state = window.canvasStateManager.getState();
-      if (state) {
-        canvasStateJson = JSON.stringify(state);
-      }
-    }
-  } catch (e) {
-    console.warn('保存画布状态到购物车时发生错误，将继续提交但不携带画布状态:', e);
-  }
-
-  const accessoriesStorageKey = `pwca-accessories-names-${productId}`;
-  let accessoriesNames = [];
-  try {
-    const raw = localStorage.getItem(accessoriesStorageKey);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        accessoriesNames = parsed.filter(v => typeof v === 'string' && v.trim() !== '').map(v => v.trim());
-      }
-    }
-  } catch (e) {
-  }
-
-  const body = new URLSearchParams();
-  body.set('action', 'add_customized_product_to_cart');
-  body.set('product_id', String(productId));
-  body.set('quantity', String(quantity));
-  body.set('custom_image', String(customImage || ''));
-  body.set('color', String(window.currentColor || ''));
-  body.set('security', String(settings.ajaxNonce || ''));
-  body.set('pw_min_order_quantity', String(moq.minOrderQuantity));
-  body.set('pw_batch_quantity', String(moq.batchQuantity));
-  body.set('pw_sell_in_batch', String(moq.sellInBatch));
-  body.set('pw_discount_enabled', String(moq.discountEnabled));
-  body.set('pw_current_discount', String(moq.currentDiscount));
-  body.set('pw_discount_text', String(moq.discountText));
-  body.set('pw_quantity_discounts', String(moq.quantityDiscountsJson));
-  body.set('pw_view_images', JSON.stringify(viewImagesPayload || []));
-  body.set('pw_design_fee_total', String(designFeeTotal));
-  body.set('pw_designs', JSON.stringify(designs));
-  body.set('pw_view_print_methods', JSON.stringify(viewPrintMethods));
-
-  // 获取样品订单状态
-  const sampleCheckbox = document.querySelector('.sample-check input#sample');
-  const isSampleOrder = sampleCheckbox ? sampleCheckbox.checked : false;
-  body.set('pw_is_sample', isSampleOrder ? '1' : '0');
-
-  if (canvasStateJson) {
-    body.set('pw_canvas_state', canvasStateJson);
-  }
-  if (accessoriesNames.length > 0) {
-    body.set('pw_accessories_names', JSON.stringify(accessoriesNames));
-  }
+  const canvasStateJson = captureCanvasStateJson();
+  const accessoriesNames = readAccessoriesNames(productId);
+  const body = buildAddToCartRequestBody({
+    settings,
+    productId,
+    quantity,
+    customImage,
+    moq,
+    designFeeTotal,
+    designs,
+    viewImagesPayload,
+    viewPrintMethods,
+    canvasStateJson,
+    accessoriesNames,
+  });
 
   try {
-    const response = await fetch(settings.ajaxUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      },
-      body: body.toString(),
-      credentials: 'same-origin',
-    });
-
-    const json = await response.json();
+    const json = await submitAddToCartRequest(settings, body);
     if (json && json.success) {
       const cartUrl = settings.cartUrl || '/cart/';
       window.location.href = cartUrl;
@@ -405,6 +580,56 @@ const addCustomizedProductToCart = async () => {
     console.error('加入购物车时出错:', e);
     alert('加入购物车时出错，请重试');
   }
+};
+
+const toggleVisibleViewContainer = (viewId) => {
+  const targetViewContainer = document.getElementById(`view-container-${viewId}`);
+  if (!targetViewContainer) {
+    return;
+  }
+
+  document.querySelectorAll('.view-container').forEach((container) => {
+    container.style.display = 'none';
+  });
+  targetViewContainer.style.display = 'block';
+};
+
+const syncGlobalCanvasForView = (viewId) => {
+  if (window.CanvasManager) {
+    window.CanvasManager.setActiveCanvas(viewId);
+  }
+
+  const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+  if (!canvas) {
+    return null;
+  }
+
+  const allCanvasIds =
+    window.CanvasManager && typeof window.CanvasManager.getAllCanvasIds === 'function'
+      ? window.CanvasManager.getAllCanvasIds()
+      : [];
+  allCanvasIds.forEach((canvasId) => {
+    const viewCanvas = window.CanvasManager ? window.CanvasManager.getCanvas(canvasId) : null;
+    if (viewCanvas && typeof viewCanvas.discardActiveObject === 'function') {
+      viewCanvas.discardActiveObject();
+      if (typeof viewCanvas.renderAll === 'function') {
+        viewCanvas.renderAll();
+      }
+    }
+  });
+
+  if (typeof window.setGlobalCanvas === 'function') {
+    window.setGlobalCanvas(canvas);
+  } else {
+    window.canvas = canvas;
+    window.fabricCanvas = canvas;
+  }
+
+  if (typeof canvas.renderAll === 'function') {
+    canvas.renderAll();
+  }
+
+  return canvas;
 };
 
 const generateSingleViewPDF = async (productName) => {
@@ -459,39 +684,8 @@ const generateMultiViewPDF = async (productName, store) => {
   try {
     for (const view of store.views) {
       store.setActiveViewId(view.id);
-
-      const viewContainer = document.getElementById(`view-container-${view.id}`);
-      if (viewContainer) {
-        document.querySelectorAll('.view-container').forEach((container) => {
-          container.style.display = 'none';
-        });
-        viewContainer.style.display = 'block';
-      }
-
-      if (window.CanvasManager) {
-        window.CanvasManager.setActiveCanvas(view.id);
-      }
-
-      const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(view.id) : null;
-      if (canvas) {
-        const allCanvasIds = window.CanvasManager && typeof window.CanvasManager.getAllCanvasIds === 'function' ? window.CanvasManager.getAllCanvasIds() : [];
-        allCanvasIds.forEach((canvasId) => {
-          const viewCanvas = window.CanvasManager ? window.CanvasManager.getCanvas(canvasId) : null;
-          if (viewCanvas && typeof viewCanvas.discardActiveObject === 'function') {
-            viewCanvas.discardActiveObject();
-            if (typeof viewCanvas.renderAll === 'function') viewCanvas.renderAll();
-          }
-        });
-
-        if (typeof window.setGlobalCanvas === 'function') {
-          window.setGlobalCanvas(canvas);
-        } else {
-          window.canvas = canvas;
-          window.fabricCanvas = canvas;
-        }
-
-        if (typeof canvas.renderAll === 'function') canvas.renderAll();
-      }
+      toggleVisibleViewContainer(view.id);
+      syncGlobalCanvasForView(view.id);
 
       await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -558,32 +752,53 @@ const generateMultiViewPDF = async (productName, store) => {
   } finally {
     if (originalActiveViewId) {
       store.setActiveViewId(originalActiveViewId);
-
-      const originalViewContainer = document.getElementById(`view-container-${originalActiveViewId}`);
-      if (originalViewContainer) {
-        document.querySelectorAll('.view-container').forEach((container) => {
-          container.style.display = 'none';
-        });
-        originalViewContainer.style.display = 'block';
-      }
-
-      if (window.CanvasManager) {
-        window.CanvasManager.setActiveCanvas(originalActiveViewId);
-      }
-
-      const originalCanvas = window.CanvasManager ? window.CanvasManager.getCanvas(originalActiveViewId) : null;
-      if (originalCanvas) {
-        if (typeof window.setGlobalCanvas === 'function') {
-          window.setGlobalCanvas(originalCanvas);
-        } else {
-          window.canvas = originalCanvas;
-          window.fabricCanvas = originalCanvas;
-        }
-        if (typeof originalCanvas.renderAll === 'function') originalCanvas.renderAll();
-      }
+      toggleVisibleViewContainer(originalActiveViewId);
+      syncGlobalCanvasForView(originalActiveViewId);
     }
   }
 };
+
+const resolveCartEditKey = () => {
+  if (window.pwcaCartKeyForCanvasEdit) {
+    return window.pwcaCartKeyForCanvasEdit;
+  }
+
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('cart_key') || '';
+  } catch (e) {
+    return '';
+  }
+};
+
+const waitForCanvasStateIntegration = () =>
+  new Promise((resolve) => {
+    if (typeof window.pwcaEnsureCanvasStateIntegrationReady === 'function') {
+      window.pwcaEnsureCanvasStateIntegrationReady()
+        .then(resolve)
+        .catch(() => resolve(window.canvasStateIntegration || null));
+      return;
+    }
+
+    if (
+      window.canvasStateIntegration &&
+      typeof window.canvasStateIntegration.applyExternalState === 'function' &&
+      typeof window.canvasStateIntegration.isInitialized === 'function' &&
+      window.canvasStateIntegration.isInitialized()
+    ) {
+      resolve(window.canvasStateIntegration);
+      return;
+    }
+
+    const handler = (event) => {
+      if (event && event.detail && event.detail.integration) {
+        resolve(event.detail.integration);
+      } else {
+        resolve(window.canvasStateIntegration || null);
+      }
+    };
+    document.addEventListener('canvasStateIntegrationReady', handler, { once: true });
+  });
 
 const initCartEditCanvasState = async () => {
   const settings = getSettings();
@@ -591,14 +806,7 @@ const initCartEditCanvasState = async () => {
     return;
   }
 
-  const cartKey = window.pwcaCartKeyForCanvasEdit || (() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('cart_key') || '';
-    } catch (e) {
-      return '';
-    }
-  })();
+  const cartKey = resolveCartEditKey();
 
   if (!cartKey) {
     return;
@@ -612,50 +820,145 @@ const initCartEditCanvasState = async () => {
   // 将外部状态挂到全局，供 CanvasStateManager / CanvasStateIntegration 使用
   window.pwcaInitialCanvasState = externalState;
 
-  // 等待 CanvasStateIntegration 就绪后应用外部状态
-  const waitForIntegration = () =>
-    new Promise((resolve) => {
-      if (
-        window.canvasStateIntegration &&
-        typeof window.canvasStateIntegration.applyExternalState === 'function' &&
-        typeof window.canvasStateIntegration.isInitialized === 'function' &&
-        window.canvasStateIntegration.isInitialized()
-      ) {
-        resolve(window.canvasStateIntegration);
-        return;
-      }
-
-      const handler = (event) => {
-        if (event && event.detail && event.detail.integration) {
-          resolve(event.detail.integration);
-        } else {
-          resolve(window.canvasStateIntegration || null);
-        }
-      };
-      document.addEventListener('canvasStateIntegrationReady', handler, { once: true });
-    });
-
   try {
-    const integration = await waitForIntegration();
+    const integration = await waitForCanvasStateIntegration();
     if (integration && typeof integration.applyExternalState === 'function') {
       await integration.applyExternalState(externalState);
     }
+    return externalState;
   } catch (e) {
     console.error('应用购物车画布状态失败:', e);
+    throw e;
   }
 };
 
-onReady(() => {
-  initColorSwitchButtons();
-  initFetchProductData();
-  // 如果是从购物车进入的编辑模式，尝试恢复对应行项目的完整画布状态
-  initCartEditCanvasState();
+const pwcaCreateStartupTask = (context, taskName, runner) => (
+  (previousContext) => pwcaRunAsyncTask(previousContext || context, taskName, runner)
+);
 
-  const addToCartBtn = document.getElementById('addToCartBtn');
-  if (addToCartBtn) {
-    addToCartBtn.addEventListener('click', () => addCustomizedProductToCart());
+const pwcaStartupTaskWaitForCanvasStore = async (currentContext) => {
+  currentContext.store = await pwcaWaitForCanvasStore();
+};
+
+const pwcaStartupTaskFetchProductData = async (currentContext) => {
+  const { pwId } = currentContext.settings || {};
+  if (!pwId) {
+    pwcaLogAsyncFlow('warn', '缺少 pwId，跳过产品数据请求');
+    return;
   }
+
+  currentContext.productData = await initFetchProductData();
+};
+
+const pwcaStartupTaskEnsureActiveViewPrintMethodsLoaded = async (currentContext) => {
+  if (
+    currentContext.store &&
+    typeof currentContext.store.ensureActiveViewPrintMethodsLoaded === 'function'
+  ) {
+    await currentContext.store.ensureActiveViewPrintMethodsLoaded();
+    currentContext.activeViewPrintMethodsReady = true;
+  }
+};
+
+const pwcaStartupTaskInitializeMultiViewCanvases = async (currentContext) => {
+  if (typeof window.pwcaEnsureMultiViewInitialization !== 'function') {
+    throw new Error('pwcaEnsureMultiViewInitialization is not available.');
+  }
+
+  await window.pwcaEnsureMultiViewInitialization(currentContext.store);
+  currentContext.multiViewReady = true;
+};
+
+const pwcaStartupTaskInitializeCanvasStateIntegration = async (currentContext) => {
+  if (typeof window.pwcaEnsureCanvasStateIntegrationReady !== 'function') {
+    return;
+  }
+
+  currentContext.integration = await window.pwcaEnsureCanvasStateIntegrationReady();
+};
+
+const pwcaStartupTaskRestoreCartEditCanvasState = async (currentContext) => {
+  if (!currentContext.settings || !currentContext.settings.isEdit) {
+    return;
+  }
+
+  currentContext.externalCanvasState = await initCartEditCanvasState();
+};
+
+const buildStartupTasks = (context) => {
+  // 1. 定义分支任务数组：按顺序把上下文往后传
+  const tasks = [
+    pwcaCreateStartupTask(context, 'waitForCanvasStore', pwcaStartupTaskWaitForCanvasStore),
+    pwcaCreateStartupTask(context, 'fetchProductData', pwcaStartupTaskFetchProductData),
+    pwcaCreateStartupTask(
+      context,
+      'ensureActiveViewPrintMethodsLoaded',
+      pwcaStartupTaskEnsureActiveViewPrintMethodsLoaded
+    ),
+    pwcaCreateStartupTask(
+      context,
+      'initializeMultiViewCanvases',
+      pwcaStartupTaskInitializeMultiViewCanvases
+    ),
+    pwcaCreateStartupTask(
+      context,
+      'initializeCanvasStateIntegration',
+      pwcaStartupTaskInitializeCanvasStateIntegration
+    ),
+    pwcaCreateStartupTask(
+      context,
+      'restoreCartEditCanvasState',
+      pwcaStartupTaskRestoreCartEditCanvasState
+    ),
+  ];
+
+  return tasks;
+};
+
+const finalizeAsyncStartup = (finalContext) => {
+  const durationMs = Date.now() - finalContext.startedAt;
+  pwcaLogAsyncFlow('info', '设计页异步启动流程结束', {
+    durationMs,
+    errorCount: finalContext.errors.length,
+    tasks: finalContext.tasks,
+    queueResults: finalContext.queueResults,
+  });
+
+  window.pwcaCanvasAsyncContext = finalContext;
+  return finalContext;
+};
+
+const pwcaInitializeAsyncStartup = async () => {
+  const context = pwcaCreateAsyncContext();
+  const tasks = buildStartupTasks(context);
+  const finalContext = await pwcaRunStartupQueue(tasks, context);
+  return finalizeAsyncStartup(finalContext);
+};
+
+const bindAddToCartButton = () => {
+  const addToCartBtn = document.getElementById('addToCartBtn');
+  if (!addToCartBtn) {
+    return;
+  }
+
+  addToCartBtn.addEventListener('click', () => {
+    addCustomizedProductToCart();
+  });
+};
+
+const initializePageBootstrap = () => {
+  initColorSwitchButtons();
+  bindAddToCartButton();
+  window.pwcaCanvasStartupPromise = pwcaInitializeAsyncStartup().catch((error) => {
+    pwcaLogAsyncFlow('error', '设计页异步启动流程发生未捕获异常', error);
+    throw error;
+  });
+};
+
+onReady(() => {
+  initializePageBootstrap();
 });
+
 
 window.generateSingleViewPDF = generateSingleViewPDF;
 window.generateMultiViewPDF = generateMultiViewPDF;

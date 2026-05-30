@@ -201,15 +201,7 @@
     function pwcaIsCurrentFourGridView() {
         const store = pwcaGetCanvasStore();
         const currentView = pwcaGetCurrentViewMeta();
-        const currentFlow = currentView && (
-            currentView.view_flow ||
-            (currentView.data && currentView.data.view_flow)
-        );
-        const productFlow = store && typeof store.getProductViewFlow === 'function'
-            ? store.getProductViewFlow()
-            : null;
-
-        return currentFlow === '4-Grid Flow' || productFlow === '4-Grid Flow';
+        return !!(window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(currentView, store));
     }
 
     function pwcaGetFourGridReferenceLayers(view) {

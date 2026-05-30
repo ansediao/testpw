@@ -265,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.isFourGridView =
         window.isFourGridView ||
         function (view) {
-            return view && view.view_flow === '4-Grid Flow';
+            return !!(window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view));
         };
     const isFourGridView = window.isFourGridView;
 

@@ -1,6 +1,8 @@
 // 多视图画布初始化与多图层渲染逻辑
 // 从原 canvas-design_area.php 内联脚本迁移而来
 
+const PWCA_IMAGE_LAYER_LOAD_TIMEOUT_MS = 15000;
+
 /**
  * 将 API 中的 anchorPoint 字符串转换为 Fabric.js 的 originX 和 originY。
  * @param {string} anchorPoint - 例如 "top-left", "center"。
@@ -80,10 +82,10 @@ function getLayerRenderSize(layer, fallback = {}) {
     };
 }
 
-function getTargetCanvasIdForLayer(layer, view) {
+function getTargetCanvasIdForLayer(layer, view, store) {
     const layerName = String(layer?.name || '').trim();
 
-    if (view?.view_flow === '4-Grid Flow' && layerName === 'Background Layer') {
+    if (window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view, store) && layerName === 'Background Layer') {
         return null;
     }
 
@@ -96,6 +98,104 @@ function getTargetCanvasIdForLayer(layer, view) {
     }
 
     return `mainCanvas-${view.id}`;
+}
+
+function getViewRenderableLayers(view) {
+    const viewData = view && view.data ? view.data : null;
+    const layerConfig = viewData && viewData.layer_config ? viewData.layer_config : null;
+    return layerConfig && Array.isArray(layerConfig.layers) ? layerConfig.layers : [];
+}
+
+function getFlowSizingReferenceLayer(layers, view, store) {
+    if (!Array.isArray(layers) || layers.length === 0) {
+        return null;
+    }
+
+    if (window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view, store)) {
+        const gridFlowLayer = layers.find((layer) => layer && layer.name === '4-Grid Layer');
+        if (gridFlowLayer) {
+            return gridFlowLayer;
+        }
+    }
+
+    return layers[0];
+}
+
+function getCanvasDimensionsForView(view, store, fallback = { width: 567, height: 567 }) {
+    const layers = Array.isArray(view && view.layers) && view.layers.length > 0
+        ? view.layers
+        : getViewRenderableLayers(view);
+    const targetLayer = getFlowSizingReferenceLayer(layers, view, store);
+
+    if (!targetLayer) {
+        return {
+            width: Number(fallback.width || 0),
+            height: Number(fallback.height || 0)
+        };
+    }
+
+    return getLayerRenderSize(targetLayer, fallback);
+}
+
+function buildCanvasConfigsForView(view, layers, store) {
+    const canvasConfigs = [
+        { canvasId: `baseCanvas-${view.id}`, layers: [] },
+        { canvasId: `mainCanvas-${view.id}`, layers: [] },
+        { canvasId: `overlayCanvas-${view.id}`, layers: [] }
+    ];
+    const canvasConfigMap = new Map(canvasConfigs.map((config) => [config.canvasId, config]));
+
+    for (const layer of layers) {
+        const canvasId = getTargetCanvasIdForLayer(layer, view, store);
+        if (!canvasId) {
+            continue;
+        }
+
+        const targetConfig = canvasConfigMap.get(canvasId);
+        if (targetConfig) {
+            targetConfig.layers.push(layer);
+        }
+    }
+
+    return canvasConfigs;
+}
+
+async function renderCanvasConfigsForView(view, store, canvasConfigs) {
+    for (const config of canvasConfigs) {
+        const targetLayers = config.layers;
+        if (targetLayers.length === 0) {
+            continue;
+        }
+
+        const canvasEl = document.getElementById(config.canvasId);
+        const canvas = canvasEl && canvasEl.__fabricCanvas;
+        if (!canvas) {
+            continue;
+        }
+
+        console.info('[PW Canvas][MultiView] 开始渲染画布图层', {
+            viewId: view && view.id ? view.id : null,
+            canvasId: config.canvasId,
+            layerCount: targetLayers.length
+        });
+
+        const sortedLayers = [...targetLayers].sort(
+            (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
+        );
+        for (const layer of sortedLayers) {
+            await renderLayerToSpecificCanvas(canvas, layer, store, view);
+        }
+        canvas.renderAll();
+    }
+}
+
+async function applyFlowPostInitialization(view, store) {
+    if (window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view, store)) {
+        await handleFourGridContentArea(view);
+        return;
+    }
+
+    clearContentAreaClip(view.id);
 }
 
 /**
@@ -149,11 +249,35 @@ function createFabricObjectFromLayer(canvas, layer) {
                     return;
                 }
 
+                let settled = false;
+                const imageUrl = data.content.imageURL;
+                const finish = (result) => {
+                    if (settled) {
+                        return;
+                    }
+
+                    settled = true;
+                    clearTimeout(timeoutId);
+                    resolve(result);
+                };
+
+                const timeoutId = setTimeout(() => {
+                    console.warn('[PW Canvas][MultiView] 图片图层加载超时，已跳过该图层', {
+                        layerName: layer.name || '',
+                        imageUrl
+                    });
+                    finish(null);
+                }, PWCA_IMAGE_LAYER_LOAD_TIMEOUT_MS);
+
                 fabric.Image.fromURL(
-                    data.content.imageURL,
+                    imageUrl,
                     (img) => {
                         if (!img) {
-                            resolve(null);
+                            console.warn('[PW Canvas][MultiView] 图片图层返回空对象，已跳过该图层', {
+                                layerName: layer.name || '',
+                                imageUrl
+                            });
+                            finish(null);
                             return;
                         }
 
@@ -207,7 +331,7 @@ function createFabricObjectFromLayer(canvas, layer) {
                             canvas.renderAll();
                         }
 
-                        resolve(img);
+                        finish(img);
                     },
                     { crossOrigin: 'anonymous' }
                 );
@@ -588,86 +712,41 @@ function isValidImageURL(url) {
  * @param {Object} store - Pinia store
  */
 async function initializeMultiLayerCanvases(view, store) {
-    const viewData = view.data;
-    const layerConfig = viewData?.layer_config;
-    if (!layerConfig || !Array.isArray(layerConfig.layers) || layerConfig.layers.length === 0) {
+    console.info('[PW Canvas][MultiView] 开始初始化视图', {
+        viewId: view && view.id ? view.id : null,
+        viewName: view && view.name ? view.name : null
+    });
+
+    const layers = getViewRenderableLayers(view);
+    if (layers.length === 0) {
         console.error('未在视图数据中找到有效的图层配置进行渲染。');
         return;
     }
 
-    const layers = layerConfig.layers;
-    const productViewFlow = view.view_flow;
-
-    let targetLayer = layers[0];
-    if (productViewFlow === '4-Grid Flow') {
-        const gridFlowLayer =
-            layers.find((layer) => layer.name === '4-Grid Layer');
-        if (gridFlowLayer) {
-            targetLayer = gridFlowLayer;
-        }
-    }
-
-    const canvasSize = getLayerRenderSize(targetLayer, { width: 0, height: 0 });
+    const canvasSize = getCanvasDimensionsForView(view, store, { width: 0, height: 0 });
     const canvasWidth = canvasSize.width;
     const canvasHeight = canvasSize.height;
 
-    const allCanvasIds = [
-        `baseCanvas-${view.id}`,
-        `mainCanvas-${view.id}`,
-        `overlayCanvas-${view.id}`
-    ];
+    const canvasConfigs = buildCanvasConfigsForView(view, layers, store);
+    const allCanvasIds = canvasConfigs.map((config) => config.canvasId);
 
     for (const canvasId of allCanvasIds) {
         await initializeEmptyCanvas(canvasId, canvasWidth, canvasHeight, view, store);
     }
 
-    const canvasConfigs = allCanvasIds.map((canvasId) => ({
-        canvasId,
-        layers: []
-    }));
-    const canvasConfigMap = new Map(
-        canvasConfigs.map((config) => [config.canvasId, config])
-    );
-
-    for (const layer of layers) {
-        const canvasId = getTargetCanvasIdForLayer(layer, view);
-        if (!canvasId) {
-            continue;
-        }
-        const targetConfig = canvasConfigMap.get(canvasId);
-        if (targetConfig) {
-            targetConfig.layers.push(layer);
-        }
-    }
-
-    for (const config of canvasConfigs) {
-        const targetLayers = config.layers;
-        if (targetLayers.length > 0) {
-            const canvasEl = document.getElementById(config.canvasId);
-            const canvas = canvasEl && canvasEl.__fabricCanvas;
-            if (canvas) {
-                const sortedLayers = [...targetLayers].sort(
-                    (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
-                );
-                for (const layer of sortedLayers) {
-                    await renderLayerToSpecificCanvas(canvas, layer, store, view);
-                }
-                canvas.renderAll();
-            }
-        }
-    }
-
-    if (productViewFlow === '4-Grid Flow') {
-        await handleFourGridContentArea(view);
-    } else {
-        clearContentAreaClip(view.id);
-    }
+    await renderCanvasConfigsForView(view, store, canvasConfigs);
+    await applyFlowPostInitialization(view, store);
 
     setTimeout(() => {
         if (typeof window.triggerAutoZoomAdjustment === 'function') {
             window.triggerAutoZoomAdjustment();
         }
     }, 200);
+
+    console.info('[PW Canvas][MultiView] 视图初始化完成', {
+        viewId: view && view.id ? view.id : null,
+        viewName: view && view.name ? view.name : null
+    });
 }
 
 /**
@@ -677,7 +756,7 @@ async function initializeMultiLayerCanvases(view, store) {
  * @param {Object} store - Pinia store
  */
 async function initializeMaskCanvas(canvasId, view, store) {
-    if (view.view_flow === '4-Grid Flow' || typeof fabric === 'undefined') {
+    if ((window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view, store)) || typeof fabric === 'undefined') {
         return null;
     }
 
@@ -686,22 +765,9 @@ async function initializeMaskCanvas(canvasId, view, store) {
         return null;
     }
 
-    let canvasWidth = 456;
-    let canvasHeight = 456;
-
-    if (view.layers && view.layers.length > 0) {
-        const targetLayer = view.layers[0];
-        if (targetLayer && targetLayer.layer_data?.dimensions) {
-            canvasWidth =
-                targetLayer.layer_data.dimensions.contentArea?.width ||
-                targetLayer.layer_data.dimensions.layerSize?.width ||
-                canvasWidth;
-            canvasHeight =
-                targetLayer.layer_data.dimensions.contentArea?.height ||
-                targetLayer.layer_data.dimensions.layerSize?.height ||
-                canvasHeight;
-        }
-    }
+    const canvasSize = getCanvasDimensionsForView(view, store, { width: 456, height: 456 });
+    const canvasWidth = canvasSize.width;
+    const canvasHeight = canvasSize.height;
 
     const maskCanvas = new fabric.Canvas(canvasId, {
         width: canvasWidth,
@@ -955,29 +1021,83 @@ function clearAllGradientRects() {
 // 暴露到全局作用域
 window.clearAllGradientRects = clearAllGradientRects;
 
+const PWCA_MULTI_VIEW_INIT_TIMEOUT_MS = 20000;
+let pwcaMultiViewSubscriptionBound = false;
+let pwcaMultiViewInitialized = false;
+let pwcaMultiViewCompleted = false;
+let pwcaMultiViewInitPromise = null;
+let pwcaRejectMultiViewInitPromise = null;
+
+function pwcaLogMultiView(message, payload) {
+    if (payload === undefined) {
+        console.info(`[PW Canvas][MultiView] ${message}`);
+        return;
+    }
+
+    console.info(`[PW Canvas][MultiView] ${message}`, payload);
+}
+
+function pwcaMarkMultiViewInitializationFailed(error) {
+    if (typeof pwcaRejectMultiViewInitPromise === 'function') {
+        pwcaRejectMultiViewInitPromise(error);
+    }
+
+    pwcaMultiViewInitialized = false;
+    pwcaMultiViewCompleted = false;
+    pwcaMultiViewInitPromise = null;
+    pwcaRejectMultiViewInitPromise = null;
+    console.error('[PW Canvas][MultiView] 初始化失败', error);
+}
+
 /**
  * 初始化多视图容器与画布
  * 依赖：window.useCanvasStore、fabric、CanvasManager、PrintAreaValidator 等
  */
 function initializeMultiViewCanvases(store) {
-    let isInitialized = false;
-
-    store.$subscribe((mutation, state) => {
-        if (
-            mutation.storeId === 'canvas' &&
-            state.views &&
-            state.views.length > 0 &&
-            !isInitialized
-        ) {
-            createViewContainers(state.views, store);
-            isInitialized = true;
-        }
-    });
-
-    if (store.views && store.views.length > 0 && !isInitialized) {
-        createViewContainers(store.views, store);
-        isInitialized = true;
+    if (!store) {
+        return Promise.reject(new Error('Canvas store is required for multi-view initialization.'));
     }
+
+    if (!pwcaMultiViewSubscriptionBound && typeof store.$subscribe === 'function') {
+        store.$subscribe((mutation, state) => {
+            if (
+                mutation.storeId === 'canvas' &&
+                Array.isArray(state.views) &&
+                state.views.length > 0 &&
+                !pwcaMultiViewInitialized
+            ) {
+                pwcaMultiViewInitialized = true;
+                pwcaLogMultiView('检测到视图数据，开始创建多视图容器', { viewCount: state.views.length });
+                createViewContainers(state.views, store).catch((error) => {
+                    pwcaMarkMultiViewInitializationFailed(error);
+                });
+            }
+        });
+
+        pwcaMultiViewSubscriptionBound = true;
+    }
+
+    if (Array.isArray(store.views) && store.views.length > 0 && !pwcaMultiViewInitialized) {
+        pwcaMultiViewInitialized = true;
+        pwcaLogMultiView('使用现有视图数据初始化多视图容器', { viewCount: store.views.length });
+        return createViewContainers(store.views, store).catch((error) => {
+            pwcaMarkMultiViewInitializationFailed(error);
+            throw error;
+        });
+    }
+
+    if (pwcaMultiViewCompleted) {
+        return Promise.resolve({
+            initialized: true,
+            views: Array.isArray(store.views) ? store.views : []
+        });
+    }
+
+    pwcaLogMultiView('视图数据尚未就绪，等待 store 更新后继续');
+    return Promise.resolve({
+        initialized: false,
+        waitingForViews: true
+    });
 }
 
 /**
@@ -988,8 +1108,9 @@ function initializeMultiViewCanvases(store) {
 function createViewContainers(views, store) {
     const multiViewContainer = document.getElementById('multi-view-container');
     if (!multiViewContainer) {
-        console.error('Multi-view container not found');
-        return;
+        const error = new Error('Multi-view container not found');
+        console.error(error.message);
+        return Promise.reject(error);
     }
 
     multiViewContainer.innerHTML = '';
@@ -1011,29 +1132,9 @@ function createViewContainers(views, store) {
     }
 
     const initPromises = views.map((view, index) => {
-        let canvasWidth = 567;
-        let canvasHeight = 567;
-
-        if (view.layers && view.layers.length > 0) {
-            let targetLayer = view.layers[0];
-            if (view.view_flow === '4-Grid Flow') {
-                const gridFlowLayer =
-                    view.layers.find((layer) => layer.name === '4-Grid Layer');
-                if (gridFlowLayer) {
-                    targetLayer = gridFlowLayer;
-                }
-            }
-            if (targetLayer && targetLayer.layer_data?.dimensions) {
-                canvasWidth =
-                    targetLayer.layer_data.dimensions.contentArea?.width ||
-                    targetLayer.layer_data.dimensions.layerSize?.width ||
-                    canvasWidth;
-                canvasHeight =
-                    targetLayer.layer_data.dimensions.contentArea?.height ||
-                    targetLayer.layer_data.dimensions.layerSize?.height ||
-                    canvasHeight;
-            }
-        }
+        const canvasSize = getCanvasDimensionsForView(view, store, { width: 567, height: 567 });
+        const canvasWidth = canvasSize.width;
+        const canvasHeight = canvasSize.height;
 
         const viewContainer = document.createElement('div');
         viewContainer.id = `view-container-${view.id}`;
@@ -1063,16 +1164,25 @@ function createViewContainers(views, store) {
         viewContainer.innerHTML = canvasHtml;
         multiViewContainer.appendChild(viewContainer);
 
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             setTimeout(async () => {
-                await initializeMultiLayerCanvases(view, store);
-                // await initializeMaskCanvas(`maskCanvas-${view.id}`, view, store);
-                resolve();
+                try {
+                    await initializeMultiLayerCanvases(view, store);
+                    // await initializeMaskCanvas(`maskCanvas-${view.id}`, view, store);
+                    resolve();
+                } catch (error) {
+                    console.error('[PW Canvas][MultiView] 单个视图初始化失败', {
+                        viewId: view && view.id ? view.id : null,
+                        viewName: view && view.name ? view.name : null,
+                        error
+                    });
+                    reject(error);
+                }
             }, 100);
         });
     });
 
-    Promise.all(initPromises)
+    return Promise.all(initPromises)
         .then(() => {
             const targetView = views[targetViewIndex];
             if (targetView) {
@@ -1094,25 +1204,128 @@ function createViewContainers(views, store) {
 
             const initCompleteEvent = new CustomEvent('multiViewInitComplete');
             document.dispatchEvent(initCompleteEvent);
+            pwcaMultiViewCompleted = true;
+            pwcaLogMultiView('多视图初始化完成', {
+                activeViewId: targetView ? targetView.id : null,
+                viewCount: views.length
+            });
+
+            return {
+                activeViewId: targetView ? targetView.id : null,
+                viewCount: views.length
+            };
         })
         .catch((error) => {
             console.error('Error initializing views:', error);
+            throw error;
         });
 }
 
-// 等待 DOM 和 Pinia store，就绪后初始化多视图系统
-document.addEventListener('DOMContentLoaded', () => {
-    function waitForStore() {
-        if (typeof window.useCanvasStore === 'function') {
-            document.dispatchEvent(new CustomEvent('canvasStoreReady'));
-            const store = window.useCanvasStore();
-            if (store) {
-                initializeMultiViewCanvases(store);
+function pwcaWaitForCanvasStore(timeoutMs = 8000, intervalMs = 50) {
+    return new Promise((resolve, reject) => {
+        const startedAt = Date.now();
+
+        const poll = () => {
+            if (typeof window.useCanvasStore === 'function') {
+                const store = window.useCanvasStore();
+                if (store) {
+                    document.dispatchEvent(new CustomEvent('canvasStoreReady'));
+                    resolve(store);
+                    return;
+                }
+            }
+
+            if (Date.now() - startedAt >= timeoutMs) {
+                reject(new Error('Timed out waiting for canvas store.'));
                 return;
             }
-        }
-        setTimeout(waitForStore, 100);
+
+            setTimeout(poll, intervalMs);
+        };
+
+        poll();
+    });
+}
+
+function pwcaEnsureMultiViewInitialization(store) {
+    if (pwcaMultiViewInitPromise) {
+        return pwcaMultiViewInitPromise;
     }
 
-    waitForStore();
+    pwcaMultiViewInitPromise = new Promise((resolve, reject) => {
+        let settled = false;
+        pwcaRejectMultiViewInitPromise = (error) => {
+            if (settled) {
+                return;
+            }
+
+            settled = true;
+            cleanup();
+            pwcaMultiViewInitPromise = null;
+            reject(error);
+        };
+
+        const cleanup = () => {
+            document.removeEventListener('multiViewInitComplete', handleComplete);
+            clearTimeout(timeoutId);
+        };
+
+        const handleComplete = () => {
+            if (settled) {
+                return;
+            }
+
+            settled = true;
+            cleanup();
+            pwcaRejectMultiViewInitPromise = null;
+            resolve({
+                initialized: true,
+                store: store || (typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null)
+            });
+        };
+
+        const timeoutId = setTimeout(() => {
+            if (settled) {
+                return;
+            }
+
+            settled = true;
+            cleanup();
+            pwcaMarkMultiViewInitializationFailed(new Error('Timed out waiting for multi-view initialization.'));
+            reject(new Error('Timed out waiting for multi-view initialization.'));
+        }, PWCA_MULTI_VIEW_INIT_TIMEOUT_MS);
+
+        document.addEventListener('multiViewInitComplete', handleComplete, { once: true });
+
+        Promise.resolve(initializeMultiViewCanvases(store))
+            .then((result) => {
+                if (result && result.initialized === true && settled === false) {
+                    handleComplete();
+                }
+            })
+            .catch((error) => {
+                if (settled) {
+                    return;
+                }
+
+                settled = true;
+                cleanup();
+                pwcaRejectMultiViewInitPromise = null;
+                pwcaMarkMultiViewInitializationFailed(error);
+                reject(error);
+            });
+    });
+
+    return pwcaMultiViewInitPromise;
+}
+
+window.pwcaEnsureMultiViewInitialization = pwcaEnsureMultiViewInitialization;
+
+// 等待 DOM 和 Pinia store，就绪后初始化多视图系统
+document.addEventListener('DOMContentLoaded', () => {
+    pwcaWaitForCanvasStore()
+        .then((store) => pwcaEnsureMultiViewInitialization(store))
+        .catch((error) => {
+            console.warn('[PW Canvas][MultiView] 自动初始化未完成，将等待显式启动。', error);
+        });
 });

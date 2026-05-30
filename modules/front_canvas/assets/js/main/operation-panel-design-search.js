@@ -1,229 +1,117 @@
-document.addEventListener('DOMContentLoaded', () => {
-    let designCategoriesList = null;
-    let designSearchInitialized = false;
+/**
+ * Design Search & Filter Module
+ * Optimized with Vue/VueUse for better reactivity and maintainability.
+ */
 
-    function pwcaGetCanvasStore() {
-        const uiStateAccess = window.pwcaUiStateAccess || null;
-        if (!uiStateAccess || typeof uiStateAccess.getCanvasStore !== 'function') {
-            return null;
-        }
+import { pinia, useCanvasStore } from '../design/stores/index.js';
 
-        try {
-            return uiStateAccess.getCanvasStore();
-        } catch (error) {
-            return null;
-        }
-    }
+const { createApp, reactive, computed, ref, watch } = window.Vue || {};
+const { refDebounced } = window.VueUse || {};
 
-    function pwcaIsDesignModuleEnabled() {
-        if (typeof window.pwcaIsOperationPanelTabAvailable !== 'function') {
-            return true;
-        }
-
-        return window.pwcaIsOperationPanelTabAvailable('tab-sheji');
-    }
-
-    function initializeListJS() {
-        if (!pwcaIsDesignModuleEnabled() || designSearchInitialized) {
-            return;
-        }
-
-        if (typeof List !== 'undefined') {
-            const options = {
-                valueNames: ['name'],
-                searchClass: 'search',
-            };
-
-            designCategoriesList = new List('design-categories-list', options);
-            designSearchInitialized = true;
-            setupSearchFunctionality();
-        } else {
-            setTimeout(initializeListJS, 100);
-        }
-    }
-
-    initializeListJS();
-    document.addEventListener('pwcaOperationPanelModulesUpdated', initializeListJS);
-
-    function setupSearchFunctionality() {
-        const filterToggleBtn = document.getElementById('filter-toggle-btn');
-        const advancedSearchRow = document.getElementById('advanced-search-row');
-        const quickSearchInput = document.getElementById('quick-search-input');
-        const advancedSearchInput = document.getElementById('advanced-search-input');
-        const filterOperator = document.getElementById('filter-operator');
-
-        if (
-            !filterToggleBtn ||
-            !advancedSearchRow ||
-            !quickSearchInput ||
-            !advancedSearchInput ||
-            !filterOperator
-        ) {
-            return;
-        }
-
-        filterToggleBtn.addEventListener('click', () => {
-            const isVisible = advancedSearchRow.style.display !== 'none';
-            advancedSearchRow.style.display = isVisible ? 'none' : 'block';
-
-            if (isVisible) {
-                advancedSearchInput.value = '';
-                applyAdvancedFilter();
-            }
+const DesignSearchApp = {
+    setup() {
+        const canvasStore = useCanvasStore();
+        
+        // Search state
+        const quickSearch = ref('');
+        const advancedSearch = ref('');
+        const debouncedQuickSearch = refDebounced ? refDebounced(quickSearch, 300) : quickSearch;
+        const debouncedAdvancedSearch = refDebounced ? refDebounced(advancedSearch, 300) : advancedSearch;
+        
+        const state = reactive({
+            filterOperator: 'contains',
+            isAdvancedVisible: false,
+            activeViewId: computed(() => canvasStore.activeViewId),
+            activeCategoryId: null,
+            isCategoryDetailOpen: false
         });
 
-        quickSearchInput.addEventListener('input', (e) => {
-            if (!designCategoriesList) {
-                return;
-            }
+        const categories = window.pwcaDesignData?.categories || [];
+        const designIconUrl = window.pwcaDesignData?.designIconUrl || '';
 
-            const searchTerm = e.target.value.toLowerCase().trim();
+        /**
+         * Computed property for filtered categories
+         */
+        const filteredCategories = computed(() => {
+            const query = (state.isAdvancedVisible ? debouncedAdvancedSearch.value : debouncedQuickSearch.value).toLowerCase().trim();
+            const activeViewId = state.activeViewId;
 
-            if (searchTerm === '') {
-                designCategoriesList.filter();
-                return;
-            }
-
-            designCategoriesList.filter((item) => {
-                const nameElement = item.elm.querySelector('.name');
-                const categoryName = nameElement ? nameElement.textContent.toLowerCase().trim() : '';
-                return categoryName.includes(searchTerm);
-            });
-        });
-
-        function applyAdvancedFilter() {
-            if (!designCategoriesList) {
-                return;
-            }
-
-            const searchTerm = advancedSearchInput.value.toLowerCase();
-            const operator = filterOperator.value;
-
-            if (searchTerm === '') {
-                designCategoriesList.filter();
-                return;
-            }
-
-            designCategoriesList.filter((item) => {
-                const nameElement = item.elm.querySelector('.name');
-                const categoryName = nameElement ? nameElement.textContent.toLowerCase().trim() : '';
-
-                switch (operator) {
-                    case 'is':
-                        return categoryName === searchTerm;
-                    case 'isnot':
-                        return categoryName !== searchTerm;
-                    case 'contains':
-                        return categoryName.includes(searchTerm);
-                    case 'notcontains':
-                        return !categoryName.includes(searchTerm);
-                    default:
-                        return true;
-                }
-            });
-        }
-
-        advancedSearchInput.addEventListener('input', applyAdvancedFilter);
-        filterOperator.addEventListener('change', applyAdvancedFilter);
-    }
-
-    const categoryItems = document.querySelectorAll('.category-item');
-    const contentSheji = document.querySelector('.content-sheji');
-
-    if (categoryItems.length && contentSheji) {
-        categoryItems.forEach((item) => {
-            item.addEventListener('click', () => {
-                categoryItems.forEach((i) => i.classList.remove('active'));
-                item.classList.add('active');
-                contentSheji.classList.add('active');
-            });
-        });
-    }
-
-    const backButtons = document.querySelectorAll('.back-button');
-    backButtons.forEach((button) => {
-        button.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const categoryItem = button.closest('.category-item');
-            if (categoryItem && contentSheji) {
-                categoryItem.classList.remove('active');
-                contentSheji.classList.remove('active');
-            }
-        });
-    });
-
-    /**
-     * 根据当前视图 ID 与分类的 Category Type 控制前台可见性：
-     * - universal/general：所有视图可见
-     * - main_view：仅在 main_view 视图下可见
-     * - product：暂时与 universal 一致（后续可在此扩展按产品/视图精细控制）
-     */
-    const setupCategoryViewFilter = () => {
-        const categoryNodes = document.querySelectorAll('.category-item');
-        if (!categoryNodes.length) {
-            return;
-        }
-
-        const applyVisibility = (activeViewId) => {
-            const viewId = activeViewId || '';
-            categoryNodes.forEach((item) => {
-                const rawType = item.getAttribute('data-category-type') || 'universal';
-                let type = rawType;
-                if (type === 'general' || type === '') {
-                    type = 'universal';
-                }
-
-                // 默认全部显示
-                let shouldShow = true;
-
-                if (type === 'main_view') {
-                    // 仅 main_view 视图显示
-                    shouldShow = viewId === 'main_view' || viewId === '' || viewId === null;
-                }
-
-                // 目前 product 类型按 universal 处理，保留扩展点
-                // if (type === 'product') { ... }
-
-                item.style.display = shouldShow ? '' : 'none';
-            });
-        };
-
-        const waitForStore = () => {
-            try {
-                const store = pwcaGetCanvasStore();
-                if (store) {
-                    // 初次应用
-                    applyVisibility(store.activeViewId);
-
-                    // 监听视图切换
-                    if (typeof store.$subscribe === 'function') {
-                        store.$subscribe((mutation, state) => {
-                            if (mutation.storeId === 'canvas') {
-                                applyVisibility(state.activeViewId);
-                            }
-                        });
+            return categories.filter(category => {
+                const name = category.name.toLowerCase().trim();
+                const type = category.type || 'universal';
+                
+                let matchesSearch = true;
+                if (query) {
+                    if (state.isAdvancedVisible) {
+                        switch (state.filterOperator) {
+                            case 'is': matchesSearch = (name === query); break;
+                            case 'isnot': matchesSearch = (name !== query); break;
+                            case 'contains': matchesSearch = name.includes(query); break;
+                            case 'notcontains': matchesSearch = !name.includes(query); break;
+                        }
+                    } else {
+                        matchesSearch = name.includes(query);
                     }
-
-                    return;
                 }
-            } catch (e) {
-                // 安静失败，使用下面的退化逻辑
-            }
 
-            // 如果 Pinia 还未准备好，继续等待
-            window.setTimeout(waitForStore, 150);
+                let matchesView = true;
+                if (type === 'main_view') {
+                    matchesView = (activeViewId === 'main_view' || !activeViewId);
+                }
+
+                return matchesSearch && matchesView;
+            });
+        });
+
+        const toggleAdvanced = () => {
+            state.isAdvancedVisible = !state.isAdvancedVisible;
+            if (!state.isAdvancedVisible) {
+                advancedSearch.value = '';
+            }
         };
 
-        // 启动等待 Pinia store 的逻辑
-        waitForStore();
+        const selectCategory = (id) => {
+            state.activeCategoryId = id;
+            state.isCategoryDetailOpen = true;
+        };
 
-        // 退化：若一段时间后仍无 store，则按单视图(main_view)处理
-        window.setTimeout(() => {
-            if (!pwcaGetCanvasStore()) {
-                applyVisibility('main_view');
+        const deselectCategory = () => {
+            state.activeCategoryId = null;
+            state.isCategoryDetailOpen = false;
+        };
+
+        const addDesign = (designId) => {
+            if (typeof window.addDesignToCanvas === 'function') {
+                window.addDesignToCanvas(designId);
             }
-        }, 1500);
-    };
+        };
 
-    setupCategoryViewFilter();
+        // Watch for store view changes to reset category selection if needed
+        watch(() => canvasStore.activeViewId, () => {
+            deselectCategory();
+        });
+
+        return {
+            state,
+            quickSearch,
+            advancedSearch,
+            filteredCategories,
+            designIconUrl,
+            toggleAdvanced,
+            selectCategory,
+            deselectCategory,
+            addDesign
+        };
+    },
+    template: '#pwca-design-search-template'
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('pwca-design-search-app');
+    if (container && createApp) {
+        const app = createApp(DesignSearchApp);
+        app.use(pinia);
+        app.mount(container);
+    }
 });
+
