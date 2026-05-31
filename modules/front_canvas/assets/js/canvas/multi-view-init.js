@@ -82,6 +82,59 @@ function getLayerRenderSize(layer, fallback = {}) {
     };
 }
 
+function getCanvasHeightValue(canvas) {
+    if (!canvas) {
+        return 0;
+    }
+
+    const height = typeof canvas.getHeight === 'function' ? canvas.getHeight() : canvas.height;
+    return Number(height || 0);
+}
+
+function getFabricPlacementForLayer(canvas, position = {}, renderSize = {}) {
+    const x = Number(position.coordinates?.x || 0);
+    const y = Number(position.coordinates?.y || 0);
+    const width = Number(renderSize.width || 0);
+    const height = Number(renderSize.height || 0);
+    const anchorPoint = String(position.anchorPoint || 'bottom-left').trim();
+
+    if (anchorPoint === 'bottom-left') {
+        const canvasHeight = getCanvasHeightValue(canvas);
+        return {
+            left: x,
+            top: canvasHeight - y - height,
+            originX: 'left',
+            originY: 'top'
+        };
+    }
+
+    if (anchorPoint === 'top-left' || anchorPoint === '') {
+        return {
+            left: x,
+            top: y,
+            originX: 'left',
+            originY: 'top'
+        };
+    }
+
+    const origins = getOriginFromAnchorPoint(anchorPoint);
+    const convertedCoords = convertCoordinatesForOrigin(
+        x,
+        y,
+        width,
+        height,
+        origins.originX,
+        origins.originY
+    );
+
+    return {
+        left: convertedCoords.x,
+        top: convertedCoords.y,
+        originX: origins.originX,
+        originY: origins.originY
+    };
+}
+
 function getTargetCanvasIdForLayer(layer, view, store) {
     const layerName = String(layer?.name || '').trim();
     const flowConfig = window.pwcaGetFlowConfig ? window.pwcaGetFlowConfig(view, store) : null;
@@ -301,26 +354,22 @@ function createFabricObjectFromLayer(canvas, layer) {
                             height: imgHeight
                         });
 
+                        if (renderSize.width <= 0 || renderSize.height <= 0) {
+                            console.warn(`因尺寸无效，正在跳过图片图层 "${layer.name}"。`);
+                            finish(null);
+                            return;
+                        }
+
                         const scaleX = renderSize.width / imgWidth;
                         const scaleY = renderSize.height / imgHeight;
-
-                        const origins = getOriginFromAnchorPoint(position.anchorPoint || 'top-left');
-
-                        const convertedCoords = convertCoordinatesForOrigin(
-                            position.coordinates?.x || 0,
-                            position.coordinates?.y || 0,
-                            renderSize.width || imgWidth,
-                            renderSize.height || imgHeight,
-                            origins.originX,
-                            origins.originY
-                        );
+                        const placement = getFabricPlacementForLayer(canvas, position, renderSize);
 
                         img.set({
-                            left: convertedCoords.x,
-                            top: convertedCoords.y,
+                            left: placement.left,
+                            top: placement.top,
                             angle: position.rotation || 0,
-                            originX: origins.originX,
-                            originY: origins.originY,
+                            originX: placement.originX,
+                            originY: placement.originY,
                             opacity: (data.content.opacity ?? 100) / 100,
                             selectable: !!mergedControls.movable,
                             evented: !!mergedControls.movable,
@@ -338,11 +387,7 @@ function createFabricObjectFromLayer(canvas, layer) {
                             scaleX: scaleX > 0 ? scaleX : 1,
                             scaleY: scaleY > 0 ? scaleY : 1
                         });
-
-                        if (position.anchorPoint === 'center') {
-                            canvas.centerObject(img);
-                            canvas.renderAll();
-                        }
+                        img.setCoords();
 
                         finish(img);
                     },
@@ -358,23 +403,24 @@ function createFabricObjectFromLayer(canvas, layer) {
                     return;
                 }
 
-                const origins = getOriginFromAnchorPoint(position.anchorPoint || 'top-left');
+                const textRenderSize = getLayerRenderSize(layer, {
+                    width: 0,
+                    height: 0
+                });
+                if (textRenderSize.width <= 0 || textRenderSize.height <= 0) {
+                    console.warn(`因尺寸无效，正在跳过文本图层 "${layer.name}"。`);
+                    resolve(null);
+                    return;
+                }
+                const placement = getFabricPlacementForLayer(canvas, position, textRenderSize);
 
-                const convertedCoords = convertCoordinatesForOrigin(
-                    position.coordinates?.x || 0,
-                    position.coordinates?.y || 0,
-                    data.dimensions?.layerSize?.width || 0,
-                    data.dimensions?.layerSize?.height || 0,
-                    origins.originX,
-                    origins.originY
-                );
-
-                const textObj = new fabric.Text(data.content.text, {
-                    left: convertedCoords.x,
-                    top: convertedCoords.y,
+                const textObj = new fabric.Textbox(data.content.text, {
+                    left: placement.left,
+                    top: placement.top,
                     angle: position.rotation || 0,
-                    originX: origins.originX,
-                    originY: origins.originY,
+                    originX: placement.originX,
+                    originY: placement.originY,
+                    width: textRenderSize.width,
                     fontSize: data.content.fontSize || 40,
                     fontFamily: data.content.fontFamily || 'Arial',
                     fill: data.content.fontColor || '#000000',
@@ -390,6 +436,7 @@ function createFabricObjectFromLayer(canvas, layer) {
                     name: layer.name,
                     layerControls: mergedControls
                 });
+                textObj.setCoords();
 
                 resolve(textObj);
                 break;
