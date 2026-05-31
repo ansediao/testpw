@@ -1221,32 +1221,6 @@ function createViewContainers(views, store) {
         });
 }
 
-function pwcaWaitForCanvasStore(timeoutMs = 8000, intervalMs = 50) {
-    return new Promise((resolve, reject) => {
-        const startedAt = Date.now();
-
-        const poll = () => {
-            if (typeof window.useCanvasStore === 'function') {
-                const store = window.useCanvasStore();
-                if (store) {
-                    document.dispatchEvent(new CustomEvent('canvasStoreReady'));
-                    resolve(store);
-                    return;
-                }
-            }
-
-            if (Date.now() - startedAt >= timeoutMs) {
-                reject(new Error('Timed out waiting for canvas store.'));
-                return;
-            }
-
-            setTimeout(poll, intervalMs);
-        };
-
-        poll();
-    });
-}
-
 function pwcaEnsureMultiViewInitialization(store) {
     if (pwcaMultiViewInitPromise) {
         return pwcaMultiViewInitPromise;
@@ -1320,12 +1294,3 @@ function pwcaEnsureMultiViewInitialization(store) {
 }
 
 window.pwcaEnsureMultiViewInitialization = pwcaEnsureMultiViewInitialization;
-
-// 等待 DOM 和 Pinia store，就绪后初始化多视图系统
-document.addEventListener('DOMContentLoaded', () => {
-    pwcaWaitForCanvasStore()
-        .then((store) => pwcaEnsureMultiViewInitialization(store))
-        .catch((error) => {
-            console.warn('[PW Canvas][MultiView] 自动初始化未完成，将等待显式启动。', error);
-        });
-});
