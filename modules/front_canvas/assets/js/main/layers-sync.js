@@ -35,17 +35,17 @@ function syncCanvasObjectToStore(obj, action) {
     if (window.CanvasInitializationState && window.CanvasInitializationState.isInitializing) return;
     if (!window.isUserInitiatedAction || !window.isUserInitiatedAction(obj)) return;
     const stateAccess = pwcaGetUiStateAccess();
-    if (stateAccess && typeof stateAccess.getCanvasStore === 'function') {
+    if (stateAccess && typeof stateAccess.pwcaGetCanvasStore === 'function') {
         try {
-            const store = stateAccess.getCanvasStore();
-            const currentViewId = stateAccess.getActiveViewId();
+            const store = stateAccess.pwcaGetCanvasStore();
+            const currentViewId = stateAccess.pwcaGetActiveViewId();
             if (!currentViewId) return;
             if (action === 'added' && obj.id) {
                 const currentViewLayers = store.getViewLayers(currentViewId);
                 const existingLayer = currentViewLayers.find(layer => layer.id === obj.id);
                 if (!existingLayer) {
-                    const layerName = getLayerName(obj);
-                    const layerType = getLayerType(obj);
+                    const layerName = pwcaGetLayerName(obj);
+                    const layerType = pwcaGetLayerType(obj);
                     const newLayer = {
                         id: obj.id,
                         name: layerName,
@@ -67,9 +67,9 @@ function syncCanvasObjectToStore(obj, action) {
 
 function syncSelectionToStore(objectId) {
     const stateAccess = pwcaGetUiStateAccess();
-    if (stateAccess && typeof stateAccess.getCanvasStore === 'function') {
+    if (stateAccess && typeof stateAccess.pwcaGetCanvasStore === 'function') {
         try {
-            const store = stateAccess.getCanvasStore();
+            const store = stateAccess.pwcaGetCanvasStore();
             store.setActiveObjectId(objectId);
             updateDongtaiAreaButtons(objectId);
             controlMaskCanvasFromMain(objectId);
@@ -79,13 +79,13 @@ function syncSelectionToStore(objectId) {
 }
 
 function updateDongtaiAreaButtons(objectId) {
-    const dongtaiArea = document.querySelector('.dongtai-area');
+    const dongtaiArea = document.querySelector('.pwca-dongtai-area');
     if (!dongtaiArea) return;
     const stateAccess = pwcaGetUiStateAccess();
     const canvas =
-        stateAccess && typeof stateAccess.getActiveCanvas === 'function'
-            ? stateAccess.getActiveCanvas()
-            : (typeof window.getActiveCanvas === 'function' ? window.getActiveCanvas() : null);
+        stateAccess && typeof stateAccess.pwcaGetActiveCanvas === 'function'
+            ? stateAccess.pwcaGetActiveCanvas()
+            : (typeof window.pwcaGetActiveCanvas === 'function' ? window.pwcaGetActiveCanvas() : null);
     if (!canvas || !objectId) { dongtaiArea.style.display = 'none'; return; }
     const selectedObject = canvas.getObjects().find(obj => obj.id === objectId);
     if (selectedObject) { dongtaiArea.style.display = 'block'; showRelevantButtonGroup(selectedObject); }
@@ -94,27 +94,27 @@ function updateDongtaiAreaButtons(objectId) {
 
 function showRelevantButtonGroup(selectedObject) {
     if (!selectedObject) return;
-    const textToolbar = document.querySelector('.text_toolbar');
-    const imgToolbar = document.querySelector('.img_toolbar');
+    const textToolbar = document.querySelector('.pwca-text-toolbar');
+    const imgToolbar = document.querySelector('.pwca-img-toolbar');
     if (textToolbar) textToolbar.style.display = 'none';
     if (imgToolbar) imgToolbar.style.display = 'none';
     if (selectedObject.type === 'text' || selectedObject.type === 'i-text') { if (textToolbar) textToolbar.style.display = 'block'; }
     else if (selectedObject.type === 'image') { if (imgToolbar) imgToolbar.style.display = 'block'; }
-    if (typeof window.updateDynamicToolbar === 'function') window.updateDynamicToolbar(selectedObject);
+    if (typeof window.pwcaUpdateDynamicToolbar === 'function') window.pwcaUpdateDynamicToolbar(selectedObject);
 }
 
 function controlMaskCanvasFromMain(objectId) {
     const stateAccess = pwcaGetUiStateAccess();
-    const store = stateAccess && stateAccess.getCanvasStore ? stateAccess.getCanvasStore() : null;
-    const currentViewId = stateAccess && stateAccess.getActiveViewId ? stateAccess.getActiveViewId() : null;
+    const store = stateAccess && stateAccess.pwcaGetCanvasStore ? stateAccess.pwcaGetCanvasStore() : null;
+    const currentViewId = stateAccess && stateAccess.pwcaGetActiveViewId ? stateAccess.pwcaGetActiveViewId() : null;
     if (!store || !currentViewId) return;
     const maskWrapper = document.getElementById(`maskWrapper-${currentViewId}`);
     if (!maskWrapper) return;
     let isGrouped = false;
     if (objectId) {
         const layer =
-            stateAccess && typeof stateAccess.findCurrentViewLayerById === 'function'
-                ? stateAccess.findCurrentViewLayerById(objectId)
+            stateAccess && typeof stateAccess.pwcaFindCurrentViewLayerById === 'function'
+                ? stateAccess.pwcaFindCurrentViewLayerById(objectId)
                 : null;
         isGrouped = layer && layer.groupId;
     }
@@ -123,12 +123,12 @@ function controlMaskCanvasFromMain(objectId) {
 
 function controlMainWrapperDisplayArea(objectId) {
     const stateAccess = pwcaGetUiStateAccess();
-    const store = stateAccess && stateAccess.getCanvasStore ? stateAccess.getCanvasStore() : null;
-    const currentViewId = stateAccess && stateAccess.getActiveViewId ? stateAccess.getActiveViewId() : null;
+    const store = stateAccess && stateAccess.pwcaGetCanvasStore ? stateAccess.pwcaGetCanvasStore() : null;
+    const currentViewId = stateAccess && stateAccess.pwcaGetActiveViewId ? stateAccess.pwcaGetActiveViewId() : null;
     if (!store || !currentViewId) return;
     const mainCanvas =
-        stateAccess && typeof stateAccess.getCanvasByViewId === 'function'
-            ? stateAccess.getCanvasByViewId(currentViewId)
+        stateAccess && typeof stateAccess.pwcaGetCanvasByViewId === 'function'
+            ? stateAccess.pwcaGetCanvasByViewId(currentViewId)
             : window.CanvasManager?.getCanvas(currentViewId);
     if (!mainCanvas) return;
     const maskCanvasElement = document.getElementById(`maskCanvas-${currentViewId}`);
@@ -167,8 +167,8 @@ function controlMainWrapperDisplayArea(objectId) {
             isBound = !!window.PrintAreaValidator.hasPrintMethodAssigned(obj);
         } else {
             const pmStore =
-                stateAccess && typeof stateAccess.getPrintMethodStore === 'function'
-                    ? stateAccess.getPrintMethodStore()
+                stateAccess && typeof stateAccess.pwcaGetPrintMethodStore === 'function'
+                    ? stateAccess.pwcaGetPrintMethodStore()
                     : null;
             if (pmStore) {
                 const methodId = pmStore.layerPrintMethodMap[obj.id];
@@ -194,26 +194,25 @@ function controlMainWrapperDisplayArea(objectId) {
     return;
 }
 
-function getLayerName(obj) {
+function pwcaGetLayerName(obj) {
     if (obj.layerName) return obj.layerName;
     if (obj.type === 'text' || obj.type === 'i-text') { const text = obj.text || ''; return text.length > 15 ? text.substring(0, 15) + '...' : text; }
     else if (obj.type === 'image') { return 'Image ' + Date.now().toString().slice(-4); }
-    else { return 'Layer ' + Date.now().toString().slice(-4); }
+    return 'Object ' + Date.now().toString().slice(-4);
 }
 
-function getLayerType(obj) {
-    if (obj.layerType) return obj.layerType;
-    if (obj.type === 'text' || obj.type === 'i-text') return 'text';
-    else if (obj.type === 'image') return 'image';
-    else return 'other';
+function pwcaGetLayerType(obj) {
+    if (obj.type === 'text' || obj.type === 'i-text' || obj.type === 'textbox') return 'text';
+    if (obj.type === 'image') return 'image';
+    return 'shape';
 }
 
-window.addCanvasLayerListeners = addCanvasLayerListeners;
-window.syncCanvasObjectToStore = syncCanvasObjectToStore;
-window.syncSelectionToStore = syncSelectionToStore;
-window.updateDongtaiAreaButtons = updateDongtaiAreaButtons;
-window.showRelevantButtonGroup = showRelevantButtonGroup;
-window.controlMaskCanvasFromMain = controlMaskCanvasFromMain;
-window.controlMainWrapperDisplayArea = controlMainWrapperDisplayArea;
-window.getLayerName = getLayerName;
-window.getLayerType = getLayerType;
+window.pwcaAddCanvasLayerListeners = addCanvasLayerListeners;
+window.pwcaSyncCanvasObjectToStore = syncCanvasObjectToStore;
+window.pwcaSyncSelectionToStore = syncSelectionToStore;
+window.pwcaUpdateDongtaiAreaButtons = updateDongtaiAreaButtons;
+window.pwcaShowRelevantButtonGroup = showRelevantButtonGroup;
+window.pwcaControlMaskCanvasFromMain = controlMaskCanvasFromMain;
+window.pwcaControlMainWrapperDisplayArea = controlMainWrapperDisplayArea;
+window.pwcaGetLayerName = pwcaGetLayerName;
+window.pwcaGetLayerType = pwcaGetLayerType;

@@ -144,7 +144,7 @@ function pwcaResolveOperationPanelFallbackTab(preferredTabId) {
         return preferredTabId;
     }
 
-    const activeTab = document.querySelector('.tabs-nav .tab.active');
+    const activeTab = document.querySelector('.pwca-tabs-nav .pwca-tab.active');
     if (activeTab && availableTabs.includes(activeTab.id)) {
         return activeTab.id;
     }
@@ -183,12 +183,12 @@ function pwcaApplyOperationPanelModuleVisibility() {
         }
     });
 
-    const activeTab = document.querySelector('.tabs-nav .tab.active');
+    const activeTab = document.querySelector('.pwca-tabs-nav .pwca-tab.active');
     const activeTabId = activeTab ? activeTab.id : null;
     if (!activeTabId || !pwcaIsOperationPanelTabAvailable(activeTabId)) {
         const fallbackTabId = pwcaResolveOperationPanelFallbackTab();
         if (fallbackTabId) {
-            switchOperationPanelTab(fallbackTabId, { force: true });
+            pwcaSwitchOperationPanelTab(fallbackTabId, { force: true });
         }
     }
 
@@ -200,7 +200,7 @@ let pwcaOperationPanelModuleSyncBound = false;
 function pwcaBindOperationPanelModuleSync() {
     const store = pwcaGetCanvasStore();
     if (!store) {
-        console.warn('[PW Canvas] 绑定操作面板同步失败：Store 未就绪');
+        console.warn('[PW Canvas] Failed to bind operation panel sync: store is not ready');
         return;
     }
 
@@ -221,18 +221,18 @@ function pwcaBindOperationPanelModuleSync() {
     }
 
     pwcaOperationPanelModuleSyncBound = true;
-    console.log('[PW Canvas] 操作面板 UI 同步已成功绑定');
+    console.log('[PW Canvas] Operation panel UI sync bound successfully');
 }
 
-function switchOperationPanelTab(tabId, opts = {}) {
+function pwcaSwitchOperationPanelTab(tabId, opts = {}) {
     const validTabs = ['tab-pinming', 'tab-tuan', 'tab-pianquan', 'tab-wenzi', 'tab-sheji'];
     if (!validTabs.includes(tabId)) return false;
     const resolvedTabId = opts.force === true
         ? tabId
         : pwcaResolveOperationPanelFallbackTab(tabId);
     if (!resolvedTabId) return false;
-    const tabs = document.querySelectorAll('.tabs-nav .tab');
-    const contentPanes = document.querySelectorAll('.content-area .content-pane');
+    const tabs = document.querySelectorAll('.pwca-tabs-nav .pwca-tab');
+    const contentPanes = document.querySelectorAll('.pwca-content-area .pwca-content-pane');
     if (tabs.length === 0 || contentPanes.length === 0) return false;
     tabs.forEach(tab => tab.classList.remove('active'));
     contentPanes.forEach(pane => pane.classList.remove('active'));
@@ -275,7 +275,7 @@ function switchOperationPanelTab(tabId, opts = {}) {
             if (addTextBox) addTextBox.style.display = 'block';
         } catch (e) {}
         try {
-            const textButtons = document.querySelectorAll('.text_toolbar .toolbar_button');
+            const textButtons = document.querySelectorAll('.pwca-text-toolbar .pwca-toolbar-button');
             textButtons.forEach(btn => btn.classList.remove('active'));
             const textInputBtn = document.getElementById('text_input');
             if (textInputBtn) textInputBtn.classList.add('active');
@@ -284,31 +284,31 @@ function switchOperationPanelTab(tabId, opts = {}) {
     return true;
 }
 
-function getCurrentActiveTab() {
-    const activeTab = document.querySelector('.tabs-nav .tab.active');
+function pwcaGetCurrentActiveTab() {
+    const activeTab = document.querySelector('.pwca-tabs-nav .pwca-tab.active');
     return activeTab ? activeTab.id : null;
 }
 
-function listAvailableTabs() {
-    const tabs = document.querySelectorAll('.tabs-nav .tab');
+function pwcaListAvailableTabs() {
+    const tabs = document.querySelectorAll('.pwca-tabs-nav .pwca-tab');
     return Array.from(tabs).map(tab => ({
         id: tab.id,
-        title: tab.querySelector('.tab_title')?.textContent || 'Unknown',
+        title: tab.querySelector('.pwca-tab-title')?.textContent || 'Unknown',
         active: tab.classList.contains('active')
     }));
 }
 
-window.switchOperationPanelTab = switchOperationPanelTab;
-window.getCurrentActiveTab = getCurrentActiveTab;
-window.listAvailableTabs = listAvailableTabs;
+window.pwcaSwitchOperationPanelTab = pwcaSwitchOperationPanelTab;
+window.pwcaGetCurrentActiveTab = pwcaGetCurrentActiveTab;
+window.pwcaListAvailableTabs = pwcaListAvailableTabs;
 window.pwcaGetEnabledOperationModules = pwcaGetEnabledOperationModules;
 window.pwcaIsOperationPanelTabAvailable = pwcaIsOperationPanelTabAvailable;
 window.pwcaApplyOperationPanelModuleVisibility = pwcaApplyOperationPanelModuleVisibility;
 window.showTabControlHelp = function() {
     const help = {
-        'switchOperationPanelTab(tabId)': 'Switch to the specified tab',
-        'getCurrentActiveTab()': 'Get the current active tab ID',
-        'listAvailableTabs()': 'List all available tabs and their state',
+        'pwcaSwitchOperationPanelTab(tabId)': 'Switch to the specified tab',
+        'pwcaGetCurrentActiveTab()': 'Get the current active tab ID',
+        'pwcaListAvailableTabs()': 'List all available tabs and their state',
         'Available tabId': ['tab-pinming (Product)', 'tab-tuan (Layers)', 'tab-pianquan (Image)', 'tab-wenzi (Text)', 'tab-sheji (Designs)']
     };
     return help;
@@ -316,7 +316,7 @@ window.showTabControlHelp = function() {
 
 let canvas = null;
 
-function getActiveCanvas() {
+function pwcaGetActiveCanvas() {
     if (window.CanvasManager && typeof window.CanvasManager.getActiveCanvas === 'function') {
         const managedCanvas = window.CanvasManager.getActiveCanvas();
         if (managedCanvas) {
@@ -335,19 +335,19 @@ function getActiveCanvas() {
     return canvas || window.canvas || window.fabricCanvas || null;
 }
 
-function setGlobalCanvas(fabricCanvas) {
+function pwcaSetGlobalCanvas(fabricCanvas) {
     canvas = fabricCanvas;
     window.canvas = fabricCanvas;
     window.fabricCanvas = fabricCanvas;
 }
 
-window.getActiveCanvas = getActiveCanvas;
-window.setGlobalCanvas = setGlobalCanvas;
+window.pwcaGetActiveCanvas = pwcaGetActiveCanvas;
+window.pwcaSetGlobalCanvas = pwcaSetGlobalCanvas;
 
-const defaultColor = '#3498db';
-let currentColor = defaultColor;
-window.defaultColor = defaultColor;
-window.currentColor = currentColor;
+const pwca_default_color = '#3498db';
+let pwca_current_color = pwca_default_color;
+window.pwca_default_color = pwca_default_color;
+window.pwca_current_color = pwca_current_color;
 
 // 初始 UI 状态由 page-bootstrap.js 的异步队列统一调度绑定
 // 暴露方法供外部显式调用

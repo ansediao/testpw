@@ -9,7 +9,7 @@ const PWCA_IMAGE_LAYER_LOAD_TIMEOUT_MS = 15000;
  * @returns {{originX: string, originY: string}} Fabric.js 的原点对象。
  */
 function getOriginFromAnchorPoint(anchorPoint) {
-    // 处理单个值的情况（如'center'）
+    // 处理单个值的情况（如 'center'）。
     if (anchorPoint === 'center') {
         return {
             originX: 'center',
@@ -37,13 +37,13 @@ function getOriginFromAnchorPoint(anchorPoint) {
 
 /**
  * 根据原点类型转换坐标位置
- * 当originX和originY为center时，需要将基于左上角的坐标转换为基于中心点的坐标
- * @param {number} x - 原始x坐标（基于左上角）
- * @param {number} y - 原始y坐标（基于左上角）
+ * 当 originX 和 originY 为 center 时，需要将基于左上角的坐标转换为基于中心点的坐标。
+ * @param {number} x - 原始 x 坐标（基于左上角）。
+ * @param {number} y - 原始 y 坐标（基于左上角）。
  * @param {number} width - 对象宽度
  * @param {number} height - 对象高度
- * @param {string} originX - Fabric.js的originX值
- * @param {string} originY - Fabric.js的originY值
+ * @param {string} originX - Fabric.js 的 originX。
+ * @param {string} originY - Fabric.js 的 originY。
  * @returns {{x: number, y: number}} 转换后的坐标
  */
 function convertCoordinatesForOrigin(x, y, width, height, originX, originY) {
@@ -173,7 +173,7 @@ async function renderCanvasConfigsForView(view, store, canvasConfigs) {
             continue;
         }
 
-        console.info('[PW Canvas][MultiView] 开始渲染画布图层', {
+        console.info('[PW Canvas][MultiView] Start rendering canvas layers', {
             viewId: view && view.id ? view.id : null,
             canvasId: config.canvasId,
             layerCount: targetLayers.length
@@ -224,7 +224,7 @@ function createFabricObjectFromLayer(canvas, layer) {
                 }
             }
         } catch (e) {
-            console.warn('[PW Canvas] 无法获取店铺设置，将使用图层默认值');
+            console.warn('[PW Canvas] 无法获取店铺设置，将使用图层默认值。');
         }
 
         const mergedControls = typeof window.pwcaBuildMergedLayerControls === 'function'
@@ -244,7 +244,7 @@ function createFabricObjectFromLayer(canvas, layer) {
         switch (layer.type) {
             case 'image': {
                 if (!data.content || !data.content.imageURL) {
-                    console.warn(`因缺少 imageURL，正在跳过图片图层 "${layer.name}".`);
+                    console.warn(`因缺少 imageURL，正在跳过图片图层 "${layer.name}"。`);
                     resolve(null);
                     return;
                 }
@@ -383,7 +383,7 @@ function createFabricObjectFromLayer(canvas, layer) {
             }
 
             default:
-                console.warn(`未知的图层类型: "${layer.type}" (图层名: "${layer.name}").`);
+                console.warn(`未知的图层类型 "${layer.type}" (图层名 "${layer.name}").`);
                 resolve(null);
                 break;
         }
@@ -396,7 +396,7 @@ function createFabricObjectFromLayer(canvas, layer) {
  * @param {string} color - 滤镜颜色，默认为红色
  * @param {number} alpha - 透明度，0-1之间，默认为1
  */
-function applyTintFilter(layerObject, color = '#ff0000', alpha = 1) {
+function pwcaApplyTintFilter(layerObject, color = '#ff0000', alpha = 1) {
     if (!layerObject || typeof layerObject.applyFilters !== 'function' || typeof fabric === 'undefined') {
         return;
     }
@@ -420,7 +420,7 @@ function applyTintFilter(layerObject, color = '#ff0000', alpha = 1) {
 }
 
 // 暴露到全局，供其他模块使用
-window.applyTintFilter = applyTintFilter;
+window.pwcaApplyTintFilter = pwcaApplyTintFilter;
 
 /**
  * 应用渐变色滤镜到图层对象（简化版）
@@ -429,7 +429,7 @@ window.applyTintFilter = applyTintFilter;
  * @param {string} color2 - 渐变结束颜色
  * @param {string} direction - 渐变方向
  */
-function applyGradientFilter(layerObject, color1 = '#ff0000', color2 = '#0000ff', direction = 'to right') {
+function pwcaApplyGradientFilter(layerObject, color1 = '#ff0000', color2 = '#0000ff', direction = 'to right') {
     if (!layerObject || typeof layerObject.applyFilters !== 'function' || typeof fabric === 'undefined') {
         return;
     }
@@ -455,12 +455,12 @@ function applyGradientFilter(layerObject, color1 = '#ff0000', color2 = '#0000ff'
         }
     } catch (error) {
         console.warn('渐变滤镜不支持，使用色调滤镜作为降级方案:', error);
-        applyTintFilter(layerObject, color1, 0.7);
+        pwcaApplyTintFilter(layerObject, color1, 0.7);
     }
 }
 
 // 暴露到全局
-window.applyGradientFilter = applyGradientFilter;
+window.pwcaApplyGradientFilter = pwcaApplyGradientFilter;
 
 /**
  * 初始化空的fabric画布
@@ -482,8 +482,8 @@ async function initializeEmptyCanvas(canvasId, canvasWidth, canvasHeight, view, 
         backgroundColor: 'transparent'
     });
 
-    if (window.initializeCanvasEventListeners) {
-        window.initializeCanvasEventListeners(canvas);
+    if (window.pwcaInitializeCanvasEventListeners) {
+        window.pwcaInitializeCanvasEventListeners(canvas);
     }
 
     if (window.PrintAreaValidator) {
@@ -627,7 +627,7 @@ async function handleFourGridContentArea(view) {
         !mainCanvasElement ||
         !mainCanvasElement.__fabricCanvas
     ) {
-        console.warn('未能获取到 4-Grid Flow 视图的 baseCanvas 或 mainCanvas。');
+        console.warn('未能获取 4-Grid Flow 视图的 baseCanvas 或 mainCanvas。');
         return;
     }
 
@@ -678,13 +678,13 @@ async function handleFourGridContentArea(view) {
 
         applyContentAreaClip(mainCanvas, contentAreaObject);
     } catch (error) {
-        console.error('渲染 Content Area Layer 时发生错误:', error);
+        console.error('渲染 Content Area Layer 时发生错误', error);
         clearContentAreaClip(view.id);
     }
 }
 
 /**
- * 判断给定的 URL 是否指向图片资源（含 dataURL）。
+ * 判断给定 URL 是否指向图片资源（含 dataURL）。
  * @param {string} url - 待检测的 URL 字符串。
  * @returns {boolean} 如果可能是图片则返回 true。
  */
@@ -707,7 +707,7 @@ function isValidImageURL(url) {
 }
 
 /**
- * 为视图初始化多图层画布
+ * 为视图初始化多图层画布。
  * @param {Object} view - 视图对象
  * @param {Object} store - Pinia store
  */
@@ -750,7 +750,7 @@ async function initializeMultiLayerCanvases(view, store) {
 }
 
 /**
- * 初始化遮罩画布（打印区域高亮）
+ * 初始化遮罩画布（打印区域高亮）。
  * @param {string} canvasId - 画布ID
  * @param {Object} view - 视图对象
  * @param {Object} store - Pinia store
@@ -844,11 +844,11 @@ async function initializeMaskCanvas(canvasId, view, store) {
 }
 
 /**
- * 获取 base 图层有像素部分的边界框
+ * 获取 base 图层有像素部分的边界。
  * @param {fabric.Object} baseLayer - base 图层对象
  * @returns {Object|null} 返回边界框信息 {left, top, width, height} 或 null
  */
-function getBaseLayerPixelBounds(baseLayer) {
+function pwcaGetBaseLayerPixelBounds(baseLayer) {
     if (!baseLayer || !baseLayer.getElement) {
         console.warn('无效的 base 图层对象');
         return null;
@@ -919,19 +919,19 @@ function getBaseLayerPixelBounds(baseLayer) {
             height: boundsHeight
         };
     } catch (error) {
-        console.error('获取 base 图层像素边界时出错:', error);
+        console.error('获取 base 图层像素边界时出错', error);
         return null;
     }
 }
 
 // 暴露到全局作用域
-window.getBaseLayerPixelBounds = getBaseLayerPixelBounds;
+window.pwcaGetBaseLayerPixelBounds = pwcaGetBaseLayerPixelBounds;
 
 /**
- * 清除所有渐变覆盖矩形
+ * 清除所有渐变覆盖矩形。
  * @returns {number} 被移除的对象数量
  */
-function clearAllGradientRects() {
+function pwcaClearAllGradientRects() {
     let totalRemoved = 0;
     const processedCanvases = new Set();
 
@@ -1018,8 +1018,8 @@ function clearAllGradientRects() {
     return totalRemoved;
 }
 
-// 暴露到全局作用域
-window.clearAllGradientRects = clearAllGradientRects;
+// Expose the canonical PWCA name.
+window.pwcaClearAllGradientRects = pwcaClearAllGradientRects;
 
 const PWCA_MULTI_VIEW_INIT_TIMEOUT_MS = 20000;
 let pwcaMultiViewSubscriptionBound = false;
@@ -1050,10 +1050,10 @@ function pwcaMarkMultiViewInitializationFailed(error) {
 }
 
 /**
- * 初始化多视图容器与画布
- * 依赖：window.useCanvasStore、fabric、CanvasManager、PrintAreaValidator 等
+ * 初始化多视图容器与画布。
+ * 依赖：window.useCanvasStore、fabric、CanvasManager、PrintAreaValidator。
  */
-function initializeMultiViewCanvases(store) {
+function pwcaInitializeMultiViewCanvases(store) {
     if (!store) {
         return Promise.reject(new Error('Canvas store is required for multi-view initialization.'));
     }
@@ -1068,7 +1068,7 @@ function initializeMultiViewCanvases(store) {
             ) {
                 pwcaMultiViewInitialized = true;
                 pwcaLogMultiView('检测到视图数据，开始创建多视图容器', { viewCount: state.views.length });
-                createViewContainers(state.views, store).catch((error) => {
+                pwcaCreateViewContainers(state.views, store).catch((error) => {
                     pwcaMarkMultiViewInitializationFailed(error);
                 });
             }
@@ -1080,7 +1080,7 @@ function initializeMultiViewCanvases(store) {
     if (Array.isArray(store.views) && store.views.length > 0 && !pwcaMultiViewInitialized) {
         pwcaMultiViewInitialized = true;
         pwcaLogMultiView('使用现有视图数据初始化多视图容器', { viewCount: store.views.length });
-        return createViewContainers(store.views, store).catch((error) => {
+        return pwcaCreateViewContainers(store.views, store).catch((error) => {
             pwcaMarkMultiViewInitializationFailed(error);
             throw error;
         });
@@ -1093,7 +1093,7 @@ function initializeMultiViewCanvases(store) {
         });
     }
 
-    pwcaLogMultiView('视图数据尚未就绪，等待 store 更新后继续');
+    pwcaLogMultiView('视图数据尚未就绪，等待 store 更新后继续。');
     return Promise.resolve({
         initialized: false,
         waitingForViews: true
@@ -1105,7 +1105,7 @@ function initializeMultiViewCanvases(store) {
  * @param {Array} views - 视图数组
  * @param {Object} store - Pinia store
  */
-function createViewContainers(views, store) {
+function pwcaCreateViewContainers(views, store) {
     const multiViewContainer = document.getElementById('multi-view-container');
     if (!multiViewContainer) {
         const error = new Error('Multi-view container not found');
@@ -1192,8 +1192,8 @@ function createViewContainers(views, store) {
                     window.CanvasManager.setActiveCanvas(targetView.id);
                     const canvas = window.CanvasManager.getCanvas(targetView.id);
                     if (canvas) {
-                        if (window.setGlobalCanvas) {
-                            window.setGlobalCanvas(canvas);
+                        if (window.pwcaSetGlobalCanvas) {
+                            window.pwcaSetGlobalCanvas(canvas);
                         } else {
                             window.canvas = canvas;
                             window.fabricCanvas = canvas;
@@ -1271,7 +1271,7 @@ function pwcaEnsureMultiViewInitialization(store) {
 
         document.addEventListener('multiViewInitComplete', handleComplete, { once: true });
 
-        Promise.resolve(initializeMultiViewCanvases(store))
+        Promise.resolve(pwcaInitializeMultiViewCanvases(store))
             .then((result) => {
                 if (result && result.initialized === true && settled === false) {
                     handleComplete();

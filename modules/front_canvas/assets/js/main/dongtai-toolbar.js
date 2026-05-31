@@ -7,8 +7,8 @@
 
     function pwcaGetToolbarActiveCanvas() {
         const uiStateAccess = pwcaGetUiStateAccess();
-        if (uiStateAccess && typeof uiStateAccess.getActiveCanvas === 'function') {
-            return uiStateAccess.getActiveCanvas();
+        if (uiStateAccess && typeof uiStateAccess.pwcaGetActiveCanvas === 'function') {
+            return uiStateAccess.pwcaGetActiveCanvas();
         }
 
         return window.canvas || window.fabricCanvas || null;
@@ -16,8 +16,8 @@
 
     function pwcaGetToolbarActiveObject() {
         const uiStateAccess = pwcaGetUiStateAccess();
-        if (uiStateAccess && typeof uiStateAccess.getActiveObject === 'function') {
-            return uiStateAccess.getActiveObject();
+        if (uiStateAccess && typeof uiStateAccess.pwcaGetActiveObject === 'function') {
+            return uiStateAccess.pwcaGetActiveObject();
         }
 
         const activeCanvas = pwcaGetToolbarActiveCanvas();
@@ -34,8 +34,8 @@
         const stateAccess = pwcaGetUiStateAccess();
         if (!stateAccess) return false;
         
-        const printMethodStore = typeof stateAccess.getPrintMethodStore === 'function' 
-            ? stateAccess.getPrintMethodStore() 
+        const printMethodStore = typeof stateAccess.pwcaGetPrintMethodStore === 'function' 
+            ? stateAccess.pwcaGetPrintMethodStore() 
             : null;
         
         if (!printMethodStore) return false;
@@ -61,7 +61,7 @@
         return false;
     }
 
-    function showPrintMethodBindingAlert(targetObject) {
+    function pwcaShowPrintMethodBindingAlert(targetObject) {
         if (!targetObject || !targetObject.id) {
             return;
         }
@@ -70,12 +70,12 @@
     }
 
     function pwcaInitTextToolbar() {
-        const toolbar = document.querySelector('.text_toolbar');
+        const toolbar = document.querySelector('.pwca-text-toolbar');
         if (!toolbar) {
             return;
         }
 
-        const buttons = toolbar.querySelectorAll('.toolbar_button');
+        const buttons = toolbar.querySelectorAll('.pwca-toolbar-button');
         if (!buttons.length) {
             return;
         }
@@ -91,11 +91,11 @@
                     return;
                 }
 
-                if (typeof window.switchOperationPanelTab === 'function') {
-                    window.switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
+                if (typeof window.pwcaSwitchOperationPanelTab === 'function') {
+                    window.pwcaSwitchOperationPanelTab('tab-wenzi', { preserveSelection: true });
                 }
 
-                toolbar.querySelectorAll('.toolbar_button').forEach(function (btn) {
+                toolbar.querySelectorAll('.pwca-toolbar-button').forEach(function (btn) {
                     btn.classList.remove('active');
                 });
                 button.classList.add('active');
@@ -105,20 +105,20 @@
                     addTextBox.style.display = button.id === 'text_input' ? 'block' : 'none';
                 }
 
-                if (typeof window.updateDynamicToolbar === 'function' && activeObject) {
-                    window.updateDynamicToolbar(activeObject);
+                if (typeof window.pwcaUpdateDynamicToolbar === 'function' && activeObject) {
+                    window.pwcaUpdateDynamicToolbar(activeObject);
                 }
             });
         });
     }
 
     function pwcaInitImageToolbar() {
-        const toolbar = document.querySelector('.img_toolbar');
+        const toolbar = document.querySelector('.pwca-img-toolbar');
         if (!toolbar) {
             return;
         }
 
-        const buttons = toolbar.querySelectorAll('.toolbar_button');
+        const buttons = toolbar.querySelectorAll('.pwca-toolbar-button');
         if (!buttons.length) {
             return;
         }
@@ -135,8 +135,8 @@
                     return;
                 }
 
-                if (typeof window.switchOperationPanelTab === 'function') {
-                    window.switchOperationPanelTab('tab-pianquan');
+                if (typeof window.pwcaSwitchOperationPanelTab === 'function') {
+                    window.pwcaSwitchOperationPanelTab('tab-pianquan');
                 }
 
                 const imgOriginControls = document.getElementById('img_origin_controls');
@@ -153,13 +153,13 @@
                     }
                 }
 
-                toolbar.querySelectorAll('.toolbar_button').forEach(function (btn) {
+                toolbar.querySelectorAll('.pwca-toolbar-button').forEach(function (btn) {
                     btn.classList.remove('active');
                 });
                 button.classList.add('active');
 
-                if (typeof window.updateDynamicToolbar === 'function' && activeObject) {
-                    window.updateDynamicToolbar(activeObject);
+                if (typeof window.pwcaUpdateDynamicToolbar === 'function' && activeObject) {
+                    window.pwcaUpdateDynamicToolbar(activeObject);
                 }
             });
         });
@@ -170,7 +170,7 @@
         pwcaInitImageToolbar();
     });
 
-    window.showPrintMethodBindingAlert = showPrintMethodBindingAlert;
+    window.pwcaShowPrintMethodBindingAlert = pwcaShowPrintMethodBindingAlert;
     window.pwcaOpenPrintMethodModal = pwcaOpenPrintMethodModal;
     window.pwcaCheckObjectHasPrintMethod = pwcaCheckObjectHasPrintMethod;
 })();

@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     productStore.setGradientColorApplied(true);
                 }
             } catch (error) {
-                console.warn('无法更新产品页面渐变色状态:', error);
+                console.warn('无法更新产品页面渐变色状态', error);
             }
         }
 
@@ -175,8 +175,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (activeViewId && store.views) {
                     const currentView = store.views.find(v => v.id === activeViewId);
                     if (currentView && currentView.base_layer) {
-                        if (window.clearAllGradientRects) {
-                            window.clearAllGradientRects();
+                        if (window.pwcaClearAllGradientRects) {
+                            window.pwcaClearAllGradientRects();
                         }
 
                         const baseCanvasId = `baseCanvas-${activeViewId}`;
@@ -184,14 +184,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             (document.getElementById(baseCanvasId) && document.getElementById(baseCanvasId).__fabricCanvas);
 
                         if (!baseCanvas) {
-                            console.warn('无法获取baseCanvas，渐变色应该应用在baseCanvas上');
+                            console.warn('Cannot get baseCanvas for gradient application');
                             return;
                         }
 
                         const baseLayerObject = currentView.base_layer;
                         const imageElement = baseLayerObject.getElement();
                         if (!imageElement) {
-                            console.warn('无法获取Base图层的图像元素');
+                            console.warn('Cannot get the base layer image element');
                             return;
                         }
 
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.warn('当前视图没有 base_layer 或视图不存在');
                     }
                 } else {
-                    console.warn('没有激活的视图或 store 不可用');
+                    console.warn('没有激活的视图，或 store 不可用');
                 }
             } else if (typeof window.ProductImageCanvas !== 'undefined' && window.CanvasManager) {
                 const productCanvas = window.CanvasManager.getCanvas('product-view');
@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const imageElement = baseLayerObject.getElement();
                 if (!imageElement) {
-                    console.warn('无法获取Base图层的图像元素');
+                    console.warn('无法获取 Base 图层的图像元素');
                     return;
                 }
 
@@ -349,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 productCanvas.renderAll();
             } else {
-                console.warn('useCanvasStore 和 ProductImageCanvas 都不可用');
+                console.warn('useCanvasStore 或 ProductImageCanvas 都不可用');
             }
         }
 

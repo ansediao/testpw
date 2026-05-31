@@ -1,6 +1,6 @@
 // 更新动态工具栏
 // 滑块填充更新工具函数：根据当前值更新 CSS 变量 --value-percent
-function pwUpdateRangeFill(rangeEl) {
+function pwcaUpdateRangeFill(rangeEl) {
     if (!rangeEl) return;
     const min = (rangeEl.min !== undefined && rangeEl.min !== '') ? parseFloat(rangeEl.min) : 0;
     const max = (rangeEl.max !== undefined && rangeEl.max !== '') ? parseFloat(rangeEl.max) : 100;
@@ -22,12 +22,12 @@ function pwcaGetAvailableTextFonts() {
     const fallbackFonts = ['Arial', 'Times New Roman', 'Courier New', 'SimSun', 'Microsoft YaHei'];
     const stateAccess = window.pwcaUiStateAccess;
 
-    if (!stateAccess || typeof stateAccess.getCanvasStore !== 'function') {
+    if (!stateAccess || typeof stateAccess.pwcaGetCanvasStore !== 'function') {
         return fallbackFonts;
     }
 
     try {
-        const store = stateAccess.getCanvasStore();
+        const store = stateAccess.pwcaGetCanvasStore();
         if (Array.isArray(store.currentTextFontOptions) && store.currentTextFontOptions.length > 0) {
             return store.currentTextFontOptions;
         }
@@ -49,12 +49,12 @@ function pwcaBuildFontOptionsMarkup(selectedFontFamily) {
 
 function pwcaGetToolbarPrintMethodStore() {
     const stateAccess = window.pwcaUiStateAccess;
-    if (!stateAccess || typeof stateAccess.getPrintMethodStore !== 'function') {
+    if (!stateAccess || typeof stateAccess.pwcaGetPrintMethodStore !== 'function') {
         return null;
     }
 
     try {
-        return stateAccess.getPrintMethodStore();
+        return stateAccess.pwcaGetPrintMethodStore();
     } catch (error) {
     }
 
@@ -63,23 +63,23 @@ function pwcaGetToolbarPrintMethodStore() {
 
 function pwcaGetToolbarActiveCanvas() {
     const stateAccess = window.pwcaUiStateAccess;
-    if (stateAccess && typeof stateAccess.getActiveCanvas === 'function') {
-        const canvas = stateAccess.getActiveCanvas();
+    if (stateAccess && typeof stateAccess.pwcaGetActiveCanvas === 'function') {
+        const canvas = stateAccess.pwcaGetActiveCanvas();
         if (canvas) {
             return canvas;
         }
     }
 
-    return getActiveCanvas();
+    return typeof window.pwcaGetActiveCanvas === 'function' ? window.pwcaGetActiveCanvas() : null;
 }
 
-function updateDynamicToolbar(obj) {
+function pwcaUpdateDynamicToolbar(obj) {
     // 获取当前活动的 canvas 实例
     const stateAccess = window.pwcaUiStateAccess;
     const canvas =
-        stateAccess && typeof stateAccess.getActiveCanvas === 'function'
-            ? stateAccess.getActiveCanvas()
-            : getActiveCanvas();
+        stateAccess && typeof stateAccess.pwcaGetActiveCanvas === 'function'
+            ? stateAccess.pwcaGetActiveCanvas()
+            : (typeof window.pwcaGetActiveCanvas === 'function' ? window.pwcaGetActiveCanvas() : null);
     if (!canvas) {
         return;
     }
@@ -87,15 +87,15 @@ function updateDynamicToolbar(obj) {
     const textToolbarArea = document.querySelector('#content-wenzi-control');
     const imgOriginControls = document.querySelector('#img_origin_controls');
     const imgAddControls = document.querySelector('#img_add_controls');
-    const textToolbar = document.querySelector('.text_toolbar');
-    const imgToolbar = document.querySelector('.img_toolbar');
+    const textToolbar = document.querySelector('.pwca-text-toolbar');
+    const imgToolbar = document.querySelector('.pwca-img-toolbar');
     // 清空文本工具栏
     textToolbarArea.innerHTML = '';
     // 如果没有选中对象，则不显示工具栏
     if (!obj) {
         textToolbar.style.display = 'none';
         imgAddControls.style.display = 'none';
-        const imgToolbar = document.querySelector('.img_toolbar');
+        const imgToolbar = document.querySelector('.pwca-img-toolbar');
         imgToolbar.style.display = 'none';
         // 恢复图片工具栏区域的原始内容
         imgOriginControls.style.display = 'block';
@@ -107,7 +107,7 @@ function updateDynamicToolbar(obj) {
         textToolbar.style.display = 'block';
         imgToolbar.style.display = 'none';
         // 获取当前活动的文字工具按钮（仅限文字工具栏作用域）
-        const activeTextButton = document.querySelector('.text_toolbar .toolbar_button.active');
+        const activeTextButton = document.querySelector('.pwca-text-toolbar .pwca-toolbar-button.active');
         const activeButtonId = activeTextButton ? activeTextButton.id : 'text_input';
 
         // 根据当前按钮显示/隐藏添加文字区域
@@ -121,7 +121,7 @@ function updateDynamicToolbar(obj) {
             const fontSelector = document.createElement('div');
             fontSelector.className = 'toolbar-item';
             fontSelector.innerHTML = `
-            <label for="fontFamily" class="tab_control_title">Font：</label>
+            <label for="fontFamily" class="tab_control_title">Font</label>
             <br>
             <select id="fontFamily">
               ${pwcaBuildFontOptionsMarkup(obj.fontFamily)}
@@ -133,7 +133,7 @@ function updateDynamicToolbar(obj) {
             textControlsContainer.className = 'toolbar-item pwca-text-controls-container';
             textControlsContainer.innerHTML = `
             <div>
-                <label for="fontSize" class="tab_control_title">Font-Size：</label>
+                <label for="fontSize" class="tab_control_title">Font-Size</label>
                 <div class="pwca-font-size-control">
                     <button type="button" id="fontSizeDecrease" class="pwca-font-size-btn">-</button>
                     <input type="number" id="fontSize" min="8" max="120" value="${obj.fontSize}" class="pwca-font-size-input">
@@ -141,7 +141,7 @@ function updateDynamicToolbar(obj) {
                 </div>
             </div>
             <div>
-                <label for="letterSpacing" class="tab_control_title">Letter Spacing：</label>
+                <label for="letterSpacing" class="tab_control_title">Letter Spacing</label>
                 <div class="pwca-letter-spacing-control">
                     <button type="button" id="letterSpacingDecrease" class="pwca-letter-spacing-btn">-</button>
                     <input type="number" id="letterSpacing" min="-10" max="50" value="${obj.charSpacing || 0}" class="pwca-letter-spacing-input">
@@ -155,8 +155,8 @@ function updateDynamicToolbar(obj) {
         // 创建颜色选择器（优先使用印刷方式的自定义颜色）
         if (activeButtonId === 'text_color') {
             const method =
-                stateAccess && typeof stateAccess.getPrintMethodForObject === 'function'
-                    ? stateAccess.getPrintMethodForObject(obj)
+                stateAccess && typeof stateAccess.pwcaGetPrintMethodForObject === 'function'
+                    ? stateAccess.pwcaGetPrintMethodForObject(obj)
                     : null;
 
             const colors = method && method.customColors && method.customColors.data && Array.isArray(method.customColors.data.colors)
@@ -168,7 +168,7 @@ function updateDynamicToolbar(obj) {
                 swatchContainer.className = 'toolbar-item';
                 const label = document.createElement('label');
                 label.className = 'tab_control_title';
-                label.textContent = 'Color：';
+                label.textContent = 'Color';
                 swatchContainer.appendChild(label);
 
                 const swatchesBox = document.createElement('div');
@@ -189,7 +189,7 @@ function updateDynamicToolbar(obj) {
                     sw.style.backgroundColor = c.hex_code;
                     sw.title = c.name || c.hex_code;
                     sw.addEventListener('click', function () {
-                        const activeCanvas = getActiveCanvas();
+                        const activeCanvas = typeof window.pwcaGetActiveCanvas === 'function' ? window.pwcaGetActiveCanvas() : null;
                         const activeObj = activeCanvas ? activeCanvas.getActiveObject() : null;
                         if (activeObj && activeObj.type === 'text') {
                             activeObj.set('fill', c.hex_code);
@@ -205,7 +205,7 @@ function updateDynamicToolbar(obj) {
                 const colorSelector = document.createElement('div');
                 colorSelector.className = 'toolbar-item';
                 colorSelector.innerHTML = `
-                <label for="textColor" class="tab_control_title">Color：</label>
+                <label for="textColor" class="tab_control_title">Color</label>
                 <br>
                 <input type="color" id="textColor" value="${obj.fill}">
               `;
@@ -218,9 +218,9 @@ function updateDynamicToolbar(obj) {
             const rotationControl = document.createElement('div');
             rotationControl.className = 'toolbar-item';
             rotationControl.innerHTML = `
-            <label for="textRotation" class="tab_control_title">Rotate：</label>
+            <label for="textRotation" class="tab_control_title">Rotate</label>
             <br>
-            <div class="pwca-content-area-rotate-control">
+            <div class="pwca-pwca-content-area-rotate-control">
                 <input type="range" id="textRotationRange" min="-180" max="180" step="1" value="${obj.angle}">
                 <input type="number" id="textRotation" min="0" max="360" value="${obj.angle}">
             </div>
@@ -233,7 +233,7 @@ function updateDynamicToolbar(obj) {
         //     const positionControl = document.createElement('div');
         //     positionControl.className = 'toolbar-item';
         //     positionControl.innerHTML = `
-        //     <label class="tab_control_title">位置：</label>
+        //     <label class="tab_control_title">位置</label>
         //     <input type="number" id="textPositionX" style="width: 60px;" value="${Math.round(obj.left)}">
         //     <input type="number" id="textPositionY" style="width: 60px;" value="${Math.round(obj.top)}">
         //   `;
@@ -243,7 +243,7 @@ function updateDynamicToolbar(obj) {
             const alignmentControl = document.createElement('div');
             alignmentControl.className = 'toolbar-item';
             alignmentControl.innerHTML = `
-            <label class="tab_control_title">Align：</label>
+            <label class="tab_control_title">Align</label>
             <br>
             <button id="textAlignCenterH"><i class="iconfont icon-format-horizontal-align-center"></i></button>
             <button id="textAlignCenterV"><i class="iconfont icon-vertical-align-middl"></i></button>
@@ -254,7 +254,7 @@ function updateDynamicToolbar(obj) {
           `;
             textToolbarArea.appendChild(alignmentControl);
 
-            // ===== 对齐按钮事件监听（基于 viewportTransform 严格贴齐画布边缘/中心） =====
+            // ===== 对齐按钮事件监听（基于 viewportTransform 严格贴齐画布边缘/中心）=====
             const alignByBoundingRect = function(mode) {
                 const active = canvas.getActiveObject();
                 if (!active) return;
@@ -329,9 +329,9 @@ function updateDynamicToolbar(obj) {
             const distortControl = document.createElement('div');
             distortControl.className = 'toolbar-item';
             distortControl.innerHTML = `
-            <label for="textDistort" class="tab_control_title">Arc：</label>
+            <label for="textDistort" class="tab_control_title">Arc</label>
             <br>
-            <div class="pwca-content-area-rotate-control">
+            <div class="pwca-pwca-content-area-rotate-control">
                 <input type="range" id="textDistort" min="-100" max="100" value="0">
                 <input type="number" id="distortValue" min="-100" max="100" value="0">
             </div>
@@ -444,12 +444,12 @@ function updateDynamicToolbar(obj) {
         const textRotationRange = document.getElementById('textRotationRange');
         if (textRotationRange) {
             // 初始化一次填充效果
-            pwUpdateRangeFill(textRotationRange);
+            pwcaUpdateRangeFill(textRotationRange);
             textRotationRange.addEventListener('input', function () {
                 const val = parseInt(this.value, 10) || 0;
                 if (textRotationInput) textRotationInput.value = val;
                 // 根据当前值更新滑块填充
-                pwUpdateRangeFill(textRotationRange);
+                pwcaUpdateRangeFill(textRotationRange);
                 if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
                     canvas.getActiveObject().set('angle', val);
                     canvas.renderAll();
@@ -460,7 +460,7 @@ function updateDynamicToolbar(obj) {
             textRotationInput.addEventListener('input', function () {
                 const val = parseInt(this.value, 10) || 0;
                 if (textRotationRange) textRotationRange.value = val;
-                if (textRotationRange) pwUpdateRangeFill(textRotationRange);
+                if (textRotationRange) pwcaUpdateRangeFill(textRotationRange);
                 if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
                     canvas.getActiveObject().set('angle', val);
                     canvas.renderAll();
@@ -493,7 +493,7 @@ function updateDynamicToolbar(obj) {
         const distortValue = document.getElementById('distortValue');
         if (distortInput && distortValue) {
             // 初始化一次填充效果
-            pwUpdateRangeFill(distortInput);
+            pwcaUpdateRangeFill(distortInput);
             const applyDistort = function(val) {
                 if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
                     const text = canvas.getActiveObject();
@@ -521,13 +521,13 @@ function updateDynamicToolbar(obj) {
                 const sliderValue = parseFloat(this.value) || 0;
                 distortValue.value = sliderValue;
                 // 根据当前值更新滑块填充
-                pwUpdateRangeFill(distortInput);
+                pwcaUpdateRangeFill(distortInput);
                 applyDistort(sliderValue);
             });
             distortValue.addEventListener('input', function () {
                 const manualValue = parseFloat(this.value) || 0;
                 distortInput.value = manualValue;
-                pwUpdateRangeFill(distortInput);
+                pwcaUpdateRangeFill(distortInput);
                 applyDistort(manualValue);
             });
         }
@@ -538,14 +538,14 @@ function updateDynamicToolbar(obj) {
         imgToolbar.style.display = 'block';
         // 默认：若没有激活的图片子工具，则显示原始内容区域
         imgAddControls.style.display = 'none';
-        const activeImgButton = document.querySelector('.img_toolbar .toolbar_button.active');
+        const activeImgButton = document.querySelector('.pwca-img-toolbar .pwca-toolbar-button.active');
 
         // 没有激活的图片工具按钮时，显示原始内容并取消所有激活状态
         if (!activeImgButton) {
             if (imgOriginControls) {
                 imgOriginControls.style.display = 'block';
             }
-            document.querySelectorAll('.img_toolbar .toolbar_button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.pwca-img-toolbar .pwca-toolbar-button').forEach(btn => btn.classList.remove('active'));
             return;
         }
 
@@ -556,7 +556,7 @@ function updateDynamicToolbar(obj) {
         imgAddControls.style.display = 'block';
         const activeButtonId = activeImgButton.id;
 
-        // 创建一个新的容器用于放置工具栏项
+        // 创建一个新的容器用于放置工具栏控件
         let tempContainer = document.getElementById('img_add_controls');
         if (!tempContainer) {
             tempContainer = document.createElement('div');
@@ -568,9 +568,9 @@ function updateDynamicToolbar(obj) {
 
         // 控制项仅在有激活按钮时生成（此时 activeButtonId 已存在）
 
-        // 创建变形控制 (透明度、旋转、宽度、高度、反转)
+        // 创建变形控制（透明度、旋转、宽度、高度、反转）
         if (activeButtonId === 'img_input') {
-            // 透明度控制
+            // 透明度控件
         //     const opacityControl = document.createElement('div');
         //     opacityControl.className = 'toolbar-item';
         //     opacityControl.innerHTML = `
@@ -594,9 +594,9 @@ function updateDynamicToolbar(obj) {
             const rotationControl = document.createElement('div');
             rotationControl.className = 'toolbar-item';
             rotationControl.innerHTML = `
-            <label for="imageRotation" class="tab_control_title">Transform：</label>
+            <label for="imageRotation" class="tab_control_title">Transform</label>
             <br>
-            <div class="pwca-content-area-rotate-control">
+            <div class="pwca-pwca-content-area-rotate-control">
                 <input type="range" id="imageRotationRange" min="-180" max="180" step="1" value="${obj.angle}">
                 <input type="number" id="imageRotation" min="0" max="360" value="${obj.angle}">
             </div>
@@ -608,12 +608,12 @@ function updateDynamicToolbar(obj) {
             const rotationRange = document.getElementById('imageRotationRange');
             if (rotationRange) {
                 // 初始化一次填充效果
-                pwUpdateRangeFill(rotationRange);
+                pwcaUpdateRangeFill(rotationRange);
                 rotationRange.addEventListener('input', function () {
                     const val = parseInt(this.value, 10) || 0;
                     if (rotationInput) rotationInput.value = val;
                     // 根据当前值更新滑块填充
-                    pwUpdateRangeFill(rotationRange);
+                    pwcaUpdateRangeFill(rotationRange);
                     obj.set('angle', val);
                     canvas.renderAll();
                 });
@@ -622,7 +622,7 @@ function updateDynamicToolbar(obj) {
                 rotationInput.addEventListener('input', function () {
                     const val = parseInt(this.value, 10) || 0;
                     if (rotationRange) rotationRange.value = val;
-                    if (rotationRange) pwUpdateRangeFill(rotationRange);
+                    if (rotationRange) pwcaUpdateRangeFill(rotationRange);
                     obj.set('angle', val);
                     canvas.renderAll();
                 });
@@ -633,12 +633,12 @@ function updateDynamicToolbar(obj) {
             widthControl.className = 'toolbar-item tab_control_imageWidthHeight';
             widthControl.innerHTML = `
             <div class="tab_control_imageWidth">
-            <label for="imageWidth" class="tab_control_title">Width：</label>
+            <label for="imageWidth" class="tab_control_title">Width</label>
 
             <input type="number" id="imageWidth" min="10" value="${Math.round(obj.width * obj.scaleX)}">
             </div>
             <div class="tab_control_imageHeight">
-            <label for="imageHeight" class="tab_control_title">Height：</label>
+            <label for="imageHeight" class="tab_control_title">Height</label>
        
             <input type="number" id="imageHeight" min="10" value="${Math.round(obj.height * obj.scaleY)}">
             </div>
@@ -669,7 +669,7 @@ function updateDynamicToolbar(obj) {
             const flipXControl = document.createElement('div');
             flipXControl.className = 'toolbar-item';
             flipXControl.innerHTML = `
-            <label for="imageHeight" class="tab_control_title">Flip：</label>
+            <label for="imageHeight" class="tab_control_title">Flip</label>
             <br>
             <button id="imageFlipX"><i class="iconfont icon-jingxiang"></i> Horizontally</button>
             <button id="imageFlipY"><i class="iconfont icon-jingxiang1"></i> Vertically</button>
@@ -701,7 +701,7 @@ function updateDynamicToolbar(obj) {
         //     const positionControl = document.createElement('div');
         //     positionControl.className = 'toolbar-item';
         //     positionControl.innerHTML = `
-        //     <label>位置：</label>
+        //     <label>位置</label>
         //     <input type="number" id="imgPositionX" style="width: 60px;" value="${Math.round(obj.left)}">
         //     <input type="number" id="imgPositionY" style="width: 60px;" value="${Math.round(obj.top)}">
         //   `;
@@ -725,7 +725,7 @@ function updateDynamicToolbar(obj) {
             const alignmentControl = document.createElement('div');
             alignmentControl.className = 'toolbar-item';
             alignmentControl.innerHTML = `
-            <label class="tab_control_title">Align：</label>
+            <label class="tab_control_title">Align</label>
             <br>
             <button id="imgAlignCenterH"><i class="iconfont icon-format-horizontal-align-center"></i></button>
             <button id="imgAlignCenterV"><i class="iconfont icon-vertical-align-middl"></i></button>
@@ -736,7 +736,7 @@ function updateDynamicToolbar(obj) {
           `;
             tempContainer.appendChild(alignmentControl);
 
-            // ===== 对齐按钮事件监听（基于 viewportTransform 严格贴齐画布边缘/中心） =====
+            // ===== 对齐按钮事件监听（基于 viewportTransform 严格贴齐画布边缘/中心）=====
             const alignImgByBoundingRect = function(mode) {
                 const active = canvas.getActiveObject();
                 if (!active) return;
@@ -811,7 +811,7 @@ function updateDynamicToolbar(obj) {
             const cropControl = document.createElement('div');
             cropControl.className = 'toolbar-item';
             cropControl.innerHTML = `
-            <label class="tab_control_title">Crop：</label>
+            <label class="tab_control_title">Crop</label>
             <button id="startCrop">Start</button>
             <button id="applyCrop" class="pwca-crop-apply">Done</button>
             <button id="cancelCrop" class="pwca-crop-cancel">Esc</button>
@@ -904,9 +904,9 @@ function updateDynamicToolbar(obj) {
             const printMethodStore = pwcaGetToolbarPrintMethodStore();
             let method = null;
             if (printMethodStore) {
-                method = printMethodStore.getLayerPrintMethod ? printMethodStore.getLayerPrintMethod(obj.id) : null;
-                if (!method && obj.groupId && printMethodStore.getGroupPrintMethod) {
-                    method = printMethodStore.getGroupPrintMethod(obj.groupId);
+                method = printMethodStore.pwcaGetLayerPrintMethod ? printMethodStore.pwcaGetLayerPrintMethod(obj.id) : null;
+                if (!method && obj.groupId && printMethodStore.pwcaGetGroupPrintMethod) {
+                    method = printMethodStore.pwcaGetGroupPrintMethod(obj.groupId);
                 }
             }
 
@@ -919,7 +919,7 @@ function updateDynamicToolbar(obj) {
                 swatchContainer.className = 'toolbar-item';
                 const label = document.createElement('label');
                 label.className = 'tab_control_title';
-                label.textContent = 'Color：';
+                label.textContent = 'Color';
                 swatchContainer.appendChild(label);
 
                 const swatchesBox = document.createElement('div');
@@ -970,7 +970,7 @@ function updateDynamicToolbar(obj) {
                 const colorControl = document.createElement('div');
                 colorControl.className = 'toolbar-item';
                 colorControl.innerHTML = `
-                <label for="imgTint" class="tab_control_title">Color：</label>
+                <label for="imgTint" class="tab_control_title">Color</label>
                 <input type="color" id="imgTint" value="#ffffff">
               `;
                 tempContainer.appendChild(colorControl);
@@ -1005,13 +1005,13 @@ function updateDynamicToolbar(obj) {
 }
 
 // 修改添加图片函数，确保添加到图层面板
-function addImage(event) {
+function pwcaAddImage(event) {
     const file = event.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function (e) {
         // 获取当前活动的 canvas 实例
-        const canvas = getActiveCanvas();
+        const canvas = typeof window.pwcaGetActiveCanvas === 'function' ? window.pwcaGetActiveCanvas() : null;
         if (!canvas) {
             return;
         }
@@ -1019,10 +1019,10 @@ function addImage(event) {
         fabric.Image.fromURL(e.target.result, function (img) {
             img.scaleToWidth(200);
             // 初始化 layerCounter（如果不存在）
-            if (typeof window.layerCounter === 'undefined') {
-                window.layerCounter = 0;
+            if (typeof window.pwcaLayerCounter === 'undefined') {
+                window.pwcaLayerCounter = 0;
             }
-            const newId = 'layer_' + (++window.layerCounter);
+            const newId = 'layer_' + (++window.pwcaLayerCounter);
             
             // ===== 核心修复：添加用户操作标记 =====
             img.set({
@@ -1057,9 +1057,9 @@ function addImage(event) {
     reader.readAsDataURL(file);
 }
 // 添加设计到画布的函数
-function addDesignToCanvas(designId) {
+function pwcaAddDesignToCanvas(designId) {
     // 获取当前活动的 canvas 实例
-    const canvas = getActiveCanvas();
+    const canvas = typeof window.pwcaGetActiveCanvas === 'function' ? window.pwcaGetActiveCanvas() : null;
     if (!canvas) {
         return;
     }
@@ -1079,10 +1079,10 @@ function addDesignToCanvas(designId) {
         img.scaleToWidth(200);
         
         // 初始化 layerCounter（如果不存在）
-        if (typeof window.layerCounter === 'undefined') {
-            window.layerCounter = 0;
+        if (typeof window.pwcaLayerCounter === 'undefined') {
+            window.pwcaLayerCounter = 0;
         }
-        const newId = 'layer_' + (++window.layerCounter);
+        const newId = 'layer_' + (++window.pwcaLayerCounter);
         
         // 设置 Fabric 对象属性
         img.set({
@@ -1114,8 +1114,8 @@ function addDesignToCanvas(designId) {
             
             // 记录使用情况
             try {
-                if (typeof recordDesignUsage === 'function') {
-                    recordDesignUsage(meta);
+                if (typeof pwcaRecordDesignUsage === 'function') {
+                    pwcaRecordDesignUsage(meta);
                 } else if (typeof window.useDesignUsageStore === 'function') {
                     const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
                     store.addDesign(meta);
@@ -1141,7 +1141,7 @@ document.addEventListener('keydown', function (e) {
     }
 });
 
-function recordDesignUsage(meta) {
+function pwcaRecordDesignUsage(meta) {
     try {
         if (typeof window.useDesignUsageStore === 'function') {
             const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
@@ -1152,14 +1152,14 @@ function recordDesignUsage(meta) {
     return false;
 }
 
-function queueDesignUsage(meta) {
-    if (recordDesignUsage(meta)) return;
+function pwcaQueueDesignUsage(meta) {
+    if (pwcaRecordDesignUsage(meta)) return;
     const handler = () => {
-        recordDesignUsage(meta);
+        pwcaRecordDesignUsage(meta);
         document.removeEventListener('canvasPiniaReady', handler);
     };
     document.addEventListener('canvasPiniaReady', handler);
 }
 
-window.recordDesignUsage = recordDesignUsage;
-window.queueDesignUsage = queueDesignUsage;
+window.recordDesignUsage = pwcaRecordDesignUsage;
+window.queueDesignUsage = pwcaQueueDesignUsage;

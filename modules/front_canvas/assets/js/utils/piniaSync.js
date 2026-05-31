@@ -12,7 +12,7 @@
  * 将 Pinia Store 中的某个值与页面上的 HTML 元素内容进行响应式同步。
  * 该函数会自动等待依赖（如 Vue 和 Pinia）加载完成，并持续尝试直到成功或发生不可恢复的错误。
  *
- * @param {string} elementId - 需要同步内容的页面元素的 ID。
+ * @param {string} elementId - 需要同步内容的页面元素 ID。
  * @param {function(): object} storeAccessor - 一个返回 Pinia Store 实例的函数。例如: () => window.useProductStore()。
  * @param {string} valuePath - Store state 中所需值的路径，支持点表示法（例如 'product.name' 或 'user.info.age'）。
  */
@@ -40,14 +40,14 @@ function syncPiniaToElement(elementId, storeAccessor, valuePath) {
             // 检查 Vue 和 Pinia 是否已加载
             if (!window.Vue || !window.Pinia) {
                 reject(
-                    "[Pinia Sync] Vue 和 Pinia 未正确加载，请确保已通过 CDN 或其他方式引入。"
+                    "[Pinia Sync] Vue or Pinia is not loaded correctly. Please ensure they are included before using Pinia sync."
                 );
                 return;
             }
 
             // 确保传入的 storeAccessor 是一个函数
             if (typeof storeAccessor !== "function") {
-                reject(`[Pinia Sync]提供的 storeAccessor 不是一个有效的函数。`);
+                reject(`[Pinia Sync] 提供的 storeAccessor 不是一个有效的函数。`);
                 return;
             }
 
@@ -75,7 +75,7 @@ function syncPiniaToElement(elementId, storeAccessor, valuePath) {
             // 设置一个超时警告，超时后会降低轮询频率
             setTimeout(() => {
                 if (checkStoreInterval) {
-                    // 检查计时器是否仍然存在（即尚未成功）
+                    // 检查计时器是否仍然存在（即尚未成功初始化）
                     clearInterval(checkStoreInterval);
                     checkStoreInterval = setInterval(
                         check,
@@ -121,8 +121,8 @@ function syncPiniaToElement(elementId, storeAccessor, valuePath) {
 
             const store = storeAccessor();
             if (!store) {
-                // 理论上 checkDependencies 已确保 store 可用，但作为安全措施保留
-                throw new Error("获取 Store 实例失败。");
+                // 理论上 checkDependencies 已确认 store 可用，但作为安全措施保留
+                throw new Error("Failed to get Pinia store instance");
             }
 
             // 首次加载时设置初始值

@@ -18,7 +18,7 @@ final class Pwca_Integration_Promowares {
 	public static function schedule_product_import() {
 		if ( ! self::$instance ) {
 			return array(
-				array( 'type' => 'error', 'text' => 'Promowares 同步模块未初始化' ),
+				array( 'type' => 'error', 'text' => 'Promowares sync module not initialized' ),
 			);
 		}
 
@@ -99,38 +99,38 @@ final class Pwca_Integration_Promowares {
 
 	public function handle_save_token() {
 		if ( ! $this->verify_ajax_nonce( 'pw_save_token_nonce', 'nonce' ) ) {
-			wp_send_json_error( '安全验证失败' );
+			wp_send_json_error( 'Security verification failed' );
 			return;
 		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( '权限不足' );
+			wp_send_json_error( 'Insufficient permissions' );
 			return;
 		}
 
 		$token = isset( $_POST['token'] ) ? sanitize_text_field( wp_unslash( $_POST['token'] ) ) : '';
 		if ( $token === '' ) {
-			wp_send_json_error( 'Token不能为空' );
+			wp_send_json_error( 'Token cannot be empty' );
 			return;
 		}
 
 		$result = update_option( 'pw_api_token', $token );
 		if ( $result ) {
-			wp_send_json_success( 'Token保存成功' );
+			wp_send_json_success( 'Token saved successfully' );
 			return;
 		}
 
-		wp_send_json_error( 'Token保存失败' );
+		wp_send_json_error( 'Failed to save token' );
 	}
 
 	public function handle_save_mock_mode() {
 		if ( ! $this->verify_ajax_nonce( 'pw_save_mock_mode_nonce', 'nonce' ) ) {
-			wp_send_json_error( '安全验证失败' );
+			wp_send_json_error( 'Security verification failed' );
 			return;
 		}
 
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( '权限不足' );
+			wp_send_json_error( 'Insufficient permissions' );
 			return;
 		}
 
@@ -139,11 +139,11 @@ final class Pwca_Integration_Promowares {
 
 		$result = update_option( 'pw_api_mock_mode', $mode );
 		if ( $result ) {
-			wp_send_json_success( 'API 模拟模式已更新' );
+			wp_send_json_success( 'API mock mode updated successfully' );
 			return;
 		}
 
-		wp_send_json_error( 'API 模拟模式更新失败' );
+		wp_send_json_error( 'Failed to update API mock mode' );
 	}
 
 	
@@ -233,13 +233,13 @@ final class Pwca_Integration_Promowares {
 	private function schedule_product_import_internal() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return array(
-				array( 'type' => 'error', 'text' => '权限不足，无法同步产品' ),
+				array( 'type' => 'error', 'text' => 'Insufficient permissions to sync products' ),
 			);
 		}
 
 		if ( ! $this->is_action_scheduler_available() ) {
 			return array(
-				array( 'type' => 'error', 'text' => 'Action Scheduler 不可用，无法同步产品' ),
+				array( 'type' => 'error', 'text' => 'Action Scheduler is unavailable, cannot sync products' ),
 			);
 		}
 
@@ -256,7 +256,7 @@ final class Pwca_Integration_Promowares {
 
 		if ( 0 === $total_products && 0 === $total_composite ) {
 			return array(
-				array( 'type' => 'warning', 'text' => '没有可同步的产品（API 返回空列表）' ),
+				array( 'type' => 'warning', 'text' => 'No products available for sync from the API response' ),
 			);
 		}
 
@@ -273,7 +273,7 @@ final class Pwca_Integration_Promowares {
 		}
 
 		return array(
-			array( 'type' => 'success', 'text' => sprintf( '产品导入已开始（%d 个单品 + %d 个组合产品）', $total_products, $total_composite ) ),
+			array( 'type' => 'success', 'text' => sprintf( 'Product import scheduled (%d single + %d composite)', $total_products, $total_composite ) ),
 		);
 	}
 
@@ -340,7 +340,7 @@ final class Pwca_Integration_Promowares {
 	}
 
 	private function get_api_client() {
-		return new Pw_Admin_Promowares_Api();
+		return new Pwca_Admin_Promowares_Api();
 	}
 
 	private function resolve_single_product_payload( array $product ) {

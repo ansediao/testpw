@@ -7,8 +7,8 @@
 
     function getCanvasStore() {
         const uiStateAccess = getUiStateAccess();
-        if (uiStateAccess && typeof uiStateAccess.getCanvasStore === 'function') {
-            return uiStateAccess.getCanvasStore();
+        if (uiStateAccess && typeof uiStateAccess.pwcaGetCanvasStore === 'function') {
+            return uiStateAccess.pwcaGetCanvasStore();
         }
 
         return null;
@@ -16,8 +16,8 @@
 
     function getViews() {
         const uiStateAccess = getUiStateAccess();
-        if (uiStateAccess && typeof uiStateAccess.getViews === 'function') {
-            return uiStateAccess.getViews();
+        if (uiStateAccess && typeof uiStateAccess.pwcaGetViews === 'function') {
+            return uiStateAccess.pwcaGetViews();
         }
 
         const store = getCanvasStore();
@@ -26,8 +26,8 @@
 
     function getCurrentActiveViewId() {
         const uiStateAccess = getUiStateAccess();
-        if (uiStateAccess && typeof uiStateAccess.getActiveViewId === 'function') {
-            return uiStateAccess.getActiveViewId();
+        if (uiStateAccess && typeof uiStateAccess.pwcaGetActiveViewId === 'function') {
+            return uiStateAccess.pwcaGetActiveViewId();
         }
 
         const store = getCanvasStore();
@@ -36,8 +36,8 @@
 
     function getCanvasByViewId(viewId) {
         const uiStateAccess = getUiStateAccess();
-        if (uiStateAccess && typeof uiStateAccess.getCanvasByViewId === 'function') {
-            return uiStateAccess.getCanvasByViewId(viewId);
+        if (uiStateAccess && typeof uiStateAccess.pwcaGetCanvasByViewId === 'function') {
+            return uiStateAccess.pwcaGetCanvasByViewId(viewId);
         }
 
         return null;
@@ -45,8 +45,8 @@
 
     function getAllViewCanvases() {
         const uiStateAccess = getUiStateAccess();
-        if (uiStateAccess && typeof uiStateAccess.getAllViewCanvases === 'function') {
-            return uiStateAccess.getAllViewCanvases();
+        if (uiStateAccess && typeof uiStateAccess.pwcaGetAllViewCanvases === 'function') {
+            return uiStateAccess.pwcaGetAllViewCanvases();
         }
 
         return [];
@@ -122,8 +122,8 @@
             }
         });
 
-        if (typeof window.setGlobalCanvas === 'function') {
-            window.setGlobalCanvas(canvas);
+        if (typeof window.pwcaSetGlobalCanvas === 'function') {
+            window.pwcaSetGlobalCanvas(canvas);
         } else {
             window.canvas = canvas;
             window.fabricCanvas = canvas;

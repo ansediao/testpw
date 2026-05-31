@@ -21,12 +21,12 @@ class CanvasManager {
      */
     createCanvas(canvasId, viewId = 'default', options = {}) {
         if (typeof fabric === 'undefined') {
-            throw new Error('Fabric.js 未加载');
+            throw new Error('Fabric.js is not loaded');
         }
  
         const canvasElement = document.getElementById(canvasId);
         if (!canvasElement) {
-            throw new Error(`Canvas 元素未找到: ${canvasId}`);
+            throw new Error(`Canvas element not found: ${canvasId}`);
         }
  
         // 创建 Fabric Canvas 实例
@@ -155,7 +155,7 @@ class CanvasManager {
     exportCanvas(viewId, options = {}) {
         const canvas = this.getCanvas(viewId);
         if (!canvas) {
-            throw new Error(`Canvas 未找到: ${viewId}`);
+            throw new Error(`Canvas not found: ${viewId}`);
         }
  
         return canvas.toDataURL(options.format || 'png', options.quality || 1);

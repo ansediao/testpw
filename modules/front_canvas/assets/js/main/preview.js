@@ -1,12 +1,18 @@
-const arcSliderEl = document.getElementById('arcSlider');
-if (arcSliderEl) { arcSliderEl.addEventListener('input', function () { if (typeof updatePreviewCanvas === 'function') updatePreviewCanvas(); }); }
+ const arcSliderEl = document.getElementById('arcSlider');
+if (arcSliderEl) {
+    arcSliderEl.addEventListener('input', function () {
+        if (typeof window.pwcaUpdatePreviewCanvas === 'function') {
+            window.pwcaUpdatePreviewCanvas();
+        }
+    });
+}
 
 function pwcaGetUiStateAccess() {
     return window.pwcaUiStateAccess || null;
 }
 
 function pwcaGetPreviewActiveCanvas() {
-    return typeof window.getActiveCanvas === 'function' ? window.getActiveCanvas() : null;
+    return typeof window.pwcaGetActiveCanvas === 'function' ? window.pwcaGetActiveCanvas() : null;
 }
 
 function pwcaGetPreviewCanvasStore() {
@@ -27,7 +33,7 @@ function pwcaGetAllViewCanvases() {
     return [];
 }
 
-function updatePreviewCanvas() {
+function pwcaUpdatePreviewCanvas() {
     const activeCanvas = pwcaGetPreviewActiveCanvas();
     if (!activeCanvas) return;
     const designPreviewCanvas = document.getElementById('designPreviewCanvas');
@@ -41,12 +47,12 @@ function updatePreviewCanvas() {
         const sourceWidth = img.width * 0.5;
         const arcSlider = document.getElementById('arcSlider');
         const arc = arcSlider ? arcSlider.value : 0;
-        drawImageCurvedAndCentered(ctx, img, 0, 0, designPreviewCanvas.width, designPreviewCanvas.height, arc, sourceX, sourceWidth);
+        pwcaDrawImageCurvedAndCentered(ctx, img, 0, 0, designPreviewCanvas.width, designPreviewCanvas.height, arc, sourceX, sourceWidth);
     };
     img.src = mainCanvas;
 }
 
-function drawImageCurvedAndCentered(ctx, image, x, y, width, height, arc, sourceX, sourceWidth) {
+function pwcaDrawImageCurvedAndCentered(ctx, image, x, y, width, height, arc, sourceX, sourceWidth) {
     const steps = 50; const step = width / steps;
     for (let i = 0; i < steps; i++) {
         const sx = sourceX + (i * sourceWidth) / steps;
@@ -56,7 +62,10 @@ function drawImageCurvedAndCentered(ctx, image, x, y, width, height, arc, source
     }
 }
 
-window.updatePreviewCanvas = updatePreviewCanvas;
+window.pwcaUpdatePreviewCanvas = pwcaUpdatePreviewCanvas;
+window.pwcaDrawImageCurvedAndCentered = pwcaDrawImageCurvedAndCentered;
+window.pwcaCalculateArcTextProperties = pwcaCalculateArcTextProperties;
+window.pwcaApplyArcDistortionToTextObject = pwcaApplyArcDistortionToTextObject;
 
 document.getElementById('renderBtn')?.addEventListener('click', async function () {
     try {
@@ -86,7 +95,7 @@ document.getElementById('renderBtn')?.addEventListener('click', async function (
     }
 });
 
-function calculateArcTextProperties(textObject, arcValue) {
+function pwcaCalculateArcTextProperties(textObject, arcValue) {
     const originalText = textObject.text;
     const chars = originalText.split('');
     const totalWidth = textObject.width;
@@ -105,7 +114,7 @@ function calculateArcTextProperties(textObject, arcValue) {
     return charProperties;
 }
 
-function applyArcDistortionToTextObject(textObject, arcValue) {
+function pwcaApplyArcDistortionToTextObject(textObject, arcValue) {
     if (!textObject || (textObject.type !== 'text' && !(textObject.type === 'group' && textObject._isArcDistorted))) return;
     const originalText = textObject._isArcDistorted ? textObject._originalTextConfig.text : textObject.text;
     const originalOptions = textObject._isArcDistorted ? textObject._originalTextConfig.options : {
@@ -122,7 +131,7 @@ function applyArcDistortionToTextObject(textObject, arcValue) {
         width: textObject.width,
         height: textObject.height,
     };
-    const c = typeof window.getActiveCanvas === 'function' ? window.getActiveCanvas() : null;
+    const c = typeof window.pwcaGetActiveCanvas === 'function' ? window.pwcaGetActiveCanvas() : null;
     if (!c) return;
     c.remove(textObject);
     const chars = originalText.split('');
@@ -130,7 +139,7 @@ function applyArcDistortionToTextObject(textObject, arcValue) {
     const tempMeasurer = new fabric.Text('', { fontFamily: originalOptions.fontFamily, fontSize: originalOptions.fontSize });
     chars.forEach((char, index) => {
         tempMeasurer.set('text', char);
-        const charProps = calculateArcTextProperties({ text: originalText, width: originalOptions.width, fontSize: originalOptions.fontSize }, arcValue)[index];
+        const charProps = pwcaCalculateArcTextProperties({ text: originalText, width: originalOptions.width, fontSize: originalOptions.fontSize }, arcValue)[index];
         const charObject = new fabric.Text(char, {
             left: originalOptions.left + charProps.dx,
             top: originalOptions.top + charProps.dy,
@@ -161,5 +170,3 @@ function applyArcDistortionToTextObject(textObject, arcValue) {
     c.renderAll();
 }
 
-window.calculateArcTextProperties = calculateArcTextProperties;
-window.applyArcDistortionToTextObject = applyArcDistortionToTextObject;

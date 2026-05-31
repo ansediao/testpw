@@ -1,5 +1,5 @@
 (function () {
-    function getCanvasStore() {
+    function pwcaGetCanvasStore() {
         if (typeof window.useCanvasStore !== 'function') {
             return null;
         }
@@ -11,7 +11,7 @@
         }
     }
 
-    function getPrintMethodStore() {
+    function pwcaGetPrintMethodStore() {
         if (typeof window.usePrintMethodStore !== 'function') {
             return null;
         }
@@ -23,30 +23,30 @@
         }
     }
 
-    function getActiveViewId() {
-        const store = getCanvasStore();
+    function pwcaGetActiveViewId() {
+        const store = pwcaGetCanvasStore();
         return store && store.activeViewId ? store.activeViewId : null;
     }
 
-    function getViews() {
-        const store = getCanvasStore();
+    function pwcaGetViews() {
+        const store = pwcaGetCanvasStore();
         return store && Array.isArray(store.views) ? store.views : [];
     }
 
-    function findViewById(viewId) {
+    function pwcaFindViewById(viewId) {
         if (!viewId) {
             return null;
         }
 
-        return getViews().find((view) => view && view.id === viewId) || null;
+        return pwcaGetViews().find((view) => view && view.id === viewId) || null;
     }
 
-    function getCurrentView() {
-        return findViewById(getActiveViewId());
+    function pwcaGetCurrentView() {
+        return pwcaFindViewById(pwcaGetActiveViewId());
     }
 
-    function getProductVariants() {
-        const store = getCanvasStore();
+    function pwcaGetProductVariants() {
+        const store = pwcaGetCanvasStore();
         const variants =
             store &&
             store.productData &&
@@ -56,11 +56,11 @@
         return Array.isArray(variants) ? variants : [];
     }
 
-    function hasProductVariants() {
-        return getProductVariants().length > 0;
+    function pwcaHasProductVariants() {
+        return pwcaGetProductVariants().length > 0;
     }
 
-    function getCanvasByViewId(viewId) {
+    function pwcaGetCanvasByViewId(viewId) {
         if (!viewId || !window.CanvasManager || typeof window.CanvasManager.getCanvas !== 'function') {
             return null;
         }
@@ -68,8 +68,8 @@
         return window.CanvasManager.getCanvas(viewId);
     }
 
-    function getAllViewIds() {
-        const viewIdsFromStore = getViews()
+    function pwcaGetAllViewIds() {
+        const viewIdsFromStore = pwcaGetViews()
             .map((view) => (view && view.id ? view.id : null))
             .filter((viewId) => typeof viewId === 'string' && viewId !== '');
 
@@ -90,13 +90,13 @@
         return [];
     }
 
-    function getAllViewCanvases() {
-        return getAllViewIds()
-            .map((viewId) => getCanvasByViewId(viewId))
+    function pwcaGetAllViewCanvases() {
+        return pwcaGetAllViewIds()
+            .map((viewId) => pwcaGetCanvasByViewId(viewId))
             .filter((canvas) => canvas !== null);
     }
 
-    function getBaseCanvasByViewId(viewId) {
+    function pwcaGetBaseCanvasByViewId(viewId) {
         if (!viewId) {
             return null;
         }
@@ -118,9 +118,9 @@
         return null;
     }
 
-    function getActiveCanvas() {
-        if (typeof window.getActiveCanvas === 'function') {
-            const activeCanvas = window.getActiveCanvas();
+    function pwcaGetActiveCanvas() {
+        if (typeof window.pwcaGetActiveCanvas === 'function') {
+            const activeCanvas = window.pwcaGetActiveCanvas();
             if (activeCanvas) {
                 return activeCanvas;
             }
@@ -133,9 +133,9 @@
             }
         }
 
-        const activeViewId = getActiveViewId();
+        const activeViewId = pwcaGetActiveViewId();
         if (activeViewId) {
-            const activeCanvas = getCanvasByViewId(activeViewId);
+            const activeCanvas = pwcaGetCanvasByViewId(activeViewId);
             if (activeCanvas) {
                 return activeCanvas;
             }
@@ -144,8 +144,8 @@
         return window.canvas || window.fabricCanvas || null;
     }
 
-    function getActiveObject() {
-        const activeCanvas = getActiveCanvas();
+    function pwcaGetActiveObject() {
+        const activeCanvas = pwcaGetActiveCanvas();
 
         if (!activeCanvas || typeof activeCanvas.getActiveObject !== 'function') {
             return null;
@@ -154,27 +154,27 @@
         return activeCanvas.getActiveObject() || null;
     }
 
-    function getCurrentActiveTab() {
-        if (typeof window.getCurrentActiveTab !== 'function') {
+    function pwcaGetCurrentActiveTab() {
+        if (typeof window.pwcaGetCurrentActiveTab !== 'function') {
             return null;
         }
 
-        return window.getCurrentActiveTab();
+        return window.pwcaGetCurrentActiveTab();
     }
 
-    function getActiveObjectType() {
-        const activeObject = getActiveObject();
+    function pwcaGetActiveObjectType() {
+        const activeObject = pwcaGetActiveObject();
         return activeObject && activeObject.type ? activeObject.type : null;
     }
 
-    function getCurrentBaseCanvas() {
-        const activeViewId = getActiveViewId();
-        return activeViewId ? getBaseCanvasByViewId(activeViewId) : null;
+    function pwcaGetCurrentBaseCanvas() {
+        const activeViewId = pwcaGetActiveViewId();
+        return activeViewId ? pwcaGetBaseCanvasByViewId(activeViewId) : null;
     }
 
-    function getCurrentViewLayers() {
-        const store = getCanvasStore();
-        const activeViewId = getActiveViewId();
+    function pwcaGetCurrentViewLayers() {
+        const store = pwcaGetCanvasStore();
+        const activeViewId = pwcaGetActiveViewId();
 
         if (!store || !activeViewId || typeof store.getViewLayers !== 'function') {
             return [];
@@ -183,8 +183,8 @@
         return store.getViewLayers(activeViewId) || [];
     }
 
-    function isFirstView(viewId) {
-        const views = getViews();
+    function pwcaIsFirstView(viewId) {
+        const views = pwcaGetViews();
         if (!viewId || views.length === 0) {
             return false;
         }
@@ -192,20 +192,20 @@
         return views[0] && views[0].id === viewId;
     }
 
-    function findCurrentViewLayerById(layerId) {
+    function pwcaFindCurrentViewLayerById(layerId) {
         if (!layerId) {
             return null;
         }
 
-        return getCurrentViewLayers().find((layer) => layer && layer.id === layerId) || null;
+        return pwcaGetCurrentViewLayers().find((layer) => layer && layer.id === layerId) || null;
     }
 
-    function getPrintMethodForObject(obj) {
+    function pwcaGetPrintMethodForObject(obj) {
         if (!obj) {
             return null;
         }
 
-        const printMethodStore = getPrintMethodStore();
+        const printMethodStore = pwcaGetPrintMethodStore();
         if (!printMethodStore) {
             return null;
         }
@@ -223,26 +223,26 @@
     }
 
     window.pwcaUiStateAccess = {
-        getCanvasStore,
-        getPrintMethodStore,
-        getActiveViewId,
-        getViews,
-        findViewById,
-        getCurrentView,
-        getProductVariants,
-        hasProductVariants,
-        getCanvasByViewId,
-        getAllViewIds,
-        getAllViewCanvases,
-        getBaseCanvasByViewId,
-        getActiveCanvas,
-        getActiveObject,
-        getCurrentActiveTab,
-        getActiveObjectType,
-        getCurrentBaseCanvas,
-        getCurrentViewLayers,
-        findCurrentViewLayerById,
-        getPrintMethodForObject,
-        isFirstView
+        pwcaGetCanvasStore,
+        pwcaGetPrintMethodStore,
+        pwcaGetActiveViewId,
+        pwcaGetViews,
+        pwcaFindViewById,
+        pwcaGetCurrentView,
+        pwcaGetProductVariants,
+        pwcaHasProductVariants,
+        pwcaGetCanvasByViewId,
+        pwcaGetAllViewIds,
+        pwcaGetAllViewCanvases,
+        pwcaGetBaseCanvasByViewId,
+        pwcaGetActiveCanvas,
+        pwcaGetActiveObject,
+        pwcaGetCurrentActiveTab,
+        pwcaGetActiveObjectType,
+        pwcaGetCurrentBaseCanvas,
+        pwcaGetCurrentViewLayers,
+        pwcaFindCurrentViewLayerById,
+        pwcaGetPrintMethodForObject,
+        pwcaIsFirstView
     };
 })();

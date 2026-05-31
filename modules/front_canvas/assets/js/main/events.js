@@ -1,7 +1,7 @@
-function initializeCanvasEventListeners(fabricCanvas, options = {}) {
+function pwcaInitializeCanvasEventListeners(fabricCanvas, options = {}) {
     if (!fabricCanvas) return;
-    addCanvasEventListeners(fabricCanvas);
-    addCanvasSelectionListeners(fabricCanvas);
+    pwcaAddCanvasEventListeners(fabricCanvas);
+    pwcaAddCanvasSelectionListeners(fabricCanvas);
     if (options.delayLayerListeners !== false) {
         if (window.CanvasInitializationState && window.CanvasInitializationState.isInitializing) {
             const completeHandler = () => {
@@ -17,37 +17,35 @@ function initializeCanvasEventListeners(fabricCanvas, options = {}) {
     }
 }
 
-window.initializeCanvasEventListeners = initializeCanvasEventListeners;
+window.pwcaInitializeCanvasEventListeners = pwcaInitializeCanvasEventListeners;
 
-function addCanvasEventListeners(fabricCanvas) {
+function pwcaAddCanvasEventListeners(fabricCanvas) {
     if (!fabricCanvas) return;
     let needsAlertOnRelease = false;
     let alertTargetObject = null;
    
     fabricCanvas.on('object:modified', (e) => {
-        if (typeof window.updatePreviewCanvas === 'function') {
-            window.updatePreviewCanvas();
+        if (typeof window.pwcaUpdatePreviewCanvas === 'function') {
+            window.pwcaUpdatePreviewCanvas();
         }
 
         if (needsAlertOnRelease && alertTargetObject) {
-            if (typeof window.showPrintMethodBindingAlert === 'function') {
-                window.showPrintMethodBindingAlert(e.target);
-            }
+            pwcaShowPrintMethodBindingAlert(e.target);
             needsAlertOnRelease = false;
             alertTargetObject = null;
         }
     });
     fabricCanvas.on('object:added', () => {
-        if (typeof window.updatePreviewCanvas === 'function') window.updatePreviewCanvas();        
+        if (typeof window.pwcaUpdatePreviewCanvas === 'function') window.pwcaUpdatePreviewCanvas();
     });
     fabricCanvas.on('object:removed', (e) => {
-        if (typeof window.updatePreviewCanvas === 'function') window.updatePreviewCanvas();       
+        if (typeof window.pwcaUpdatePreviewCanvas === 'function') window.pwcaUpdatePreviewCanvas();
         try {
             const tgt = e && e.target ? e.target : null;
             if (tgt && tgt.type === 'image' && tgt.isDesignElement) {
                 const meta = tgt.designMeta || {};
-                if (typeof recordDesignRemoval === 'function') {
-                    recordDesignRemoval(meta) || (typeof queueDesignRemoval === 'function' && queueDesignRemoval(meta));
+                if (typeof pwcaRecordDesignRemoval === 'function') {
+                    pwcaRecordDesignRemoval(meta) || (typeof pwcaQueueDesignRemoval === 'function' && pwcaQueueDesignRemoval(meta));
                 } else if (typeof window.useDesignUsageStore === 'function') {
                     const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
                     store.removeDesign({ id: meta.id || '', image: meta.image || '' });
@@ -56,7 +54,7 @@ function addCanvasEventListeners(fabricCanvas) {
         } catch (err) {}
     });
 
-function recordDesignRemoval(meta) {
+function pwcaRecordDesignRemoval(meta) {
     try {
         if (typeof window.useDesignUsageStore === 'function') {
             const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
@@ -67,36 +65,36 @@ function recordDesignRemoval(meta) {
     return false;
 }
 
-function queueDesignRemoval(meta) {
-    if (recordDesignRemoval(meta)) return;
+function pwcaQueueDesignRemoval(meta) {
+    if (pwcaRecordDesignRemoval(meta)) return;
     const handler = () => {
-        recordDesignRemoval(meta);
+        pwcaRecordDesignRemoval(meta);
         document.removeEventListener('canvasPiniaReady', handler);
     };
     document.addEventListener('canvasPiniaReady', handler);
 }
     fabricCanvas.on('object:moving', (e) => {
         const obj = e.target;
-        if (obj && !isElementInLayerGroup(obj)) { needsAlertOnRelease = true; alertTargetObject = obj; }
+        if (obj && !pwcaIsElementInLayerGroup(obj)) { needsAlertOnRelease = true; alertTargetObject = obj; }
         else { needsAlertOnRelease = false; alertTargetObject = null; }
     });
     fabricCanvas.on('object:scaling', (e) => {
         const obj = e.target;
-        if (obj && !isElementInLayerGroup(obj)) { needsAlertOnRelease = true; alertTargetObject = obj; }
+        if (obj && !pwcaIsElementInLayerGroup(obj)) { needsAlertOnRelease = true; alertTargetObject = obj; }
         else { needsAlertOnRelease = false; alertTargetObject = null; }
     });
     fabricCanvas.on('object:rotating', (e) => {
         const obj = e.target;
-        if (obj && !isElementInLayerGroup(obj)) { needsAlertOnRelease = true; alertTargetObject = obj; }
+        if (obj && !pwcaIsElementInLayerGroup(obj)) { needsAlertOnRelease = true; alertTargetObject = obj; }
         else { needsAlertOnRelease = false; alertTargetObject = null; }
     });
 }
 
-function isElementInLayerGroup(obj) {
+function pwcaIsElementInLayerGroup(obj) {
     return obj && obj.group !== null && obj.group !== undefined;
 }
 
-function showPrintMethodBindingAlert(targetObject) {
+function pwcaShowPrintMethodBindingAlert(targetObject) {
     if (!targetObject || !targetObject.id) {
         return;
     }
@@ -123,8 +121,8 @@ function pwcaGetSelectedObjectFromSelectionEvent(options) {
     }
 
     const uiStateAccess = pwcaGetUiStateAccess();
-    if (uiStateAccess && typeof uiStateAccess.getActiveObject === 'function') {
-        return uiStateAccess.getActiveObject();
+    if (uiStateAccess && typeof uiStateAccess.pwcaGetActiveObject === 'function') {
+        return uiStateAccess.pwcaGetActiveObject();
     }
 
     return null;
@@ -132,20 +130,20 @@ function pwcaGetSelectedObjectFromSelectionEvent(options) {
 
 function pwcaGetSelectionActiveTabId() {
     const uiStateAccess = pwcaGetUiStateAccess();
-    if (uiStateAccess && typeof uiStateAccess.getCurrentActiveTab === 'function') {
-        return uiStateAccess.getCurrentActiveTab();
+    if (uiStateAccess && typeof uiStateAccess.pwcaGetCurrentActiveTab === 'function') {
+        return uiStateAccess.pwcaGetCurrentActiveTab();
     }
 
-    if (typeof window.getCurrentActiveTab === 'function') {
-        return window.getCurrentActiveTab();
+    if (typeof window.pwcaGetCurrentActiveTab === 'function') {
+        return window.pwcaGetCurrentActiveTab();
     }
 
     return null;
 }
 
 function pwcaSyncToolbarBySelectedObject(selectedObj) {
-    if (typeof window.updateDynamicToolbar === 'function') {
-        window.updateDynamicToolbar(selectedObj);
+    if (typeof window.pwcaUpdateDynamicToolbar === 'function') {
+        window.pwcaUpdateDynamicToolbar(selectedObj);
     }
 }
 
@@ -165,8 +163,8 @@ function pwcaSyncOperationPanelBySelectedObject(selectedObj) {
     const type = selectedObj.type;
 
     if (type === 'text' || type === 'i-text' || type === 'textbox') {
-        if (typeof window.switchOperationPanelTab === 'function') {
-            window.switchOperationPanelTab('tab-wenzi', { preserveSelection: true });
+        if (typeof window.pwcaSwitchOperationPanelTab === 'function') {
+            window.pwcaSwitchOperationPanelTab('tab-wenzi', { preserveSelection: true });
         }
 
         const addTextBox = document.getElementById('addTextBtn_box');
@@ -180,8 +178,8 @@ function pwcaSyncOperationPanelBySelectedObject(selectedObj) {
         return;
     }
 
-    if (type === 'image' && typeof window.switchOperationPanelTab === 'function') {
-        window.switchOperationPanelTab('tab-pianquan', { preserveSelection: true });
+    if (type === 'image' && typeof window.pwcaSwitchOperationPanelTab === 'function') {
+        window.pwcaSwitchOperationPanelTab('tab-pianquan', { preserveSelection: true });
     }
 }
 
@@ -191,7 +189,7 @@ function pwcaHandleCanvasSelectionChange(options) {
     pwcaSyncOperationPanelBySelectedObject(selectedObj);
 }
 
-function addCanvasSelectionListeners(fabricCanvas) {
+function pwcaAddCanvasSelectionListeners(fabricCanvas) {
     if (!fabricCanvas) return;
     fabricCanvas.on('selection:created', function (options) {
         pwcaHandleCanvasSelectionChange(options);
@@ -204,5 +202,6 @@ function addCanvasSelectionListeners(fabricCanvas) {
     });
 }
 
-window.addCanvasEventListeners = addCanvasEventListeners;
-window.addCanvasSelectionListeners = addCanvasSelectionListeners;
+window.pwcaAddCanvasEventListeners = pwcaAddCanvasEventListeners;
+window.pwcaAddCanvasSelectionListeners = pwcaAddCanvasSelectionListeners;
+window.pwcaShowPrintMethodBindingAlert = pwcaShowPrintMethodBindingAlert;

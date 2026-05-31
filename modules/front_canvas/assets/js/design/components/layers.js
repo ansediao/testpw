@@ -1,5 +1,5 @@
 // src/components/layers.js
-// 图层面板主入口：负责创建并挂载 Vue 应用，本文件只做"组装"，具体逻辑拆分到子模块中
+// 图层面板主入口：负责创建并挂载 Vue 应用，本文件只做"组装"，具体逻辑拆分到子模块。
 
 import { useCanvasStore, usePrintMethodStore, pinia } from '../stores/index.js';
 import { layerModalsTemplate } from './layer-modals.js';
@@ -15,7 +15,7 @@ const layersApp = Vue.createApp({
     template: `
         <div class="layers-panel">
             <div class="layers-list">
-                <!-- 未分组图层区域（包括组内只有一个图层的情况） -->
+                <!-- 未分组图层区域（包括组内只有一个图层的情况）-->
                 <div v-if="currentViewUngroupedLayers.length > 0">
                     <div
                         v-for="layer in currentViewUngroupedLayers"
@@ -515,8 +515,8 @@ window.pwcaOpenPrintMethodBindingModal = function(layerId) {
     const stateAccess = window.pwcaUiStateAccess;
     if (!stateAccess) return false;
     
-    const canvasStore = typeof stateAccess.getCanvasStore === 'function' 
-        ? stateAccess.getCanvasStore() 
+    const canvasStore = typeof stateAccess.pwcaGetCanvasStore === 'function' 
+        ? stateAccess.pwcaGetCanvasStore() 
         : null;
     
     if (!canvasStore) return false;
@@ -531,8 +531,8 @@ window.pwcaOpenPrintMethodBindingModal = function(layerId) {
     
     canvasStore.setActiveObjectId(layerId);
     
-    if (typeof window.switchOperationPanelTab === 'function') {
-        window.switchOperationPanelTab('tab-tuan', { preserveSelection: true });
+    if (typeof window.pwcaSwitchOperationPanelTab === 'function') {
+        window.pwcaSwitchOperationPanelTab('tab-tuan', { preserveSelection: true });
     }
     
     setTimeout(() => {

@@ -24,7 +24,7 @@ import {
     pwcaResolveTextFontOptions
 } from './product-data-mapper.js';
 
-// 1. 引入 Pinia 的核心方法
+// 1. 引入 Pinia 的核心方式
 // Pinia 是 Vue 官方推荐的状态管理库，用于管理全局数据（类似于 Vuex，但更轻量易用）
 const { createPinia, defineStore } = window.Pinia;
 
@@ -34,7 +34,7 @@ const { createPinia, defineStore } = window.Pinia;
 export const useCanvasStore = defineStore('canvas', {
     // 3. state 定义所有需要全局管理的数据
     state: () => ({
-        // canvasStates：存储每个画板的状态（如对象、图层等），初始有3个画板
+        // canvasStates：存储每个画板的状态（如对象、图层等），初始包含 3 个画板
         canvasStates: { canvas1: null, canvas2: null, canvas3: null },
         // activeCanvasId：当前激活的画板 id，默认是 canvas1
         activeCanvasId: 'canvas1',
@@ -55,7 +55,7 @@ export const useCanvasStore = defineStore('canvas', {
         // 标记是否正在恢复状态，防止循环保存
         isRestoringState: false,
         // 产品数据相关状态
-        productData: null,      // 存储从API获取的产品数据
+        productData: null,      // 存储从 API 获取的产品数据
         isLoadingProductData: false, // 产品数据加载状态
         productDataError: null, // 产品数据加载错误信息
         storeCustomizationSettings: null, // 店铺级 customization settings 原始响应
@@ -67,7 +67,7 @@ export const useCanvasStore = defineStore('canvas', {
         activeViewId: null,     // 当前激活的视图ID
         productViewFlow: null,  // 产品视图流程类型，来自 productData.templates.views[0].view_flow
         // ===== 新增：按视图记录用户选择的颜色（来源于 variants.data 的颜色） =====
-        // 结构：{ [viewId]: 完整的变体对象 (包含API返回的所有字段) + selectedColor }
+        // 结构：{ [viewId]: 完整的变体对象（包含 API 返回的所有字段 + selectedColor） }
         selectedColorsByView: {},
         // ===== 使用 VueUse useStorage 持久化存储用户偏好设置 =====
         // 通过 CDN 引入的 VueUse 功能，正确的访问方式是 window.VueUse
@@ -87,7 +87,7 @@ export const useCanvasStore = defineStore('canvas', {
             zoomLevel: 100,
             language: 'en'
         },
-        // 使用 VueUse useStorage 持久化存储 所有视图main的tojson数据 名字中要包含产品id
+        // 使用 VueUse useStorage 持久化存储所有视图 main 的 toJSON 数据，名字中要包含产品 id
         canvasStatesByProductId: window.VueUse && window.VueUse.useStorage ? window.VueUse.useStorage('pwca-canvas-states-by-product-id', {}) : {},
 
     }),
@@ -102,7 +102,7 @@ export const useCanvasStore = defineStore('canvas', {
             const raw = this.moqItemsDesignRaw;
             return !(raw === false || raw === 0 || raw === 'false' || raw === '0' || raw === null || raw === undefined);
         },
-        // 是否任意视图存在被分组的图层（依据 layer.groupId）
+        // 是否任意视图存在被分组的图层（依赖 layer.groupId）
         hasAnyGroupedLayersAcrossViews() {
             try {
                 const viewIds = Object.keys(this.viewLayers || {});
@@ -170,7 +170,7 @@ export const useCanvasStore = defineStore('canvas', {
             );
         },
         
-        // ===== 用户偏好设置相关的 getter 方法 =====
+        // ===== 用户偏好设置相关 getter 方法 =====
         // 获取用户偏好设置
         getUserPreferences: (state) => {
             return state.userPreferences;
@@ -508,7 +508,7 @@ export const useCanvasStore = defineStore('canvas', {
 
                 if (result.meta && result.meta.cacheHit) {
                     // eslint-disable-next-line no-console
-                    console.info('[PW Canvas] 使用缓存的产品数据', { pwId });
+                    console.info('[PW Canvas] Using cached product data', { pwId });
                 }
 
                 this.setProductData(data);
@@ -567,7 +567,7 @@ export const useCanvasStore = defineStore('canvas', {
 
             
         },
-        // 直接从 productData.templates.view 数组  中赋值
+        // 直接从 productData.templates.view 数组中赋值
         setViewsFromProductData(productData) {
             // 检查数据结构是否正确
             if (!productData) {
@@ -607,7 +607,7 @@ export const useCanvasStore = defineStore('canvas', {
             }
         },
 
-        // 仅在当前视图需要时加载印刷方式，避免初始化阶段预取所有视图。
+        // 仅在当前视图需要时加载印刷方式，避免初始化阶段预取所有视图
         async ensureViewPrintMethodsLoaded(viewId) {
             const printMethodStore = window.usePrintMethodStore();
             if (!printMethodStore || !viewId) {
@@ -646,7 +646,7 @@ export const useCanvasStore = defineStore('canvas', {
             return this.ensureViewPrintMethodsLoaded(this.activeViewId);
         },
 
-        // 兼容旧调用，内部转为当前视图按需加载。
+        // 兼容旧调用，内部转为当前视图按需加载
         async loadPrintMethodsForAllViews() {
             return this.ensureActiveViewPrintMethodsLoaded();
         }
@@ -743,7 +743,7 @@ window.pwcaNormalizeSelectedColorsByView = pwcaNormalizeSelectedColorsByView;
 window.pwcaNormalizeViewRestorePayload = pwcaNormalizeViewRestorePayload;
 window.pwcaRebuildViewRestorePayload = pwcaRebuildViewRestorePayload;
 
-// 10. 通知其他脚本stores已准备就绪
+// 10. 通知其他脚本 stores 已准备就绪
 let eventTriggered = false;
 
 const triggerReadyEvent = () => {
@@ -765,10 +765,10 @@ const triggerReadyEvent = () => {
 
 document.addEventListener('DOMContentLoaded', triggerReadyEvent);
 
-// 如果DOM已经加载完成，立即触发
+// 如果 DOM 已经加载完成，立即触发
 if (document.readyState === 'loading') {
     // DOM还在加载中，等待DOMContentLoaded事件
 } else {
-    // DOM已经加载完成，立即触发
+    // DOM 已经加载完成，立即触发
     setTimeout(triggerReadyEvent, 0);
 }

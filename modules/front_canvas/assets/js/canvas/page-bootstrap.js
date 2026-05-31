@@ -17,7 +17,7 @@ const getSettings = () => {
   return settings;
 };
 
-// 标记是否为从购物车进入的编辑模式：URL 中同时包含 edit=true 与 cart_key
+// 标记是否为从购物车进入的编辑模式：URL 中同时包含 edit=true 和 cart_key
 (() => {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -91,7 +91,7 @@ const pwcaRecordAsyncTask = (context, taskName, status, payload = {}) => {
 
 const pwcaRunAsyncTask = async (context, taskName, runner) => {
   const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
-  pwcaLogAsyncFlow('info', `开始执行任务: ${taskName}`);
+  pwcaLogAsyncFlow('info', `开始执行任务 ${taskName}`);
 
   try {
     await runner(context);
@@ -164,7 +164,7 @@ const pwcaRunStartupQueue = async (tasks, context) => {
   const useAsyncQueue = pwcaGetUseAsyncQueue();
 
   if (!useAsyncQueue) {
-    pwcaLogAsyncFlow('warn', 'VueUse.useAsyncQueue 不可用，降级为手动串行执行');
+    pwcaLogAsyncFlow('warn', 'VueUse.useAsyncQueue not available, falling back to manual sequential execution');
     return pwcaRunStartupQueueSequentially(tasks, context);
   }
 
@@ -175,8 +175,8 @@ const pwcaGetUiStateAccess = () => window.pwcaUiStateAccess || null;
 
 const pwcaGetPageBootstrapCanvasStore = () => {
   const uiStateAccess = pwcaGetUiStateAccess();
-  if (uiStateAccess && typeof uiStateAccess.getCanvasStore === 'function') {
-    return uiStateAccess.getCanvasStore();
+  if (uiStateAccess && typeof uiStateAccess.pwcaGetCanvasStore === 'function') {
+    return uiStateAccess.pwcaGetCanvasStore();
   }
 
   return typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null;
@@ -184,8 +184,8 @@ const pwcaGetPageBootstrapCanvasStore = () => {
 
 const pwcaGetPageBootstrapAllViewCanvases = () => {
   const uiStateAccess = pwcaGetUiStateAccess();
-  if (uiStateAccess && typeof uiStateAccess.getAllViewCanvases === 'function') {
-    return uiStateAccess.getAllViewCanvases();
+  if (uiStateAccess && typeof uiStateAccess.pwcaGetAllViewCanvases === 'function') {
+    return uiStateAccess.pwcaGetAllViewCanvases();
   }
 
   return [];
@@ -202,7 +202,7 @@ const initFetchProductData = async () => {
       return await store.fetchProductData(pwId);
     }
   } catch (error) {
-    console.error('加载产品数据失败:', error);
+    console.error('Failed to load product data:', error);
     throw error;
   }
 };
@@ -251,7 +251,7 @@ const buildViewPrintMethodsPayload = () => {
       }
     });
   } catch (e) {
-    console.warn('获取印刷方式名称失败：', e);
+    console.warn('Failed to get print method names', e);
   }
 
   return payload;
@@ -265,10 +265,14 @@ const resolveMoqAndDiscount = () => {
   let currentDiscount = 0;
   let discountText = '';
   let quantityDiscountsJson = '[]';
+  const pwcaUseProductStore =
+    typeof window.pwca_use_product_store === 'function'
+      ? window.pwca_use_product_store
+      : window.useProductStore;
 
   try {
-    if (typeof window.useProductStore === 'function') {
-      const ps = window.useProductStore();
+    if (typeof pwcaUseProductStore === 'function') {
+      const ps = pwcaUseProductStore();
       minOrderQuantity = parseInt(ps?.minQuantity, 10) || 1;
       batchQuantity = parseInt(ps?.stepQuantity, 10) || 1;
       sellInBatch = ps?.moqSettings?.sell_in_batch ? '1' : '0';
@@ -373,7 +377,7 @@ const captureCanvasStateJson = () => {
       }
     }
   } catch (e) {
-    console.warn('保存画布状态到购物车时发生错误，将继续提交但不携带画布状态:', e);
+    console.warn('保存画布状态到购物车时发生错误，将继续提交但不携带画布状态', e);
   }
 
   return '';
@@ -397,7 +401,7 @@ const buildAddToCartRequestBody = ({
   body.set('product_id', String(productId));
   body.set('quantity', String(quantity));
   body.set('custom_image', String(customImage || ''));
-  body.set('color', String(window.currentColor || ''));
+  body.set('color', String(window.pwca_current_color || ''));
   body.set('security', String(settings.ajaxNonce || ''));
   body.set('pw_min_order_quantity', String(moq.minOrderQuantity));
   body.set('pw_batch_quantity', String(moq.batchQuantity));
@@ -469,7 +473,7 @@ const fetchCartCanvasState = async (cartKey, settings) => {
     }
     return null;
   } catch (e) {
-    console.error('从购物车获取画布状态失败:', e);
+    console.error('从购物车获取画布状态失败', e);
     return null;
   }
 };
@@ -573,8 +577,8 @@ const syncGlobalCanvasForView = (viewId) => {
     }
   });
 
-  if (typeof window.setGlobalCanvas === 'function') {
-    window.setGlobalCanvas(canvas);
+  if (typeof window.pwcaSetGlobalCanvas === 'function') {
+    window.pwcaSetGlobalCanvas(canvas);
   } else {
     window.canvas = canvas;
     window.fabricCanvas = canvas;
@@ -782,7 +786,7 @@ const initCartEditCanvasState = async () => {
     }
     return externalState;
   } catch (e) {
-    console.error('应用购物车画布状态失败:', e);
+    console.error('应用购物车画布状态失败', e);
     throw e;
   }
 };
@@ -798,7 +802,7 @@ const pwcaStartupTaskWaitForCanvasStore = async (currentContext) => {
 const pwcaStartupTaskFetchProductData = async (currentContext) => {
   const { pwId } = currentContext.settings || {};
   if (!pwId) {
-    pwcaLogAsyncFlow('warn', '缺少 pwId，跳过产品数据请求');
+    pwcaLogAsyncFlow('warn', 'Missing pwId, skipping product data request');
     return;
   }
 
@@ -869,10 +873,10 @@ const buildStartupTasks = (context) => {
       pwcaStartupTaskInitializeMultiViewCanvases
     ),
 
-    // 5. 初始化同步 UI 状态 (面板可见性等)
+    // 5. 初始化同步 UI 状态（面板可见性等）
     pwcaCreateStartupTask(context, 'syncUiState', pwcaStartupTaskSyncUiState),
 
-    // 6. 初始化画布状态集成 (保存/回显逻辑)
+    // 6. 初始化画布状态集成（保存/回显逻辑）
     pwcaCreateStartupTask(
       context,
       'initializeCanvasStateIntegration',
@@ -892,7 +896,7 @@ const buildStartupTasks = (context) => {
 
 const finalizeAsyncStartup = (finalContext) => {
   const durationMs = Date.now() - finalContext.startedAt;
-  pwcaLogAsyncFlow('info', '设计页异步启动流程结束', {
+  pwcaLogAsyncFlow('info', 'Design page async startup flow finished', {
     durationMs,
     errorCount: finalContext.errors.length,
     tasks: finalContext.tasks,
@@ -930,7 +934,7 @@ const bindAddToCartButton = () => {
 const initializePageBootstrap = () => {
   bindAddToCartButton();
   window.pwcaCanvasStartupPromise = pwcaInitializeAsyncStartup().catch((error) => {
-    pwcaLogAsyncFlow('error', '设计页异步启动流程发生未捕获异常', error);
+    pwcaLogAsyncFlow('error', 'Uncaught exception in design page async startup flow', error);
     throw error;
   });
 };

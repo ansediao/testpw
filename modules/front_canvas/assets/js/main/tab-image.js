@@ -22,8 +22,8 @@
 
     function pwcaGetCanvasStore() {
         const uiStateAccess = pwcaGetUiStateAccess();
-        if (uiStateAccess && typeof uiStateAccess.getCanvasStore === 'function') {
-            return uiStateAccess.getCanvasStore();
+        if (uiStateAccess && typeof uiStateAccess.pwcaGetCanvasStore === 'function') {
+            return uiStateAccess.pwcaGetCanvasStore();
         }
 
         return null;
@@ -31,8 +31,8 @@
 
     function pwcaGetCurrentViewMeta() {
         const uiStateAccess = pwcaGetUiStateAccess();
-        if (uiStateAccess && typeof uiStateAccess.getCurrentView === 'function') {
-            return uiStateAccess.getCurrentView();
+        if (uiStateAccess && typeof uiStateAccess.pwcaGetCurrentView === 'function') {
+            return uiStateAccess.pwcaGetCurrentView();
         }
 
         return null;
@@ -40,8 +40,8 @@
 
     function pwcaGetActiveViewId() {
         const uiStateAccess = pwcaGetUiStateAccess();
-        if (uiStateAccess && typeof uiStateAccess.getActiveViewId === 'function') {
-            return uiStateAccess.getActiveViewId();
+        if (uiStateAccess && typeof uiStateAccess.pwcaGetActiveViewId === 'function') {
+            return uiStateAccess.pwcaGetActiveViewId();
         }
 
         return null;
@@ -49,8 +49,8 @@
 
     function pwcaGetCurrentBaseCanvas() {
         const uiStateAccess = pwcaGetUiStateAccess();
-        if (uiStateAccess && typeof uiStateAccess.getCurrentBaseCanvas === 'function') {
-            return uiStateAccess.getCurrentBaseCanvas();
+        if (uiStateAccess && typeof uiStateAccess.pwcaGetCurrentBaseCanvas === 'function') {
+            return uiStateAccess.pwcaGetCurrentBaseCanvas();
         }
 
         return null;
@@ -184,10 +184,10 @@
         const settings = uploadSettings || pwcaGetCurrentUploadSettings();
 
         if (settings.imageFormatRaw) {
-            return '请上传允许的图片格式：' + settings.imageFormatRaw;
+            return 'Please upload an allowed image format: ' + settings.imageFormatRaw;
         }
 
-        return '请上传有效的图片文件。';
+        return 'Please upload a valid image file';
     }
 
     function pwcaSyncImageInputAccept(imageInput) {
@@ -488,7 +488,7 @@
         const defaultText = 'Drag and drop your image here or click to upload';
         pwcaShowDropZoneStatus(dropZone, 'Uploading...');
 
-        window.fetch('/wp-json/pw-canvas/v1/upload-image', {
+        window.fetch('/wp-json/pwca/v1/upload-image', {
             method: 'POST',
             body: formData
         })
@@ -500,7 +500,7 @@
 
                 if (!data || !data.success || !data.url) {
                     // eslint-disable-next-line no-alert
-                    window.alert('上传失败: ' + (data && data.message ? data.message : '未知错误'));
+                    window.alert('Upload failed: ' + (data && data.message ? data.message : 'Unknown error'));
                     return;
                 }
 
@@ -513,9 +513,9 @@
             .catch(function (error) {
                 pwcaResetDropZoneStatus(dropZone, defaultText);
                 // eslint-disable-next-line no-console
-                console.error('上传错误:', error);
+                console.error('Upload error:', error);
                 // eslint-disable-next-line no-alert
-                window.alert('上传失败: ' + error.message);
+                window.alert('Upload failed: ' + error.message);
             });
     }
 
@@ -573,13 +573,13 @@
 
         viewContainer.style.display = 'block';
 
-        if (typeof window.updatePreviewCanvas === 'function') {
-            window.updatePreviewCanvas();
+        if (typeof window.pwcaUpdatePreviewCanvas === 'function') {
+            window.pwcaUpdatePreviewCanvas();
         }
     }
 
     function pwcaNotifyLayerStoreForImage(layerId, fileName) {
-        const layerName = fileName || '图片';
+        const layerName = fileName || 'Image';
         if (typeof window.addLayerToStore === 'function') {
             window.addLayerToStore(layerId, layerName, 'image');
 
@@ -597,7 +597,7 @@
             }, 100);
         } else {
             // eslint-disable-next-line no-console
-            console.warn('图层管理系统未初始化');
+            console.warn('Layer management system not initialized');
         }
     }
 
@@ -670,8 +670,8 @@
             });
         }
 
-        if (typeof window.updatePreviewCanvas === 'function') {
-            window.updatePreviewCanvas();
+        if (typeof window.pwcaUpdatePreviewCanvas === 'function') {
+            window.pwcaUpdatePreviewCanvas();
         }
     }
 

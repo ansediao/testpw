@@ -7,8 +7,8 @@
 
     function pwcaGetCanvasStore() {
         const uiStateAccess = pwcaGetUiStateAccess();
-        if (uiStateAccess && typeof uiStateAccess.getCanvasStore === 'function') {
-            return uiStateAccess.getCanvasStore();
+        if (uiStateAccess && typeof uiStateAccess.pwcaGetCanvasStore === 'function') {
+            return uiStateAccess.pwcaGetCanvasStore();
         }
 
         return null;
@@ -41,8 +41,8 @@
 
     function pwcaGetActiveCanvasForText() {
         const uiStateAccess = pwcaGetUiStateAccess();
-        if (uiStateAccess && typeof uiStateAccess.getActiveCanvas === 'function') {
-            return uiStateAccess.getActiveCanvas();
+        if (uiStateAccess && typeof uiStateAccess.pwcaGetActiveCanvas === 'function') {
+            return uiStateAccess.pwcaGetActiveCanvas();
         }
 
         return null;
@@ -78,7 +78,7 @@
             window.addLayerToStore(layerId, text, 'text');
         } else {
             // eslint-disable-next-line no-console
-            console.warn('图层管理系统未初始化');
+            console.warn('Layer management system not initialized');
         }
     }
 
@@ -96,7 +96,7 @@
         const activeCanvas = pwcaGetActiveCanvasForText();
         if (!activeCanvas) {
             // eslint-disable-next-line no-console
-            console.warn('未找到激活的画布');
+            console.warn('Active canvas not found');
             return;
         }
 
@@ -109,8 +109,8 @@
         activeCanvas.renderAll();
 
         pwcaNotifyLayerStore(layerId, text);
-        if (typeof window.updatePreviewCanvas === 'function') {
-            window.updatePreviewCanvas();
+        if (typeof window.pwcaUpdatePreviewCanvas === 'function') {
+            window.pwcaUpdatePreviewCanvas();
         }
     }
 
