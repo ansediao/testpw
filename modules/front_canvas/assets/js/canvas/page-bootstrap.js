@@ -886,7 +886,7 @@ const pwcaStartupTaskRestoreCartEditCanvasState = async (currentContext) => {
 };
 
 const buildStartupTasks = (context) => {
-  // 1. 定义分支任务数组：按顺序把上下文往后传
+  // 首屏关键路径：只保留进入可编辑状态所需任务
   const tasks = [
     pwcaCreateStartupTask(context, 'waitForCanvasStore', pwcaStartupTaskWaitForCanvasStore),
     pwcaCreateStartupTask(context, 'fetchProductData', pwcaStartupTaskFetchProductData),
@@ -900,19 +900,52 @@ const buildStartupTasks = (context) => {
       'initializeMultiViewCanvases',
       pwcaStartupTaskInitializeMultiViewCanvases
     ),
-    pwcaCreateStartupTask(
-      context,
-      'initializeCanvasStateIntegration',
-      pwcaStartupTaskInitializeCanvasStateIntegration
-    ),
-    pwcaCreateStartupTask(
-      context,
-      'restoreCartEditCanvasState',
-      pwcaStartupTaskRestoreCartEditCanvasState
-    ),
   ];
 
   return tasks;
+};
+
+const buildPostStartupTasks = (context) => [
+  pwcaCreateStartupTask(
+    context,
+    'initializeCanvasStateIntegration',
+    pwcaStartupTaskInitializeCanvasStateIntegration
+  ),
+  pwcaCreateStartupTask(
+    context,
+    'restoreCartEditCanvasState',
+    pwcaStartupTaskRestoreCartEditCanvasState
+  ),
+];
+
+const pwcaRunPostStartupTasks = async (context) => {
+  const tasks = buildPostStartupTasks(context);
+  if (!tasks.length) {
+    return context;
+  }
+
+  pwcaLogAsyncFlow('info', '开始执行设计页后台启动任务', {
+    taskCount: tasks.length,
+  });
+
+  let currentContext = context;
+  for (const task of tasks) {
+    currentContext = await task(currentContext);
+  }
+
+  pwcaLogAsyncFlow('info', '设计页后台启动任务完成', {
+    taskCount: tasks.length,
+    errorCount: currentContext.errors.length,
+  });
+
+  return currentContext;
+};
+
+const pwcaSchedulePostStartupTasks = (context) => {
+  const run = () => pwcaRunPostStartupTasks(context);
+  const promise = Promise.resolve().then(run);
+  window.pwcaCanvasPostStartupPromise = promise;
+  return promise;
 };
 
 const finalizeAsyncStartup = (finalContext) => {
@@ -932,7 +965,11 @@ const pwcaInitializeAsyncStartup = async () => {
   const context = pwcaCreateAsyncContext();
   const tasks = buildStartupTasks(context);
   const finalContext = await pwcaRunStartupQueue(tasks, context);
-  return finalizeAsyncStartup(finalContext);
+  const resolvedContext = finalizeAsyncStartup(finalContext);
+  pwcaSchedulePostStartupTasks(resolvedContext).catch((error) => {
+    pwcaLogAsyncFlow('error', '设计页后台启动任务发生未捕获异常', error);
+  });
+  return resolvedContext;
 };
 
 const bindAddToCartButton = () => {
