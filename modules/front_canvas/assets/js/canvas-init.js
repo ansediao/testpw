@@ -3,6 +3,11 @@
     'use strict';
 
     let isInitialized = false;
+    const zoomState = {
+        initialized: false,
+        manualOverride: false,
+        currentPercent: 95
+    };
 
     function init() {
         if (isInitialized) {
@@ -16,6 +21,7 @@
         }
 
         isInitialized = true;
+        initializeZoom();
 
         const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
 
@@ -27,6 +33,7 @@
 
         document.addEventListener('multiViewInitComplete', () => {
             console.log('[PW Canvas] Canvas initialization completed');
+            triggerAutoZoomAdjustment();
 
             const currentStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : canvasStore;
             if (!currentStore || !currentStore.views) {
@@ -112,20 +119,30 @@
         const zoomSlider = document.getElementById('zoomSlider');
         const zoomValue = document.getElementById('zoomValue');
 
-        if (zoomSlider && zoomValue) {
-            const autoZoom = calculateAutoZoom();
-            let currentZoom = autoZoom;
+        if (!zoomSlider || !zoomValue) {
+            return;
+        }
 
-            zoomSlider.value = currentZoom;
-            zoomValue.textContent = currentZoom + '%';
-            updateCanvasZoom(currentZoom / 100);
-
+        if (!zoomState.initialized) {
             zoomSlider.addEventListener('input', function() {
-                currentZoom = parseInt(this.value, 10);
+                const currentZoom = parseInt(this.value, 10);
+                zoomState.manualOverride = true;
+                zoomState.currentPercent = currentZoom;
                 zoomValue.textContent = currentZoom + '%';
                 updateCanvasZoom(currentZoom / 100);
             });
+
+            zoomState.initialized = true;
         }
+
+        if (!zoomState.manualOverride) {
+            const autoZoom = calculateAutoZoom();
+            zoomState.currentPercent = autoZoom;
+        }
+
+        zoomSlider.value = zoomState.currentPercent;
+        zoomValue.textContent = zoomState.currentPercent + '%';
+        updateCanvasZoom(zoomState.currentPercent / 100);
     }
 
     function calculateAutoZoom() {
@@ -137,20 +154,11 @@
                 return 95;
             }
 
-            setTimeout(() => {
-                const actualZoom = calculateOptimalZoom();
-                if (actualZoom !== 95) {
-                    const zoomSlider = document.getElementById('zoomSlider');
-                    const zoomValue = document.getElementById('zoomValue');
-                    if (zoomSlider && zoomValue) {
-                        zoomSlider.value = actualZoom;
-                        zoomValue.textContent = actualZoom + '%';
-                        updateCanvasZoom(actualZoom / 100);
-                    }
-                }
-            }, 500);
+            if (multiViewContainer.children.length === 0) {
+                return 95;
+            }
 
-            return 95;
+            return calculateOptimalZoom();
         } catch (error) {
             return 95;
         }
@@ -188,20 +196,32 @@
         if (multiViewContainer) {
             multiViewContainer.style.transform = `scale(${scale})`;
             multiViewContainer.style.transformOrigin = 'center center';
+            multiViewContainer.style.willChange = 'transform';
         }
     }
 
     function triggerAutoZoomAdjustment() {
-        const actualZoom = calculateOptimalZoom();
-        if (actualZoom !== 95) {
+        if (zoomState.manualOverride) {
             const zoomSlider = document.getElementById('zoomSlider');
             const zoomValue = document.getElementById('zoomValue');
             if (zoomSlider && zoomValue) {
-                zoomSlider.value = actualZoom;
-                zoomValue.textContent = actualZoom + '%';
-                updateCanvasZoom(actualZoom / 100);
+                zoomSlider.value = zoomState.currentPercent;
+                zoomValue.textContent = zoomState.currentPercent + '%';
+                updateCanvasZoom(zoomState.currentPercent / 100);
             }
+            return;
         }
+
+        const actualZoom = calculateOptimalZoom();
+        zoomState.currentPercent = actualZoom;
+
+        const zoomSlider = document.getElementById('zoomSlider');
+        const zoomValue = document.getElementById('zoomValue');
+        if (zoomSlider && zoomValue) {
+            zoomSlider.value = actualZoom;
+            zoomValue.textContent = actualZoom + '%';
+        }
+        updateCanvasZoom(actualZoom / 100);
     }
 
     function handleViewSwitch(event) {
