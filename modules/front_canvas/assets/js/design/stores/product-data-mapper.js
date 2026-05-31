@@ -554,6 +554,25 @@ export const pwcaPrepareCanvasProductData = (productData) => {
     return productData;
 };
 
+const pwcaIsRenderablePublishedView = (view) => {
+    const rawStatus = view?.status;
+    
+    // 如果没有状态字段，默认为允许渲染（兼容旧数据）
+    if (rawStatus === undefined || rawStatus === null || String(rawStatus).trim() === '') {
+        return true;
+    }
+
+    const normalizedStatus = String(rawStatus).trim().toLowerCase();
+    
+    // 明确排除草稿状态
+    if (normalizedStatus === 'draft') {
+        return false;
+    }
+    
+    // 只有已发布状态才允许显示
+    return normalizedStatus === 'published';
+};
+
 export const pwcaBuildViewsFromProductData = (productData, storeSettings) => {
     if (
         !productData ||
@@ -567,9 +586,9 @@ export const pwcaBuildViewsFromProductData = (productData, storeSettings) => {
         };
     }
 
-    const mergedViews = productData.templates.views.map((view) =>
-        pwcaBuildMergedViewCustomizationSettings(view, storeSettings)
-    );
+    const mergedViews = productData.templates.views
+        .filter((view) => pwcaIsRenderablePublishedView(view))
+        .map((view) => pwcaBuildMergedViewCustomizationSettings(view, storeSettings));
 
     return {
         mergedViews,

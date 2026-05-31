@@ -69,27 +69,12 @@ window.pwcaApplyArcDistortionToTextObject = pwcaApplyArcDistortionToTextObject;
 
 document.getElementById('renderBtn')?.addEventListener('click', async function () {
     try {
-        const allViewCanvases = pwcaGetAllViewCanvases();
-        if (allViewCanvases.length > 0) {
-            allViewCanvases.forEach((fc) => {
-                try {
-                    const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
-                    if (active && active.isEditing && typeof active.exitEditing === 'function') active.exitEditing();
-                    if (typeof fc.discardActiveObject === 'function') fc.discardActiveObject();
-                    fc.renderAll();
-                } catch (e) {}
-            });
+        if (typeof window.pwcaRunPreviewRenderFlow === 'function') {
+            await window.pwcaRunPreviewRenderFlow(pwcaGetPreviewCanvasStore());
+            return;
         }
-    } catch (e) {}
-    try {
-        const store = pwcaGetPreviewCanvasStore();
-        const views = store && Array.isArray(store.views) ? store.views : [];
-        if (views.length > 0) { 
-            await window.showUniversalViewPreview(views); 
-            return; 
-        } else {
-            console.warn('[PW Canvas] No views available for preview');
-        }
+
+        console.warn('[PW Canvas] pwcaRunPreviewRenderFlow is not available');
     } catch (error) {
         console.error('[PW Canvas] Preview failed:', error);
     }

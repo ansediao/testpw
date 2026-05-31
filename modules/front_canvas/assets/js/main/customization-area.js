@@ -24,8 +24,8 @@
     const setupStoreWatcher = (store) => {
         let previousLoadingState = store.isLoadingProductData;
 
-        if (!store.isLoadingProductData && store.productData) {
-            createViewButtons(store, store.productData);
+        if (!store.isLoadingProductData && store.views && store.views.length > 0) {
+            createViewButtons(store);
         }
 
         store.$subscribe((mutation, state) => {
@@ -33,25 +33,30 @@
                 mutation.storeId === 'canvas' &&
                 previousLoadingState === true &&
                 state.isLoadingProductData === false &&
-                state.productData
+                state.views &&
+                state.views.length > 0
             ) {
-                createViewButtons(store, state.productData);
+                createViewButtons(store);
             }
             previousLoadingState = state.isLoadingProductData;
         });
     };
 
-    const createViewButtons = (store, productData) => {
+    const createViewButtons = (store) => {
         const container = document.getElementById('pw-view-switcher-container');
-        if (!container || !productData || !productData.templates || !Array.isArray(productData.templates.views)) {
+        if (!container || !Array.isArray(store.views)) {
             return;
         }
 
-        const views = productData.templates.views;
+        const views = store.views;
+        
         if (!views.length) {
+            container.innerHTML = '';
+            container.style.display = 'none';
             return;
         }
 
+        container.style.display = '';
         container.innerHTML = '';
 
         views.forEach((view, index) => {

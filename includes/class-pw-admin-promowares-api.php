@@ -1997,6 +1997,7 @@ class Pw_Admin_Promowares_Api
                 'view_type' => isset($view['view_type']) ? $view['view_type'] : null,
                 'view_flow' => isset($view['view_flow']) ? $view['view_flow'] : null,
                 'view_name' => isset($view['view_name']) ? $view['view_name'] : '',
+                'status' => isset($view['status']) ? $view['status'] : null,
                 'single_printing_method_only' => isset($view['single_printing_method_only']) ? $view['single_printing_method_only'] : null,
                 'printing_method_list_id' => isset($view['printing_method_list_id']) ? $view['printing_method_list_id'] : null,
                 'layers' => $view_layers,
@@ -2006,7 +2007,7 @@ class Pw_Admin_Promowares_Api
             );
 
             // Preserve additional view meta data if available
-            $preserved_keys = array('preview_images', 'mockup_images', 'printing_methods', 'printing_method_list');
+            $preserved_keys = array('status', 'preview_images', 'mockup_images', 'printing_methods', 'printing_method_list');
             foreach ($preserved_keys as $key) {
                 if (isset($view[$key])) {
                     $view_payload[$key] = $view[$key];

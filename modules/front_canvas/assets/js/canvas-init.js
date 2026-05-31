@@ -22,7 +22,7 @@
         if (canvasStore && canvasStore.views && canvasStore.views.length > 0) {
             initializeMultiViewCanvases(canvasStore);
         } else {
-            console.warn('[PW Canvas] No view data found, cannot initialize canvases');
+            console.info('[PW Canvas] View data is not ready yet, waiting for async multi-view initialization');
         }
 
         document.addEventListener('multiViewInitComplete', () => {

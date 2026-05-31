@@ -84,11 +84,17 @@ function getLayerRenderSize(layer, fallback = {}) {
 
 function getTargetCanvasIdForLayer(layer, view, store) {
     const layerName = String(layer?.name || '').trim();
+    const flowConfig = window.pwcaGetFlowConfig ? window.pwcaGetFlowConfig(view, store) : null;
 
-    if (window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view, store) && layerName === 'Background Layer') {
-        return null;
+    if (flowConfig && typeof flowConfig.layerRouting === 'function') {
+        const targetType = flowConfig.layerRouting(layerName);
+        if (!targetType) {
+            return null;
+        }
+        return `${targetType}-${view.id}`;
     }
 
+    // 回退逻辑
     if (layerName === 'Background Layer' || layerName === 'Base Layer' || layerName === '4-Grid Layer') {
         return `baseCanvas-${view.id}`;
     }
@@ -111,11 +117,9 @@ function getFlowSizingReferenceLayer(layers, view, store) {
         return null;
     }
 
-    if (window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view, store)) {
-        const gridFlowLayer = layers.find((layer) => layer && layer.name === '4-Grid Layer');
-        if (gridFlowLayer) {
-            return gridFlowLayer;
-        }
+    const flowConfig = window.pwcaGetFlowConfig ? window.pwcaGetFlowConfig(view, store) : null;
+    if (flowConfig && typeof flowConfig.sizingReference === 'function') {
+        return flowConfig.sizingReference(layers);
     }
 
     return layers[0];
@@ -190,9 +194,18 @@ async function renderCanvasConfigsForView(view, store, canvasConfigs) {
 }
 
 async function applyFlowPostInitialization(view, store) {
-    if (window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view, store)) {
-        await handleFourGridContentArea(view);
-        return;
+    const flowConfig = window.pwcaGetFlowConfig ? window.pwcaGetFlowConfig(view, store) : null;
+
+    const flowHandlers = {
+        'handleFourGridContentArea': handleFourGridContentArea
+    };
+
+    if (flowConfig && flowConfig.postInit) {
+        const handler = flowHandlers[flowConfig.postInit];
+        if (typeof handler === 'function') {
+            await handler(view, store);
+            return;
+        }
     }
 
     clearContentAreaClip(view.id);
@@ -610,10 +623,11 @@ function applyContentAreaClip(canvas, referenceObject) {
 }
 
 /**
- * 为 4-Grid Flow 视图处理内容区域图层（渲染与裁剪逻辑）。
+ * 为 4-Grid Flow 视图 handle 内容区域图层（渲染与裁剪逻辑）。
  * @param {Object} view - 当前视图对象。
+ * @param {Object} store - Pinia store。
  */
-async function handleFourGridContentArea(view) {
+async function handleFourGridContentArea(view, store) {
     const viewLayers = view?.data?.layer_config?.layers;
     if (!Array.isArray(viewLayers) || viewLayers.length === 0) {
         return;
@@ -642,11 +656,15 @@ async function handleFourGridContentArea(view) {
         baseCanvas.renderAll();
     }
 
-    const contentAreaLayer =
-        viewLayers.find((layer) => layer.name === 'Content Area Layer') ||
-        viewLayers.find((layer) => layer.name === 'Mapping Layer') ||
-        viewLayers.find((layer) => layer.name === 'FlexiCurve Layer') ||
-        viewLayers.find((layer) => layer.name === 'Base Layer');
+    const flowConfig = window.pwcaGetFlowConfig ? window.pwcaGetFlowConfig(view, store) : null;
+    const fallbacks = flowConfig?.contentAreaFallbacks || ['Content Area Layer', 'Mapping Layer', 'FlexiCurve Layer', 'Base Layer'];
+
+    let contentAreaLayer = null;
+    for (const layerName of fallbacks) {
+        contentAreaLayer = viewLayers.find((layer) => layer.name === layerName);
+        if (contentAreaLayer) break;
+    }
+
     if (!contentAreaLayer) {
         clearContentAreaClip(view.id);
         return;
@@ -756,7 +774,10 @@ async function initializeMultiLayerCanvases(view, store) {
  * @param {Object} store - Pinia store
  */
 async function initializeMaskCanvas(canvasId, view, store) {
-    if ((window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view, store)) || typeof fabric === 'undefined') {
+    const flowConfig = window.pwcaGetFlowConfig ? window.pwcaGetFlowConfig(view, store) : null;
+    const hasMask = flowConfig ? flowConfig.hasMask : true;
+
+    if (!hasMask || typeof fabric === 'undefined') {
         return null;
     }
 
@@ -1028,6 +1049,30 @@ let pwcaMultiViewCompleted = false;
 let pwcaMultiViewInitPromise = null;
 let pwcaRejectMultiViewInitPromise = null;
 
+function pwcaIsRenderableView(view) {
+    const rawStatus = view?.status;
+    if (rawStatus === undefined || rawStatus === null || String(rawStatus).trim() === '') {
+        return true;
+    }
+
+    return String(rawStatus).trim().toLowerCase() === 'published';
+}
+
+function pwcaGetRenderableViews(views) {
+    return Array.isArray(views) ? views.filter((view) => pwcaIsRenderableView(view)) : [];
+}
+
+function pwcaEstimateMultiViewInitTimeoutMs(views) {
+    const renderableViews = pwcaGetRenderableViews(views);
+    const imageLayerCount = renderableViews.reduce((count, view) => {
+        const layers = getViewRenderableLayers(view);
+        return count + layers.filter((layer) => layer && layer.type === 'image').length;
+    }, 0);
+
+    const estimatedTimeout = (imageLayerCount * PWCA_IMAGE_LAYER_LOAD_TIMEOUT_MS) + 5000;
+    return Math.max(PWCA_MULTI_VIEW_INIT_TIMEOUT_MS, estimatedTimeout);
+}
+
 function pwcaLogMultiView(message, payload) {
     if (payload === undefined) {
         console.info(`[PW Canvas][MultiView] ${message}`);
@@ -1058,17 +1103,19 @@ function pwcaInitializeMultiViewCanvases(store) {
         return Promise.reject(new Error('Canvas store is required for multi-view initialization.'));
     }
 
+    const renderableViews = pwcaGetRenderableViews(store.views);
+
     if (!pwcaMultiViewSubscriptionBound && typeof store.$subscribe === 'function') {
         store.$subscribe((mutation, state) => {
+            const renderableStateViews = pwcaGetRenderableViews(state.views);
             if (
                 mutation.storeId === 'canvas' &&
-                Array.isArray(state.views) &&
-                state.views.length > 0 &&
+                renderableStateViews.length > 0 &&
                 !pwcaMultiViewInitialized
             ) {
                 pwcaMultiViewInitialized = true;
-                pwcaLogMultiView('检测到视图数据，开始创建多视图容器', { viewCount: state.views.length });
-                pwcaCreateViewContainers(state.views, store).catch((error) => {
+                pwcaLogMultiView('检测到已发布视图数据，开始创建多视图容器', { viewCount: renderableStateViews.length });
+                pwcaCreateViewContainers(renderableStateViews, store).catch((error) => {
                     pwcaMarkMultiViewInitializationFailed(error);
                 });
             }
@@ -1077,10 +1124,20 @@ function pwcaInitializeMultiViewCanvases(store) {
         pwcaMultiViewSubscriptionBound = true;
     }
 
-    if (Array.isArray(store.views) && store.views.length > 0 && !pwcaMultiViewInitialized) {
+    if (renderableViews.length === 0) {
+        pwcaMultiViewCompleted = true;
+        pwcaLogMultiView('没有可渲染的 published 视图，跳过多视图初始化。');
+        return Promise.resolve({
+            initialized: true,
+            activeViewId: null,
+            viewCount: 0
+        });
+    }
+
+    if (renderableViews.length > 0 && !pwcaMultiViewInitialized) {
         pwcaMultiViewInitialized = true;
-        pwcaLogMultiView('使用现有视图数据初始化多视图容器', { viewCount: store.views.length });
-        return pwcaCreateViewContainers(store.views, store).catch((error) => {
+        pwcaLogMultiView('使用现有已发布视图数据初始化多视图容器', { viewCount: renderableViews.length });
+        return pwcaCreateViewContainers(renderableViews, store).catch((error) => {
             pwcaMarkMultiViewInitializationFailed(error);
             throw error;
         });
@@ -1106,6 +1163,7 @@ function pwcaInitializeMultiViewCanvases(store) {
  * @param {Object} store - Pinia store
  */
 function pwcaCreateViewContainers(views, store) {
+    const renderableViews = pwcaGetRenderableViews(views);
     const multiViewContainer = document.getElementById('multi-view-container');
     if (!multiViewContainer) {
         const error = new Error('Multi-view container not found');
@@ -1115,12 +1173,23 @@ function pwcaCreateViewContainers(views, store) {
 
     multiViewContainer.innerHTML = '';
 
+    if (renderableViews.length === 0) {
+        const initCompleteEvent = new CustomEvent('multiViewInitComplete');
+        document.dispatchEvent(initCompleteEvent);
+        pwcaMultiViewCompleted = true;
+        pwcaLogMultiView('没有可渲染的 published 视图，已清空多视图容器。');
+        return Promise.resolve({
+            activeViewId: null,
+            viewCount: 0
+        });
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const viewParam = urlParams.get('view');
 
     let targetViewIndex = 0;
     if (viewParam && viewParam !== 'main') {
-        const foundIndex = views.findIndex(
+        const foundIndex = renderableViews.findIndex(
             (v) =>
                 v.id === viewParam ||
                 v.view_id === viewParam ||
@@ -1131,7 +1200,7 @@ function pwcaCreateViewContainers(views, store) {
         }
     }
 
-    const initPromises = views.map((view, index) => {
+    const initPromises = renderableViews.map((view, index) => {
         const canvasSize = getCanvasDimensionsForView(view, store, { width: 567, height: 567 });
         const canvasWidth = canvasSize.width;
         const canvasHeight = canvasSize.height;
@@ -1184,7 +1253,7 @@ function pwcaCreateViewContainers(views, store) {
 
     return Promise.all(initPromises)
         .then(() => {
-            const targetView = views[targetViewIndex];
+            const targetView = renderableViews[targetViewIndex];
             if (targetView) {
                 store.setActiveViewId(targetView.id);
 
@@ -1207,12 +1276,12 @@ function pwcaCreateViewContainers(views, store) {
             pwcaMultiViewCompleted = true;
             pwcaLogMultiView('多视图初始化完成', {
                 activeViewId: targetView ? targetView.id : null,
-                viewCount: views.length
+                viewCount: renderableViews.length
             });
 
             return {
                 activeViewId: targetView ? targetView.id : null,
-                viewCount: views.length
+                viewCount: renderableViews.length
             };
         })
         .catch((error) => {
@@ -1258,6 +1327,7 @@ function pwcaEnsureMultiViewInitialization(store) {
             });
         };
 
+        const timeoutMs = pwcaEstimateMultiViewInitTimeoutMs(store && Array.isArray(store.views) ? store.views : []);
         const timeoutId = setTimeout(() => {
             if (settled) {
                 return;
@@ -1267,13 +1337,13 @@ function pwcaEnsureMultiViewInitialization(store) {
             cleanup();
             pwcaMarkMultiViewInitializationFailed(new Error('Timed out waiting for multi-view initialization.'));
             reject(new Error('Timed out waiting for multi-view initialization.'));
-        }, PWCA_MULTI_VIEW_INIT_TIMEOUT_MS);
+        }, timeoutMs);
 
         document.addEventListener('multiViewInitComplete', handleComplete, { once: true });
 
         Promise.resolve(pwcaInitializeMultiViewCanvases(store))
             .then((result) => {
-                if (result && result.initialized === true && settled === false) {
+                if (result && settled === false && (result.initialized === true || Object.prototype.hasOwnProperty.call(result, 'viewCount'))) {
                     handleComplete();
                 }
             })

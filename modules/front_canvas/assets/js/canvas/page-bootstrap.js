@@ -80,6 +80,15 @@ const pwcaCreateAsyncContext = () => ({
   queueResults: [],
 });
 
+const pwcaCreateActionContext = (flowName, payload = {}) => ({
+  flowName,
+  startedAt: Date.now(),
+  errors: [],
+  tasks: [],
+  queueResults: [],
+  ...payload,
+});
+
 const pwcaRecordAsyncTask = (context, taskName, status, payload = {}) => {
   context.tasks.push({
     taskName,
@@ -169,6 +178,81 @@ const pwcaRunStartupQueue = async (tasks, context) => {
   }
 
   return pwcaRunStartupQueueWithVueUse(tasks, context);
+};
+
+const pwcaCreateInterruptibleQueueTask = (context, taskName, runner) => (
+  async (previousContext) => {
+    const currentContext = previousContext || context;
+    const startedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    pwcaLogAsyncFlow('info', `开始执行任务 ${taskName}`);
+
+    try {
+      await runner(currentContext);
+      const durationMs = Math.round((typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt);
+      pwcaRecordAsyncTask(currentContext, taskName, 'fulfilled', { durationMs });
+      pwcaLogAsyncFlow('info', `任务完成: ${taskName}`, { durationMs });
+      return currentContext;
+    } catch (error) {
+      const normalizedError = error instanceof Error ? error : new Error(String(error || 'Unknown error'));
+      const durationMs = Math.round((typeof performance !== 'undefined' ? performance.now() : Date.now()) - startedAt);
+      currentContext.errors.push({
+        taskName,
+        message: normalizedError.message,
+        error: normalizedError,
+      });
+      pwcaRecordAsyncTask(currentContext, taskName, 'rejected', {
+        durationMs,
+        message: normalizedError.message,
+      });
+      pwcaLogAsyncFlow('error', `任务失败: ${taskName}`, normalizedError);
+      throw normalizedError;
+    }
+  }
+);
+
+const pwcaRunManagedQueueWithVueUse = (tasks, context, flowName) => {
+  const useAsyncQueue = pwcaGetUseAsyncQueue();
+  if (!useAsyncQueue) {
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    const { activeIndex, result } = useAsyncQueue(tasks, {
+      interrupt: true,
+      onError: () => {
+        const err = result[activeIndex.value];
+        pwcaLogAsyncFlow('error', `${flowName} 队列中断原因:`, err);
+      },
+      onFinished: () => {
+        pwcaLogAsyncFlow('info', `${flowName} 所有任务结束`);
+        context.queueResults = result;
+        if (context.errors.length > 0) {
+          reject(context.errors[0].error || new Error(`${flowName} failed`));
+          return;
+        }
+        resolve(context);
+      },
+    });
+  });
+};
+
+const pwcaRunManagedQueueSequentially = async (tasks, context) => {
+  let currentContext = context;
+  for (const task of tasks) {
+    currentContext = await task(currentContext);
+  }
+  return currentContext;
+};
+
+const pwcaRunManagedQueue = async (tasks, context, flowName) => {
+  const useAsyncQueue = pwcaGetUseAsyncQueue();
+
+  if (!useAsyncQueue) {
+    pwcaLogAsyncFlow('warn', `${flowName} 缺少 VueUse.useAsyncQueue，回退为手动串行执行`);
+    return pwcaRunManagedQueueSequentially(tasks, context);
+  }
+
+  return pwcaRunManagedQueueWithVueUse(tasks, context, flowName);
 };
 
 const pwcaGetUiStateAccess = () => window.pwcaUiStateAccess || null;
@@ -591,6 +675,34 @@ const syncGlobalCanvasForView = (viewId) => {
   return canvas;
 };
 
+const clearAllViewSelections = () => {
+  const allViewCanvases = pwcaGetPageBootstrapAllViewCanvases();
+  if (!Array.isArray(allViewCanvases) || allViewCanvases.length === 0) {
+    return;
+  }
+
+  allViewCanvases.forEach((fc) => {
+    if (!fc) {
+      return;
+    }
+
+    try {
+      const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
+      if (active && active.isEditing && typeof active.exitEditing === 'function') {
+        active.exitEditing();
+      }
+      if (typeof fc.discardActiveObject === 'function') {
+        fc.discardActiveObject();
+      }
+      if (typeof fc.renderAll === 'function') {
+        fc.renderAll();
+      }
+    } catch (error) {
+      pwcaLogAsyncFlow('warn', '清理画布选中状态失败', error);
+    }
+  });
+};
+
 const generateSingleViewPDF = async (productName) => {
   const previewContainerExists = !!document.querySelector('.preview-canvas-container');
   const imageData = await capturePrimaryImage(previewContainerExists);
@@ -634,88 +746,211 @@ const generateSingleViewPDF = async (productName) => {
   doc.save(fileName);
 };
 
-const generateMultiViewPDF = async (productName, store) => {
-  if (!store || !Array.isArray(store.views) || store.views.length === 0) return;
+const waitForViewCanvasReady = async (viewId) => {
+  const readyCanvas = await waitFor(() => {
+    const canvas = window.CanvasManager && typeof window.CanvasManager.getCanvas === 'function'
+      ? window.CanvasManager.getCanvas(viewId)
+      : null;
+    const viewContainer = document.getElementById(`view-container-${viewId}`);
+    const isVisible = !!(viewContainer && viewContainer.style.display !== 'none');
+    return canvas && isVisible ? canvas : null;
+  }, { timeoutMs: 1200, intervalMs: 16 });
 
-  const originalActiveViewId = store.activeViewId;
-  const exportedImages = [];
+  if (!readyCanvas) {
+    throw new Error(`View canvas is not ready for ${viewId}`);
+  }
 
-  try {
-    for (const view of store.views) {
-      store.setActiveViewId(view.id);
-      toggleVisibleViewContainer(view.id);
-      syncGlobalCanvasForView(view.id);
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  return readyCanvas;
+};
 
-      await new Promise((resolve) => setTimeout(resolve, 300));
+const saveMultiViewPdfDocument = (productName, exportedImages) => {
+  const { jsPDF } = window.jspdf || {};
+  if (!jsPDF || exportedImages.length === 0) {
+    throw new Error('jsPDF is not available or no exported images were generated.');
+  }
 
-      const imageDataUrl = typeof window.captureViewForPDF === 'function' ? await window.captureViewForPDF(view.id) : null;
-      if (imageDataUrl) {
-        exportedImages.push({
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    title: `${productName} - 多视图定制预览`,
+    subject: '在线定制预览',
+    author: 'PW在线定制系统',
+    creator: 'PW在线定制系统',
+    format: 'a4',
+  });
+
+  const pageWidth = 210;
+  const pageHeight = 297;
+  const margin = 20;
+  const maxWidth = pageWidth - margin * 2;
+  const maxImageHeight = 120;
+
+  doc.setFontSize(18);
+  doc.text('Multi-View Preview', 105, 30, { align: 'center' });
+  if (productName) {
+    doc.setFontSize(16);
+    doc.text(`Product: ${productName}`, 105, 45, { align: 'center' });
+  }
+  doc.setFontSize(12);
+  doc.text(`Total Views: ${exportedImages.length}`, 105, 60, { align: 'center' });
+
+  exportedImages.forEach((item, index) => {
+    if (index > 0) {
+      doc.addPage();
+    }
+
+    doc.setFontSize(16);
+    doc.text(`View: ${item.viewName}`, 105, 80, { align: 'center' });
+    doc.addImage(item.imageData, 'PNG', margin, 90, maxWidth, maxImageHeight);
+    doc.setFontSize(10);
+    doc.text(`Page ${index + 1} of ${exportedImages.length}`, 105, pageHeight - 20, { align: 'center' });
+  });
+
+  const currentTime = new Date();
+  doc.setFontSize(10);
+  doc.text(`Generated: ${currentTime.toLocaleString()}`, 105, pageHeight - 10, { align: 'center' });
+
+  const timeStr = currentTime
+    .toLocaleString()
+    .replace(/[:/]/g, '-')
+    .replace(/,/g, '');
+  doc.save(`${productName}_多视图规格书_${timeStr}.pdf`);
+};
+
+const createPreviewRenderTasks = (context) => ([
+  pwcaCreateInterruptibleQueueTask(context, 'resolvePreviewViews', async (currentContext) => {
+    currentContext.store = currentContext.store || pwcaGetPageBootstrapCanvasStore();
+    currentContext.views = Array.isArray(currentContext.views) && currentContext.views.length > 0
+      ? currentContext.views
+      : (currentContext.store && Array.isArray(currentContext.store.views) ? currentContext.store.views : []);
+
+    if (!currentContext.store) {
+      throw new Error('Canvas store is not ready for preview rendering.');
+    }
+
+    if (!currentContext.views.length) {
+      throw new Error('No views available for preview rendering.');
+    }
+  }),
+  pwcaCreateInterruptibleQueueTask(context, 'clearCanvasSelections', async () => {
+    clearAllViewSelections();
+  }),
+  pwcaCreateInterruptibleQueueTask(context, 'showUniversalViewPreview', async (currentContext) => {
+    if (typeof window.showUniversalViewPreview !== 'function') {
+      throw new Error('window.showUniversalViewPreview is not defined.');
+    }
+
+    await window.showUniversalViewPreview(currentContext.views);
+  }),
+]);
+
+const createMultiViewPdfTasks = (context) => {
+  const tasks = [
+    pwcaCreateInterruptibleQueueTask(context, 'resolvePdfViews', async (currentContext) => {
+      currentContext.store = currentContext.store || pwcaGetPageBootstrapCanvasStore();
+      currentContext.views = currentContext.store && Array.isArray(currentContext.store.views)
+        ? currentContext.store.views
+        : [];
+      currentContext.originalActiveViewId = currentContext.store && currentContext.store.activeViewId
+        ? currentContext.store.activeViewId
+        : null;
+      currentContext.exportedImages = [];
+
+      if (!currentContext.store) {
+        throw new Error('Canvas store is not ready for PDF generation.');
+      }
+
+      if (!currentContext.views.length) {
+        throw new Error('No views available for PDF generation.');
+      }
+    }),
+    pwcaCreateInterruptibleQueueTask(context, 'clearCanvasSelections', async () => {
+      clearAllViewSelections();
+    }),
+  ];
+
+  context.views.forEach((view) => {
+    tasks.push(
+      pwcaCreateInterruptibleQueueTask(context, `capturePdfView:${view.id}`, async (currentContext) => {
+        currentContext.store.setActiveViewId(view.id);
+        toggleVisibleViewContainer(view.id);
+        syncGlobalCanvasForView(view.id);
+        await waitForViewCanvasReady(view.id);
+
+        const imageDataUrl = typeof window.captureViewForPDF === 'function'
+          ? await window.captureViewForPDF(view.id)
+          : null;
+
+        if (!imageDataUrl) {
+          throw new Error(`Failed to capture PDF image for view ${view.id}`);
+        }
+
+        currentContext.exportedImages.push({
+          viewId: view.id,
           viewName: view.name,
           imageData: imageDataUrl,
         });
-      }
-    }
+      })
+    );
+  });
 
-    const { jsPDF } = window.jspdf || {};
-    if (!jsPDF || exportedImages.length === 0) return;
+  tasks.push(
+    pwcaCreateInterruptibleQueueTask(context, 'saveMultiViewPdf', async (currentContext) => {
+      saveMultiViewPdfDocument(currentContext.productName || 'Product', currentContext.exportedImages || []);
+    })
+  );
 
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      title: `${productName} - 多视图定制预览`,
-      subject: '在线定制预览',
-      author: 'PW在线定制系统',
-      creator: 'PW在线定制系统',
-      format: 'a4',
-    });
+  return tasks;
+};
 
-    const pageWidth = 210;
-    const pageHeight = 297;
-    const margin = 20;
-    const maxWidth = pageWidth - margin * 2;
-    const maxImageHeight = 120;
+const finalizeManagedActionFlow = (context) => {
+  const durationMs = Date.now() - context.startedAt;
+  pwcaLogAsyncFlow('info', `${context.flowName} finished`, {
+    durationMs,
+    errorCount: context.errors.length,
+    tasks: context.tasks,
+    queueResults: context.queueResults,
+  });
+  window.pwcaLastActionQueueContext = context;
+  return context;
+};
 
-    doc.setFontSize(18);
-    doc.text('Multi-View Preview', 105, 30, { align: 'center' });
-    if (productName) {
-      doc.setFontSize(16);
-      doc.text(`Product: ${productName}`, 105, 45, { align: 'center' });
-    }
-    doc.setFontSize(12);
-    doc.text(`Total Views: ${exportedImages.length}`, 105, 60, { align: 'center' });
+const runPreviewRenderFlow = async (store) => {
+  const context = pwcaCreateActionContext('preview-render-flow', {
+    store: store || null,
+    views: store && Array.isArray(store.views) ? store.views : null,
+  });
+  const tasks = createPreviewRenderTasks(context);
+  const finalContext = await pwcaRunManagedQueue(tasks, context, '预览渲染流程');
+  return finalizeManagedActionFlow(finalContext);
+};
 
-    exportedImages.forEach((item, index) => {
-      if (index > 0) {
-        doc.addPage();
-      }
+const runGeneratePdfFlow = async (productName, store) => {
+  const resolvedStore = store || pwcaGetPageBootstrapCanvasStore();
+  const resolvedViews = resolvedStore && Array.isArray(resolvedStore.views) ? resolvedStore.views : [];
+  const context = pwcaCreateActionContext('generate-pdf-flow', {
+    productName,
+    store: resolvedStore,
+    views: resolvedViews,
+    exportedImages: [],
+    originalActiveViewId: resolvedStore ? resolvedStore.activeViewId : null,
+  });
 
-      doc.setFontSize(16);
-      doc.text(`View: ${item.viewName}`, 105, 80, { align: 'center' });
-
-      doc.addImage(item.imageData, 'PNG', margin, 90, maxWidth, maxImageHeight);
-
-      doc.setFontSize(10);
-      doc.text(`Page ${index + 1} of ${exportedImages.length}`, 105, pageHeight - 20, { align: 'center' });
-    });
-
-    const currentTime = new Date();
-    doc.setFontSize(10);
-    doc.text(`Generated: ${currentTime.toLocaleString()}`, 105, pageHeight - 10, { align: 'center' });
-
-    const timeStr = currentTime
-      .toLocaleString()
-      .replace(/[:/]/g, '-')
-      .replace(/,/g, '');
-    doc.save(`${productName}_多视图规格书_${timeStr}.pdf`);
+  try {
+    const tasks = createMultiViewPdfTasks(context);
+    const finalContext = await pwcaRunManagedQueue(tasks, context, 'PDF 生成流程');
+    return finalizeManagedActionFlow(finalContext);
   } finally {
-    if (originalActiveViewId) {
-      store.setActiveViewId(originalActiveViewId);
-      toggleVisibleViewContainer(originalActiveViewId);
-      syncGlobalCanvasForView(originalActiveViewId);
+    if (context.store && context.originalActiveViewId) {
+      context.store.setActiveViewId(context.originalActiveViewId);
+      toggleVisibleViewContainer(context.originalActiveViewId);
+      syncGlobalCanvasForView(context.originalActiveViewId);
     }
   }
 };
+
+const generateMultiViewPDF = async (productName, store) => runGeneratePdfFlow(productName, store);
 
 const resolveCartEditKey = () => {
   if (window.pwcaCartKeyForCanvasEdit) {
@@ -945,3 +1180,5 @@ onReady(() => {
 
 
 window.generateMultiViewPDF = generateMultiViewPDF;
+window.pwcaRunPreviewRenderFlow = runPreviewRenderFlow;
+window.pwcaRunGeneratePdfFlow = runGeneratePdfFlow;

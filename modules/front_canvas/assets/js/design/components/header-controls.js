@@ -267,29 +267,11 @@ const HeaderControls = {
             activeTab.value = tab;
             
             if (tab === 'viewMockup') {
-                // Logic from old renderBtn click listener
-                // 1. Clear selection on all canvases
-                pwcaGetAllViewCanvases().forEach((fc) => {
-                    if (!fc) {
-                        return;
-                    }
-
-                    try {
-                        const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
-                        if (active && active.isEditing && typeof active.exitEditing === 'function') active.exitEditing();
-                        if (typeof fc.discardActiveObject === 'function') fc.discardActiveObject();
-                        fc.renderAll();
-                    } catch (e) {
-                        console.warn('Error clearing canvas selection:', e);
-                    }
-                });
-
-                // 2. Show Universal View Preview if views exist
                 if (store.views && store.views.length > 0) {
-                    if (typeof window.showUniversalViewPreview === 'function') {
-                        await window.showUniversalViewPreview(store.views);
+                    if (typeof window.pwcaRunPreviewRenderFlow === 'function') {
+                        await window.pwcaRunPreviewRenderFlow(store);
                     } else {
-                        console.error('window.showUniversalViewPreview is not defined');
+                        console.error('window.pwcaRunPreviewRenderFlow is not defined');
                     }
                     return;
                 } else {
@@ -310,7 +292,9 @@ const HeaderControls = {
             
             // Check for Multi-View mode
             if (store.views && store.views.length > 0) {
-                if (typeof window.generateMultiViewPDF === 'function') {
+                if (typeof window.pwcaRunGeneratePdfFlow === 'function') {
+                    await window.pwcaRunGeneratePdfFlow(productName, store);
+                } else if (typeof window.generateMultiViewPDF === 'function') {
                     await window.generateMultiViewPDF(productName, store);
                 } else {
                     console.error('generateMultiViewPDF not found');

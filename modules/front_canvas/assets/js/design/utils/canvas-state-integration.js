@@ -113,6 +113,12 @@ class CanvasStateIntegration {
          * @type {number}
          */
         this.DEBOUNCE_MS = 300;
+
+        /**
+         * 视图尚未就绪时，延后一次画布监听器绑定
+         * @type {boolean}
+         */
+        this.pendingCanvasListenerSetup = false;
     }
     
     /**
@@ -215,7 +221,14 @@ class CanvasStateIntegration {
         try {
             const views = pwcaGetViews();
             if (views.length === 0) {
-                ErrorHandler.logWarning('无法获取视图列表，跳过画布事件监听设置');
+                if (!this.pendingCanvasListenerSetup) {
+                    this.pendingCanvasListenerSetup = true;
+                    ErrorHandler.logInfo('视图列表尚未就绪，等待 multiViewInitComplete 后重试画布事件监听设置');
+                    document.addEventListener('multiViewInitComplete', () => {
+                        this.pendingCanvasListenerSetup = false;
+                        this._setupCanvasEventListeners();
+                    }, { once: true });
+                }
                 return;
             }
             
@@ -223,6 +236,8 @@ class CanvasStateIntegration {
             views.forEach(view => {
                 this._setupCanvasListenersForView(view.id);
             });
+
+            this.pendingCanvasListenerSetup = false;
             
             ErrorHandler.logInfo('画布事件监听器设置完成');
         } catch (error) {

@@ -223,6 +223,7 @@
     }
 
     window.pwcaUiStateAccess = {
+        // 新命名
         pwcaGetCanvasStore,
         pwcaGetPrintMethodStore,
         pwcaGetActiveViewId,
@@ -243,6 +244,29 @@
         pwcaGetCurrentViewLayers,
         pwcaFindCurrentViewLayerById,
         pwcaGetPrintMethodForObject,
-        pwcaIsFirstView
+        pwcaIsFirstView,
+
+        // 兼容旧调用方
+        getCanvasStore: pwcaGetCanvasStore,
+        getPrintMethodStore: pwcaGetPrintMethodStore,
+        getActiveViewId: pwcaGetActiveViewId,
+        getViews: pwcaGetViews,
+        findViewById: pwcaFindViewById,
+        getCurrentView: pwcaGetCurrentView,
+        getProductVariants: pwcaGetProductVariants,
+        hasProductVariants: pwcaHasProductVariants,
+        getCanvasByViewId: pwcaGetCanvasByViewId,
+        getAllViewIds: pwcaGetAllViewIds,
+        getAllViewCanvases: pwcaGetAllViewCanvases,
+        getBaseCanvasByViewId: pwcaGetBaseCanvasByViewId,
+        getActiveCanvas: pwcaGetActiveCanvas,
+        getActiveObject: pwcaGetActiveObject,
+        getCurrentActiveTab: pwcaGetCurrentActiveTab,
+        getActiveObjectType: pwcaGetActiveObjectType,
+        getCurrentBaseCanvas: pwcaGetCurrentBaseCanvas,
+        getCurrentViewLayers: pwcaGetCurrentViewLayers,
+        findCurrentViewLayerById: pwcaFindCurrentViewLayerById,
+        getPrintMethodForObject: pwcaGetPrintMethodForObject,
+        isFirstView: pwcaIsFirstView
     };
 })();
