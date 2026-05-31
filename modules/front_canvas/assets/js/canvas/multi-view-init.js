@@ -135,6 +135,63 @@ function getFabricPlacementForLayer(canvas, position = {}, renderSize = {}) {
     };
 }
 
+function pwcaIsTextLikeObject(obj) {
+    return !!obj && (
+        obj.type === 'text' ||
+        obj.type === 'i-text' ||
+        obj.type === 'textbox'
+    );
+}
+
+function pwcaNormalizeArcValue(value) {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? numericValue : 0;
+}
+
+function pwcaApplyArcPathToTextObject(textObject, arcValue) {
+    if (!pwcaIsTextLikeObject(textObject) || typeof fabric === 'undefined') {
+        return textObject;
+    }
+
+    const normalizedArc = pwcaNormalizeArcValue(arcValue);
+    const textWidth = Math.max(Number(textObject.width || 0), 1);
+    const textHeight = Math.max(
+        Number(textObject.height || 0),
+        Number(textObject.fontSize || 0),
+        1
+    );
+
+    if (Math.abs(normalizedArc) < 0.01) {
+        textObject.set('path', null);
+        textObject._arcValue = 0;
+        textObject.setCoords();
+        return textObject;
+    }
+
+    const baseY = normalizedArc >= 0 ? textHeight / 2 : -textHeight / 2;
+    const controlY = baseY - normalizedArc;
+    const path = new fabric.Path(
+        `M 0 ${baseY} Q ${textWidth / 2} ${controlY} ${textWidth} ${baseY}`
+    );
+
+    path.set({
+        fill: ''
+    });
+
+    textObject.set('path', path);
+    textObject.set('backgroundColor', '');
+    textObject._arcValue = normalizedArc;
+    textObject.setCoords();
+
+    return textObject;
+}
+
+if (typeof window !== 'undefined') {
+    window.pwcaIsTextLikeObject = window.pwcaIsTextLikeObject || pwcaIsTextLikeObject;
+    window.pwcaApplyArcPathToTextObject =
+        window.pwcaApplyArcPathToTextObject || pwcaApplyArcPathToTextObject;
+}
+
 function getTargetCanvasIdForLayer(layer, view, store) {
     const layerName = String(layer?.name || '').trim();
     const flowConfig = window.pwcaGetFlowConfig ? window.pwcaGetFlowConfig(view, store) : null;
@@ -413,6 +470,7 @@ function createFabricObjectFromLayer(canvas, layer) {
                     return;
                 }
                 const placement = getFabricPlacementForLayer(canvas, position, textRenderSize);
+                const arcValue = pwcaNormalizeArcValue(data.content.arc);
 
                 const textObj = new fabric.Textbox(data.content.text, {
                     left: placement.left,
@@ -424,6 +482,7 @@ function createFabricObjectFromLayer(canvas, layer) {
                     fontSize: data.content.fontSize || 40,
                     fontFamily: data.content.fontFamily || 'Arial',
                     fill: data.content.fontColor || '#000000',
+                    backgroundColor: data.content.backgroundColor || '',
                     opacity: (data.content.opacity ?? 100) / 100,
                     selectable: !!mergedControls.movable,
                     evented: !!mergedControls.movable,
@@ -433,9 +492,14 @@ function createFabricObjectFromLayer(canvas, layer) {
                     lockUniScaling: !mergedControls.allowUnproportionalScaling,
                     hasControls: !!(mergedControls.movable && mergedControls.scalable),
                     hasBorders: !!mergedControls.movable,
+                    id: layer.id || undefined,
                     name: layer.name,
+                    layerName: layer.name,
+                    layerType: 'text',
                     layerControls: mergedControls
                 });
+
+                pwcaApplyArcPathToTextObject(textObj, arcValue);
                 textObj.setCoords();
 
                 resolve(textObj);

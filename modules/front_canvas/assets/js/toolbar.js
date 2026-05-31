@@ -73,6 +73,58 @@ function pwcaGetToolbarActiveCanvas() {
     return typeof window.pwcaGetActiveCanvas === 'function' ? window.pwcaGetActiveCanvas() : null;
 }
 
+function pwcaIsTextLikeObject(obj) {
+    if (typeof window.pwcaIsTextLikeObject === 'function') {
+        return window.pwcaIsTextLikeObject(obj);
+    }
+
+    return !!obj && (
+        obj.type === 'text' ||
+        obj.type === 'i-text' ||
+        obj.type === 'textbox'
+    );
+}
+
+function pwcaApplyToolbarArcPathToTextObject(textObject, arcValue) {
+    if (typeof window.pwcaApplyArcPathToTextObject === 'function') {
+        return window.pwcaApplyArcPathToTextObject(textObject, arcValue);
+    }
+
+    if (!pwcaIsTextLikeObject(textObject) || typeof fabric === 'undefined') {
+        return textObject;
+    }
+
+    const normalizedArc = Number(arcValue);
+    const safeArc = Number.isFinite(normalizedArc) ? normalizedArc : 0;
+    const textWidth = Math.max(Number(textObject.width || 0), 1);
+    const textHeight = Math.max(
+        Number(textObject.height || 0),
+        Number(textObject.fontSize || 0),
+        1
+    );
+
+    if (Math.abs(safeArc) < 0.01) {
+        textObject.set('path', null);
+        textObject._arcValue = 0;
+        textObject.setCoords();
+        return textObject;
+    }
+
+    const baseY = safeArc >= 0 ? textHeight / 2 : -textHeight / 2;
+    const controlY = baseY - safeArc;
+    const path = new fabric.Path(
+        `M 0 ${baseY} Q ${textWidth / 2} ${controlY} ${textWidth} ${baseY}`
+    );
+    path.set({ fill: '' });
+
+    textObject.set('path', path);
+    textObject.set('backgroundColor', '');
+    textObject._arcValue = safeArc;
+    textObject.setCoords();
+
+    return textObject;
+}
+
 function pwcaUpdateDynamicToolbar(obj) {
     // 获取当前活动的 canvas 实例
     const stateAccess = window.pwcaUiStateAccess;
@@ -103,7 +155,7 @@ function pwcaUpdateDynamicToolbar(obj) {
     }
 
     // 如果选中的是文本对象（兼容 i-text、textbox）
-    if (obj.type === 'text' || obj.type === 'i-text' || obj.type === 'textbox') {
+    if (pwcaIsTextLikeObject(obj)) {
         textToolbar.style.display = 'block';
         imgToolbar.style.display = 'none';
         // 获取当前活动的文字工具按钮（仅限文字工具栏作用域）
@@ -191,7 +243,7 @@ function pwcaUpdateDynamicToolbar(obj) {
                     sw.addEventListener('click', function () {
                         const activeCanvas = typeof window.pwcaGetActiveCanvas === 'function' ? window.pwcaGetActiveCanvas() : null;
                         const activeObj = activeCanvas ? activeCanvas.getActiveObject() : null;
-                        if (activeObj && activeObj.type === 'text') {
+                        if (pwcaIsTextLikeObject(activeObj)) {
                             activeObj.set('fill', c.hex_code);
                             activeCanvas.renderAll();
                         }
@@ -332,8 +384,8 @@ function pwcaUpdateDynamicToolbar(obj) {
             <label for="textDistort" class="tab_control_title">Arc</label>
             <br>
             <div class="pwca-pwca-content-area-rotate-control">
-                <input type="range" id="textDistort" min="-100" max="100" value="0">
-                <input type="number" id="distortValue" min="-100" max="100" value="0">
+                <input type="range" id="textDistort" min="-100" max="100" value="${Number(obj._arcValue || 0)}">
+                <input type="number" id="distortValue" min="-100" max="100" value="${Number(obj._arcValue || 0)}">
             </div>
           `;
             textToolbarArea.appendChild(distortControl);
@@ -347,7 +399,7 @@ function pwcaUpdateDynamicToolbar(obj) {
         const fontFamilyElement = document.getElementById('fontFamily');
         if (fontFamilyElement) {
             fontFamilyElement.addEventListener('change', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                if (pwcaIsTextLikeObject(canvas.getActiveObject())) {
                     canvas.getActiveObject().set('fontFamily', this.value);
                     canvas.renderAll();
                 }
@@ -356,7 +408,7 @@ function pwcaUpdateDynamicToolbar(obj) {
         const fontSizeElement = document.getElementById('fontSize');
         if (fontSizeElement) {
             fontSizeElement.addEventListener('change', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                if (pwcaIsTextLikeObject(canvas.getActiveObject())) {
                     canvas.getActiveObject().set('fontSize', parseInt(this.value, 10));
                     canvas.renderAll();
                 }
@@ -369,7 +421,7 @@ function pwcaUpdateDynamicToolbar(obj) {
         
         if (fontSizeDecreaseBtn) {
             fontSizeDecreaseBtn.addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                if (pwcaIsTextLikeObject(canvas.getActiveObject())) {
                     const currentSize = parseInt(fontSizeElement.value, 10);
                     const newSize = Math.max(8, currentSize - 1);
                     fontSizeElement.value = newSize;
@@ -381,7 +433,7 @@ function pwcaUpdateDynamicToolbar(obj) {
         
         if (fontSizeIncreaseBtn) {
             fontSizeIncreaseBtn.addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                if (pwcaIsTextLikeObject(canvas.getActiveObject())) {
                     const currentSize = parseInt(fontSizeElement.value, 10);
                     const newSize = Math.min(120, currentSize + 1);
                     fontSizeElement.value = newSize;
@@ -395,7 +447,7 @@ function pwcaUpdateDynamicToolbar(obj) {
         const letterSpacingElement = document.getElementById('letterSpacing');
         if (letterSpacingElement) {
             letterSpacingElement.addEventListener('change', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                if (pwcaIsTextLikeObject(canvas.getActiveObject())) {
                     canvas.getActiveObject().set('charSpacing', parseInt(this.value, 10));
                     canvas.renderAll();
                 }
@@ -408,7 +460,7 @@ function pwcaUpdateDynamicToolbar(obj) {
         
         if (letterSpacingDecreaseBtn) {
             letterSpacingDecreaseBtn.addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                if (pwcaIsTextLikeObject(canvas.getActiveObject())) {
                     const currentSpacing = parseInt(letterSpacingElement.value, 10);
                     const newSpacing = Math.max(-10, currentSpacing - 1);
                     letterSpacingElement.value = newSpacing;
@@ -420,7 +472,7 @@ function pwcaUpdateDynamicToolbar(obj) {
         
         if (letterSpacingIncreaseBtn) {
             letterSpacingIncreaseBtn.addEventListener('click', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                if (pwcaIsTextLikeObject(canvas.getActiveObject())) {
                     const currentSpacing = parseInt(letterSpacingElement.value, 10);
                     const newSpacing = Math.min(50, currentSpacing + 1);
                     letterSpacingElement.value = newSpacing;
@@ -432,7 +484,7 @@ function pwcaUpdateDynamicToolbar(obj) {
         const textColorElement = document.getElementById('textColor');
         if (textColorElement) {
             textColorElement.addEventListener('input', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                if (pwcaIsTextLikeObject(canvas.getActiveObject())) {
                     canvas.getActiveObject().set('fill', this.value);
                     canvas.renderAll();
                 }
@@ -450,7 +502,7 @@ function pwcaUpdateDynamicToolbar(obj) {
                 if (textRotationInput) textRotationInput.value = val;
                 // 根据当前值更新滑块填充
                 pwcaUpdateRangeFill(textRotationRange);
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                if (pwcaIsTextLikeObject(canvas.getActiveObject())) {
                     canvas.getActiveObject().set('angle', val);
                     canvas.renderAll();
                 }
@@ -461,7 +513,7 @@ function pwcaUpdateDynamicToolbar(obj) {
                 const val = parseInt(this.value, 10) || 0;
                 if (textRotationRange) textRotationRange.value = val;
                 if (textRotationRange) pwcaUpdateRangeFill(textRotationRange);
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                if (pwcaIsTextLikeObject(canvas.getActiveObject())) {
                     canvas.getActiveObject().set('angle', val);
                     canvas.renderAll();
                 }
@@ -472,7 +524,7 @@ function pwcaUpdateDynamicToolbar(obj) {
         const textPositionXElement = document.getElementById('textPositionX');
         if (textPositionXElement) {
             textPositionXElement.addEventListener('change', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                if (pwcaIsTextLikeObject(canvas.getActiveObject())) {
                     canvas.getActiveObject().set('left', parseInt(this.value, 10));
                     canvas.renderAll();
                 }
@@ -481,7 +533,7 @@ function pwcaUpdateDynamicToolbar(obj) {
         const textPositionYElement = document.getElementById('textPositionY');
         if (textPositionYElement) {
             textPositionYElement.addEventListener('change', function () {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
+                if (pwcaIsTextLikeObject(canvas.getActiveObject())) {
                     canvas.getActiveObject().set('top', parseInt(this.value, 10));
                     canvas.renderAll();
                 }
@@ -495,25 +547,9 @@ function pwcaUpdateDynamicToolbar(obj) {
             // 初始化一次填充效果
             pwcaUpdateRangeFill(distortInput);
             const applyDistort = function(val) {
-                if (canvas.getActiveObject() && canvas.getActiveObject().type === 'text') {
-                    const text = canvas.getActiveObject();
-                    const textWidth = text.width;
-                    const textHeight = text.height;
-                    const k = 1; // 弯曲程度的缩放因子
-                    const cy = -k * val; // 负值向上弯曲
-                    // 调整弯曲顶点位置，使其基于文字顶部或底部
-                    const baseY = val >= 0 ? textHeight / 2 : -textHeight / 2;
-                    const newPathStr = 'M 0 ' + baseY + ' Q ' + (textWidth / 2) + ' ' + (baseY + cy) + ' ' + textWidth + ' ' + baseY;
-                    const newPath = new fabric.Path(newPathStr);
-                    // 设置路径填充为透明，防止黑块出现
-                    newPath.set({ fill: '' });
-                    text.set('path', newPath);
-                    // 确保文本有颜色
-                    text.set('fill', text.fill || 'black');
-                    // 清除背景色
-                    text.set('backgroundColor', '');
-                    // 重新计算边界并渲染
-                    text.setCoords();
+                const activeTextObject = canvas.getActiveObject();
+                if (pwcaIsTextLikeObject(activeTextObject)) {
+                    pwcaApplyToolbarArcPathToTextObject(activeTextObject, val);
                     canvas.renderAll();
                 }
             };

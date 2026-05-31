@@ -96,9 +96,17 @@ function showRelevantButtonGroup(selectedObject) {
     if (!selectedObject) return;
     const textToolbar = document.querySelector('.pwca-text-toolbar');
     const imgToolbar = document.querySelector('.pwca-img-toolbar');
+    const isTextLike =
+        typeof window.pwcaIsTextLikeObject === 'function'
+            ? window.pwcaIsTextLikeObject(selectedObject)
+            : (
+                selectedObject.type === 'text' ||
+                selectedObject.type === 'i-text' ||
+                selectedObject.type === 'textbox'
+            );
     if (textToolbar) textToolbar.style.display = 'none';
     if (imgToolbar) imgToolbar.style.display = 'none';
-    if (selectedObject.type === 'text' || selectedObject.type === 'i-text') { if (textToolbar) textToolbar.style.display = 'block'; }
+    if (isTextLike) { if (textToolbar) textToolbar.style.display = 'block'; }
     else if (selectedObject.type === 'image') { if (imgToolbar) imgToolbar.style.display = 'block'; }
     if (typeof window.pwcaUpdateDynamicToolbar === 'function') window.pwcaUpdateDynamicToolbar(selectedObject);
 }
@@ -196,7 +204,12 @@ function controlMainWrapperDisplayArea(objectId) {
 
 function pwcaGetLayerName(obj) {
     if (obj.layerName) return obj.layerName;
-    if (obj.type === 'text' || obj.type === 'i-text') { const text = obj.text || ''; return text.length > 15 ? text.substring(0, 15) + '...' : text; }
+    if (
+        (typeof window.pwcaIsTextLikeObject === 'function' && window.pwcaIsTextLikeObject(obj)) ||
+        obj.type === 'text' ||
+        obj.type === 'i-text' ||
+        obj.type === 'textbox'
+    ) { const text = obj.text || ''; return text.length > 15 ? text.substring(0, 15) + '...' : text; }
     else if (obj.type === 'image') { return 'Image ' + Date.now().toString().slice(-4); }
     return 'Object ' + Date.now().toString().slice(-4);
 }

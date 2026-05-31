@@ -15,7 +15,14 @@ function pwcaBuildLayerNameFromObject(obj, index) {
         return obj.layerName;
     }
 
-    if (obj.type === 'text' || obj.type === 'i-text') {
+    if (
+        (typeof window !== 'undefined' &&
+            typeof window.pwcaIsTextLikeObject === 'function' &&
+            window.pwcaIsTextLikeObject(obj)) ||
+        obj.type === 'text' ||
+        obj.type === 'i-text' ||
+        obj.type === 'textbox'
+    ) {
         const text = obj.text || '';
         return text.length > 15 ? `${text.substring(0, 15)}...` : text;
     }
@@ -32,7 +39,14 @@ function pwcaBuildLayerTypeFromObject(obj) {
         return obj.layerType;
     }
 
-    if (obj.type === 'text' || obj.type === 'i-text') {
+    if (
+        (typeof window !== 'undefined' &&
+            typeof window.pwcaIsTextLikeObject === 'function' &&
+            window.pwcaIsTextLikeObject(obj)) ||
+        obj.type === 'text' ||
+        obj.type === 'i-text' ||
+        obj.type === 'textbox'
+    ) {
         return 'text';
     }
 
