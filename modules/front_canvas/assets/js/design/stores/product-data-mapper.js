@@ -43,6 +43,43 @@ export const pwcaDecodePromowaresUnicodeText = (value) => {
     }
 };
 
+const pwcaDeepDecodePromowaresUnicodeStrings = (value, seen = new WeakMap()) => {
+    if (typeof value === 'string') {
+        return pwcaDecodePromowaresUnicodeText(value);
+    }
+
+    if (!value || typeof value !== 'object') {
+        return value;
+    }
+
+    if (seen.has(value)) {
+        return seen.get(value);
+    }
+
+    if (Array.isArray(value)) {
+        const normalizedArray = [];
+        seen.set(value, normalizedArray);
+
+        value.forEach((item, index) => {
+            normalizedArray[index] = pwcaDeepDecodePromowaresUnicodeStrings(item, seen);
+        });
+
+        return normalizedArray;
+    }
+
+    const normalizedObject = {};
+    seen.set(value, normalizedObject);
+
+    Object.keys(value).forEach((key) => {
+        normalizedObject[key] = pwcaDeepDecodePromowaresUnicodeStrings(
+            value[key],
+            seen
+        );
+    });
+
+    return normalizedObject;
+};
+
 export const pwcaNormalizePromowaresImageUrl = (value) => {
     if (typeof value !== 'string' || value === '') {
         return value;
@@ -124,6 +161,10 @@ export const pwcaNormalizeTemplateViewNames = (productData) => {
     if (!productData || !productData.templates) {
         return productData;
     }
+
+    productData.templates = pwcaDeepDecodePromowaresUnicodeStrings(
+        productData.templates
+    );
 
     const templates = productData.templates;
 

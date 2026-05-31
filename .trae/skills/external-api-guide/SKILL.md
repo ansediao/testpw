@@ -75,20 +75,42 @@ $headers = [
     - `主u5b9a制u89c6图`、`次u7ea7视u56fe` 这类半解码残留串
 - 项目内推荐修复点：
   - 优先在前端产品数据入口统一标准化，再进入视图按钮、多视图导出、画布状态等后续链路
-  - 当前项目已在 `modules/front_canvas/assets/js/design/stores/index.js` 的 `fetchProductData()` 中对 `templates.views` 与 `templates.data.custom_view` 的 `view_name/name` 做统一解码
+  - 当前项目已在 `modules/front_canvas/assets/js/design/stores/index.js` 的 `fetchProductData()` 入口调用标准化逻辑
+  - 标准化逻辑位于 `modules/front_canvas/assets/js/design/stores/product-data-mapper.js`
+  - 当前做法不只处理 `view_name/name`，还会对 `templates` 下的嵌套字符串做递归解码，覆盖舞台文本层等深层字段
 - 排查结论：
-  - 若页面出现半解码残留串，优先检查前端解码器是否只处理了部分连续片段
-  - 不要先把问题归因到产品缓存；当前项目缓存命中与未命中都会继续走前端 `fetchProductData()` 的标准化逻辑
+  - 若页面出现半解码残留串，优先检查前端解码器是否只处理了部分字段而没有覆盖模板深层文本
+  - 不要只从舞台组件下手；`fabric.Text(...)` 使用前的数据应先在入口被纠正
+  - 同时检查后端缓存写入是否把中文转成了 `\uXXXX`，因为这会放大缓存命中后的乱码问题
 - 解码范围建议：
   - `templates.views[*].view_name`
   - `templates.views[*].name`
   - `templates.data.custom_view.main_custom_view.view_name`
   - `templates.data.custom_view.sub_custom_view[*].view_name`
+  - `templates` 下图层配置中的文本字段，例如 `layer_data.content.text`
+  - 其他会进入舞台或视图展示的嵌套字符串
 - 修复原则：
   - 不改前端按钮渲染组件的职责，只在数据入口做一次标准化
   - 兼容普通字符串、`uXXXX`、`\uXXXX`、半解码残留串四种输入
   - 解码顺序建议：先解 `\uXXXX`，再解整串连续 `uXXXX`，最后补解混在中文中的残留 `uXXXX`
   - 解码失败时回退原值，避免破坏已有英文或数字视图名
+  - 后端缓存写入时同步使用中文不转义 JSON 编码，减少历史问题继续写入数据库
+
+### API 数据缓存后中文乱码
+
+- 现象：
+  - 首次请求或缓存命中后，进入舞台的文本层显示为 Unicode 转义串或半解码乱码
+- 根因判断：
+  - 后端缓存写入时默认 `wp_json_encode()` 可能把中文写成 `\uXXXX`
+  - 前端如果只解码少数字段，舞台图层里的深层文本仍会保留乱码
+- 当前项目推荐做法：
+  - 写入侧：缓存 JSON 使用 `JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES`
+  - 读取侧：在 `fetchProductData()` 对应的数据标准化入口做递归解码
+  - 渲染侧：不在舞台组件内分散补丁，保持“入口标准化，渲染只消费数据”的职责边界
+- 适用缓存范围：
+  - `_pw_aggregated_data_cache`
+  - `pw_print_methods_*`
+  - `pw_custom_colors_*`
 
 ### 店铺定制设置 `google_font` / `font_size` 字段落地
 

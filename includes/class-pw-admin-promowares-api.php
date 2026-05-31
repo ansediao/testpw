@@ -63,6 +63,25 @@ class Pw_Admin_Promowares_Api
     }
 
     /**
+     * Encode cache payload as JSON while preserving readable Unicode text.
+     *
+     * @since    1.0.0
+     * @param    mixed    $data    Data to encode.
+     * @return   string|false      JSON string on success, false on failure.
+     */
+    private function encode_cache_json($data)
+    {
+        $options = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+        $encoded = wp_json_encode($data, $options);
+
+        if (false !== $encoded) {
+            return $encoded;
+        }
+
+        return wp_json_encode($data);
+    }
+
+    /**
      * Get products from Promowares API.
      * 
      * This method fetches product data from the Promowares API using
@@ -1253,7 +1272,10 @@ class Pw_Admin_Promowares_Api
         $woo_product_id = $woo_products[0]->ID;
         
         // 将数据编码为 JSON 并保存
-        $encoded_data = wp_json_encode($aggregated_data);
+        $encoded_data = $this->encode_cache_json($aggregated_data);
+        if (false === $encoded_data) {
+            return false;
+        }
         $current_time = time();
 
         // 保存缓存数据和时间戳（用于与远程 updated_at 比较）
@@ -2118,7 +2140,14 @@ class Pw_Admin_Promowares_Api
         );
 
         // 保存缓存数据（使用 option 存储）
-        $encoded_data = wp_json_encode($response_data);
+        $encoded_data = $this->encode_cache_json($response_data);
+        if (false === $encoded_data) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'error' => 'Failed to encode print methods cache data',
+                'requested_ids' => $printing_method_ids
+            ), 500);
+        }
         $current_time = time();
         update_option($cache_key . '_data', $encoded_data);
         update_option($cache_key . '_time', $current_time);
@@ -2272,7 +2301,14 @@ class Pw_Admin_Promowares_Api
         );
 
         // 保存缓存数据（使用 option 存储）
-        $encoded_data = wp_json_encode($response_data);
+        $encoded_data = $this->encode_cache_json($response_data);
+        if (false === $encoded_data) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'error' => 'Failed to encode custom colors cache data',
+                'color_list_id' => $color_list_id
+            ), 500);
+        }
         $current_time = time();
         update_option($cache_key . '_data', $encoded_data);
         update_option($cache_key . '_time', $current_time);
