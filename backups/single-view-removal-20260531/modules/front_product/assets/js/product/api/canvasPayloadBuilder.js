@@ -54,8 +54,9 @@
                     images: imageArray
                 };
             });
-        } else {
-            console.error('[PW Canvas] Failed to build canvas payload: No views found or generator missing');
+        } else if (typeof window.captureCanvas === 'function') {
+            const singleImage = await window.captureCanvas();
+            viewImagesPayload = [{ id: 'single', name: 'View', images: [singleImage] }];
         }
 
         const firstImageDataUrl =

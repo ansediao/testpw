@@ -6,6 +6,11 @@ function pwcaGetUiStateAccess() {
 }
 
 function pwcaGetPreviewActiveCanvas() {
+    const uiStateAccess = pwcaGetUiStateAccess();
+    if (uiStateAccess && typeof uiStateAccess.getActiveCanvas === 'function') {
+        return uiStateAccess.getActiveCanvas();
+    }
+
     return typeof window.getActiveCanvas === 'function' ? window.getActiveCanvas() : null;
 }
 
@@ -70,20 +75,36 @@ document.getElementById('renderBtn')?.addEventListener('click', async function (
                     fc.renderAll();
                 } catch (e) {}
             });
+        } else {
+            const fc = pwcaGetPreviewActiveCanvas();
+            if (fc) {
+                const active = typeof fc.getActiveObject === 'function' ? fc.getActiveObject() : null;
+                if (active && active.isEditing && typeof active.exitEditing === 'function') active.exitEditing();
+                if (typeof fc.discardActiveObject === 'function') fc.discardActiveObject();
+                fc.renderAll();
+            }
         }
     } catch (e) {}
     try {
         const store = pwcaGetPreviewCanvasStore();
         const views = store && Array.isArray(store.views) ? store.views : [];
-        if (views.length > 0) { 
-            await window.showUniversalViewPreview(views); 
-            return; 
-        } else {
-            console.warn('[PW Canvas] No views available for preview');
-        }
-    } catch (error) {
-        console.error('[PW Canvas] Preview failed:', error);
-    }
+        if (views.length > 0) { await window.showUniversalViewPreview(views); return; }
+    } catch (error) {}
+    const previewContainer = document.querySelector('.preview-canvas-container');
+    const imageData = await (previewContainer ? capturePreviewCanvas() : captureCanvas());
+    const previewWindow = window.open('', '_blank');
+    previewWindow.document.write(`
+     <html>
+       <head>
+         <title>Preview</title>
+         <style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f0f0;}img{max-width:100%;max-height:90vh;box-shadow:0 0 20px rgba(0,0,0,0.1);} </style>
+       </head>
+       <body>
+         <img src="${imageData}" alt="Preview">
+       </body>
+     </html>
+   `);
+    previewWindow.document.close();
 });
 
 function calculateArcTextProperties(textObject, arcValue) {

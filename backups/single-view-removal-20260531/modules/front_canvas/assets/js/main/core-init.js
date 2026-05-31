@@ -314,6 +314,30 @@ window.showTabControlHelp = function() {
     return help;
 };
 
+function getActiveCanvasElements() {
+    const activeViewId = pwcaGetActiveViewId();
+    if (activeViewId) {
+        return {
+            colorCanvas: document.getElementById(`colorLayer-${activeViewId}`),
+            shadowCanvas: document.getElementById(`shadowLayer-${activeViewId}`),
+            mainCanvas: document.getElementById(`mainCanvas-${activeViewId}`)
+        };
+    }
+    return {
+        colorCanvas: document.getElementById('colorLayer'),
+        shadowCanvas: document.getElementById('shadowLayer'),
+        mainCanvas: document.getElementById('mainCanvas')
+    };
+}
+
+function getActiveCanvasContexts() {
+    const elements = getActiveCanvasElements();
+    return {
+        colorCtx: elements.colorCanvas ? elements.colorCanvas.getContext('2d') : null,
+        shadowCtx: elements.shadowCanvas ? elements.shadowCanvas.getContext('2d') : null
+    };
+}
+
 let canvas = null;
 
 function getActiveCanvas() {
@@ -341,6 +365,8 @@ function setGlobalCanvas(fabricCanvas) {
     window.fabricCanvas = fabricCanvas;
 }
 
+window.getActiveCanvasElements = getActiveCanvasElements;
+window.getActiveCanvasContexts = getActiveCanvasContexts;
 window.getActiveCanvas = getActiveCanvas;
 window.setGlobalCanvas = setGlobalCanvas;
 
@@ -354,3 +380,19 @@ window.currentColor = currentColor;
 window.pwcaBindOperationPanelModuleSync = pwcaBindOperationPanelModuleSync;
 window.pwcaApplyOperationPanelModuleVisibility = pwcaApplyOperationPanelModuleVisibility;
 
+const canvasStore = pwcaGetCanvasStore();
+const isMultiViewMode = canvasStore && canvasStore.views && canvasStore.views.length > 0;
+const hasMultiViewContainer = document.querySelector('.multi-view-container') !== null;
+if (!isMultiViewMode && !hasMultiViewContainer) {
+    if (typeof window.initCanvasSystem === 'function') {
+        window.initCanvasSystem();
+    } else if (typeof init === 'function') {
+        init();
+    }
+    if (document.getElementById('boundaryLayer')) {
+        drawBoundary();
+    }
+    if (canvas) {
+        if (typeof window.initializeCanvas === 'function') window.initializeCanvas();
+    }
+}

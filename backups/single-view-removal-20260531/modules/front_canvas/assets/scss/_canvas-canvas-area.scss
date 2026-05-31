@@ -59,6 +59,20 @@ body.wpcanvas {
                         .canvas-container {
                         }
                     }
+
+                    .preview_area {
+                        .view-area {
+                            .preview-canvas-container {
+                                position: relative;
+
+                                #designPreviewCanvas {
+                                    position: absolute;
+                                    top: 0;
+                                    left: 0;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

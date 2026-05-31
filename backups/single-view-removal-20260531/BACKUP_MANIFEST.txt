@@ -1,0 +1,17 @@
+﻿Single-view removal backup created: 2026-05-31
+
+Copied files:
+C:\Users\fpwj\Local Sites\pwcanvas\app\public\wp-content\plugins\pwcanvas\backups\single-view-removal-20260531\modules\front_canvas\assets\js\canvas-init.js
+C:\Users\fpwj\Local Sites\pwcanvas\app\public\wp-content\plugins\pwcanvas\backups\single-view-removal-20260531\modules\front_canvas\assets\js\export.js
+C:\Users\fpwj\Local Sites\pwcanvas\app\public\wp-content\plugins\pwcanvas\backups\single-view-removal-20260531\modules\front_canvas\assets\js\canvas\page-bootstrap.js
+C:\Users\fpwj\Local Sites\pwcanvas\app\public\wp-content\plugins\pwcanvas\backups\single-view-removal-20260531\modules\front_canvas\assets\js\design\components\header-controls.js
+C:\Users\fpwj\Local Sites\pwcanvas\app\public\wp-content\plugins\pwcanvas\backups\single-view-removal-20260531\modules\front_canvas\assets\js\main\core-init.js
+C:\Users\fpwj\Local Sites\pwcanvas\app\public\wp-content\plugins\pwcanvas\backups\single-view-removal-20260531\modules\front_canvas\assets\js\main\operation-panel-colors.js
+C:\Users\fpwj\Local Sites\pwcanvas\app\public\wp-content\plugins\pwcanvas\backups\single-view-removal-20260531\modules\front_canvas\assets\js\main\preview-init.js
+C:\Users\fpwj\Local Sites\pwcanvas\app\public\wp-content\plugins\pwcanvas\backups\single-view-removal-20260531\modules\front_canvas\assets\js\main\preview.js
+C:\Users\fpwj\Local Sites\pwcanvas\app\public\wp-content\plugins\pwcanvas\backups\single-view-removal-20260531\modules\front_canvas\assets\scss\_canvas-canvas-area.scss
+C:\Users\fpwj\Local Sites\pwcanvas\app\public\wp-content\plugins\pwcanvas\backups\single-view-removal-20260531\modules\front_canvas\includes\class-pwca-front-canvas-assets.php
+C:\Users\fpwj\Local Sites\pwcanvas\app\public\wp-content\plugins\pwcanvas\backups\single-view-removal-20260531\modules\front_canvas\views\canvas-page.php
+C:\Users\fpwj\Local Sites\pwcanvas\app\public\wp-content\plugins\pwcanvas\backups\single-view-removal-20260531\modules\front_canvas\views\partials\canvas-design_area.php
+C:\Users\fpwj\Local Sites\pwcanvas\app\public\wp-content\plugins\pwcanvas\backups\single-view-removal-20260531\modules\front_canvas\views\partials\canvas-preview_area.php
+C:\Users\fpwj\Local Sites\pwcanvas\app\public\wp-content\plugins\pwcanvas\backups\single-view-removal-20260531\modules\front_product\assets\js\product\api\canvasPayloadBuilder.js

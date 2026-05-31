@@ -78,6 +78,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 						}
 						?>
 					</div>
+					<div class="preview_area">
+						<?php
+						$preview_view = $module_path . '/views/partials/canvas-preview_area.php';
+						if ( is_readable( $preview_view ) ) {
+							include $preview_view;
+						}
+						?>
+					</div>
 				</div>
 			</div>
 		</main>

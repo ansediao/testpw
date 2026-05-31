@@ -191,6 +191,23 @@ const pwcaGetPageBootstrapAllViewCanvases = () => {
   return [];
 };
 
+const initColorSwitchButtons = () => {
+  const buttons = document.querySelectorAll('.color-switch-btn');
+  if (!buttons || buttons.length === 0) return;
+
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const imageUrl = button.getAttribute('data-image-url');
+      const shadowLayer = document.getElementById('shadowLayer');
+      if (!shadowLayer || !imageUrl) return;
+      shadowLayer.setAttribute('data-color-image', imageUrl);
+      if (typeof window.initCanvas === 'function') {
+        window.initCanvas();
+      }
+    });
+  });
+};
+
 const initFetchProductData = async () => {
   const { pwId } = getSettings();
   if (!pwId) return;
@@ -296,6 +313,20 @@ const resolveMoqAndDiscount = () => {
   };
 };
 
+const capturePrimaryImage = async (previewContainerExists) => {
+  if (previewContainerExists) {
+    if (typeof window.capturePreviewCanvas === 'function') {
+      return window.capturePreviewCanvas();
+    }
+    return '';
+  }
+
+  if (typeof window.captureCanvas === 'function') {
+    return window.captureCanvas();
+  }
+  return '';
+};
+
 const buildViewImagesPayload = async (previewContainerExists) => {
   let viewImagesPayload = [];
   try {
@@ -332,8 +363,14 @@ const buildViewImagesPayload = async (previewContainerExists) => {
         };
       });
     } else {
-      console.error('[PW Canvas] 无法生成多视图图片：未发现视图数据或生成函数缺失');
-      throw new Error('Failed to generate view images');
+      const singleImage = await capturePrimaryImage(previewContainerExists);
+      viewImagesPayload = [
+        {
+          id: 'single',
+          name: '视图',
+          images: [singleImage],
+        },
+      ];
     }
   } catch (e) {
     console.warn('生成多视图图片时发生错误，将仅使用单图：', e);
@@ -928,6 +965,7 @@ const bindAddToCartButton = () => {
 };
 
 const initializePageBootstrap = () => {
+  initColorSwitchButtons();
   bindAddToCartButton();
   window.pwcaCanvasStartupPromise = pwcaInitializeAsyncStartup().catch((error) => {
     pwcaLogAsyncFlow('error', '设计页异步启动流程发生未捕获异常', error);
@@ -940,4 +978,5 @@ onReady(() => {
 });
 
 
+window.generateSingleViewPDF = generateSingleViewPDF;
 window.generateMultiViewPDF = generateMultiViewPDF;

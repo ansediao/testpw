@@ -38,6 +38,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleColorSwatchClick(color) {
         window.currentColor = color;
 
+        try {
+            const shadowCanvas = document.getElementById('shadowLayer');
+            if (shadowCanvas && typeof window.loadColorImage === 'function') {
+                const colorImageUrl = shadowCanvas.getAttribute('data-color-image');
+                if (colorImageUrl) {
+                    window.loadColorImage(colorImageUrl, color);
+                }
+            }
+        } catch (e) {
+            console.warn('更新预览颜色失败:', e);
+        }
+
         if (window.clearAllGradientRects) {
             window.clearAllGradientRects();
         }

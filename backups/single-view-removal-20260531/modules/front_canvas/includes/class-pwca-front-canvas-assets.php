@@ -182,9 +182,16 @@ final class Pwca_Front_Canvas_Assets {
 		);
 
 		$this->enqueue_script_if_readable(
+			'pwca-front-canvas-preview-init',
+			$this->module_url . 'assets/js/main/preview-init.js',
+			array( 'pwca-front-canvas-preview' ),
+			$this->module_path . '/assets/js/main/preview-init.js'
+		);
+
+		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-layers-sync',
 			$this->module_url . 'assets/js/main/layers-sync.js',
-			array( 'pwca-front-canvas-preview', 'pwca-front-canvas-ui-state-access' ),
+			array( 'pwca-front-canvas-preview-init', 'pwca-front-canvas-ui-state-access' ),
 			$this->module_path . '/assets/js/main/layers-sync.js'
 		);
 

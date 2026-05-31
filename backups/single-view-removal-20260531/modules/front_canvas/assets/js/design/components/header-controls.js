@@ -292,8 +292,35 @@ const HeaderControls = {
                         console.error('window.showUniversalViewPreview is not defined');
                     }
                     return;
-                } else {
-                    console.warn('No views available for preview');
+                }
+
+                // 3. Fallback to captureCanvas and show in new window (Single view or legacy)
+                try {
+                    // Check if capturePreviewCanvas exists (global)
+                    const captureFn = document.querySelector('.preview-canvas-container') && typeof window.capturePreviewCanvas === 'function' 
+                        ? window.capturePreviewCanvas 
+                        : (typeof window.captureCanvas === 'function' ? window.captureCanvas : null);
+
+                    if (captureFn) {
+                        const imageData = await captureFn();
+                        const previewWindow = window.open('', '_blank');
+                        previewWindow.document.write(`
+                            <html>
+                            <head>
+                                <title>Preview</title>
+                                <style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f0f0;}img{max-width:100%;max-height:90vh;box-shadow:0 0 20px rgba(0,0,0,0.1);} </style>
+                            </head>
+                            <body>
+                                <img src="${imageData}" alt="Preview">
+                            </body>
+                            </html>
+                        `);
+                        previewWindow.document.close();
+                    } else {
+                        console.error('Capture function not found');
+                    }
+                } catch (e) {
+                    console.error('Error in single view preview:', e);
                 }
 
             } else {
@@ -316,7 +343,12 @@ const HeaderControls = {
                     console.error('generateMultiViewPDF not found');
                 }
             } else {
-                console.warn('No views available for PDF generation');
+                // Single View mode
+                if (typeof window.generateSingleViewPDF === 'function') {
+                    await window.generateSingleViewPDF(productName);
+                } else {
+                    console.error('generateSingleViewPDF not found');
+                }
             }
         };
 
