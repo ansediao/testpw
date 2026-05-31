@@ -214,10 +214,6 @@ function assignPrintMethod(methodId) {
         }
     });
     document.dispatchEvent(event);
-    
-    if (typeof window.updateModelFromCanvas === 'function') {
-        setTimeout(() => window.updateModelFromCanvas(), 100);
-    }
 }
 
 function openPrintMethodBindingModal(layerId) {

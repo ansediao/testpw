@@ -95,7 +95,6 @@ Promowares 商品同步
 
 - Vue / Pinia / VueUse
 - Fabric.js
-- Three.js
 - jsPDF
 - List.js
 - 本地画布脚本

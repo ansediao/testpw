@@ -2,7 +2,6 @@ function initializeCanvasEventListeners(fabricCanvas, options = {}) {
     if (!fabricCanvas) return;
     addCanvasEventListeners(fabricCanvas);
     addCanvasSelectionListeners(fabricCanvas);
-    addCanvas3DModelListeners(fabricCanvas);
     if (options.delayLayerListeners !== false) {
         if (window.CanvasInitializationState && window.CanvasInitializationState.isInitializing) {
             const completeHandler = () => {
@@ -205,18 +204,5 @@ function addCanvasSelectionListeners(fabricCanvas) {
     });
 }
 
-function addCanvas3DModelListeners(fabricCanvas) {
-    if (!fabricCanvas) return;
-    const update = typeof window.updateModelFromCanvas === 'function' ? window.updateModelFromCanvas : null;
-    if (!update) return;
-    fabricCanvas.on('object:modified', function () { update(); });
-    fabricCanvas.on('object:added', function () { update(); });
-    fabricCanvas.on('object:removed', function () { update(); });
-    fabricCanvas.on('object:moving', function () { update(); });
-    fabricCanvas.on('object:scaling', function () { update(); });
-    fabricCanvas.on('object:rotating', function () { update(); });
-}
-
 window.addCanvasEventListeners = addCanvasEventListeners;
 window.addCanvasSelectionListeners = addCanvasSelectionListeners;
-window.addCanvas3DModelListeners = addCanvas3DModelListeners;

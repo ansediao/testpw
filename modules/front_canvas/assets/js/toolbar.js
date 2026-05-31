@@ -194,9 +194,6 @@ function updateDynamicToolbar(obj) {
                         if (activeObj && activeObj.type === 'text') {
                             activeObj.set('fill', c.hex_code);
                             activeCanvas.renderAll();
-                            if (typeof window.updateModelFromCanvas === 'function') {
-                                setTimeout(() => window.updateModelFromCanvas(), 100);
-                            }
                         }
                     });
                     swatchesBox.appendChild(sw);

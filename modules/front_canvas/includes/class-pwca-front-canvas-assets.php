@@ -72,10 +72,6 @@ final class Pwca_Front_Canvas_Assets {
 		wp_enqueue_script( 'pwca-vendor-vueuse-core', 'https://unpkg.com/@vueuse/core', array( 'pwca-vendor-vueuse-shared' ), null, true );
 		wp_enqueue_script( 'pwca-vendor-fabric', 'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js', array(), '5.3.1', true );
 		wp_enqueue_script( 'pwca-vendor-jspdf', 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', array(), '2.5.1', true );
-
-		wp_enqueue_script( 'pwca-vendor-three', 'https://unpkg.com/three@0.128.0/build/three.min.js', array(), '0.128.0', true );
-		wp_enqueue_script( 'pwca-vendor-three-orbit', 'https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js', array( 'pwca-vendor-three' ), '0.128.0', true );
-		wp_enqueue_script( 'pwca-vendor-three-gltf', 'https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js', array( 'pwca-vendor-three' ), '0.128.0', true );
 	}
 
 	private function enqueue_local_styles() {
@@ -148,13 +144,6 @@ final class Pwca_Front_Canvas_Assets {
 			$this->module_url . 'assets/js/boundary.js',
 			array(),
 			$this->module_path . '/assets/js/boundary.js'
-		);
-
-		$this->enqueue_script_if_readable(
-			'pwca-front-canvas-model-3d',
-			$this->module_url . 'assets/js/model-3d.js',
-			array( 'pwca-vendor-three-orbit', 'pwca-vendor-three-gltf' ),
-			$this->module_path . '/assets/js/model-3d.js'
 		);
 
 		$this->enqueue_script_if_readable(

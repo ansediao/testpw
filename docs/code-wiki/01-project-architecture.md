@@ -111,7 +111,7 @@ modules/{module}/index.php
 - `modules/front_product/`
   - 商品页 Vue 应用
 - `modules/front_canvas/`
-  - 设计器页 Vue + Pinia + Fabric.js + Three.js 应用
+  - 设计器页 Vue + Pinia + Fabric.js 应用
 
 这一层不是通过集中式构建工具打包，而是由 PHP 通过 `wp_enqueue_script()` 直接装配本地脚本和 CDN 依赖。
 
@@ -131,7 +131,6 @@ modules/{module}/index.php
 - Pinia
 - VueUse
 - Fabric.js
-- Three.js
 - jsPDF
 - List.js
 - layui
@@ -189,7 +188,7 @@ flowchart TD
     E --> G[front_* modules]
     E --> H[integration_* modules]
     G --> I[WooCommerce Product/Cart/Checkout Hooks]
-    G --> J[Vue + Fabric.js + Three.js]
+    G --> J[Vue + Fabric.js]
     H --> K[Promowares API]
     F --> L[WP Admin Menus and AJAX]
 ```

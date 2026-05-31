@@ -1,7 +1,4 @@
 <div class="view-area">
-    <?php if (!empty($model_3d_url)) : ?>
-        <div id="model3dContainer" data-model-url="<?php echo esc_attr($model_3d_url); ?>"></div>
-    <?php endif; ?>
     <?php if (!empty($pw_4_grid)) : ?>
         <div class="preview-canvas-container">
             <?php

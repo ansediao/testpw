@@ -14,7 +14,7 @@
 - **jsPDF**: PDF 导出功能
 
 ## 外部依赖
-- **CDN 资源**: Vue 3, Pinia, Fabric.js, Three.js 等通过 CDN 加载
+- **CDN 资源**: Vue 3, Pinia, Fabric.js 等通过 CDN 加载
 - **阿里云字体图标**: 图标资源
 - **Promowares API**: 外部数据服务
 

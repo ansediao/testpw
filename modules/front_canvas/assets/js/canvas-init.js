@@ -613,8 +613,6 @@ function loadColorImage(imageUrl, color) {
         shadowCtx.fillRect(0, 0, shadowCanvas.width, shadowCanvas.height);
         // 重置混合模式
         shadowCtx.globalCompositeOperation = 'source-over';
-        // 颜色图片更新后，更新3D模型纹理
-        setTimeout(() => updateModelFromCanvas(), 100);
     };
     colorImg.src = imageUrl;
 }

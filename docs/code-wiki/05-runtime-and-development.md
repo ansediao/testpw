@@ -138,7 +138,6 @@ Promowares API 基础地址当前位于：
 - Pinia
 - VueUse
 - Fabric.js
-- Three.js
 - jsPDF
 - List.js
 - layui

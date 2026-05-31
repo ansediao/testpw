@@ -2,7 +2,6 @@
 // 获取产品图片URL
 $image_url = '';
 $color_image_url = '';
-$model_3d_url = ''; // 新增：获取3D模型URL变量
 if ($product_id > 0 && $product) {
     $image_id = $product->get_image_id();
     if ($image_id) {
@@ -10,8 +9,6 @@ if ($product_id > 0 && $product) {
     }
     // 获取base 图层
     $color_image_url = get_post_meta($product_id, 'pw_mainIMG_color', true) ?: 'https://pwfiles.939666.xyz/t-shirt/color.png';
-    // 获取3D模型文件
-    $model_3d_url = get_post_meta($product_id, 'pw_3d_file', true);
 
     // 获取容器图层
     $pw_container  = get_post_meta($product_id, 'pw_container', true);
@@ -19,12 +16,6 @@ if ($product_id > 0 && $product) {
     $pw_4_grid = get_post_meta($product_id, 'pw_4-grid', true);
 
     $pw_bg = get_post_meta($product_id, 'pw_bg', true);
-
-    // 如果 pw_3d_file 存在 ，则 $image_url 和 $color_image_url 值就为空
-    if ($model_3d_url) {
-        $image_url = '';
-        $color_image_url = '';
-    }
 
     // 如果 $pw_4_grid 存在且不为空 那么 
     if ($pw_4_grid) {
