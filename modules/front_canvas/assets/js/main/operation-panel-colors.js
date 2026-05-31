@@ -938,18 +938,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             customColorModal.style.display = 'none';
-
-            try {
-                const shadowCanvas = document.getElementById('shadowLayer');
-                if (shadowCanvas && typeof window.loadColorImage === 'function') {
-                    const colorImageUrl = shadowCanvas.getAttribute('data-color-image');
-                    if (colorImageUrl) {
-                        window.loadColorImage(colorImageUrl, color);
-                    }
-                }
-            } catch (e) {
-                console.warn('更新预览颜色失败:', e);
-            }
         });
     }
 
@@ -1238,18 +1226,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (typeof window.hideGradientModal === 'function') {
                 window.hideGradientModal();
-            }
-
-            try {
-                const shadowCanvas = document.getElementById('shadowLayer');
-                if (shadowCanvas && typeof window.loadColorImage === 'function') {
-                    const colorImageUrl = shadowCanvas.getAttribute('data-color-image');
-                    if (colorImageUrl) {
-                        window.loadColorImage(colorImageUrl, color1);
-                    }
-                }
-            } catch (e) {
-                console.warn('更新预览颜色失败:', e);
             }
         });
     }

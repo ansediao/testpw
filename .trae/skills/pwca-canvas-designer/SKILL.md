@@ -16,8 +16,9 @@ description: "PWCA Canvas Designer 前端架构与工具栏系统指南。Invoke
 | 文件 | 职责 |
 |------|------|
 | `canvas-manager.js` | CanvasManager 单例，管理所有 Fabric.js Canvas 实例 |
-| `canvas-init.js` | Canvas 初始化入口，连接 CanvasManager 与页面 DOM |
+| `canvas-init.js` | Canvas 初始化入口，统一执行多视图初始化逻辑 |
 | `toolbar.js` | `updateDynamicToolbar()` — 根据选中对象类型和当前激活按钮渲染右侧控制区 HTML |
+| `export.js` | `captureViewImage(viewId)` — 捕获指定视图的图片数据 |
 
 ### main/ — 面板与事件
 
@@ -131,6 +132,19 @@ Fabric.selection:created / selection:updated
     → updateDynamicToolbar(selectedObj)
     → switchOperationPanelTab('tab-wenzi', { preserveSelection: true })
 ```
+
+## 统一多视图架构 (2026-05-31 更新)
+
+### 架构原则
+
+1. **全量多视图**：在线设计页不再区分“单视图”和“多视图”路线。即使产品只有 1 个视图，也必须通过 `store.views` 数组进行管理，并视为多视图的一种特殊情况。
+2. **废弃 DOM 引用**：禁止直接引用 `shadowLayer`、`colorLayer`、`previewCanvas` 等旧单视图专用 DOM ID。所有画布操作必须经由 `CanvasManager` 或通过 `mainCanvas-${viewId}` 等多视图命名规范访问。
+3. **统一导出/预览**：所有预览行为（如 `renderBtn` 点击）必须调用 `showUniversalViewPreview(views)`，导出行为必须迭代 `views` 数组。
+
+### 初始化流程
+
+- **数据层**：`fetchProductData()` 必须将产品模板标准化为 `store.views`。
+- **视图层**：`canvas-init.js` 调用 `initializeMultiViewCanvases()`。它会为每个视图启动 `CanvasInitializationState`，并在完成后触发 `multiViewInitComplete` 事件。
 
 ## 规范约束
 

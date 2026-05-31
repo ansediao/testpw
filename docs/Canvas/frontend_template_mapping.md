@@ -16,7 +16,7 @@ modules/front_canvas/
 │       ├── canvas-dongtai-area.php
 │       ├── canvas-header.php
 │       ├── canvas-operation-panel.php
-│       └── canvas-preview_area.php
+│       └── canvas-templates.php
 └── assets/
     ├── js/
     │   ├── main/                       # 主要的前端逻辑模块（已按功能拆分）
