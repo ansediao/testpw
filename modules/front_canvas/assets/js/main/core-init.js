@@ -200,7 +200,7 @@ let pwcaOperationPanelModuleSyncBound = false;
 function pwcaBindOperationPanelModuleSync() {
     const store = pwcaGetCanvasStore();
     if (!store) {
-        window.setTimeout(pwcaBindOperationPanelModuleSync, 150);
+        console.warn('[PW Canvas] 绑定操作面板同步失败：Store 未就绪');
         return;
     }
 
@@ -209,17 +209,19 @@ function pwcaBindOperationPanelModuleSync() {
         return;
     }
 
+    // 立即应用一次可见性
     pwcaApplyOperationPanelModuleVisibility();
 
+    // 监听 Store 变化，动态更新面板
     if (typeof store.$subscribe === 'function') {
         store.$subscribe((mutation) => {
-            if (mutation && mutation.storeId === 'canvas') {
-                pwcaApplyOperationPanelModuleVisibility();
-            }
+            // 当 store 状态变化时（如产品数据加载完成、视图切换等），更新面板可见性
+            pwcaApplyOperationPanelModuleVisibility();
         });
     }
 
     pwcaOperationPanelModuleSyncBound = true;
+    console.log('[PW Canvas] 操作面板 UI 同步已成功绑定');
 }
 
 function switchOperationPanelTab(tabId, opts = {}) {
@@ -373,14 +375,10 @@ let currentColor = defaultColor;
 window.defaultColor = defaultColor;
 window.currentColor = currentColor;
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', pwcaApplyOperationPanelModuleVisibility);
-} else {
-    pwcaApplyOperationPanelModuleVisibility();
-}
-
-document.addEventListener('canvasPiniaReady', pwcaBindOperationPanelModuleSync);
-pwcaBindOperationPanelModuleSync();
+// 初始 UI 状态由 page-bootstrap.js 的异步队列统一调度绑定
+// 暴露方法供外部显式调用
+window.pwcaBindOperationPanelModuleSync = pwcaBindOperationPanelModuleSync;
+window.pwcaApplyOperationPanelModuleVisibility = pwcaApplyOperationPanelModuleVisibility;
 
 const canvasStore = pwcaGetCanvasStore();
 const isMultiViewMode = canvasStore && canvasStore.views && canvasStore.views.length > 0;

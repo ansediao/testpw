@@ -128,35 +128,27 @@ const pwcaWaitForCanvasStore = async () => {
   return store;
 };
 
-const pwcaRunStartupQueueWithVueUse = async (tasks, context) => {
+const pwcaRunStartupQueueWithVueUse = (tasks, context) => {
   const useAsyncQueue = pwcaGetUseAsyncQueue();
-  if (!useAsyncQueue) {
-    return null;
-  }
+  if (!useAsyncQueue) return null;
 
-  // 2. 执行队列
-  // useAsyncQueue(tasks, { ...配置项 })
   return new Promise((resolve) => {
-    let activeIndexRef = null;
     const { activeIndex, result } = useAsyncQueue(tasks, {
-      interrupt: false,
+      interrupt: true, // 发生错误时中断，确保流程稳定
       onError: () => {
-        const activeTaskIndex = activeIndexRef ? activeIndexRef.value : -1;
-        pwcaLogAsyncFlow('warn', '异步队列捕获到任务异常', { activeTaskIndex });
+        const err = result[activeIndex.value];
+        pwcaLogAsyncFlow('error', `队列任务失败 (索引: ${activeIndex.value}):`, err);
+        context.errors.push({
+          index: activeIndex.value,
+          error: err
+        });
       },
       onFinished: () => {
-        context.queueResults = Array.isArray(result)
-          ? result.map((item, index) => ({
-            index,
-            state: item.state,
-            hasData: item.data !== null,
-          }))
-          : [];
+        pwcaLogAsyncFlow('info', '所有初始化任务结束');
+        context.queueResults = result;
         resolve(context);
       },
     });
-
-    activeIndexRef = activeIndex;
   });
 };
 
@@ -885,67 +877,54 @@ const pwcaStartupTaskRestoreCartEditCanvasState = async (currentContext) => {
   currentContext.externalCanvasState = await initCartEditCanvasState();
 };
 
+const pwcaStartupTaskSyncUiState = async (currentContext) => {
+  if (typeof window.pwcaBindOperationPanelModuleSync === 'function') {
+    window.pwcaBindOperationPanelModuleSync();
+  }
+};
+
 const buildStartupTasks = (context) => {
-  // 首屏关键路径：只保留进入可编辑状态所需任务
+  // 定义初始化任务序列
   const tasks = [
+    // 1. 等待 Pinia Store 就绪
     pwcaCreateStartupTask(context, 'waitForCanvasStore', pwcaStartupTaskWaitForCanvasStore),
+    
+    // 2. 获取产品基础数据与配置
     pwcaCreateStartupTask(context, 'fetchProductData', pwcaStartupTaskFetchProductData),
+    
+    // 3. 加载当前视图的印刷方式
     pwcaCreateStartupTask(
       context,
       'ensureActiveViewPrintMethodsLoaded',
       pwcaStartupTaskEnsureActiveViewPrintMethodsLoaded
     ),
+    
+    // 4. 初始化多视图画布 (Fabric.js 实例)
     pwcaCreateStartupTask(
       context,
       'initializeMultiViewCanvases',
       pwcaStartupTaskInitializeMultiViewCanvases
     ),
+
+    // 5. 初始化同步 UI 状态 (面板可见性等)
+    pwcaCreateStartupTask(context, 'syncUiState', pwcaStartupTaskSyncUiState),
+
+    // 6. 初始化画布状态集成 (保存/回显逻辑)
+    pwcaCreateStartupTask(
+      context,
+      'initializeCanvasStateIntegration',
+      pwcaStartupTaskInitializeCanvasStateIntegration
+    ),
+
+    // 7. 如果是编辑模式，还原购物车中的画布状态
+    pwcaCreateStartupTask(
+      context,
+      'restoreCartEditCanvasState',
+      pwcaStartupTaskRestoreCartEditCanvasState
+    ),
   ];
 
   return tasks;
-};
-
-const buildPostStartupTasks = (context) => [
-  pwcaCreateStartupTask(
-    context,
-    'initializeCanvasStateIntegration',
-    pwcaStartupTaskInitializeCanvasStateIntegration
-  ),
-  pwcaCreateStartupTask(
-    context,
-    'restoreCartEditCanvasState',
-    pwcaStartupTaskRestoreCartEditCanvasState
-  ),
-];
-
-const pwcaRunPostStartupTasks = async (context) => {
-  const tasks = buildPostStartupTasks(context);
-  if (!tasks.length) {
-    return context;
-  }
-
-  pwcaLogAsyncFlow('info', '开始执行设计页后台启动任务', {
-    taskCount: tasks.length,
-  });
-
-  let currentContext = context;
-  for (const task of tasks) {
-    currentContext = await task(currentContext);
-  }
-
-  pwcaLogAsyncFlow('info', '设计页后台启动任务完成', {
-    taskCount: tasks.length,
-    errorCount: currentContext.errors.length,
-  });
-
-  return currentContext;
-};
-
-const pwcaSchedulePostStartupTasks = (context) => {
-  const run = () => pwcaRunPostStartupTasks(context);
-  const promise = Promise.resolve().then(run);
-  window.pwcaCanvasPostStartupPromise = promise;
-  return promise;
 };
 
 const finalizeAsyncStartup = (finalContext) => {
@@ -964,11 +943,13 @@ const finalizeAsyncStartup = (finalContext) => {
 const pwcaInitializeAsyncStartup = async () => {
   const context = pwcaCreateAsyncContext();
   const tasks = buildStartupTasks(context);
+  
+  // 使用 useAsyncQueue 执行任务序列
   const finalContext = await pwcaRunStartupQueue(tasks, context);
+  
+  // 结束初始化流程
   const resolvedContext = finalizeAsyncStartup(finalContext);
-  pwcaSchedulePostStartupTasks(resolvedContext).catch((error) => {
-    pwcaLogAsyncFlow('error', '设计页后台启动任务发生未捕获异常', error);
-  });
+  
   return resolvedContext;
 };
 
