@@ -222,6 +222,82 @@ async function pwcaGenerateConfiguredPreviewImage(view, config, activeCanvas) {
     return captureViewImage(view);
 }
 
+function pwcaUpdateBoundaryFromLayerDrawable(drawable, placement, renderSize, imageUrl) {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = renderSize.width;
+    tempCanvas.height = renderSize.height;
+
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.clearRect(0, 0, renderSize.width, renderSize.height);
+    tempCtx.drawImage(drawable, 0, 0, renderSize.width, renderSize.height);
+
+    const imageData = tempCtx.getImageData(0, 0, renderSize.width, renderSize.height);
+    const data = imageData.data;
+
+    let minX = renderSize.width;
+    let maxX = -1;
+    let minY = renderSize.height;
+    let maxY = -1;
+
+    for (let y = 0; y < renderSize.height; y++) {
+        for (let x = 0; x < renderSize.width; x++) {
+            const alpha = data[(y * renderSize.width + x) * 4 + 3];
+            if (alpha > 10) {
+                minX = Math.min(minX, x);
+                maxX = Math.max(maxX, x);
+                minY = Math.min(minY, y);
+                maxY = Math.max(maxY, y);
+            }
+        }
+    }
+
+    const hasOpaquePixels = maxX >= minX && maxY >= minY;
+    const boundary = {
+        x: placement.x + (hasOpaquePixels ? minX : 0),
+        y: placement.y + (hasOpaquePixels ? minY : 0),
+        width: hasOpaquePixels ? (maxX - minX) : renderSize.width,
+        height: hasOpaquePixels ? (maxY - minY) : renderSize.height,
+        originalX: placement.x,
+        originalY: placement.y,
+        originalWidth: renderSize.width,
+        originalHeight: renderSize.height,
+        imageUrl
+    };
+
+    window.cupBoundary = boundary;
+    if (window.baseCupBoundaryImageUrl && window.baseCupBoundaryImageUrl === imageUrl) {
+        window.baseCupBoundary = Object.assign({}, boundary);
+    }
+}
+
+async function pwcaDrawLayerForGridComposite(ctx, layer, canvasWidth, canvasHeight, options = {}) {
+    const imageUrl = layer?.layer_data?.content?.imageURL;
+    if (!layer || !imageUrl) {
+        return null;
+    }
+
+    const renderSize = pwcaGetLayerSize(layer, {
+        width: canvasWidth,
+        height: canvasHeight
+    });
+    const placement = pwcaGetLayerPlacement(layer, canvasHeight, renderSize);
+    const drawable = options.tintColor
+        ? await pwcaBuildTintedImageCanvas(imageUrl, renderSize.width, renderSize.height, options.tintColor)
+        : await pwcaLoadImage(imageUrl);
+
+    ctx.drawImage(drawable, placement.x, placement.y, renderSize.width, renderSize.height);
+
+    if (options.captureBoundary) {
+        pwcaUpdateBoundaryFromLayerDrawable(drawable, placement, renderSize, imageUrl);
+    }
+
+    return {
+        imageUrl,
+        renderSize,
+        placement
+    };
+}
+
 async function generateUniversalViewImages(views) {
     const images = [];
 
@@ -293,17 +369,36 @@ async function generateCompositeImageForGrid(options) {
     const tempCanvas = document.createElement('canvas'); tempCanvas.width = canvasWidth; tempCanvas.height = canvasHeight; const ctx = tempCanvas.getContext('2d');
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     try {
-        if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) { window.baseCupBoundaryImageUrl = baseLayer.layer_data.content.imageURL; }
-        if (backgroundLayer && backgroundLayer.layer_data && backgroundLayer.layer_data.content && backgroundLayer.layer_data.content.imageURL) { await drawLayerImageForGrid(ctx, backgroundLayer.layer_data.content.imageURL, canvasWidth, canvasHeight); }
+        window.cupBoundary = null;
+        window.baseCupBoundary = null;
+        window.baseCupBoundaryImageUrl = baseLayer?.layer_data?.content?.imageURL || null;
+
+        if (backgroundLayer?.layer_data?.content?.imageURL) {
+            await pwcaDrawLayerForGridComposite(ctx, backgroundLayer, canvasWidth, canvasHeight);
+        }
         if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) {
             const explicitColor = typeof window.getExplicitSelectedColor === 'function' ? window.getExplicitSelectedColor() : null;
-            if (explicitColor) { await drawLayerImageForGridWithColor(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight, explicitColor); }
-            else { await drawLayerImageForGrid(ctx, baseLayer.layer_data.content.imageURL, canvasWidth, canvasHeight); }
+            await pwcaDrawLayerForGridComposite(ctx, baseLayer, canvasWidth, canvasHeight, {
+                tintColor: explicitColor,
+                captureBoundary: true
+            });
         }
-        if (overlayLayer && overlayLayer.layer_data && overlayLayer.layer_data.content && overlayLayer.layer_data.content.imageURL) { await drawLayerImageForGrid(ctx, overlayLayer.layer_data.content.imageURL, canvasWidth, canvasHeight); }
+        if (overlayLayer?.layer_data?.content?.imageURL) {
+            await pwcaDrawLayerForGridComposite(ctx, overlayLayer, canvasWidth, canvasHeight);
+        }
         let imageAnalysisData = null;
         if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL && typeof window.analyzeImageInfo === 'function') { imageAnalysisData = await window.analyzeImageInfo(baseLayer.layer_data.content.imageURL); }
-        if (activeCanvas) { await drawCroppedCanvasRegionWithWindowEffect(ctx, activeCanvas, cropConfig, canvasWidth, canvasHeight, imageAnalysisData); }
+        if (activeCanvas) {
+            await drawCroppedCanvasRegionWithWindowEffect(
+                ctx,
+                activeCanvas,
+                cropConfig,
+                canvasWidth,
+                canvasHeight,
+                imageAnalysisData,
+                baseLayer
+            );
+        }
         return tempCanvas.toDataURL('image/png');
     } catch (error) { throw error; }
 }
@@ -348,7 +443,7 @@ async function drawLayerImageForGridWithColor(ctx, imageUrl, width, height, colo
     });
 }
 
-async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropConfig, targetWidth, targetHeight, imageAnalysisData) {
+async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropConfig, targetWidth, targetHeight, imageAnalysisData, maskLayer = null) {
     return new Promise((resolve) => {
         const sourceDataURL = sourceCanvas.toDataURL('image/png');
         const img = new Image();
@@ -377,12 +472,12 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
             }
             let maskCanvas = null;
             try {
-                const baseImageUrl = window.baseCupBoundaryImageUrl;
-                if (baseImageUrl) {
+                if (maskLayer?.layer_data?.content?.imageURL) {
                     maskCanvas = document.createElement('canvas'); maskCanvas.width = targetWidth; maskCanvas.height = targetHeight; const maskCtx = maskCanvas.getContext('2d');
                     const explicitColor = typeof window.getExplicitSelectedColor === 'function' ? window.getExplicitSelectedColor() : null;
-                    if (explicitColor) { await drawLayerImageForGridWithColor(maskCtx, baseImageUrl, targetWidth, targetHeight, explicitColor); }
-                    else { await drawLayerImageForGrid(maskCtx, baseImageUrl, targetWidth, targetHeight); }
+                    await pwcaDrawLayerForGridComposite(maskCtx, maskLayer, targetWidth, targetHeight, {
+                        tintColor: explicitColor
+                    });
                 }
             } catch (e) {}
             if (maskCanvas) {
