@@ -1,4 +1,11 @@
 async function showUniversalViewPreview(views) {
+    function pwcaSwitchUniversalPreviewBackToDesign() {
+        const designButton = document.querySelector('.design-switch-btn-box .design-switch-btn[data-tab="viewDesign"]');
+        if (designButton instanceof HTMLButtonElement) {
+            designButton.click();
+        }
+    }
+
     const existingModal = document.getElementById('universal-view-preview-modal');
     if (existingModal) { existingModal.remove(); }
     const modalHTML = `
@@ -61,6 +68,7 @@ async function showUniversalViewPreview(views) {
             modal.style.display = 'none';
             document.body.classList.remove('modal-open');
             document.removeEventListener('keydown', onKeyDown);
+            pwcaSwitchUniversalPreviewBackToDesign();
         };
 
         const onKeyDown = (event) => {
@@ -96,16 +104,24 @@ async function showUniversalViewPreview(views) {
     viewImages.forEach((imageData, index) => {
         const view = views[index];
         const isGridView = !!(window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view));
+        const configuredPreviewLabels = typeof window.pwcaGetFlowPreviewImageConfigs === 'function'
+            ? window.pwcaGetFlowPreviewImageConfigs(view).map((config, configIndex) => {
+                return config?.label || config?.key || `Image ${configIndex + 1}`;
+            })
+            : [];
         if (isGridView && Array.isArray(imageData)) {
-            const gridLabels = ['Front View', 'Left View', 'Right View', 'Back View'];
+            const imageLabels = configuredPreviewLabels.length > 0
+                ? configuredPreviewLabels
+                : imageData.map((_, imageIndex) => `Image ${imageIndex + 1}`);
             imageData.forEach((gridImageData, gridIndex) => {
+                const currentLabel = imageLabels[gridIndex] || `Image ${gridIndex + 1}`;
                 const thumbnailItem = document.createElement('div');
                 thumbnailItem.className = `thumbnail-item ${thumbnailList.children.length === 0 ? 'active' : ''}`;
-                thumbnailItem.innerHTML = `<img src="${gridImageData}" alt="${view.name || `View ${index + 1}`} - ${gridLabels[gridIndex]}" /><div class="thumbnail-label">${view.name || `View ${index + 1}`} - ${gridLabels[gridIndex]}</div>`;
+                thumbnailItem.innerHTML = `<img src="${gridImageData}" alt="${view.name || `View ${index + 1}`} - ${currentLabel}" /><div class="thumbnail-label">${view.name || `View ${index + 1}`} - ${currentLabel}</div>`;
                 thumbnailItem.addEventListener('click', () => {
                     thumbnailList.querySelectorAll('.thumbnail-item').forEach(item => { item.classList.remove('active'); });
                     thumbnailItem.classList.add('active');
-                    mainPreview.innerHTML = `<img src="${gridImageData}" alt="${view.name || `View ${index + 1}`} - ${gridLabels[gridIndex]}">`;
+                    mainPreview.innerHTML = `<img src="${gridImageData}" alt="${view.name || `View ${index + 1}`} - ${currentLabel}">`;
                 });
                 thumbnailList.appendChild(thumbnailItem);
             });
@@ -124,7 +140,13 @@ async function showUniversalViewPreview(views) {
     if (viewImages.length > 0) {
         const firstView = views[0];
         const firstImageData = viewImages[0];
-        if ((window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(firstView)) && Array.isArray(firstImageData)) { mainPreview.innerHTML = `<img src="${firstImageData[0]}" alt="${firstView.name || 'View 1'} - Front View">`; }
+        if ((window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(firstView)) && Array.isArray(firstImageData)) {
+            const firstFlowConfig = typeof window.pwcaGetFlowPreviewImageConfigs === 'function'
+                ? window.pwcaGetFlowPreviewImageConfigs(firstView)[0]
+                : null;
+            const firstLabel = firstFlowConfig?.label || firstFlowConfig?.key || 'Image 1';
+            mainPreview.innerHTML = `<img src="${firstImageData[0]}" alt="${firstView.name || 'View 1'} - ${firstLabel}">`;
+        }
         else { mainPreview.innerHTML = `<img src="${firstImageData}" alt="${firstView.name || 'View 1'}">`; }
     }
 }

@@ -20,75 +20,272 @@ function pwcaGetGridActiveCanvas() {
     return null;
 }
 
+function pwcaGetViewLayers(view) {
+    if (Array.isArray(view?.layers) && view.layers.length > 0) {
+        return view.layers;
+    }
+
+    const configuredLayers = view?.data?.layer_config?.layers;
+    return Array.isArray(configuredLayers) ? configuredLayers : [];
+}
+
+function pwcaGetViewLayerByName(view, layerName) {
+    return pwcaGetViewLayers(view).find((layer) => layer?.name === layerName) || null;
+}
+
+function pwcaGetLayerSize(layer, fallback = { width: 400, height: 400 }) {
+    const layerSize = layer?.layer_data?.dimensions?.layerSize || {};
+    const width = Number(layerSize.width || fallback.width || 0);
+    const height = Number(layerSize.height || fallback.height || 0);
+
+    return {
+        width: Number.isFinite(width) && width > 0 ? width : Number(fallback.width || 0),
+        height: Number.isFinite(height) && height > 0 ? height : Number(fallback.height || 0)
+    };
+}
+
+function pwcaGetCanvasSizeFromConfig(view, config, fallback = { width: 400, height: 400 }) {
+    const sizeReferenceName = config?.sizeReferenceLayer;
+    const sizeReferenceLayer = sizeReferenceName ? pwcaGetViewLayerByName(view, sizeReferenceName) : null;
+    return pwcaGetLayerSize(sizeReferenceLayer, fallback);
+}
+
+function pwcaGetLayerPlacement(layer, canvasHeight, renderSize) {
+    const position = layer?.layer_data?.position || {};
+    const coordinates = position.coordinates || {};
+    const x = Number(coordinates.x || 0);
+    const y = Number(coordinates.y || 0);
+    const anchorPoint = String(position.anchorPoint || 'bottom-left').trim();
+
+    if (anchorPoint === 'top-left') {
+        return {
+            x,
+            y
+        };
+    }
+
+    return {
+        x,
+        y: canvasHeight - y - renderSize.height
+    };
+}
+
+function pwcaCreateImageErrorDataUrl(label) {
+    return 'data:image/svg+xml;base64,' + btoa(
+        `<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">${label}</text></svg>`
+    );
+}
+
+function pwcaLoadImage(imageUrl) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = imageUrl;
+    });
+}
+
+async function pwcaBuildTintedImageCanvas(imageUrl, width, height, color) {
+    const sourceImage = await pwcaLoadImage(imageUrl);
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = width;
+    tempCanvas.height = height;
+
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.drawImage(sourceImage, 0, 0, width, height);
+    tempCtx.globalCompositeOperation = 'source-in';
+    tempCtx.fillStyle = color;
+    tempCtx.fillRect(0, 0, width, height);
+    tempCtx.globalCompositeOperation = 'source-over';
+
+    return tempCanvas;
+}
+
+async function pwcaDrawLayerByConfig(ctx, view, layerConfig, canvasWidth, canvasHeight) {
+    const layerName = typeof layerConfig === 'string' ? layerConfig : layerConfig?.name;
+    const layer = pwcaGetViewLayerByName(view, layerName);
+    const imageUrl = layer?.layer_data?.content?.imageURL;
+
+    if (!layer || !imageUrl) {
+        return;
+    }
+
+    const renderSize = pwcaGetLayerSize(layer, {
+        width: canvasWidth,
+        height: canvasHeight
+    });
+    const placement = pwcaGetLayerPlacement(layer, canvasHeight, renderSize);
+    const applySelectedColor = !!layerConfig?.applySelectedColor;
+    const selectedColor = typeof window.getExplicitSelectedColor === 'function'
+        ? window.getExplicitSelectedColor()
+        : null;
+
+    if (applySelectedColor && selectedColor) {
+        const tintedCanvas = await pwcaBuildTintedImageCanvas(
+            imageUrl,
+            renderSize.width,
+            renderSize.height,
+            selectedColor
+        );
+        ctx.drawImage(tintedCanvas, placement.x, placement.y, renderSize.width, renderSize.height);
+        return;
+    }
+
+    const img = await pwcaLoadImage(imageUrl);
+    ctx.drawImage(img, placement.x, placement.y, renderSize.width, renderSize.height);
+}
+
+async function pwcaDrawActiveCanvasFull(ctx, activeCanvas, canvasWidth, canvasHeight) {
+    if (!activeCanvas) {
+        return;
+    }
+
+    const canvasDataUrl = activeCanvas.toDataURL('image/png');
+    const image = await pwcaLoadImage(canvasDataUrl);
+    ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
+}
+
+async function pwcaResizeImageDataUrl(imageDataUrl, canvasWidth, canvasHeight) {
+    const image = await pwcaLoadImage(imageDataUrl);
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvasWidth;
+    tempCanvas.height = canvasHeight;
+
+    const ctx = tempCanvas.getContext('2d');
+    ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight);
+
+    return tempCanvas.toDataURL('image/png');
+}
+
+async function pwcaGenerateLayerCompositePreview(view, config, activeCanvas) {
+    const canvasSize = pwcaGetCanvasSizeFromConfig(view, config);
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvasSize.width;
+    tempCanvas.height = canvasSize.height;
+
+    const ctx = tempCanvas.getContext('2d');
+    ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
+
+    const beforeCanvasLayers = Array.isArray(config?.beforeCanvasLayers) ? config.beforeCanvasLayers : [];
+    const afterCanvasLayers = Array.isArray(config?.afterCanvasLayers) ? config.afterCanvasLayers : [];
+
+    for (const layerConfig of beforeCanvasLayers) {
+        await pwcaDrawLayerByConfig(ctx, view, layerConfig, canvasSize.width, canvasSize.height);
+    }
+
+    if (config?.canvasSource?.mode === 'full') {
+        await pwcaDrawActiveCanvasFull(ctx, activeCanvas, canvasSize.width, canvasSize.height);
+    }
+
+    for (const layerConfig of afterCanvasLayers) {
+        await pwcaDrawLayerByConfig(ctx, view, layerConfig, canvasSize.width, canvasSize.height);
+    }
+
+    return tempCanvas.toDataURL('image/png');
+}
+
+async function pwcaGenerateGridMockupPreview(view, config, activeCanvas) {
+    const canvasSize = pwcaGetCanvasSizeFromConfig(view, config);
+    const backgroundLayer = pwcaGetViewLayerByName(view, config?.backgroundLayerName || 'Background Layer');
+    const baseLayer = pwcaGetViewLayerByName(view, config?.baseLayerName || 'Base Layer');
+    const overlayLayer = pwcaGetViewLayerByName(view, config?.overlayLayerName || 'Overlay Layer');
+    const mappingLayer = pwcaGetViewLayerByName(view, config?.mappingLayerName || 'Mapping Layer');
+
+    return generateCompositeImageForGrid({
+        canvasWidth: canvasSize.width,
+        canvasHeight: canvasSize.height,
+        backgroundLayer,
+        baseLayer,
+        overlayLayer,
+        mappingLayer,
+        activeCanvas,
+        cropConfig: config?.cropConfig || { x: 0.25, y: 0, width: 0.5, height: 1 }
+    });
+}
+
+async function pwcaGenerateConfiguredPreviewImage(view, config, activeCanvas) {
+    if (config?.mode === 'capturedView') {
+        const capturedImage = await captureViewImage(view);
+        const canvasSize = pwcaGetCanvasSizeFromConfig(view, config);
+        return pwcaResizeImageDataUrl(capturedImage, canvasSize.width, canvasSize.height);
+    }
+
+    if (config?.mode === 'layerComposite') {
+        return pwcaGenerateLayerCompositePreview(view, config, activeCanvas);
+    }
+
+    if (config?.mode === 'gridMockup') {
+        return pwcaGenerateGridMockupPreview(view, config, activeCanvas);
+    }
+
+    return captureViewImage(view);
+}
+
 async function generateUniversalViewImages(views) {
     const images = [];
+
     for (const view of views) {
         try {
-            if (window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view)) {
-                const currentImage = await captureViewImage(view);
-                const firstGridImage = await generate4GridImagesForView(view, { onlyFirst: true });
-                images.push([currentImage, firstGridImage]);
+            const flowPreviewConfigs = typeof window.pwcaGetFlowPreviewImageConfigs === 'function'
+                ? window.pwcaGetFlowPreviewImageConfigs(view)
+                : [];
+
+            if (Array.isArray(flowPreviewConfigs) && flowPreviewConfigs.length > 0) {
+                images.push(await generate4GridImagesForView(view, { configs: flowPreviewConfigs }));
             } else {
-                const imageData = await captureViewImage(view);
-                images.push(imageData);
+                images.push(await captureViewImage(view));
             }
         } catch (error) {
-            images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Screenshot failed</text></svg>'));
+            images.push(pwcaCreateImageErrorDataUrl('Screenshot failed'));
         }
     }
+
     return images;
 }
 
 async function generate4GridImagesForView(view, options = {}) {
-    if (!view || !view.layers) {
-        if (options.onlyFirst) {
-            return 'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">Front View</text></svg>');
-        }
-        return [
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">Front View</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">Left View</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">Right View</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">Back View</text></svg>')
-        ];
+    if (!view) {
+        const fallbackImage = pwcaCreateImageErrorDataUrl('Failed to get view');
+        return options.onlyFirst ? fallbackImage : [fallbackImage];
     }
-    const backgroundLayer = view.layers.find(layer => layer.name === 'Background Layer');
-    const baseLayer = view.layers.find(layer => layer.name === 'Base Layer');
-    const overlayLayer = view.layers.find(layer => layer.name === 'Overlay Layer');
-    const mappingLayer = view.layers.find(layer => layer.name === 'Mapping Layer');
-    let canvasWidth = 400; let canvasHeight = 400;
-    if (backgroundLayer && backgroundLayer.layer_data && backgroundLayer.layer_data.dimensions) {
-        const dimensions = backgroundLayer.layer_data.dimensions.layerSize;
-        if (dimensions && dimensions.width && dimensions.height) { canvasWidth = dimensions.width; canvasHeight = dimensions.height; }
+
+    const configuredPreviews = Array.isArray(options.configs) && options.configs.length > 0
+        ? options.configs
+        : (typeof window.pwcaGetFlowPreviewImageConfigs === 'function'
+            ? window.pwcaGetFlowPreviewImageConfigs(view)
+            : []);
+
+    if (!Array.isArray(configuredPreviews) || configuredPreviews.length === 0) {
+        const capturedImage = await captureViewImage(view);
+        return options.onlyFirst ? capturedImage : [capturedImage];
     }
+
     let activeCanvas = null;
-    if (view.id) activeCanvas = pwcaGetGridCanvasByViewId(view.id);
-    if (!activeCanvas) activeCanvas = pwcaGetGridActiveCanvas();
-    if (!activeCanvas) {
-        if (!activeCanvas) return 'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Failed to get canvas</text></svg>');
-        return [
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Failed to get canvas</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Failed to get canvas</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Failed to get canvas</text></svg>'),
-            'data:image/svg+xml;base64,' + btoa('<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">Failed to get canvas</text></svg>')
-        ];
+    if (view.id) {
+        activeCanvas = pwcaGetGridCanvasByViewId(view.id);
     }
-    const viewConfigs = [
-        { name: 'front', label: 'Front View', cropConfig: { x: 0.25, y: 0, width: 0.5, height: 1 } },
-        { name: 'left', label: 'Left View', cropConfig: { x: 0, y: 0, width: 0.5, height: 1 } },
-        { name: 'right', label: 'Right View', cropConfig: { x: 0.5, y: 0, width: 0.5, height: 1 } },
-        { name: 'back', label: 'Back View', cropConfig: { x: 0.75, y: 0, width: 0.25, height: 1, extraCrop: { x: 0, y: 0, width: 0.25, height: 1 } } },
-    ];
-    const gridImages = [];
-    const configs = options.onlyFirst ? [viewConfigs[0]] : viewConfigs;
-    for (const config of configs) {
+    if (!activeCanvas) {
+        activeCanvas = pwcaGetGridActiveCanvas();
+    }
+
+    const previewConfigs = options.onlyFirst ? [configuredPreviews[0]] : configuredPreviews;
+    const images = [];
+
+    for (const previewConfig of previewConfigs) {
         try {
-            const imageData = await generateCompositeImageForGrid({ canvasWidth, canvasHeight, backgroundLayer, baseLayer, overlayLayer, mappingLayer, activeCanvas, cropConfig: config.cropConfig });
-            gridImages.push(imageData);
+            const imageData = await pwcaGenerateConfiguredPreviewImage(view, previewConfig, activeCanvas);
+            images.push(imageData);
         } catch (error) {
-            gridImages.push('data:image/svg+xml;base64,' + btoa(`<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ffe6e6"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#cc0000">${config.label} generation failed</text></svg>`));
+            images.push(
+                pwcaCreateImageErrorDataUrl(
+                    `${previewConfig?.label || previewConfig?.key || 'Preview'} generation failed`
+                )
+            );
         }
     }
-    return options.onlyFirst ? gridImages[0] : gridImages;
+
+    return options.onlyFirst ? images[0] : images;
 }
 
 async function generateCompositeImageForGrid(options) {

@@ -25,7 +25,8 @@
             // 是否启用打印区域遮罩
             hasMask: true,
             // 初始化后的特殊处理函数名 (在 multi-view-init.js 中定义)
-            postInit: null
+            postInit: null,
+            previewImageConfigs: null
         },
         [PWCA_FOUR_GRID_VIEW_FLOW]: {
             layerRouting: (layerName) => {
@@ -50,7 +51,40 @@
             // 内容区域图层的回退顺序
             contentAreaFallbacks: ['Content Area Layer', 'Mapping Layer', 'FlexiCurve Layer', 'Base Layer'],
             hasMask: false,
-            postInit: null
+            postInit: null,
+            previewImageConfigs: [
+                {
+                    key: 'print-sheet',
+                    label: '4-Grid Print',
+                    mode: 'layerComposite',
+                    sizeReferenceLayer: '4-Grid Layer',
+                    beforeCanvasLayers: [
+                        {
+                            name: '4-Grid Layer'
+                        }
+                    ],
+                    canvasSource: {
+                        mode: 'full'
+                    },
+                    afterCanvasLayers: []
+                },
+                {
+                    key: 'mockup',
+                    label: 'Product Preview',
+                    mode: 'gridMockup',
+                    sizeReferenceLayer: 'Background Layer',
+                    cropConfig: {
+                        x: 0.25,
+                        y: 0,
+                        width: 0.5,
+                        height: 1
+                    },
+                    backgroundLayerName: 'Background Layer',
+                    baseLayerName: 'Base Layer',
+                    overlayLayerName: 'Overlay Layer',
+                    mappingLayerName: 'Mapping Layer'
+                }
+            ]
         }
     };
 
@@ -104,10 +138,16 @@
         return PWCA_FLOW_CONFIGS[flowName] || PWCA_FLOW_CONFIGS[PWCA_DEFAULT_VIEW_FLOW];
     }
 
+    function pwcaGetFlowPreviewImageConfigs(view, explicitStore) {
+        const flowConfig = pwcaGetFlowConfig(view, explicitStore);
+        return Array.isArray(flowConfig?.previewImageConfigs) ? flowConfig.previewImageConfigs : [];
+    }
+
     window.PWCA_DEFAULT_VIEW_FLOW = PWCA_DEFAULT_VIEW_FLOW;
     window.PWCA_FOUR_GRID_VIEW_FLOW = PWCA_FOUR_GRID_VIEW_FLOW;
     window.PWCA_FLOW_CONFIGS = PWCA_FLOW_CONFIGS;
     window.pwcaResolveViewFlow = pwcaResolveViewFlow;
     window.pwcaIsFourGridFlow = pwcaIsFourGridFlow;
     window.pwcaGetFlowConfig = pwcaGetFlowConfig;
+    window.pwcaGetFlowPreviewImageConfigs = pwcaGetFlowPreviewImageConfigs;
 })();
