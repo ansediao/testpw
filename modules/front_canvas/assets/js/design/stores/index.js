@@ -415,11 +415,13 @@ export const useCanvasStore = defineStore('canvas', {
             }
 
             // 保存当前视图的图层数据
-            if (previousViewId && this.layers.length > 0) {
-                this.viewLayers[previousViewId] = [...this.layers];
-            }
-            if (previousViewId && this.layerGroups.length > 0) {
-                this.viewLayerGroups[previousViewId] = [...this.layerGroups];
+            if (previousViewId) {
+                this.viewLayers[previousViewId] = Array.isArray(this.layers)
+                    ? [...this.layers]
+                    : [];
+                this.viewLayerGroups[previousViewId] = Array.isArray(this.layerGroups)
+                    ? [...this.layerGroups]
+                    : [];
             }
 
             // 切换到新视图
@@ -434,6 +436,8 @@ export const useCanvasStore = defineStore('canvas', {
             // 加载新视图的图层数据
             this.layers = this.viewLayers[viewId] || [];
             this.layerGroups = this.viewLayerGroups[viewId] || [];
+            this.activeObjectId = null;
+            this.activeGroupId = null;
 
             // 切换视图时，同步对应的打印方式数据
             const printMethodStore = window.usePrintMethodStore();
@@ -442,12 +446,6 @@ export const useCanvasStore = defineStore('canvas', {
             }
 
             void this.ensureViewPrintMethodsLoaded(viewId);
-
-            // 切换视图时，触发画布状态保存/恢复
-            if (window.canvasStateIntegration && typeof window.canvasStateIntegration.handleViewSwitch === 'function') {
-                window.canvasStateIntegration.handleViewSwitch(previousViewId, viewId);
-            }
-            
         },
         // ===== 新增：颜色选择相关方法 =====
         // 设置指定视图的选中颜色

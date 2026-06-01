@@ -1,6 +1,8 @@
 (function () {
     'use strict';
 
+    let hasBoundLayerPanelViewSwitch = false;
+
     const pwcaGetCanvasStore = () => {
         const uiStateAccess = window.pwcaUiStateAccess || null;
         if (!uiStateAccess || typeof uiStateAccess.getCanvasStore !== 'function') {
@@ -96,26 +98,29 @@
             });
         }
 
-        document.addEventListener('layerPanelViewSwitch', (event) => {
-            const viewId = event.detail && event.detail.viewId ? event.detail.viewId : null;
-            if (!viewId) {
-                return;
-            }
+        if (!hasBoundLayerPanelViewSwitch) {
+            document.addEventListener('layerPanelViewSwitch', (event) => {
+                const viewId = event.detail && event.detail.viewId ? event.detail.viewId : null;
+                if (!viewId) {
+                    return;
+                }
 
-            const targetButton = container.querySelector('[data-view-id="' + viewId + '"]');
-            if (targetButton && !targetButton.classList.contains('active')) {
-                container.querySelectorAll('.viewer-switch-btn').forEach((btn) => {
-                    btn.classList.remove('active');
-                });
-                targetButton.classList.add('active');
-            }
+                const nextContainer = document.getElementById('pw-view-switcher-container');
+                if (!nextContainer) {
+                    return;
+                }
 
-            const targetView = views.find((v) => v.id === viewId);
-            if (targetView) {
-                window.pwcaViewSwitchFacade.syncViewContainers(targetView.id);
-                window.pwcaViewSwitchFacade.syncCanvasManager(targetView.id);
-            }
-        });
+                const targetButton = nextContainer.querySelector('[data-view-id="' + viewId + '"]');
+                if (targetButton && !targetButton.classList.contains('active')) {
+                    nextContainer.querySelectorAll('.viewer-switch-btn').forEach((btn) => {
+                        btn.classList.remove('active');
+                    });
+                    targetButton.classList.add('active');
+                }
+            });
+
+            hasBoundLayerPanelViewSwitch = true;
+        }
     };
 
     const initViewSwitcher = () => {

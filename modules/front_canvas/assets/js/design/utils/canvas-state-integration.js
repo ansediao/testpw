@@ -5,7 +5,7 @@
  * 功能：
  * - 在页面初始化时初始化 CanvasStateManager
  * - 监听画布变更事件并触发保存
- * - 监听视图切换并保存/恢复状态
+ * - 协调按需持久化与外部状态恢复
  * - 监听图层和图层组变更
  * - 监听印刷方式变更
  * - 监听颜色选择变更
@@ -455,32 +455,18 @@ class CanvasStateIntegration {
     }
     
     /**
-     * 处理视图切换
-     * 在切换前保存当前视图状态，切换后恢复目标视图状态
+     * 兼容旧调用方的视图切换钩子
+     * 设计页已切换为纯内存态视图切换，这里不再执行 save/restore。
      * @param {string} previousViewId - 前一个视图ID
      * @param {string} newViewId - 新视图ID
      */
     async handleViewSwitch(previousViewId, newViewId) {
-        try {
-            // 检查是否正在恢复状态
-            if (pwcaIsCanvasStateRestoring()) {
-                return;
-            }
-            
-            // 1. 保存前一个视图的状态
-            if (previousViewId) {
-                canvasStateManager.saveViewState(previousViewId);
-            }
-            
-            // 2. 恢复新视图的状态（如果有）
-            if (newViewId) {
-                const state = canvasStateManager.getState();
-                if (state && state.views && state.views[newViewId]) {
-                    await canvasStateManager.restoreViewState(newViewId);
-                }
-            }
-        } catch (error) {
-            ErrorHandler.logError('RESTORE_ERROR', '视图切换状态处理失败', error);
+        if (pwcaIsCanvasStateRestoring()) {
+            return;
+        }
+
+        if (!newViewId || previousViewId === newViewId) {
+            return;
         }
     }
     
