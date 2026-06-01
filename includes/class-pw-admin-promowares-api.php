@@ -634,7 +634,7 @@ class Pw_Admin_Promowares_Api
             ),
         ));
 
-        // Register image upload endpoint
+        // Register image upload endpoint.
         register_rest_route('pw-canvas/v1', '/upload-image', array(
             'methods' => 'POST',
             'callback' => array($this, 'handle_image_upload'),

@@ -139,27 +139,41 @@ function pwcaUpdateDynamicToolbar(obj) {
     const textToolbarArea = document.querySelector('#content-wenzi-control');
     const imgOriginControls = document.querySelector('#img_origin_controls');
     const imgAddControls = document.querySelector('#img_add_controls');
-    const textToolbar = document.querySelector('.pwca-text-toolbar');
-    const imgToolbar = document.querySelector('.pwca-img-toolbar');
+    const textToolbar = document.querySelector('.text_toolbar');
+    const imgToolbar = document.querySelector('.img_toolbar');
+    if (!textToolbarArea) {
+        return;
+    }
     // 清空文本工具栏
     textToolbarArea.innerHTML = '';
     // 如果没有选中对象，则不显示工具栏
     if (!obj) {
-        textToolbar.style.display = 'none';
-        imgAddControls.style.display = 'none';
-        const imgToolbar = document.querySelector('.pwca-img-toolbar');
-        imgToolbar.style.display = 'none';
+        if (textToolbar) {
+            textToolbar.style.display = 'none';
+        }
+        if (imgAddControls) {
+            imgAddControls.style.display = 'none';
+        }
+        if (imgToolbar) {
+            imgToolbar.style.display = 'none';
+        }
         // 恢复图片工具栏区域的原始内容
-        imgOriginControls.style.display = 'block';
+        if (imgOriginControls) {
+            imgOriginControls.style.display = 'block';
+        }
         return;
     }
 
     // 如果选中的是文本对象（兼容 i-text、textbox）
     if (pwcaIsTextLikeObject(obj)) {
-        textToolbar.style.display = 'block';
-        imgToolbar.style.display = 'none';
+        if (textToolbar) {
+            textToolbar.style.display = 'block';
+        }
+        if (imgToolbar) {
+            imgToolbar.style.display = 'none';
+        }
         // 获取当前活动的文字工具按钮（仅限文字工具栏作用域）
-        const activeTextButton = document.querySelector('.pwca-text-toolbar .pwca-toolbar-button.active');
+        const activeTextButton = document.querySelector('.text_toolbar .toolbar_button.active');
         const activeButtonId = activeTextButton ? activeTextButton.id : 'text_input';
 
         // 根据当前按钮显示/隐藏添加文字区域
@@ -570,18 +584,24 @@ function pwcaUpdateDynamicToolbar(obj) {
     }
     // 如果选中的是图片对象
     else if (obj.type === 'image') {
-        textToolbar.style.display = 'none';
-        imgToolbar.style.display = 'block';
+        if (textToolbar) {
+            textToolbar.style.display = 'none';
+        }
+        if (imgToolbar) {
+            imgToolbar.style.display = 'block';
+        }
         // 默认：若没有激活的图片子工具，则显示原始内容区域
-        imgAddControls.style.display = 'none';
-        const activeImgButton = document.querySelector('.pwca-img-toolbar .pwca-toolbar-button.active');
+        if (imgAddControls) {
+            imgAddControls.style.display = 'none';
+        }
+        const activeImgButton = document.querySelector('.img_toolbar .toolbar_button.active');
 
         // 没有激活的图片工具按钮时，显示原始内容并取消所有激活状态
         if (!activeImgButton) {
             if (imgOriginControls) {
                 imgOriginControls.style.display = 'block';
             }
-            document.querySelectorAll('.pwca-img-toolbar .pwca-toolbar-button').forEach(btn => btn.classList.remove('active'));
+            imgToolbar.querySelectorAll('.toolbar_button').forEach(btn => btn.classList.remove('active'));
             return;
         }
 
@@ -589,7 +609,9 @@ function pwcaUpdateDynamicToolbar(obj) {
         if (imgOriginControls) {
             imgOriginControls.style.display = 'none';
         }
-        imgAddControls.style.display = 'block';
+        if (imgAddControls) {
+            imgAddControls.style.display = 'block';
+        }
         const activeButtonId = activeImgButton.id;
 
         // 创建一个新的容器用于放置工具栏控件

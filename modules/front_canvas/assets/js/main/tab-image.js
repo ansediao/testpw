@@ -488,7 +488,7 @@
         const defaultText = 'Drag and drop your image here or click to upload';
         pwcaShowDropZoneStatus(dropZone, 'Uploading...');
 
-        window.fetch('/wp-json/pwca/v1/upload-image', {
+        window.fetch('/wp-json/pw-canvas/v1/upload-image', {
             method: 'POST',
             body: formData
         })

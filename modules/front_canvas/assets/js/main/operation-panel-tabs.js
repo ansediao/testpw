@@ -75,8 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     discardSelectionForAllViewCanvases();
 
-                    if (typeof window.updateDynamicToolbar === 'function') {
-                        window.updateDynamicToolbar(null);
+                    if (typeof window.pwcaUpdateDynamicToolbar === 'function') {
+                        window.pwcaUpdateDynamicToolbar(null);
                     }
 
                     if (typeof window.pwcaInitImageTab === 'function') {

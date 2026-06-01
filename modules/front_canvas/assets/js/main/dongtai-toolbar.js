@@ -70,12 +70,12 @@
     }
 
     function pwcaInitTextToolbar() {
-        const toolbar = document.querySelector('.pwca-text-toolbar');
+        const toolbar = document.querySelector('.text_toolbar');
         if (!toolbar) {
             return;
         }
 
-        const buttons = toolbar.querySelectorAll('.pwca-toolbar-button');
+        const buttons = toolbar.querySelectorAll('.toolbar_button');
         if (!buttons.length) {
             return;
         }
@@ -95,7 +95,7 @@
                     window.pwcaSwitchOperationPanelTab('tab-wenzi', { preserveSelection: true });
                 }
 
-                toolbar.querySelectorAll('.pwca-toolbar-button').forEach(function (btn) {
+                toolbar.querySelectorAll('.toolbar_button').forEach(function (btn) {
                     btn.classList.remove('active');
                 });
                 button.classList.add('active');
@@ -113,12 +113,12 @@
     }
 
     function pwcaInitImageToolbar() {
-        const toolbar = document.querySelector('.pwca-img-toolbar');
+        const toolbar = document.querySelector('.img_toolbar');
         if (!toolbar) {
             return;
         }
 
-        const buttons = toolbar.querySelectorAll('.pwca-toolbar-button');
+        const buttons = toolbar.querySelectorAll('.toolbar_button');
         if (!buttons.length) {
             return;
         }
@@ -153,7 +153,7 @@
                     }
                 }
 
-                toolbar.querySelectorAll('.pwca-toolbar-button').forEach(function (btn) {
+                toolbar.querySelectorAll('.toolbar_button').forEach(function (btn) {
                     btn.classList.remove('active');
                 });
                 button.classList.add('active');
