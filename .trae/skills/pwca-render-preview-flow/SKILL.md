@@ -162,11 +162,59 @@ pwcaGetFlowPreviewImageConfigs(view)
 }
 ```
 
+### 4.1 第二张图的真实图层渲染规则
+
+- `Product Preview` 中的 `Background Layer`、`Base Layer`、`Overlay Layer` 必须按各自图层配置里的真实信息绘制：
+  - `layer_data.dimensions.layerSize`
+  - `layer_data.position.coordinates`
+  - `layer_data.position.anchorPoint`
+- 不要再使用“按目标画布高度居中缩放”的简化逻辑绘制 `Base Layer` 或 `Overlay Layer`
+- 如果继续复用旧的 `drawLayerImageForGrid()` / `drawLayerImageForGridWithColor()` 来直接画第二张图，会出现：
+  - `Overlay Layer` 看起来比 `Base Layer` 明显更大
+  - 遮罩轮廓和真实产品图层不一致
+  - 裁剪后的文字/图片边缘与杯体主体错位
+- 当前正确做法是：
+  - 第二张图合成时，传入完整 `layer` 对象，而不是只传 `imageURL`
+  - 通过图层尺寸与坐标计算 placement 后再 `drawImage`
+  - 若 `Base Layer` 需要着色，也是在其真实尺寸内先生成 tinted canvas，再按真实 placement 落图
+
+推荐实现方式：
+
+```js
+await pwcaDrawLayerForGridComposite(ctx, baseLayer, canvasWidth, canvasHeight, {
+  tintColor: explicitColor,
+  captureBoundary: true
+});
+
+await pwcaDrawLayerForGridComposite(ctx, overlayLayer, canvasWidth, canvasHeight);
+```
+
 ### 5. 裁切规则
 
 - `gridMockup` 的裁切区域由 `cropConfig` 控制
 - 如果需要微调第二张图的位置，优先改 `cropConfig`
 - 不要为了“看起来更正”去直接改第一张图的输出尺寸来源
+
+### 5.1 第二张图的两层裁切含义
+
+- `Product Preview` 中，设计内容通常会经历两层处理：
+- 第 1 层：`cropConfig`
+  - 先从 `activeCanvas` 中截取指定区域
+  - 默认 `4-Grid Flow` 配置为中间半幅：`x: 0.25, width: 0.5`
+- 第 2 层：`Base Layer` 轮廓遮罩
+  - 裁切后的设计内容不会直接整块贴回去
+  - 还会再以 `Base Layer` 的非透明区域作为 mask 执行一次 `source-in`
+- 因此，“文字和图片被裁掉”不一定是 Fabric 画布问题，很多时候是第二张图预览阶段被 `cropConfig + Base Layer mask` 二次裁切
+
+### 5.2 蒙版来源约束
+
+- 第二张图的 mask 来源应是当前 view 的 `Base Layer`
+- mask 不能再按“整张目标图居中拉伸”的方式重建
+- mask 必须与第二张图里已经绘制的 `Base Layer` 使用同一套尺寸、坐标与着色规则，否则会出现：
+  - 文字/图片裁切边界偏移
+  - 设计内容明明在杯体内，预览里却被切掉
+  - `Overlay`、`Base`、设计内容三者轮廓对不齐
+- 推荐做法是把 `maskLayer` 直接传入裁切函数，在函数内部按真实 layer placement 生成 mask，而不是只传一个 `baseImageUrl`
 
 ## 推荐实现方式
 
@@ -201,6 +249,9 @@ pwcaGetFlowPreviewImageConfigs(view)
 - 不要把预览弹窗标签写死成 `Front/Left/Right/Back`
 - 不要只改按钮高亮，不触发真正的 `Design` 回切逻辑
 - 不要直接使用当前已捕获的视图图像替代 `gridMockup` 的分层重组
+- 不要在第二张图里把 `Base Layer` / `Overlay Layer` 当成普通素材图做整图居中缩放
+- 不要只依赖 `imageURL` 重新生成第二张图图层，忽略原始 `layerSize` 和 `coordinates`
+- 不要让 `Base Layer` 的显示逻辑和 `Base Layer` 的 mask 逻辑各走一套尺寸算法
 
 ## 关联说明
 
