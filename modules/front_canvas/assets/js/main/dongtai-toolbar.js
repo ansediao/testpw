@@ -28,6 +28,24 @@
         return activeCanvas.getActiveObject() || null;
     }
 
+    function pwcaToolbarRequirePrintMethod(activeObject) {
+        if (!activeObject) {
+            return false;
+        }
+
+        if (window.PrintAreaValidator &&
+            typeof window.PrintAreaValidator.hasPrintMethodAssigned === 'function' &&
+            !window.PrintAreaValidator.hasPrintMethodAssigned(activeObject)) {
+
+            if (typeof window.pwcaTriggerPrintMethodModal === 'function') {
+                window.pwcaTriggerPrintMethodModal(activeObject.id);
+            }
+            return true;
+        }
+
+        return false;
+    }
+
     function pwcaInitTextToolbar() {
         const toolbar = document.querySelector('.text_toolbar');
         if (!toolbar) {
@@ -42,6 +60,10 @@
         buttons.forEach(function (button) {
             button.addEventListener('click', function (e) {
                 const activeObject = pwcaGetToolbarActiveObject();
+
+                if (pwcaToolbarRequirePrintMethod(activeObject)) {
+                    return;
+                }
 
                 if (typeof window.pwcaSwitchOperationPanelTab === 'function') {
                     window.pwcaSwitchOperationPanelTab('tab-wenzi', { preserveSelection: true });
@@ -79,6 +101,10 @@
             button.addEventListener('click', function (e) {
                 const activeCanvas = pwcaGetToolbarActiveCanvas();
                 const activeObject = pwcaGetToolbarActiveObject();
+
+                if (pwcaToolbarRequirePrintMethod(activeObject)) {
+                    return;
+                }
 
                 if (typeof window.pwcaSwitchOperationPanelTab === 'function') {
                     window.pwcaSwitchOperationPanelTab('tab-pianquan');
