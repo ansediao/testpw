@@ -9,7 +9,6 @@ import { createThumbnailHelpers } from './layers/thumbnail.js';
 import { createGroupHelpers } from './layers/groups.js';
 import { createLayerOperations } from './layers/operations.js';
 import { createPrintMethodHelpers } from './layers/print-methods.js';
-import { openPrintMethodBindingModal } from './layers/print-method-binding-modal.js';
 
 const layersApp = Vue.createApp({
     template: `
@@ -372,6 +371,14 @@ const layersApp = Vue.createApp({
                 canvasHelpers.controlMaskCanvasVisibility
         });
 
+        window.pwcaTriggerPrintMethodModal = function (layerId) {
+            if (!layerId) return;
+            const layer = state.currentViewLayers.value?.find(l => l.id === layerId);
+            if (layer) {
+                printHelpers.showGroupAssignDialog(layer);
+            }
+        };
+
         return {
             store,
 
@@ -506,53 +513,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 1000);
 });
-
-window.pwcaOpenPrintMethodBindingModal = function(layerId) {
-    if (typeof openPrintMethodBindingModal === 'function') {
-        return openPrintMethodBindingModal(layerId);
-    }
-    
-    const stateAccess = window.pwcaUiStateAccess;
-    if (!stateAccess) return false;
-    
-    const canvasStore = typeof stateAccess.pwcaGetCanvasStore === 'function' 
-        ? stateAccess.pwcaGetCanvasStore() 
-        : null;
-    
-    if (!canvasStore) return false;
-    
-    const currentViewId = canvasStore.activeViewId;
-    if (!currentViewId) return false;
-    
-    const viewLayers = canvasStore.getViewLayers(currentViewId);
-    const layer = viewLayers.find(l => l.id === layerId);
-    
-    if (!layer) return false;
-    
-    canvasStore.setActiveObjectId(layerId);
-    
-    if (typeof window.pwcaSwitchOperationPanelTab === 'function') {
-        window.pwcaSwitchOperationPanelTab('tab-tuan', { preserveSelection: true });
-    }
-    
-    setTimeout(() => {
-        const layerItem = document.querySelector(`#content-tuan .layer-item.ungrouped.active`);
-        if (layerItem) {
-            const assignBtn = layerItem.querySelector('.assign-btn');
-            if (assignBtn && !assignBtn.disabled) {
-                assignBtn.click();
-                return;
-            }
-        }
-        
-        const anyAssignBtn = document.querySelector('#content-tuan .assign-btn:not([disabled])');
-        if (anyAssignBtn) {
-            anyAssignBtn.click();
-        }
-    }, 200);
-    
-    return true;
-};
 
 window.addLayerToStore = function (layerId, layerName, layerType) {
     if (typeof window.useCanvasStore === 'function') {

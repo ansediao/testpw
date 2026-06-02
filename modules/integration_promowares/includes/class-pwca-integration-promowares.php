@@ -340,7 +340,7 @@ final class Pwca_Integration_Promowares {
 	}
 
 	private function get_api_client() {
-		return new Pwca_Admin_Promowares_Api();
+		return new Pw_Admin_Promowares_Api();
 	}
 
 	private function resolve_single_product_payload( array $product ) {

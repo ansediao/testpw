@@ -30,7 +30,7 @@ function pwcaAddCanvasEventListeners(fabricCanvas) {
         }
 
         if (needsAlertOnRelease && alertTargetObject) {
-            pwcaShowPrintMethodBindingAlert(e.target);
+            pwcaTriggerPrintMethodBindingModal(alertTargetObject);
             needsAlertOnRelease = false;
             alertTargetObject = null;
         }
@@ -75,38 +75,51 @@ function pwcaQueueDesignRemoval(meta) {
 }
     fabricCanvas.on('object:moving', (e) => {
         const obj = e.target;
-        if (obj && !pwcaIsElementInLayerGroup(obj)) { needsAlertOnRelease = true; alertTargetObject = obj; }
+        if (obj && !pwcaObjectHasPrintMethod(obj)) { needsAlertOnRelease = true; alertTargetObject = obj; }
         else { needsAlertOnRelease = false; alertTargetObject = null; }
     });
     fabricCanvas.on('object:scaling', (e) => {
         const obj = e.target;
-        if (obj && !pwcaIsElementInLayerGroup(obj)) { needsAlertOnRelease = true; alertTargetObject = obj; }
+        if (obj && !pwcaObjectHasPrintMethod(obj)) { needsAlertOnRelease = true; alertTargetObject = obj; }
         else { needsAlertOnRelease = false; alertTargetObject = null; }
     });
     fabricCanvas.on('object:rotating', (e) => {
         const obj = e.target;
-        if (obj && !pwcaIsElementInLayerGroup(obj)) { needsAlertOnRelease = true; alertTargetObject = obj; }
+        if (obj && !pwcaObjectHasPrintMethod(obj)) { needsAlertOnRelease = true; alertTargetObject = obj; }
         else { needsAlertOnRelease = false; alertTargetObject = null; }
     });
 }
 
-function pwcaIsElementInLayerGroup(obj) {
-    return obj && obj.group !== null && obj.group !== undefined;
+function pwcaObjectHasPrintMethod(obj) {
+    if (!obj || !obj.id) return false;
+    
+    const stateAccess = window.pwcaUiStateAccess;
+    if (!stateAccess) return false;
+    
+    const printMethodStore = typeof stateAccess.pwcaGetPrintMethodStore === 'function' 
+        ? stateAccess.pwcaGetPrintMethodStore() 
+        : null;
+    
+    if (!printMethodStore) return false;
+    
+    const layerMethodId = printMethodStore.layerPrintMethodMap ? printMethodStore.layerPrintMethodMap[obj.id] : null;
+    if (layerMethodId) return true;
+    
+    if (obj.groupId) {
+        const groupMethodId = printMethodStore.groupPrintMethodMap ? printMethodStore.groupPrintMethodMap[obj.groupId] : null;
+        if (groupMethodId) return true;
+        
+        const match = String(obj.groupId).match(/^print-method-(.+)$/);
+        if (match && match[1]) return true;
+    }
+    
+    return false;
 }
 
-function pwcaShowPrintMethodBindingAlert(targetObject) {
-    if (!targetObject || !targetObject.id) {
-        return;
-    }
-    
-    if (typeof window.pwcaOpenPrintMethodBindingModal === 'function') {
-        window.pwcaOpenPrintMethodBindingModal(targetObject.id);
-        return;
-    }
-    
-    if (typeof window.pwcaOpenPrintMethodModal === 'function') {
-        window.pwcaOpenPrintMethodModal(targetObject.id);
-        return;
+function pwcaTriggerPrintMethodBindingModal(targetObject) {
+    if (!targetObject || !targetObject.id) return;
+    if (typeof window.pwcaTriggerPrintMethodModal === 'function') {
+        window.pwcaTriggerPrintMethodModal(targetObject.id);
     }
 }
 
@@ -204,4 +217,3 @@ function pwcaAddCanvasSelectionListeners(fabricCanvas) {
 
 window.pwcaAddCanvasEventListeners = pwcaAddCanvasEventListeners;
 window.pwcaAddCanvasSelectionListeners = pwcaAddCanvasSelectionListeners;
-window.pwcaShowPrintMethodBindingAlert = pwcaShowPrintMethodBindingAlert;

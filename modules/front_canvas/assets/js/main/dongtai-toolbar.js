@@ -28,47 +28,6 @@
         return activeCanvas.getActiveObject() || null;
     }
 
-    function pwcaCheckObjectHasPrintMethod(obj) {
-        if (!obj || !obj.id) return false;
-        
-        const stateAccess = pwcaGetUiStateAccess();
-        if (!stateAccess) return false;
-        
-        const printMethodStore = typeof stateAccess.pwcaGetPrintMethodStore === 'function' 
-            ? stateAccess.pwcaGetPrintMethodStore() 
-            : null;
-        
-        if (!printMethodStore) return false;
-        
-        const layerMethodId = printMethodStore.layerPrintMethodMap ? printMethodStore.layerPrintMethodMap[obj.id] : null;
-        if (layerMethodId) return true;
-        
-        if (obj.groupId) {
-            const groupMethodId = printMethodStore.groupPrintMethodMap ? printMethodStore.groupPrintMethodMap[obj.groupId] : null;
-            if (groupMethodId) return true;
-            
-            const match = String(obj.groupId).match(/^print-method-(.+)$/);
-            if (match && match[1]) return true;
-        }
-        
-        return false;
-    }
-
-    function pwcaOpenPrintMethodModal(layerId) {
-        if (typeof window.pwcaOpenPrintMethodBindingModal === 'function') {
-            return window.pwcaOpenPrintMethodBindingModal(layerId);
-        }
-        return false;
-    }
-
-    function pwcaShowPrintMethodBindingAlert(targetObject) {
-        if (!targetObject || !targetObject.id) {
-            return;
-        }
-        
-        pwcaOpenPrintMethodModal(targetObject.id);
-    }
-
     function pwcaInitTextToolbar() {
         const toolbar = document.querySelector('.text_toolbar');
         if (!toolbar) {
@@ -83,13 +42,6 @@
         buttons.forEach(function (button) {
             button.addEventListener('click', function (e) {
                 const activeObject = pwcaGetToolbarActiveObject();
-                
-                if (activeObject && activeObject.id && !pwcaCheckObjectHasPrintMethod(activeObject)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    pwcaOpenPrintMethodModal(activeObject.id);
-                    return;
-                }
 
                 if (typeof window.pwcaSwitchOperationPanelTab === 'function') {
                     window.pwcaSwitchOperationPanelTab('tab-wenzi', { preserveSelection: true });
@@ -127,13 +79,6 @@
             button.addEventListener('click', function (e) {
                 const activeCanvas = pwcaGetToolbarActiveCanvas();
                 const activeObject = pwcaGetToolbarActiveObject();
-                
-                if (activeObject && activeObject.id && !pwcaCheckObjectHasPrintMethod(activeObject)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    pwcaOpenPrintMethodModal(activeObject.id);
-                    return;
-                }
 
                 if (typeof window.pwcaSwitchOperationPanelTab === 'function') {
                     window.pwcaSwitchOperationPanelTab('tab-pianquan');
@@ -169,8 +114,4 @@
         pwcaInitTextToolbar();
         pwcaInitImageToolbar();
     });
-
-    window.pwcaShowPrintMethodBindingAlert = pwcaShowPrintMethodBindingAlert;
-    window.pwcaOpenPrintMethodModal = pwcaOpenPrintMethodModal;
-    window.pwcaCheckObjectHasPrintMethod = pwcaCheckObjectHasPrintMethod;
 })();
