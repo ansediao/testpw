@@ -1,0 +1,19 @@
+{
+  "name": "pinia",
+  "version": "1.0.0",
+  "description": "",
+  "main": "_test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@vue/devtools-api": "^8.1.2",
+    "fabric": "^5.3.0",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.27"
+  }
+}

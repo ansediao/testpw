@@ -1348,7 +1348,7 @@ function pwcaCreateViewContainers(views, store) {
             setTimeout(async () => {
                 try {
                     await initializeMultiLayerCanvases(view, store);
-                    // await initializeMaskCanvas(`maskCanvas-${view.id}`, view, store);
+                    await initializeMaskCanvas(`maskCanvas-${view.id}`, view, store);
                     resolve();
                 } catch (error) {
                     console.error('[PW Canvas][MultiView] 单个视图初始化失败', {

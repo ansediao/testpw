@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>最简 ESM 演示 — 零构建工具模块化</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: #f5f7fa; color: #333; padding: 40px 20px; }
+    .container { max-width: 520px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; margin-bottom: 8px; }
+    .subtitle { color: #666; margin-bottom: 24px; font-size: 0.9rem; }
+
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .card h3 { font-size: 0.95rem; color: #475569; margin-bottom: 12px; }
+
+    #output { font-size: 1.6rem; font-weight: 700; color: #1e293b; margin-bottom: 12px; min-height: 2em; }
+    button {
+      background: #6366f1; color: #fff; border: none; padding: 10px 20px;
+      border-radius: 6px; font-size: 0.95rem; cursor: pointer; transition: background 0.15s;
+    }
+    button:hover { background: #4f46e5; }
+    button:active { transform: scale(0.97); }
+
+    .checklist { list-style: none; padding: 0; }
+    .checklist li { padding: 6px 0; font-size: 0.88rem; font-family: 'Cascadia Code', 'Fira Code', monospace; }
+    .checklist .pass { color: #059669; }
+    .checklist .fail { color: #dc2626; }
+
+    .code-block { background: #1e1e2e; color: #cdd6f4; border-radius: 8px; padding: 14px 16px; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.8rem; line-height: 1.6; overflow-x: auto; margin-top: 10px; }
+    .code-block .kw  { color: #cba6f7; }
+    .code-block .str { color: #a6e3a1; }
+    .code-block .fn  { color: #89b4fa; }
+    .code-block .cm  { color: #6c7086; }
+
+    footer { text-align: center; margin-top: 30px; color: #999; font-size: 0.8rem; }
+  </style>
+
+  <!--
+    Import Map：将裸标识符映射到实际文件路径
+    ★ 必须放在所有 type="module" 脚本之前
+    ★ 每个文档只能有一个 import map
+  -->
+  <script type="importmap">
+  {
+    "imports": {
+      "counter": "./counter.js"
+    }
+  }
+  </script>
+</head>
+<body>
+<div class="container">
+
+  <h1>零构建工具 ESM 模块化</h1>
+  <p class="subtitle">
+    <code>&lt;script type="module"&gt;</code> + <code>import map</code>，无需 Webpack / Vite / Rollup
+  </p>
+
+  <!-- 功能演示 -->
+  <div class="card">
+    <h3>计数器（状态在模块内部，不暴露到 window）</h3>
+    <div id="output">点击按钮开始...</div>
+    <button id="btn-increment">+1</button>
+    <button id="btn-reset" style="background:#94a3b8;margin-left:8px">重置</button>
+  </div>
+
+  <!-- 全局变量检查 -->
+  <div class="card">
+    <h3>window 全局变量泄漏检测</h3>
+    <ul class="checklist" id="checks">
+      <li>检测中...</li>
+    </ul>
+  </div>
+
+  <!-- 代码示意 -->
+  <div class="card">
+    <h3>关键代码</h3>
+    <div class="code-block"><span class="cm">&lt;!-- index.html --&gt;</span>
+<span class="kw">&lt;script</span> type=<span class="str">"importmap"</span><span class="kw">&gt;</span>
+{ <span class="str">"imports"</span>: { <span class="str">"counter"</span>: <span class="str">"./counter.js"</span> } }
+<span class="kw">&lt;/script&gt;</span>
+
+<span class="cm">// app.js</span>
+<span class="kw">import</span> { <span class="fn">increment</span>, <span class="fn">getCount</span> } <span class="kw">from</span> <span class="str">'counter'</span>;
+<span class="fn">increment</span>();
+console.<span class="fn">log</span>(<span class="fn">getCount</span>()); <span class="cm">// 1</span>
+
+<span class="cm">// counter.js 内部变量不会泄漏到 window</span>
+<span class="cm">// window._count === undefined ✅</span></div>
+  </div>
+
+  <footer>
+    type="module" 自动严格模式 · 作用域隔离 · defer 默认 · 仅执行一次
+  </footer>
+</div>
+
+<!-- 入口模块 -->
+<script type="module" src="./app.js"></script>
+</body>
+</html>

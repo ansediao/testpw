@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinia + Fabric.js 画布 Store 演示</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "vue": "./node_modules/vue/dist/vue.esm-browser.prod.js",
+                "pinia": "./node_modules/pinia/dist/pinia.esm-browser.js",
+                "vue-demi": "./node_modules/pinia/node_modules/vue-demi/lib/v3/index.mjs",
+                "@vue/devtools-api": "./node_modules/@vue/devtools-api/dist/vue-devtools-api.esm-browser.js"
+            }
+        }
+    </script>
+    <script src="./node_modules/fabric/dist/fabric.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+            padding: 24px 20px;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        header { text-align: center; margin-bottom: 20px; }
+        header h1 { font-size: 1.6rem; color: #1a1a2e; }
+        header h1 code { color: #ffd859; background: #1a1a2e; padding: 2px 8px; border-radius: 4px; font-size: 1.1rem;}
+        header p { color: #666; font-size: 0.88rem; margin-top: 4px; }
+
+        .info {
+            background: #fffbeb;
+            border-left: 4px solid #ffd859;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+        .info code { background: #fef3c7; padding: 1px 5px; border-radius: 3px; font-size: 0.85rem; }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 16px;
+        }
+        @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
+
+        .panel {
+            background: #fff;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .panel h3 {
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .panel h3 .tag {
+            font-size: 0.7rem;
+            padding: 2px 7px;
+            background: #ffd859;
+            color: #1a1a2e;
+            border-radius: 3px;
+            font-weight: 700;
+        }
+
+        .canvas-wrap {
+            background: #fafafa;
+            border: 1px dashed #cbd5e1;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .field { margin-bottom: 10px; }
+        .field label {
+            display: block;
+            font-size: 0.8rem;
+            color: #475569;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        .field input,
+        .field select {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        .field input:focus,
+        .field select:focus { border-color: #ffd859; }
+
+        .btn {
+            background: #1a1a2e;
+            color: #fff;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            width: 100%;
+            margin-top: 4px;
+        }
+        .btn:hover { background: #2d2d4a; }
+        .btn.secondary { background: #6366f1; }
+        .btn.secondary:hover { background: #4f46e5; }
+        .btn.danger { background: #ef4444; }
+        .btn.danger:hover { background: #dc2626; }
+
+        .state-block {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-family: 'Cascadia Code', 'Consolas', monospace;
+            font-size: 0.78rem;
+            line-height: 1.6;
+            margin-top: 10px;
+            max-height: 180px;
+            overflow: auto;
+        }
+        .state-block .key { color: #f9e2af; }
+        .state-block .val { color: #a6e3a1; }
+        .state-block .num { color: #f38ba8; }
+
+        .logs { list-style: none; margin-top: 8px; max-height: 140px; overflow: auto; }
+        .logs li {
+            background: #f8fafc;
+            padding: 5px 9px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.78rem;
+            margin: 3px 0;
+            border-left: 3px solid #ffd859;
+        }
+        .logs li.add { border-left-color: #42b883; }
+        .logs li.water { border-left-color: #6366f1; }
+        .logs li.remove { border-left-color: #ef4444; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="container">
+        <header>
+            <h1>Pinia + Fabric.js <code>canvasStore</code> 演示</h1>
+            <p>演示 <code>defineStore('canvas', …)</code> 的 state / actions 与 Fabric.js 画布联动</p>
+        </header>
+
+        <div class="info">
+            本页通过 importmap 加载 <code>vue@3.4.27</code>、<code>pinia@2.1.7</code>、<code>fabric@5.3.0</code>，
+            复刻了 <code>stores/canvasStore.js</code> 中的 state / actions，并加入可视化操作面板。
+        </div>
+
+        <div class="layout">
+            <!-- 左侧：画布 -->
+            <div class="panel">
+                <h3>Fabric.js 画布 <span class="tag">state.canvas</span></h3>
+                <div class="canvas-wrap">
+                    <canvas id="fabric-canvas" width="700" height="450"></canvas>
+                </div>
+            </div>
+
+            <!-- 右侧：操作面板 -->
+            <div>
+                <div class="panel" style="margin-bottom: 12px;">
+                    <h3>添加文字 <span class="tag">addText()</span></h3>
+                    <div class="field">
+                        <label>文字内容</label>
+                        <input type="text" v-model="textContent" placeholder="输入要添加的文字">
+                    </div>
+                    <div class="field">
+                        <label>字体大小</label>
+                        <input type="number" v-model.number="fontSize" min="12" max="120">
+                    </div>
+                    <div class="field">
+                        <label>颜色</label>
+                        <input type="color" v-model="textColor" style="width: 100%; height: 32px;">
+                    </div>
+                    <button class="btn" @click="handleAddText">添加到画布</button>
+                </div>
+
+                <div class="panel" style="margin-bottom: 12px;">
+                    <h3>设置水印 <span class="tag">setWatermark()</span></h3>
+                    <div class="field">
+                        <label>水印文字</label>
+                        <input type="text" v-model="watermarkText" placeholder="例: CONFIDENTIAL">
+                    </div>
+                    <div class="field">
+                        <label>不透明度: {{ watermarkOpacity }}</label>
+                        <input type="range" v-model.number="watermarkOpacity" min="0.1" max="1" step="0.1">
+                    </div>
+                    <div class="field">
+                        <label>水印字号</label>
+                        <input type="number" v-model.number="watermarkSize" min="20" max="200">
+                    </div>
+                    <div class="field">
+                        <label>水印颜色</label>
+                        <input type="color" v-model="watermarkColor" style="width: 100%; height: 32px;">
+                    </div>
+                    <button class="btn secondary" @click="handleSetWatermark">应用水印</button>
+                </div>
+
+                <div class="panel" style="margin-bottom: 12px;">
+                    <h3>操作记录 <span class="tag">logs</span></h3>
+                    <ul class="logs">
+                        <li v-if="logs.length === 0" style="color:#9ca3af; font-style:italic;">尚无操作</li>
+                        <li v-for="(log, i) in logs" :key="i" :class="log.type">{{ log.msg }}</li>
+                    </ul>
+                </div>
+
+                <div class="panel">
+                    <h3>实时 State <span class="tag">$state</span></h3>
+                    <pre class="state-block" v-html="stateView"></pre>
+                    <button class="btn danger" style="margin-top: 8px;" @click="handleClearCanvas">清空画布</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { createApp, ref, computed } from 'vue';
+    import { createPinia, defineStore } from 'pinia';
+
+    // fabric 通过 UMD 暴露在 window 上
+    const fabric = window.fabric;
+
+    // ============== 复刻用户提供的 canvasStore ==============
+    const useCanvasStore = defineStore('canvas', {
+        state: () => ({
+            canvas: null,
+            currentObject: null,
+            textObjects: [],
+            watermark: null,
+            printArea: null
+        }),
+        actions: {
+            setCanvas(canvas) {
+                this.canvas = canvas;
+            },
+            addText(textOptions) {
+                const textObj = new fabric.Text(textOptions.text, textOptions);
+                this.canvas.add(textObj);
+                this.textObjects.push(textObj);
+                this.canvas.renderAll();
+            },
+            setWatermark(options) {
+                // 移除旧水印
+                if (this.watermark) {
+                    this.canvas.remove(this.watermark);
+                }
+
+                // 添加新水印
+                this.watermark = new fabric.Text(options.text, {
+                    opacity: options.opacity,
+                    fontSize: options.fontSize,
+                    fill: options.color,
+                    angle: -45
+                });
+                this.canvas.add(this.watermark);
+                this.canvas.sendToBack(this.watermark);
+            }
+        }
+    });
+
+    // ============== Vue 组件 ==============
+    const app = createApp({
+        setup() {
+            const store = useCanvasStore();
+
+            // 表单状态
+            const textContent = ref('Hello Pinia!');
+            const fontSize = ref(40);
+            const textColor = ref('#1a1a2e');
+            const watermarkText = ref('CONFIDENTIAL');
+            const watermarkOpacity = ref(0.3);
+            const watermarkSize = ref(60);
+            const watermarkColor = ref('#ff4d4f');
+
+            // 操作日志
+            const logs = ref([]);
+            const pushLog = (msg, type = '') => {
+                logs.value.unshift({ msg, type });
+                if (logs.value.length > 20) logs.value.pop();
+            };
+
+            // 初始化 Fabric 画布
+            const fabricCanvas = new fabric.Canvas('fabric-canvas', {
+                backgroundColor: '#ffffff',
+                selection: true
+            });
+            // 演示初始图：让画布看起来不空
+            fabricCanvas.add(new fabric.Rect({
+                left: 250, top: 180, width: 200, height: 90,
+                fill: '#fff7d6', stroke: '#ffd859', strokeWidth: 2, rx: 8, ry: 8
+            }));
+            fabricCanvas.add(new fabric.Text('画布就绪 ✨', {
+                left: 290, top: 210, fontSize: 20, fill: '#1a1a2e'
+            }));
+
+            // 将 fabric.Canvas 实例交给 store
+            store.setCanvas(fabricCanvas);
+
+            // 监听 selection，更新 currentObject
+            fabricCanvas.on('selection:created', e => { store.currentObject = e.selected?.[0] || null; });
+            fabricCanvas.on('selection:updated', e => { store.currentObject = e.selected?.[0] || null; });
+            fabricCanvas.on('selection:cleared', () => { store.currentObject = null; });
+
+            // 操作处理
+            const handleAddText = () => {
+                store.addText({
+                    text: textContent.value || '空文字',
+                    left: 100 + Math.random() * 300,
+                    top: 50 + Math.random() * 200,
+                    fontSize: fontSize.value,
+                    fill: textColor.value
+                });
+                pushLog(`addText("${textContent.value}", size=${fontSize.value})`, 'add');
+            };
+
+            const handleSetWatermark = () => {
+                store.setWatermark({
+                    text: watermarkText.value || 'WATERMARK',
+                    opacity: watermarkOpacity.value,
+                    fontSize: watermarkSize.value,
+                    color: watermarkColor.value
+                });
+                pushLog(`setWatermark("${watermarkText.value}", opacity=${watermarkOpacity.value})`, 'water');
+            };
+
+            const handleClearCanvas = () => {
+                fabricCanvas.clear();
+                fabricCanvas.backgroundColor = '#ffffff';
+                fabricCanvas.renderAll();
+                store.textObjects = [];
+                store.watermark = null;
+                store.currentObject = null;
+                pushLog('清空画布', 'remove');
+            };
+
+            // state 视图（响应式）
+            const stateView = computed(() => {
+                const s = store.$state;
+                return (
+                    `<span class="key">canvas</span>: <span class="val">${s.canvas ? 'Fabric.Canvas 实例' : 'null'}</span>\n` +
+                    `<span class="key">currentObject</span>: <span class="val">${s.currentObject ? (s.currentObject.type || 'object') : 'null'}</span>\n` +
+                    `<span class="key">textObjects</span>: <span class="num">[${s.textObjects.length}]</span>\n` +
+                    `<span class="key">watermark</span>: <span class="val">${s.watermark ? s.watermark.text : 'null'}</span>\n` +
+                    `<span class="key">printArea</span>: <span class="val">${s.printArea ? 'set' : 'null'}</span>`
+                );
+            });
+
+            return {
+                textContent, fontSize, textColor,
+                watermarkText, watermarkOpacity, watermarkSize, watermarkColor,
+                logs,
+                stateView,
+                handleAddText, handleSetWatermark, handleClearCanvas
+            };
+        }
+    });
+
+    app.use(createPinia());
+    app.mount('#app');
+</script>
+</body>
+</html>

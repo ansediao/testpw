@@ -257,11 +257,6 @@ function validateAndRepositionObject(obj, viewId) {
         return { wasValid: true, wasMoved: false, overlapRatio: 1 };
     }
 
-    // 读取视图流类型
-    const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
-    const viewObj = canvasStore && Array.isArray(canvasStore.views) ? canvasStore.views.find(v => v && v.id === viewId) : null;
-    const isFourGrid = !!(window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(viewObj, canvasStore));
-
     // 检查对象是否分配了打印方式（保持与其他视图一致）
     const hasPrintMethod = hasPrintMethodAssigned(obj);
     if (!hasPrintMethod) {
@@ -274,24 +269,8 @@ function validateAndRepositionObject(obj, viewId) {
         return { wasValid: true, wasMoved: false, overlapRatio: 1 };
     }
 
-    // 计算检测边界：4格图用整画布边界，其它视图用打印区域边界
-    let bounds = null;
-    if (isFourGrid) {
-        const w = typeof canvas.getWidth === 'function' ? canvas.getWidth() : canvas.width;
-        const h = typeof canvas.getHeight === 'function' ? canvas.getHeight() : canvas.height;
-        bounds = {
-            left: 0,
-            top: 0,
-            right: w,
-            bottom: h,
-            width: w,
-            height: h,
-            centerX: w / 2,
-            centerY: h / 2
-        };
-    } else {
-        bounds = getPrintAreaBounds(viewId);
-    }
+    // 获取打印区域边界
+    const bounds = getPrintAreaBounds(viewId);
 
     if (!bounds) {
         return { wasValid: true, wasMoved: false, overlapRatio: 1 };

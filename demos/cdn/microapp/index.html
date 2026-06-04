@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>微应用按需加载演示 · PWCA MicroApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles/main.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-meta">PWCA · MICROAPP DEMO · v0.1</div>
+    <h1 class="hero-title">
+      <span class="hero-title-line">Lazy-loaded</span>
+      <span class="hero-title-line hero-title-line--accent">Microapps</span>
+    </h1>
+    <p class="hero-subtitle">
+      点击左侧工具按钮，浏览器会按需 <code>import()</code> 对应模块；首次加载后再次点击即命中缓存。打开 DevTools → Network 观察请求行为。
+    </p>
+    <div class="hero-tags">
+      <span class="hero-tag">ES Module</span>
+      <span class="hero-tag">Dynamic import</span>
+      <span class="hero-tag">Code splitting</span>
+      <span class="hero-tag">Zero dependency</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="toolbar" aria-label="工具栏">
+      <div class="toolbar-header">
+        <span class="toolbar-eyebrow">Tools</span>
+        <span class="toolbar-title">工具集</span>
+      </div>
+
+      <div class="tool-list" id="tool-list">
+        <button class="tool-btn" id="text-tool-btn" data-tool="TextTool">
+          <span class="tool-btn-glyph" aria-hidden="true">T</span>
+          <span class="tool-btn-text">
+            <span class="tool-btn-name">文字工具</span>
+            <span class="tool-btn-meta">TextTool.js</span>
+          </span>
+          <span class="tool-btn-status" data-status></span>
+        </button>
+
+        <button class="tool-btn" id="watermark-tool-btn" data-tool="WatermarkTool">
+          <span class="tool-btn-glyph" aria-hidden="true">W</span>
+          <span class="tool-btn-text">
+            <span class="tool-btn-name">水印工具</span>
+            <span class="tool-btn-meta">WatermarkTool.js</span>
+          </span>
+          <span class="tool-btn-status" data-status></span>
+        </button>
+
+        <button class="tool-btn" id="print-area-tool-btn" data-tool="PrintAreaTool">
+          <span class="tool-btn-glyph" aria-hidden="true">P</span>
+          <span class="tool-btn-text">
+            <span class="tool-btn-name">印刷区工具</span>
+            <span class="tool-btn-meta">PrintAreaTool.js</span>
+          </span>
+          <span class="tool-btn-status" data-status></span>
+        </button>
+      </div>
+
+      <div class="toolbar-footer">
+        <div class="console-line">
+          <span class="console-key">loaded</span>
+          <span class="console-val" id="loaded-count">0</span>
+        </div>
+        <div class="console-line">
+          <span class="console-key">instances</span>
+          <span class="console-val" id="instance-count">0</span>
+        </div>
+        <div class="console-line">
+          <span class="console-key">last load</span>
+          <span class="console-val" id="last-load">— ms</span>
+        </div>
+      </div>
+    </aside>
+
+    <section class="workspace" aria-label="工作区">
+      <div class="workspace-header">
+        <div class="workspace-title">
+          <span class="workspace-eyebrow">Workspace</span>
+          <span class="workspace-name">工作区</span>
+        </div>
+        <div class="workspace-actions">
+          <button class="ghost-btn" id="clear-btn">清空</button>
+        </div>
+      </div>
+      <div class="workspace-canvas" id="workspace">
+        <div class="workspace-empty" id="empty-state">
+          <div class="empty-glyph" aria-hidden="true"></div>
+          <div class="empty-text">
+            <div class="empty-title">等待第一个微应用</div>
+            <div class="empty-sub">从左侧工具栏选择一个工具，模块将动态注入此处</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+  <div class="console-drawer" id="console-drawer">
+    <div class="console-drawer-head">
+      <span class="console-drawer-title">// 控制台输出</span>
+      <button class="console-drawer-toggle" id="console-toggle">隐藏</button>
+    </div>
+    <pre class="console-drawer-body" id="console-body"></pre>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

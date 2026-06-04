@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ES Modules (ESM) 浏览器原生演示</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #333; padding: 30px 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+
+        header { text-align: center; margin-bottom: 40px; }
+        header h1 { font-size: 2rem; color: #1a1a2e; margin-bottom: 8px; }
+        header h1 small { font-size: 1rem; color: #888; font-weight: 400; }
+        header p { color: #666; }
+
+        .info-box { background: #eef2ff; border-left: 4px solid #6366f1; padding: 16px 20px; border-radius: 8px; margin-bottom: 30px; font-size: 0.95rem; line-height: 1.7; }
+        .info-box code { background: #dde1fe; padding: 2px 6px; border-radius: 4px; font-size: 0.9rem; }
+
+        .file-structure { background: #1e1e2e; border-radius: 10px; padding: 20px 24px; margin-bottom: 30px; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.85rem; line-height: 1.9; }
+        .file-structure .title { color: #89b4fa; font-weight: 600; margin-bottom: 10px; font-size: 0.95rem; }
+        .file-structure .file { color: #a6e3a1; }
+        .file-structure .dir { color: #f9e2af; }
+        .file-structure .comment { color: #6c7086; font-style: italic; }
+        .file-structure .highlight { background: #313244; padding: 2px 6px; border-radius: 4px; }
+        .file-structure .arrow { color: #6c7086; }
+        .file-structure .badge { display: inline-block; background: #45475a; color: #cdd6f4; padding: 0 8px; border-radius: 3px; font-size: 0.75rem; margin-left: 6px; }
+
+        .section-title { font-size: 1.2rem; font-weight: 600; color: #1a1a2e; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
+
+        .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; padding: 12px 16px; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #555; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .legend-dot.named { background: #6366f1; }
+        .legend-dot.default { background: #f59e0b; }
+        .legend-dot.dynamic { background: #10b981; }
+        .legend-dot.scope { background: #ef4444; }
+
+        .demo-section { background: #fff; border-radius: 10px; padding: 20px 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+        .demo-section h3 { font-size: 1rem; color: #374151; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .demo-section h3 .tag { font-size: 0.7rem; font-weight: 500; padding: 2px 8px; border-radius: 4px; color: #fff; }
+        .tag.named { background: #6366f1; }
+        .tag.default { background: #f59e0b; }
+        .tag.dynamic { background: #10b981; }
+        .tag.scope { background: #ef4444; }
+        .tag.rename { background: #8b5cf6; }
+        .tag.mixed { background: #06b6d4; }
+
+        .result-item { padding: 6px 0; font-size: 0.9rem; font-family: 'Cascadia Code', 'Fira Code', monospace; }
+        .result-item code { background: #f1f5f9; padding: 2px 8px; border-radius: 4px; color: #475569; }
+        .result-item .success { color: #059669; font-weight: 600; }
+        .result-item .error { color: #dc2626; font-weight: 600; }
+
+        .note { margin-top: 10px; padding: 10px 14px; background: #fffbeb; border-radius: 6px; font-size: 0.85rem; color: #92400e; border-left: 3px solid #f59e0b; line-height: 1.5; }
+
+        .syntax-box { background: #1e1e2e; border-radius: 8px; padding: 14px 18px; margin: 10px 0 6px; overflow-x: auto; }
+        .syntax-box pre { margin: 0; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 0.82rem; line-height: 1.6; color: #cdd6f4; }
+        .syntax-box .kw { color: #cba6f7; }
+        .syntax-box .str { color: #a6e3a1; }
+        .syntax-box .fn { color: #89b4fa; }
+        .syntax-box .cm { color: #6c7086; }
+        .syntax-box .num { color: #fab387; }
+        .syntax-box .op { color: #89dceb; }
+
+        .code-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+        @media (max-width: 640px) { .code-grid { grid-template-columns: 1fr; } }
+
+        footer { text-align: center; padding: 30px 0 10px; color: #999; font-size: 0.85rem; }
+        footer a { color: #6366f1; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>ES Modules (ESM) <small>浏览器原生模块系统</small></h1>
+        <p>无需打包工具，浏览器原生支持的 JavaScript 模块化方案</p>
+    </header>
+
+    <div class="info-box">
+        <strong>什么是 ESM？</strong> ES Modules 是 ECMAScript 2015 (ES6) 定义的官方模块化标准。
+        现代浏览器已原生支持 <code>&lt;script type="module"&gt;</code>，可以直接使用 <code>import</code> 和 <code>export</code> 语句，
+        无需 Webpack/Rollup 等打包工具。<br><br>
+
+        <strong>关键特性：</strong>
+        <code>defer 默认启用</code> · <code>严格模式</code> · <code>模块作用域</code> · <code>循环依赖支持</code> · <code>仅执行一次</code>
+    </div>
+
+    <div class="section-title">文件结构</div>
+    <div class="file-structure">
+        <div class="title">demos/cdn/esm/</div>
+        <div><span class="dir">├──</span> <span class="file highlight">module.html</span> <span class="comment">← 主页面（你在这里）</span></div>
+        <div><span class="dir">├──</span> <span class="file">math.js</span> <span class="badge">named exports</span> <span class="comment">数学工具函数</span></div>
+        <div><span class="dir">├──</span> <span class="file">greeting.js</span> <span class="badge">default + named</span> <span class="comment">多语言问候</span></div>
+        <div><span class="dir">├──</span> <span class="file">weather.js</span> <span class="badge">all named</span> <span class="comment">天气数据（动态导入）</span></div>
+        <div><span class="dir">├──</span> <span class="file">display.js</span> <span class="badge">named exports</span> <span class="comment">UI 渲染辅助</span></div>
+        <div><span class="dir">└──</span> <span class="file">app.js</span> <span class="badge">entry point</span> <span class="comment">← 主入口模块</span></div>
+    </div>
+
+    <div class="section-title">ESM 语法示例</div>
+
+    <div class="code-grid">
+        <div class="demo-section" style="margin-bottom:0">
+            <h3>具名导出 Named Export</h3>
+            <div class="syntax-box"><pre><span class="cm">// math.js</span>
+<span class="kw">export const</span> PI = <span class="num">3.14</span>;
+<span class="kw">export function</span> <span class="fn">add</span>(a, b) {
+    <span class="kw">return</span> a + b;
+}</pre></div>
+        </div>
+        <div class="demo-section" style="margin-bottom:0">
+            <h3>具名导入 Named Import</h3>
+            <div class="syntax-box"><pre><span class="cm">// app.js</span>
+<span class="kw">import</span> { add, PI }
+    <span class="kw">from</span> <span class="str">'./math.js'</span>;
+
+add(PI, <span class="num">2</span>); <span class="cm">// 5.14</span></pre></div>
+        </div>
+        <div class="demo-section" style="margin-bottom:0">
+            <h3>默认导出 Default Export</h3>
+            <div class="syntax-box"><pre><span class="cm">// greeting.js</span>
+<span class="kw">const</span> dict = { zh: '你好' };
+<span class="kw">export default</span> dict;</pre></div>
+        </div>
+        <div class="demo-section" style="margin-bottom:0">
+            <h3>默认 + 具名导入</h3>
+            <div class="syntax-box"><pre><span class="cm">// app.js</span>
+<span class="kw">import</span> dict, { translate }
+    <span class="kw">from</span> <span class="str">'./greeting.js'</span>;
+
+dict.zh;      <span class="cm">// 你好</span>
+translate('世界'); <span class="cm">// 你好, 世界!</span></pre></div>
+        </div>
+        <div class="demo-section" style="margin-bottom:0">
+            <h3>动态导入 Dynamic Import</h3>
+            <div class="syntax-box"><pre><span class="kw">const</span> mod =
+  <span class="kw">await</span> <span class="fn">import</span>(<span class="str">'./weather.js'</span>);
+mod.getDefaultCity();
+<span class="cm">// Beijing</span></pre></div>
+        </div>
+        <div class="demo-section" style="margin-bottom:0">
+            <h3>导入重命名 Rename</h3>
+            <div class="syntax-box"><pre><span class="kw">import</span> { translate <span class="kw">as</span> t }
+    <span class="kw">from</span> <span class="str">'./greeting.js'</span>;
+
+t('World', <span class="str">'en'</span>);
+<span class="cm">// Hello, World!</span></pre></div>
+        </div>
+    </div>
+
+    <div style="height: 30px"></div>
+
+    <div class="section-title">
+        运行结果
+        <span style="font-size:0.8rem;font-weight:400;color:#999;margin-left:8px">
+            ↓ 来自 <code>app.js</code> 的模块导入输出
+        </span>
+    </div>
+
+    <div id="demos"></div>
+
+    <footer>
+        Powered by <a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Modules" target="_blank">ES Modules</a>
+         · 使用 <code>type="module"</code> 加载
+    </footer>
+</div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

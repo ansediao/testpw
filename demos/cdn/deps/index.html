@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PWCA · ESM CDN 依赖统一管理演示</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      background: #eef2f7;
+      color: #1f2937;
+    }
+    .page { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    .sub { color: #6b7280; margin-bottom: 20px; font-size: 13px; }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 16px 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,.05);
+      margin-bottom: 16px;
+    }
+    .card h2 { margin: 0 0 10px; font-size: 15px; color: #111827; }
+
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .row > * { flex-shrink: 0; }
+    label { font-size: 13px; color: #374151; }
+    input[type="text"], input[type="color"] {
+      padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;
+    }
+    input[type="color"] { padding: 0; width: 40px; height: 32px; }
+    button {
+      padding: 7px 14px; border: 0; border-radius: 6px; cursor: pointer;
+      background: #3a86ff; color: #fff; font-size: 13px;
+    }
+    button.secondary { background: #6b7280; }
+    button.danger { background: #ef4444; }
+    button:hover { opacity: .9; }
+
+    .badge {
+      display: inline-block; padding: 4px 10px; border-radius: 999px;
+      background: #e0e7ff; color: #3730a3; font-size: 12px;
+    }
+    .canvas-wrap {
+      display: flex; justify-content: center; align-items: center;
+      padding: 12px; background: #f9fafb; border-radius: 8px;
+    }
+
+    /* micromodal */
+    .modal { display: none; }
+    .modal.is-open { display: block; }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      z-index: 1000;
+    }
+    .modal-container {
+      position: relative; background: #fff; border-radius: 10px;
+      max-width: 480px; margin: 60px auto; padding: 24px;
+      z-index: 1001;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .modal-title { font-size: 16px; font-weight: 600; }
+    .modal-close { cursor: pointer; background: none; border: 0; font-size: 20px; color: #6b7280; }
+    .modal-content { font-size: 14px; color: #374151; line-height: 1.6; }
+
+    pre.code {
+      background: #0f172a; color: #e2e8f0; padding: 14px;
+      border-radius: 8px; font-size: 12px; overflow-x: auto;
+      font-family: "Cascadia Code", Consolas, monospace;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="page">
+    <h1>PWCA · ESM CDN 依赖统一管理演示</h1>
+    <div class="sub">所有第三方依赖只从 <code>./deps.js</code> 导入，版本号在 deps.js 中集中锁定。</div>
+
+    <div class="card">
+      <h2>① 依赖版本（来自 <code>deps.js</code>）</h2>
+      <pre class="code">vue          3.4.21    (esm.sh)
+fabric.js    5.3.0     (esm.sh)
+lodash-es    4.17.21   (esm.sh)
+pinia        2.1.7     (esm.sh)
+micromodal   0.4.10    (esm.sh)</pre>
+    </div>
+
+    <div class="card">
+      <h2>② 实时状态（Pinia store） · <span class="badge">{{ badge }}</span></h2>
+      <div class="row" style="margin-top: 10px;">
+        <label>颜色：<input type="color" :value="store.color" @input="onColorChange" /></label>
+        <label>文字：<input type="text" :value="store.text" @input="onTextInput($event.target.value)" placeholder="输入文字（节流 200ms）" /></label>
+        <button @click="addCircle">+ 圆形</button>
+        <button class="secondary" @click="clearCanvas">清空</button>
+        <button class="secondary" @click="openModal">打开弹窗</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>③ Fabric.js 画布</h2>
+      <div class="canvas-wrap">
+        <canvas ref="canvasEl"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>④ 核心使用片段（节选自 <code>app.js</code>）</h2>
+      <pre class="code">import {
+  createApp, ref, computed, onMounted, watch,
+  debounce, fabric, createPinia, MicroModal,
+} from './deps.js';</pre>
+    </div>
+  </div>
+
+  <!-- micromodal 弹窗 -->
+  <div class="modal" id="demo-modal" aria-hidden="true">
+    <div class="modal-overlay" data-micromodal-close>
+      <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="demo-modal-title">
+        <header class="modal-header">
+          <h3 class="modal-title" id="demo-modal-title">Micromodal 弹窗</h3>
+          <button class="modal-close" aria-label="关闭" data-micromodal-close>×</button>
+        </header>
+        <div class="modal-content">
+          弹窗由 <code>deps.js</code> 统一导出的 <code>MicroModal</code> 控制，
+          符合项目"前后台弹窗统一用 micromodal"的规范。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 入口：原生 ES Module，浏览器自动解析 deps.js 内的 esm.sh 依赖 -->
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

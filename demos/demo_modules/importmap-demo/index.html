@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Import Map 模块化演示</title>
+
+  <!--
+    Import Map：用 JSON 映射裸标识符到实际路径
+    必须放在所有 type="module" 脚本之前
+  -->
+  <script type="importmap">
+  {
+    "imports": {
+      "@utils/format": "./modules/utils/format.js",
+      "@utils/dom":    "./modules/utils/dom.js",
+      "@components/counter": "./modules/components/Counter.js"
+    }
+  }
+  </script>
+
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+    .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin: 16px 0; }
+    button { background: #2563eb; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin: 4px; }
+    button:hover { background: #1d4ed8; }
+    #output { background: #f9fafb; border-radius: 4px; padding: 12px; min-height: 40px; margin-top: 12px; }
+    pre { background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 4px; overflow-x: auto; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<h1>Import Map + ES Module 演示</h1>
+<p>零构建工具、零全局变量。所有模块通过裸标识符导入。</p>
+
+<div class="card">
+  <h3>模块化演示</h3>
+  <button id="btn-time">显示时间</button>
+  <button id="btn-counter">计数器 +1</button>
+  <button id="btn-reset">计数器重置</button>
+  <div id="output">点击按钮查看效果...</div>
+</div>
+
+<div class="card">
+  <h3>关键代码</h3>
+  <pre>&lt;script type="importmap"&gt;
+{
+  "imports": {
+    "@utils/format":  "./modules/utils/format.js",
+    "@utils/dom":     "./modules/utils/dom.js",
+    "@components/counter": "./modules/components/Counter.js"
+  }
+}
+&lt;/script&gt;
+
+&lt;script type="module"&gt;
+  import { formatTime } from '@utils/format'
+  import { $ } from '@utils/dom'
+  import { Counter } from '@components/counter'
+&lt;/script&gt;</pre>
+</div>
+
+<div class="card">
+  <h3>全局变量检查</h3>
+  <pre id="globals-info">正在检测...</pre>
+</div>
+
+<!-- ES Module 入口：所有导入通过 import map 解析裸标识符 -->
+<script type="module">
+  // 裸标识符 → import map 自动解析到实际文件路径
+  import { formatTime, formatDate } from '@utils/format'
+  import { $ } from '@utils/dom'
+  import { Counter } from '@components/counter'
+
+  const counter = new Counter()
+  const output  = $('#output')
+
+  $('#btn-time').addEventListener('click', () => {
+    const now = new Date()
+    output.textContent = `${formatDate(now)}  ${formatTime(now)}`
+  })
+
+  $('#btn-counter').addEventListener('click', () => {
+    counter.increment()
+    output.textContent = `计数器：${counter.value}`
+  })
+
+  $('#btn-reset').addEventListener('click', () => {
+    counter.reset()
+    output.textContent = '计数器已重置为 0'
+  })
+
+  // 检查全局变量污染情况
+  const nativeGlobals = new Set([
+    'globalThis','self','window','document','name','location',
+    'customElements','history','navigation','locationbar','menubar',
+    'personalbar','scrollbars','statusbar','toolbar','status',
+    'closed','frames','length','top','opener','parent','frameElement',
+    'navigator','origin','external','innerHeight','innerWidth',
+    'outerHeight','outerWidth','screenX','screenY','screenLeft',
+    'screenTop','pageXOffset','pageYOffset','scrollX','scrollY',
+    'visualViewport','screen','clientInformation','styleMedia',
+    'performance','isSecureContext','crossOriginIsolated',
+    'scheduler','alert','atob','blur','btoa','caches',
+    'cancelAnimationFrame','cancelIdleCallback','clearInterval',
+    'clearTimeout','close','confirm','createImageBitmap','fetch',
+    'find','focus','getComputedStyle','getScreenDetails',
+    'getSelection','matchMedia','moveBy','moveTo','open','postMessage',
+    'print','prompt','queueMicrotask','reportError','requestAnimationFrame',
+    'requestIdleCallback','resizeBy','resizeTo','scroll','scrollBy',
+    'scrollTo','setInterval','setTimeout','stop','structuredClone',
+    'webkitCancelAnimationFrame','webkitRequestAnimationFrame',
+    'getDigitalGoodsService','launchQueue','documentPictureInPicture',
+    'chrome','trustedTypes','speechSynthesis','onpointerrawupdate',
+    'onscrollend','crossOriginIsolated','dpr','devicePixelRatio',
+    'cookieStore','onpageswap','onpagereveal','onscrollend',
+    'queryLocalFonts','showDirectoryPicker','showOpenFilePicker',
+    'showSaveFilePicker','originAgentCluster','viewport',
+    'getViewport','onpageshow','onpagehide','onpageswap','onpagereveal',
+    'onbeforeprint','onafterprint','onbeforeunload','onhashchange',
+    'onlanguagechange','onmessage','onmessageerror','onoffline',
+    'ononline','onpagehide','onpageshow','onpopstate',
+    'onrejectionhandled','onstorage','onunhandledrejection',
+    'onunload','ondevicemotion','ondeviceorientation',
+    'ondeviceorientationabsolute','onpageshow','onpagehide',
+    'indexedDB','sessionStorage','localStorage','caches',
+    'crypto','CrossOriginIsolated','onrejectionhandled',
+    'onunhandledrejection','onpageswap','onpagereveal',
+    'onbeforetoggle','onscrollend','onbeforecopy','onbeforecut',
+    'onbeforepaste','onfreeze','onresume','onvisibilitychange',
+    'onpageswap','onpagereveal','onscrollend','webkitRequestAnimationFrame',
+    'webkitCancelAnimationFrame','cancelAnimationFrame',
+    'requestAnimationFrame','Scheduling','scheduler'
+  ])
+
+  const addedGlobals = Object.getOwnPropertyNames(window)
+    .filter(k => !nativeGlobals.has(k) && !k.startsWith('on') && !k.startsWith('__'))
+
+  $('#globals-info').textContent =
+    `window 上自定义属性数量：${addedGlobals.length}\n` +
+    `模块内部变量对外完全不可见（零全局暴露）`
+
+  console.log('✅ 模块加载成功，import map 正常工作')
+</script>
+
+</body>
+</html>

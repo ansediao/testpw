@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ES Module Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      min-height: 50px;
+    }
+  </style>
+</head>
+<body>
+  <h1>ES Module 演示</h1>
+
+  <div class="card">
+    <h2>功能演示</h2>
+    <button id="btn-greet">打招呼</button>
+    <button id="btn-calc">计算</button>
+    <button id="btn-time">获取时间</button>
+    <div id="output">点击按钮查看效果...</div>
+  </div>
+
+  <div class="card">
+    <h2>说明</h2>
+    <p>本示例展示了无构建工具的 ES 模块化方案：</p>
+    <ul>
+      <li>使用 <code>&lt;script type="module"&gt;</code> 加载</li>
+      <li>使用相对路径 <code>import</code></li>
+      <li>无需 Webpack/Vite 等构建工具</li>
+      <li>全局变量零暴露</li>
+    </ul>
+  </div>
+
+  <script type="module">
+    // 从模块导入功能
+    import { greet } from './modules/greeting.js'
+    import { calculate } from './modules/calculator.js'
+    import { getCurrentTime } from './modules/time.js'
+
+    // 获取 DOM 元素
+    const output = document.getElementById('output')
+    const btnGreet = document.getElementById('btn-greet')
+    const btnCalc = document.getElementById('btn-calc')
+    const btnTime = document.getElementById('btn-time')
+
+    // 绑定事件
+    btnGreet.addEventListener('click', () => {
+      const message = greet('世界')
+      output.textContent = message
+    })
+
+    btnCalc.addEventListener('click', () => {
+      const result = calculate(10, 5, '+')
+      output.textContent = `10 + 5 = ${result}`
+    })
+
+    btnTime.addEventListener('click', () => {
+      const time = getCurrentTime()
+      output.textContent = `当前时间：${time}`
+    })
+
+    // 初始化
+    console.log('✅ 模块加载成功，全局变量数量：', Object.keys(window).length)
+  </script>
+</body>
+</html>

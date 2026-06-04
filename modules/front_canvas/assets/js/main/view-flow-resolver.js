@@ -50,7 +50,7 @@
             },
             // 内容区域图层的回退顺序
             contentAreaFallbacks: ['Content Area Layer', 'Mapping Layer', 'FlexiCurve Layer', 'Base Layer'],
-            hasMask: false,
+            hasMask: true,
             postInit: null,
             previewImageConfigs: [
                 {

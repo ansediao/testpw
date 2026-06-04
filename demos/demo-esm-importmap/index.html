@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESM + Import Maps Demo</title>
+</head>
+<body>
+    <h1>ES Modules + Import Maps 演示</h1>
+    <div id="output"></div>
+
+    <!-- Import Map: 将裸导入映射到 CDN URL -->
+    <script type="importmap">
+    {
+        "imports": {
+            "lodash": "https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"
+        }
+    }
+    </script>
+
+    <!-- 主模块 -->
+    <script type="module">
+        // 使用裸导入 - 浏览器会自动通过 import map 解析
+        import _ from 'lodash';
+
+        // 导入本地模块
+        import { formatDate, greet } from './utils.js';
+
+        // 使用 lodash
+        const numbers = [1, 2, 3, 4, 5];
+        const shuffled = _.shuffle(numbers);
+
+        // 使用本地模块
+        const today = formatDate(new Date());
+        const message = greet('World');
+
+        // 输出结果
+        document.getElementById('output').innerHTML = `
+            <p><strong>随机排序:</strong> ${shuffled.join(', ')}</p>
+            <p><strong>日期:</strong> ${today}</p>
+            <p><strong>问候:</strong> ${message}</p>
+        `;
+    </script>
+</body>
+</html>

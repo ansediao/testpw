@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vue3 + Fabric.js 文字工具演示</title>
+
+  <!-- 字体 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --bg: #0e0e10;
+      --bg-2: #16161a;
+      --panel: #1c1c20;
+      --panel-2: #232328;
+      --border: #2a2a30;
+      --line: #34343c;
+      --text: #ececf1;
+      --text-dim: #9b9ba6;
+      --text-mute: #6b6b75;
+      --accent: #ff6a3d;
+      --accent-2: #ffb88c;
+      --ok: #7ee787;
+      --danger: #ff6b6b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Noto Sans SC", "JetBrains Mono", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* 背景细噪点 */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 3px 3px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      grid-template-rows: auto 1fr;
+      grid-template-areas:
+        "header header"
+        "stage panel";
+    }
+
+    /* Header */
+    .app-header {
+      grid-area: header;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 32px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,106,61,0.04), transparent 60%), var(--bg);
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+    .brand h1 {
+      font-family: "Fraunces", serif;
+      font-weight: 500;
+      font-size: 28px;
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+    .brand h1 em {
+      font-style: italic;
+      color: var(--accent);
+      font-weight: 300;
+    }
+    .brand .meta {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      color: var(--text-mute);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 8px rgba(126,231,135,0.6);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Stage */
+    .stage {
+      grid-area: stage;
+      padding: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .stage::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 20%, rgba(255,106,61,0.06), transparent 50%),
+                  radial-gradient(circle at 80% 80%, rgba(255,184,140,0.04), transparent 50%);
+      pointer-events: none;
+    }
+
+    .canvas-frame {
+      position: relative;
+      z-index: 1;
+      background: #fff;
+      border-radius: 6px;
+      box-shadow:
+        0 1px 0 rgba(255,255,255,0.05) inset,
+        0 30px 60px -20px rgba(0,0,0,0.6),
+        0 0 0 1px var(--border);
+      overflow: hidden;
+    }
+    .canvas-frame .corner {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border: 1.5px solid var(--accent);
+      pointer-events: none;
+    }
+    .canvas-frame .corner.tl { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+    .canvas-frame .corner.tr { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+    .canvas-frame .corner.bl { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+    .canvas-frame .corner.br { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+    .canvas-ruler {
+      position: absolute;
+      top: -22px;
+      left: 0;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--text-mute);
+      letter-spacing: 0.05em;
+    }
+    .canvas-ruler.right { left: auto; right: 0; }
+
+    /* Panel */
+    .panel {
+      grid-area: panel;
+      border-left: 1px solid var(--border);
+      background: var(--panel);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .panel-section {
+      padding: 24px 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-section.no-border { border-bottom: none; }
+    .panel-section h2 {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-mute);
+      margin: 0 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-section h2::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 1px;
+    }
+
+    .text-tool { display: flex; flex-direction: column; gap: 14px; }
+    .text-tool h3 {
+      font-family: "Fraunces", serif;
+      font-weight: 500;
+      font-style: italic;
+      font-size: 20px;
+      margin: 0 0 4px;
+      color: var(--text);
+    }
+    .text-tool .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .text-tool label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .text-tool input[type="text"],
+    .text-tool input[type="number"] {
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .text-tool input[type="text"]:focus,
+    .text-tool input[type="number"]:focus {
+      border-color: var(--accent);
+      background: var(--panel-2);
+    }
+    .text-tool input[type="color"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--bg-2);
+      padding: 4px;
+      cursor: pointer;
+    }
+    .text-tool input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    .text-tool input[type="color"]::-webkit-color-swatch { border: none; border-radius: 2px; }
+
+    .text-tool .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-primary {
+      margin-top: 6px;
+      background: var(--accent);
+      color: #1a0a04;
+      border: none;
+      padding: 12px 16px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.15s ease, background 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary:hover {
+      background: var(--accent-2);
+      box-shadow: 0 0 0 4px rgba(255,106,61,0.15);
+    }
+    .btn-primary:active { transform: translateY(1px); }
+    .btn-primary .arrow { font-size: 14px; }
+
+    /* Object list */
+    .obj-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .obj-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--text-dim);
+      transition: border-color 0.15s ease, color 0.15s ease;
+    }
+    .obj-item .label {
+      font-family: "JetBrains Mono", monospace;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .obj-item .badge {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 2px;
+      background: var(--panel-2);
+      color: var(--text-mute);
+    }
+    .obj-empty {
+      padding: 20px 12px;
+      text-align: center;
+      color: var(--text-mute);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      border: 1px dashed var(--line);
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .stat {
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 10px 12px;
+    }
+    .stat .v {
+      font-family: "Fraunces", serif;
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat .k {
+      margin-top: 4px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-mute);
+    }
+
+    .tip {
+      font-size: 11px;
+      color: var(--text-mute);
+      line-height: 1.6;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .tip code {
+      background: var(--bg-2);
+      padding: 1px 5px;
+      border-radius: 2px;
+      color: var(--accent-2);
+      font-size: 10.5px;
+    }
+
+    /* 兜底：如果 JS 全部失败，至少提示用户 */
+    .boot-error {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      padding: 40px;
+      text-align: center;
+      background: var(--bg);
+      z-index: 9999;
+    }
+    .boot-error h2 {
+      font-family: "Fraunces", serif;
+      font-weight: 500;
+      color: var(--accent);
+      margin: 0;
+    }
+    .boot-error pre {
+      max-width: 720px;
+      text-align: left;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 18px;
+      color: var(--text-dim);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* responsive */
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "header"
+          "stage"
+          "panel";
+      }
+      .panel { border-left: none; border-top: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+  <!-- 加载失败时显示 -->
+  <div id="boot-error" class="boot-error" style="display:none">
+    <h2>页面初始化失败</h2>
+    <pre id="boot-error-msg"></pre>
+  </div>
+
+  <div id="app"></div>
+
+  <!-- 1) Vue 3 全局构建（含模板编译器，Options API 必备） -->
+  <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+
+  <!-- 2) Fabric.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+
+  <script>
+    // 错误兜底：把异常显示在页面上，而不是只丢到 console
+    window.addEventListener('error', (e) => {
+      const box = document.getElementById('boot-error');
+      const msg = document.getElementById('boot-error-msg');
+      if (box && msg) {
+        box.style.display = 'flex';
+        msg.textContent = (e.error && e.error.stack) || e.message || String(e);
+      }
+    });
+
+    // 资源加载失败
+    window.addEventListener('error', (e) => {
+      if (e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK')) {
+        const box = document.getElementById('boot-error');
+        const msg = document.getElementById('boot-error-msg');
+        if (box && msg && !msg.textContent) {
+          box.style.display = 'flex';
+          msg.textContent = '资源加载失败：' + (e.target.src || e.target.href);
+        }
+      }
+    }, true);
+
+    // 防止 Vue 不可用时静默失败
+    if (typeof Vue === 'undefined') {
+      document.getElementById('boot-error').style.display = 'flex';
+      document.getElementById('boot-error-msg').textContent = 'Vue 全局构建未加载，请检查网络或使用 vue.global.js。';
+      throw new Error('Vue not loaded');
+    }
+    if (typeof fabric === 'undefined') {
+      document.getElementById('boot-error').style.display = 'flex';
+      document.getElementById('boot-error-msg').textContent = 'Fabric.js 未加载，请检查网络。';
+      throw new Error('fabric not loaded');
+    }
+
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    /* ============================================================
+     * TextTool 组件 - 用户提供的代码
+     * ========================================================== */
+    const TextTool = {
+      name: 'TextTool',
+      props: ['canvas'],
+      emits: ['added'],
+      setup(props, { emit }) {
+        const text = ref('请输入文字');
+        const fontSize = ref(24);
+        const fontColor = ref('#000000');
+
+        const addText = () => {
+          if (!props.canvas) {
+            console.warn('[TextTool] canvas is not ready');
+            return;
+          }
+          const textObj = new fabric.Text(text.value, {
+            left: 100,
+            top: 100,
+            fontSize: fontSize.value,
+            fill: fontColor.value
+          });
+          props.canvas.add(textObj);
+          props.canvas.renderAll();
+          emit('added', { text: text.value, fontSize: fontSize.value });
+        };
+
+        return { text, fontSize, fontColor, addText };
+      },
+      template: `
+        <section class="panel-section no-border" style="padding-bottom: 0;">
+          <h2>工具 / Tool</h2>
+          <div class="text-tool">
+            <h3>文字工具</h3>
+
+            <div class="field">
+              <label>content</label>
+              <input v-model="text" placeholder="输入文字" />
+            </div>
+
+            <div class="row-2">
+              <div class="field">
+                <label>size</label>
+                <input type="number" v-model.number="fontSize" min="12" max="100" />
+              </div>
+              <div class="field">
+                <label>color</label>
+                <input type="color" v-model="fontColor" />
+              </div>
+            </div>
+
+            <button class="btn-primary" @click="addText">
+              添加文字 <span class="arrow">→</span>
+            </button>
+          </div>
+        </section>
+      `
+    };
+
+    /* ============================================================
+     * 根应用
+     * ========================================================== */
+    const App = {
+      components: { TextTool },
+      setup() {
+        const canvas = ref(null);
+        const canvasStatus = ref('init');
+        const textObjects = ref([]);
+
+        const totalChars = computed(() =>
+          textObjects.value.reduce((sum, t) => sum + t.text.length, 0)
+        );
+
+        const onTextAdded = (payload) => {
+          textObjects.value.push(payload);
+        };
+
+        onMounted(() => {
+          const el = document.getElementById('fabric-canvas');
+          if (!el) {
+            console.error('[demo] #fabric-canvas not found');
+            return;
+          }
+          const fc = new fabric.Canvas(el, {
+            backgroundColor: '#ffffff',
+            selection: true
+          });
+          canvas.value = fc;
+          canvasStatus.value = 'ready';
+          console.log('[demo] fabric canvas ready', fc);
+
+          fc.on('object:added', (e) => {
+            if (e.target && e.target.type === 'text') {
+              console.log('[canvas] object:added', e.target);
+            }
+          });
+        });
+
+        return { canvas, canvasStatus, textObjects, totalChars, onTextAdded };
+      },
+      template: `
+        <div class="app">
+          <header class="app-header">
+            <div class="brand">
+              <h1>Vue3 <em>×</em> Fabric.js</h1>
+              <span class="meta">// text-tool demo</span>
+            </div>
+            <div class="header-right">
+              <span class="status-dot"></span>
+              <span>vue@3.4.21 · fabric@5.3.0</span>
+            </div>
+          </header>
+
+          <main class="stage">
+            <div class="canvas-frame">
+              <span class="canvas-ruler">800 × 500</span>
+              <span class="canvas-ruler right">canvas.upper</span>
+              <span class="corner tl"></span>
+              <span class="corner tr"></span>
+              <span class="corner bl"></span>
+              <span class="corner br"></span>
+              <canvas id="fabric-canvas" width="800" height="500"></canvas>
+            </div>
+          </main>
+
+          <aside class="panel">
+            <text-tool :canvas="canvas" @added="onTextAdded"></text-tool>
+
+            <section class="panel-section">
+              <h2>对象 / Objects</h2>
+              <ul class="obj-list" v-if="textObjects.length">
+                <li class="obj-item" v-for="(t, i) in textObjects" :key="i">
+                  <span class="label">"{{ t.text }}"</span>
+                  <span class="badge">{{ t.fontSize }}px</span>
+                </li>
+              </ul>
+              <div class="obj-empty" v-else>// no text objects yet</div>
+            </section>
+
+            <section class="panel-section">
+              <h2>状态 / Stats</h2>
+              <div class="stat-grid">
+                <div class="stat">
+                  <div class="v">{{ textObjects.length }}</div>
+                  <div class="k">items</div>
+                </div>
+                <div class="stat">
+                  <div class="v">{{ totalChars }}</div>
+                  <div class="k">chars</div>
+                </div>
+                <div class="stat">
+                  <div class="v">{{ canvasStatus }}</div>
+                  <div class="k">canvas</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel-section">
+              <h2>提示 / Tips</h2>
+              <p class="tip">
+                · 在右侧表单中输入文字与样式，点击"添加文字"将其加入画布<br />
+                · 双击画布中的文字可编辑内容，拖动可改变位置<br />
+                · 监听 <code>object:added</code> 事件可实时同步对象列表
+              </p>
+            </section>
+          </aside>
+        </div>
+      `
+    };
+
+    // 关键：把模板挂到 #app
+    const app = createApp(App);
+    app.config.errorHandler = (err, instance, info) => {
+      const box = document.getElementById('boot-error');
+      const msg = document.getElementById('boot-error-msg');
+      if (box && msg) {
+        box.style.display = 'flex';
+        msg.textContent = '[Vue] ' + (err && err.stack ? err.stack : err) + '\n\n' + info;
+      }
+      console.error('[Vue error]', err, info);
+    };
+    app.mount('#app');
+  </script>
+</body>
+</html>

@@ -540,14 +540,6 @@ body.wpcanvas #app.container .main-content .canvas-area .canvas-box .design_area
   justify-content: center;
   align-items: center;
 }
-body.wpcanvas #app.container .main-content .canvas-area .canvas-box .preview_area .view-area .preview-canvas-container {
-  position: relative;
-}
-body.wpcanvas #app.container .main-content .canvas-area .canvas-box .preview_area .view-area .preview-canvas-container #designPreviewCanvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
 body.wpcanvas #app.container .dongtai-area {
   padding: 10px;
   border-radius: 5px;
@@ -614,6 +606,7 @@ body.wpcanvas #app.container .canvas-wrapper--overlay {
 }
 body.wpcanvas #app.container .canvas-wrapper--mask {
   z-index: 40;
+  pointer-events: none;
 }
 body.wpcanvas #app.container #boundaryLayer {
   pointer-events: none;

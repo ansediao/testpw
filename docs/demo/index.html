@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ES Modules + Import Maps 演示</title>
+
+    <!-- Import Map: 定义模块别名 -->
+    <script type="importmap">
+    {
+        "imports": {
+            "@utils/": "./modules/utils/",
+            "@components/": "./modules/components/"
+        }
+    }
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .demo-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        #global-check {
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ES Modules + Import Maps 演示</h1>
+
+    <!-- 演示区域 1: 作用域隔离验证 -->
+    <div class="demo-section">
+        <h2>🔒 作用域隔离验证</h2>
+        <p>点击按钮检查模块变量是否泄漏到全局作用域</p>
+        <button id="btn-check-scope">检查全局作用域</button>
+        <div id="scope-result" class="result"></div>
+    </div>
+
+    <!-- 演示区域 2: 模块功能调用 -->
+    <div class="demo-section">
+        <h2>📦 模块功能调用</h2>
+        <p>调用不同模块的功能，观察结果</p>
+        <button id="btn-math">数学计算</button>
+        <button id="btn-string">字符串处理</button>
+        <button id="btn-counter">计数器</button>
+        <button id="btn-reset">重置计数器</button>
+        <div id="module-result" class="result"></div>
+    </div>
+
+    <!-- 演示区域 3: Import Map 别名使用 -->
+    <div class="demo-section">
+        <h2>🗺️ Import Map 别名演示</h2>
+        <p>使用 @utils/ 和 @components/ 别名导入模块</p>
+        <button id="btn-alias">测试别名导入</button>
+        <div id="alias-result" class="result"></div>
+    </div>
+
+    <!-- 演示区域 4: 动态导入 -->
+    <div class="demo-section">
+        <h2>⚡ 动态导入 (Lazy Loading)</h2>
+        <p>点击按钮动态加载模块</p>
+        <button id="btn-dynamic">动态加载模块</button>
+        <div id="dynamic-result" class="result"></div>
+    </div>
+
+    <!-- 全局变量检查状态 -->
+    <div id="global-check" class="info" style="margin-top: 20px;">
+        🔍 全局变量检查状态: 未检测
+    </div>
+
+    <!-- 入口模块 -->
+    <script type="module" src="./modules/main.js"></script>
+</body>
+</html>
