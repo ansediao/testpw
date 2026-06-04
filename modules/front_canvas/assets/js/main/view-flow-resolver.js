@@ -56,6 +56,7 @@
                 {
                     key: 'print-sheet',
                     label: '4-Grid Print',
+                    enabled: true,
                     mode: 'layerComposite',
                     sizeReferenceLayer: '4-Grid Layer',
                     beforeCanvasLayers: [
@@ -71,6 +72,7 @@
                 {
                     key: 'mockup',
                     label: 'Product Preview',
+                    enabled: true,
                     mode: 'gridMockup',
                     sizeReferenceLayer: 'Background Layer',
                     cropConfig: {

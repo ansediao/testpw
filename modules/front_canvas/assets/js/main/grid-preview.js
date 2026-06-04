@@ -332,7 +332,9 @@ async function generate4GridImagesForView(view, options = {}) {
             ? window.pwcaGetFlowPreviewImageConfigs(view)
             : []);
 
-    if (!Array.isArray(configuredPreviews) || configuredPreviews.length === 0) {
+    const enabledPreviews = configuredPreviews.filter(function (c) { return c.enabled !== false; });
+
+    if (!Array.isArray(enabledPreviews) || enabledPreviews.length === 0) {
         const capturedImage = await captureViewImage(view);
         return options.onlyFirst ? capturedImage : [capturedImage];
     }
@@ -345,7 +347,7 @@ async function generate4GridImagesForView(view, options = {}) {
         activeCanvas = pwcaGetGridActiveCanvas();
     }
 
-    const previewConfigs = options.onlyFirst ? [configuredPreviews[0]] : configuredPreviews;
+    const previewConfigs = options.onlyFirst ? [enabledPreviews[0]] : enabledPreviews;
     const images = [];
 
     for (const previewConfig of previewConfigs) {

@@ -105,9 +105,11 @@ async function showUniversalViewPreview(views) {
         const view = views[index];
         const isGridView = !!(window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view));
         const configuredPreviewLabels = typeof window.pwcaGetFlowPreviewImageConfigs === 'function'
-            ? window.pwcaGetFlowPreviewImageConfigs(view).map((config, configIndex) => {
-                return config?.label || config?.key || `Image ${configIndex + 1}`;
-            })
+            ? window.pwcaGetFlowPreviewImageConfigs(view)
+                .filter(function (config) { return config.enabled !== false; })
+                .map(function (config, configIndex) {
+                    return config?.label || config?.key || `Image ${configIndex + 1}`;
+                })
             : [];
         if (isGridView && Array.isArray(imageData)) {
             const imageLabels = configuredPreviewLabels.length > 0
@@ -142,7 +144,7 @@ async function showUniversalViewPreview(views) {
         const firstImageData = viewImages[0];
         if ((window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(firstView)) && Array.isArray(firstImageData)) {
             const firstFlowConfig = typeof window.pwcaGetFlowPreviewImageConfigs === 'function'
-                ? window.pwcaGetFlowPreviewImageConfigs(firstView)[0]
+                ? window.pwcaGetFlowPreviewImageConfigs(firstView).filter(function (c) { return c.enabled !== false; })[0]
                 : null;
             const firstLabel = firstFlowConfig?.label || firstFlowConfig?.key || 'Image 1';
             mainPreview.innerHTML = `<img src="${firstImageData[0]}" alt="${firstView.name || 'View 1'} - ${firstLabel}">`;
