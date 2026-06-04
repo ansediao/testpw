@@ -1344,6 +1344,14 @@ function pwcaCreateViewContainers(views, store) {
         viewContainer.innerHTML = canvasHtml;
         multiViewContainer.appendChild(viewContainer);
 
+        // 初始化时主动隐藏印刷区域遮罩，避免直接进入设计页时 mask 一直亮着。
+        // 后续 controlMaskCanvasFromMain / controlMaskCanvasVisibility 在用户操作了
+        // 带 groupId 的图层时会再切回 'block'，不影响现有逻辑。
+        const initialMaskWrapper = viewContainer.querySelector(`#maskWrapper-${view.id}`);
+        if (initialMaskWrapper) {
+            initialMaskWrapper.style.display = 'none';
+        }
+
         return new Promise((resolve, reject) => {
             setTimeout(async () => {
                 try {

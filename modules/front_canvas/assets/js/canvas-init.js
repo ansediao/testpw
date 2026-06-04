@@ -53,7 +53,12 @@
             const urlParams = new URLSearchParams(window.location.search);
             const productId = urlParams.get('product_id');
 
-            if (productId) {
+            // 仅在从购物车编辑模式（URL 同时包含 edit=true/1 和 cart_key）下还原颜色，
+            // 避免直接进入设计页时被旧颜色污染画布。
+            const isEdit = urlParams.get('edit') === 'true' || urlParams.get('edit') === '1';
+            const hasCartKey = !!urlParams.get('cart_key');
+
+            if (productId && isEdit && hasCartKey) {
                 const storageKey = `pw_product_color_${productId}`;
                 const savedColor = localStorage.getItem(storageKey);
 
