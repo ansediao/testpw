@@ -107,9 +107,37 @@ pwcaGetFlowPreviewImageConfigs(view)
 
 ### 2. 当前约定输出
 
-- `4-Grid Flow` 当前固定输出 2 张图
-- 第 1 张图：`4-Grid Print`
-- 第 2 张图：`Product Preview`
+- `4-Grid Flow` 当前固定输出 5 张图
+- 第 1 张图：`4-Grid Print`（印刷排版图）
+- 第 2~5 张图：四方向效果图
+  - 第 2 张：`正视图`（Front View）— 分区 2+3
+  - 第 3 张：`右视图`（Right View）— 分区 3+4
+  - 第 4 张：`左视图`（Left View）— 分区 1+2
+  - 第 5 张：`后视图`（Back View）— 分区 4+1（拼接）
+
+### 2.1 enabled 字段 — 控制每张图的显示/隐藏
+
+每个 `previewImageConfigs` 配置项都有一个 `enabled` 字段：
+
+- `enabled: true` — 该图正常生成并显示在预览弹窗中（默认）
+- `enabled: false` — 跳过该图，不生成、不在弹窗中显示
+
+过滤逻辑位于：
+- `grid-preview.js` 的 `generate4GridImagesForView()`：生成前过滤掉 `enabled === false` 的配置
+- `universal-preview.js` 的 `showUniversalViewPreview()`：提取标签列表时同步过滤
+
+若所有配置都被禁用（`enabled` 全为 `false`），则降级为普通截图模式 `captureViewImage(view)`。
+
+示例：只想显示四方向效果图而不显示印刷排版图：
+
+```js
+{
+  key: 'print-sheet',
+  label: '4-Grid Print',
+  enabled: false,   // ← 隐藏印刷排版图
+  ...
+}
+```
 
 ### 3. 第一张图规则
 
@@ -134,24 +162,35 @@ pwcaGetFlowPreviewImageConfigs(view)
 }
 ```
 
-### 4. 第二张图规则
+### 4. 四方向效果图规则（正/右/左/后视图）
+
+4-Grid Flow 的画布被等分为 4 个分区（从左到右 1~4）。四张效果图分别对应不同的两分区组合：
 
 - 模式：`gridMockup`
 - 尺寸参考层：`Background Layer`
 - 目标尺寸：读取 `Background Layer.layer_data.dimensions.layerSize`
-- 仍按 mockup 思路重组：
+- 每张图按 mockup 思路重组：
   - `Background Layer`
   - `Base Layer`
   - `Overlay Layer`
   - active canvas 的裁切区域
 - 不要直接复用当前 capture 结果再缩放，因为 4-Grid Flow 初始化时本来会跳过部分辅助层，直接复用会丢背景/底色/高光
 
-示例配置：
+画布分区与视图对应关系：
+
+```
+|  1  |  2  |  3  |  4  |
+| 左视图  | 正视图  | 右视图  |
+|   后视图(4+1拼接)     |
+```
+
+#### 正视图 (Front View) — 分区 2+3
 
 ```js
 {
-  key: 'mockup',
-  label: 'Product Preview',
+  key: 'mockup-front',
+  label: '正视图',
+  enabled: true,
   mode: 'gridMockup',
   sizeReferenceLayer: 'Background Layer',
   cropConfig: { x: 0.25, y: 0, width: 0.5, height: 1 },
@@ -162,9 +201,60 @@ pwcaGetFlowPreviewImageConfigs(view)
 }
 ```
 
-### 4.1 第二张图的真实图层渲染规则
+#### 右视图 (Right View) — 分区 3+4
 
-- `Product Preview` 中的 `Background Layer`、`Base Layer`、`Overlay Layer` 必须按各自图层配置里的真实信息绘制：
+```js
+{
+  key: 'mockup-right',
+  label: '右视图',
+  cropConfig: { x: 0.5, y: 0, width: 0.5, height: 1 },
+  // 其余字段同正视图
+}
+```
+
+#### 左视图 (Left View) — 分区 1+2
+
+```js
+{
+  key: 'mockup-left',
+  label: '左视图',
+  cropConfig: { x: 0, y: 0, width: 0.5, height: 1 },
+  // 其余字段同正视图
+}
+```
+
+#### 后视图 (Back View) — 分区 4+1（拼接）
+
+后视图较为特殊，因为分区 4 和分区 1 不连续，需要使用 `extraCrop` 机制将两个不连续的分区拼接为一张图：
+
+```js
+{
+  key: 'mockup-back',
+  label: '后视图',
+  cropConfig: {
+    x: 0.75,          // 主裁切：分区 4
+    y: 0,
+    width: 0.25,
+    height: 1,
+    extraCrop: {
+      x: 0,           // 额外裁切：分区 1
+      y: 0,
+      width: 0.25,
+      height: 1
+    }
+  },
+  // 其余字段同正视图
+}
+```
+
+`extraCrop` 的处理逻辑在 `drawCroppedCanvasRegionWithWindowEffect()` 中：
+- 主裁切区域（分区4）先绘制到结果画布的左侧
+- `extraCrop` 区域（分区1）绘制到结果画布的右侧
+- 最终合成一张宽度为 `width + extraCrop.width` 的完整图片
+
+### 4.1 gridMockup 模式的真实图层渲染规则
+
+- `gridMockup` 模式中的 `Background Layer`、`Base Layer`、`Overlay Layer` 必须按各自图层配置里的真实信息绘制：
   - `layer_data.dimensions.layerSize`
   - `layer_data.position.coordinates`
   - `layer_data.position.anchorPoint`
@@ -195,9 +285,9 @@ await pwcaDrawLayerForGridComposite(ctx, overlayLayer, canvasWidth, canvasHeight
 - 如果需要微调第二张图的位置，优先改 `cropConfig`
 - 不要为了“看起来更正”去直接改第一张图的输出尺寸来源
 
-### 5.1 第二张图的两层裁切含义
+### 5.1 效果图的两层裁切含义
 
-- `Product Preview` 中，设计内容通常会经历两层处理：
+- 在 `gridMockup` 模式的效果图中，设计内容通常会经历两层处理：
 - 第 1 层：`cropConfig`
   - 先从 `activeCanvas` 中截取指定区域
   - 默认 `4-Grid Flow` 配置为中间半幅：`x: 0.25, width: 0.5`
@@ -208,7 +298,7 @@ await pwcaDrawLayerForGridComposite(ctx, overlayLayer, canvasWidth, canvasHeight
 
 ### 5.2 蒙版来源约束
 
-- 第二张图的 mask 来源应是当前 view 的 `Base Layer`
+- 效果图的 mask 来源应是当前 view 的 `Base Layer`
 - mask 不能再按“整张目标图居中拉伸”的方式重建
 - mask 必须与第二张图里已经绘制的 `Base Layer` 使用同一套尺寸、坐标与着色规则，否则会出现：
   - 文字/图片裁切边界偏移
@@ -220,14 +310,17 @@ await pwcaDrawLayerForGridComposite(ctx, overlayLayer, canvasWidth, canvasHeight
 
 ### 1. 新增 flow 专属输出时
 
-1. 在 `view-flow-resolver.js` 增加 `previewImageConfigs`
+1. 在 `view-flow-resolver.js` 增加/修改 `previewImageConfigs`
 2. 给每张图定义：
-   - `label`
-   - `mode`
-   - `sizeReferenceLayer`
+   - `key`：唯一标识
+   - `label`：弹窗缩略图显示名称
+   - `enabled`：是否启用（`true`/`false`）
+   - `mode`：出图模式（`layerComposite` / `gridMockup` / `capturedView`）
+   - `sizeReferenceLayer`：尺寸参考图层名
    - 所需图层名或 `cropConfig`
+   - 若需要拼接不连续区域，可通过 `cropConfig.extraCrop` 定义额外裁切区
 3. 在 `grid-preview.js` 只补对应 `mode` 的执行器
-4. 让 `showUniversalViewPreview()` 自动消费配置标签
+4. 让 `showUniversalViewPreview()` 自动消费配置标签（已过滤 `enabled`）
 
 ### 2. 修改关闭回切行为时
 
@@ -252,6 +345,8 @@ await pwcaDrawLayerForGridComposite(ctx, overlayLayer, canvasWidth, canvasHeight
 - 不要在第二张图里把 `Base Layer` / `Overlay Layer` 当成普通素材图做整图居中缩放
 - 不要只依赖 `imageURL` 重新生成第二张图图层，忽略原始 `layerSize` 和 `coordinates`
 - 不要让 `Base Layer` 的显示逻辑和 `Base Layer` 的 mask 逻辑各走一套尺寸算法
+- 不要在 `view-flow-resolver.js` 之外散落方向视图的 `cropConfig` 定义（正/右/左/后视图的 crop 必须集中在配置里）
+- 不要绕过 `enabled` 字段直接过滤配置数组或硬编码跳过某些图；控制显示/隐藏应统一使用 `enabled` 字段
 
 ## 关联说明
 

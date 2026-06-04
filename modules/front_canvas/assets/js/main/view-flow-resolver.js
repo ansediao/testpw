@@ -56,7 +56,7 @@
                 {
                     key: 'print-sheet',
                     label: '4-Grid Print',
-                    enabled: true,
+                    enabled: false,
                     mode: 'layerComposite',
                     sizeReferenceLayer: '4-Grid Layer',
                     beforeCanvasLayers: [
@@ -70,8 +70,8 @@
                     afterCanvasLayers: []
                 },
                 {
-                    key: 'mockup',
-                    label: 'Product Preview',
+                    key: 'mockup-front',
+                    label: '正视图',
                     enabled: true,
                     mode: 'gridMockup',
                     sizeReferenceLayer: 'Background Layer',
@@ -80,6 +80,63 @@
                         y: 0,
                         width: 0.5,
                         height: 1
+                    },
+                    backgroundLayerName: 'Background Layer',
+                    baseLayerName: 'Base Layer',
+                    overlayLayerName: 'Overlay Layer',
+                    mappingLayerName: 'Mapping Layer'
+                },
+                {
+                    key: 'mockup-right',
+                    label: '右视图',
+                    enabled: true,
+                    mode: 'gridMockup',
+                    sizeReferenceLayer: 'Background Layer',
+                    cropConfig: {
+                        x: 0.5,
+                        y: 0,
+                        width: 0.5,
+                        height: 1
+                    },
+                    backgroundLayerName: 'Background Layer',
+                    baseLayerName: 'Base Layer',
+                    overlayLayerName: 'Overlay Layer',
+                    mappingLayerName: 'Mapping Layer'
+                },
+                {
+                    key: 'mockup-left',
+                    label: '左视图',
+                    enabled: true,
+                    mode: 'gridMockup',
+                    sizeReferenceLayer: 'Background Layer',
+                    cropConfig: {
+                        x: 0,
+                        y: 0,
+                        width: 0.5,
+                        height: 1
+                    },
+                    backgroundLayerName: 'Background Layer',
+                    baseLayerName: 'Base Layer',
+                    overlayLayerName: 'Overlay Layer',
+                    mappingLayerName: 'Mapping Layer'
+                },
+                {
+                    key: 'mockup-back',
+                    label: '后视图',
+                    enabled: true,
+                    mode: 'gridMockup',
+                    sizeReferenceLayer: 'Background Layer',
+                    cropConfig: {
+                        x: 0.75,
+                        y: 0,
+                        width: 0.25,
+                        height: 1,
+                        extraCrop: {
+                            x: 0,
+                            y: 0,
+                            width: 0.25,
+                            height: 1
+                        }
                     },
                     backgroundLayerName: 'Background Layer',
                     baseLayerName: 'Base Layer',
