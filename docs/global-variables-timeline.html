@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PW Canvas 全局变量治理 — 交互式迁移时间线</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --accent-blue: #58a6ff;
+    --accent-green: #3fb950;
+    --accent-yellow: #d29922;
+    --accent-red: #f85149;
+    --accent-purple: #bc8cff;
+    --accent-orange: #d18616;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 2rem;
+  }
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { color: var(--text-dim); margin-bottom: 2rem; font-size: 0.9rem; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    flex: 1;
+    min-width: 140px;
+    text-align: center;
+  }
+  .stat-card .num {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .stat-card .label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .stat-red .num { color: var(--accent-red); }
+  .stat-yellow .num { color: var(--accent-yellow); }
+  .stat-green .num { color: var(--accent-green); }
+  .stat-blue .num { color: var(--accent-blue); }
+  .stat-purple .num { color: var(--accent-purple); }
+
+  /* Timeline */
+  .timeline {
+    position: relative;
+    padding-left: 40px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  /* Phase */
+  .phase {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+  .phase-dot {
+    position: absolute;
+    left: -33px;
+    top: 12px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 3px solid var(--border);
+    background: var(--bg);
+    z-index: 1;
+    transition: all 0.3s;
+  }
+  .phase.active .phase-dot,
+  .phase:hover .phase-dot {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 8px rgba(88,166,255,0.4);
+  }
+
+  .phase-header {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .phase-header:hover {
+    border-color: var(--accent-blue);
+    background: #1c2333;
+  }
+  .phase.active .phase-header {
+    border-color: var(--accent-blue);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .phase-icon {
+    font-size: 1.3rem;
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .phase-title {
+    font-weight: 600;
+    font-size: 1rem;
+    flex: 1;
+  }
+  .phase-meta {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .phase-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+  }
+  .badge-time {
+    background: rgba(88,166,255,0.15);
+    color: var(--accent-blue);
+  }
+  .badge-count {
+    background: rgba(248,81,73,0.15);
+    color: var(--accent-red);
+  }
+  .badge-files {
+    background: rgba(63,185,80,0.15);
+    color: var(--accent-green);
+  }
+  .chevron {
+    transition: transform 0.3s;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+  .phase.active .chevron {
+    transform: rotate(90deg);
+  }
+
+  /* Phase detail */
+  .phase-detail {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--accent-blue);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 1.2rem;
+  }
+  .phase.active .phase-detail {
+    display: block;
+  }
+  .phase-detail p {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Task list inside phase */
+  .task {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 0.6rem;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .task:hover { border-color: var(--accent-blue); }
+  .task.done { border-left: 3px solid var(--accent-green); }
+  .task.pending { border-left: 3px solid var(--accent-yellow); }
+
+  .task-header {
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    user-select: none;
+  }
+  .task-status {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+  }
+  .task.done .task-status {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+    color: var(--bg);
+  }
+  .task-name {
+    flex: 1;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .task-arrow {
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    transition: transform 0.2s;
+  }
+  .task.expanded .task-arrow { transform: rotate(90deg); }
+
+  .task-detail {
+    display: none;
+    padding: 0 1rem 0.8rem 2.4rem;
+    font-size: 0.85rem;
+  }
+  .task.expanded .task-detail { display: block; }
+
+  .task-detail h4 {
+    color: var(--accent-blue);
+    font-size: 0.8rem;
+    margin: 0.5rem 0 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .task-detail h4:first-child { margin-top: 0; }
+
+  .task-detail ul {
+    list-style: none;
+    padding: 0;
+  }
+  .task-detail li {
+    padding: 0.2rem 0;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+  }
+  .task-detail li::before {
+    content: '→ ';
+    color: var(--accent-blue);
+  }
+  .task-detail code {
+    background: rgba(88,166,255,0.1);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.78rem;
+    color: var(--accent-blue);
+  }
+
+  .code-block {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.6rem 0.8rem;
+    margin: 0.4rem 0;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 0.78rem;
+    overflow-x: auto;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .code-block .kw { color: var(--accent-red); }
+  .code-block .fn { color: var(--accent-purple); }
+  .code-block .str { color: var(--accent-green); }
+  .code-block .cm { color: #484f58; }
+  .code-block .op { color: var(--accent-yellow); }
+
+  /* Before/After comparison */
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin: 0.5rem 0;
+  }
+  .comp-box {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.6rem 0.8rem;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+  .comp-box.before { border-top: 2px solid var(--accent-red); }
+  .comp-box.after { border-top: 2px solid var(--accent-green); }
+  .comp-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+  }
+  .comp-box.before .comp-label { color: var(--accent-red); }
+  .comp-box.after .comp-label { color: var(--accent-green); }
+
+  /* Global var table */
+  .var-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.5rem 0;
+    font-size: 0.82rem;
+  }
+  .var-table th {
+    text-align: left;
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .var-table td {
+    padding: 0.35rem 0.6rem;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+    color: var(--text-dim);
+  }
+  .var-table tr:hover td { background: rgba(88,166,255,0.03); }
+  .var-table code {
+    background: rgba(88,166,255,0.1);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.76rem;
+    color: var(--accent-blue);
+  }
+  .tag-unused {
+    background: rgba(248,81,73,0.15);
+    color: var(--accent-red);
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+  .tag-dup {
+    background: rgba(210,153,34,0.15);
+    color: var(--accent-yellow);
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+  .tag-active {
+    background: rgba(63,185,80,0.15);
+    color: var(--accent-green);
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+
+  /* Filters */
+  .filters {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    background: rgba(88,166,255,0.08);
+  }
+
+  /* Expand all */
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .ctrl-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.4rem 0.8rem;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .ctrl-btn:hover {
+    border-color: var(--accent-blue);
+    color: var(--text);
+  }
+
+  @media (max-width: 700px) {
+    body { padding: 1rem; }
+    .stats-bar { flex-direction: column; }
+    .comparison { grid-template-columns: 1fr; }
+    .phase-meta { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🔧 PW Canvas 全局变量治理</h1>
+<p class="subtitle">交互式迁移时间线 — 点击阶段展开详情，点击任务查看具体文件和代码</p>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat-card stat-red">
+    <div class="num">180+</div>
+    <div class="label">全局变量总数</div>
+  </div>
+  <div class="stat-card stat-yellow">
+    <div class="num">42</div>
+    <div class="label">疑似未使用</div>
+  </div>
+  <div class="stat-card stat-purple">
+    <div class="num">6</div>
+    <div class="label">重复定义</div>
+  </div>
+  <div class="stat-card stat-blue">
+    <div class="num">95</div>
+    <div class="label">window.* 赋值</div>
+  </div>
+  <div class="stat-card stat-green">
+    <div class="num">~5</div>
+    <div class="label">迁移后残留</div>
+  </div>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="ctrl-btn" onclick="expandAll()">📂 全部展开</button>
+  <button class="ctrl-btn" onclick="collapseAll()">📁 全部折叠</button>
+</div>
+
+<!-- Filters -->
+<div class="filters">
+  <button class="filter-btn active" data-filter="all">全部阶段</button>
+  <button class="filter-btn" data-filter="unused">⚠️ 仅看未使用</button>
+  <button class="filter-btn" data-filter="dup">🔄 仅看重复</button>
+  <button class="filter-btn" data-filter="active">✅ 仅看在用</button>
+</div>
+
+<!-- Timeline -->
+<div class="timeline" id="timeline">
+
+  <!-- Phase 0: Cleanup -->
+  <div class="phase" data-phase="0">
+    <div class="phase-dot"></div>
+    <div class="phase-header" onclick="togglePhase(this)">
+      <span class="phase-icon">🧹</span>
+      <span class="phase-title">阶段 0：清理未使用全局变量</span>
+      <div class="phase-meta">
+        <span class="phase-badge badge-time">0.5 天</span>
+        <span class="phase-badge badge-count">~42 个变量</span>
+        <span class="phase-badge badge-files">10 个文件</span>
+      </div>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="phase-detail">
+      <p>删除所有未使用的 <code>window.*</code> 赋值，减少迁移工作量。这是零风险操作——删除没有消费者的全局暴露不影响任何功能。</p>
+
+      <div class="task" data-filter-tags="unused">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">layers-sync.js — 删除 9 个未使用 window.* 赋值</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>要删除的全局变量</h4>
+          <table class="var-table">
+            <tr><th>变量</th><th>行号</th><th>状态</th></tr>
+            <tr><td><code>window.pwcaAddCanvasLayerListeners</code></td><td>223</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.pwcaSyncCanvasObjectToStore</code></td><td>224</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.pwcaSyncSelectionToStore</code></td><td>225</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.pwcaUpdateDongtaiAreaButtons</code></td><td>226</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.pwcaShowRelevantButtonGroup</code></td><td>227</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.pwcaControlMaskCanvasFromMain</code></td><td>228</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.pwcaControlMainWrapperDisplayArea</code></td><td>229</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.pwcaGetLayerName</code></td><td>230</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.pwcaGetLayerType</code></td><td>231</td><td><span class="tag-unused">未使用</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="unused">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">core-init.js — 删除 4 个未使用 window.* 赋值</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <table class="var-table">
+            <tr><th>变量</th><th>行号</th><th>状态</th></tr>
+            <tr><td><code>window.pwcaListAvailableTabs</code></td><td>303</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.pwcaGetEnabledOperationModules</code></td><td>304</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.pwcaIsOperationPanelTabAvailable</code></td><td>305</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.showTabControlHelp</code></td><td>307</td><td><span class="tag-unused">未使用</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="unused">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">capture.js — 删除 4 个未使用 window.* 赋值</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <table class="var-table">
+            <tr><th>变量</th><th>行号</th><th>状态</th></tr>
+            <tr><td><code>window.captureAllViewsImages</code></td><td>206</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.captureMultiLayerCanvasWithMask</code></td><td>208</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.captureCanvasById</code></td><td>209</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.closeMultiViewPreview</code></td><td>210</td><td><span class="tag-unused">未使用</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="unused">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">image-analyze.js — 删除 5 个未使用 window.* 赋值</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <table class="var-table">
+            <tr><th>变量</th><th>行号</th><th>状态</th></tr>
+            <tr><td><code>window.analyzeImageInfo</code></td><td>70</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.getTopMargin</code></td><td>66</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.getTopMostY</code></td><td>67</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.getBottomMostY</code></td><td>68</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.getBoundingRectHeight</code></td><td>69</td><td><span class="tag-unused">未使用</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="unused">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">grid-preview.js — 删除 8 个未使用 window.* 赋值</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <table class="var-table">
+            <tr><th>变量</th><th>行号</th><th>状态</th></tr>
+            <tr><td><code>window.generate4GridImagesForView</code></td><td>551</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.generateCompositeImageForGrid</code></td><td>552</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.drawLayerImageForGrid</code></td><td>553</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.drawLayerImageForGridWithColor</code></td><td>554</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.drawCroppedCanvasRegionWithWindowEffect</code></td><td>555</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.drawCanvasWithinBoundaryForWindow</code></td><td>556</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.drawCanvasWithinBoundary</code></td><td>557</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.cropImageWithConfig</code></td><td>558</td><td><span class="tag-unused">未使用</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="unused">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">events.js — 删除 2 个未使用 window.* 赋值</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <table class="var-table">
+            <tr><th>变量</th><th>行号</th><th>状态</th></tr>
+            <tr><td><code>window.pwcaAddCanvasEventListeners</code></td><td>218</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.pwcaAddCanvasSelectionListeners</code></td><td>219</td><td><span class="tag-unused">未使用</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="unused">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">canvas-state-manager.js — 删除 4 个未使用 window.* 赋值</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <table class="var-table">
+            <tr><th>变量</th><th>行号</th><th>状态</th></tr>
+            <tr><td><code>window.CanvasStateManager</code></td><td>1791</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.CANVAS_STATE_VERSION</code></td><td>1793</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.CanvasStateDataValidator</code></td><td>1794</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.CanvasStateErrorHandler</code></td><td>1795</td><td><span class="tag-unused">未使用</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="unused">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">preview.js — 删除 3 个未使用 window.* 赋值</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <table class="var-table">
+            <tr><th>变量</th><th>行号</th><th>状态</th></tr>
+            <tr><td><code>window.pwcaDrawImageCurvedAndCentered</code></td><td>66</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.pwcaCalculateArcTextProperties</code></td><td>67</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.pwcaApplyArcDistortionToTextObject</code></td><td>68</td><td><span class="tag-unused">未使用</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="unused">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">canvas-init.js — 删除 2 个未使用 window.* 赋值</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <table class="var-table">
+            <tr><th>变量</th><th>行号</th><th>状态</th></tr>
+            <tr><td><code>window.updateCanvasZoom</code></td><td>251</td><td><span class="tag-unused">未使用</span></td></tr>
+            <tr><td><code>window.initializeZoom</code></td><td>252</td><td><span class="tag-unused">未使用</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="unused">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">piniaSync.js — 删除 1 个未使用 window.* 赋值</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <table class="var-table">
+            <tr><th>变量</th><th>行号</th><th>状态</th></tr>
+            <tr><td><code>window.syncPiniaToElement</code></td><td>152</td><td><span class="tag-unused">未使用</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 1: Leaf modules -->
+  <div class="phase" data-phase="1">
+    <div class="phase-dot"></div>
+    <div class="phase-header" onclick="togglePhase(this)">
+      <span class="phase-icon">🍃</span>
+      <span class="phase-title">阶段 1：叶子模块迁移</span>
+      <div class="phase-meta">
+        <span class="phase-badge badge-time">1-2 天</span>
+        <span class="phase-badge badge-count">7 个文件</span>
+        <span class="phase-badge badge-files">0 内部依赖</span>
+      </div>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="phase-detail">
+      <p>将无内部依赖或仅依赖第三方库（保持全局）的叶子模块转为 ES Module。这些模块迁移后不会影响其他文件的加载。</p>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">1. boundary.js → boundary.mjs</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出</h4>
+          <ul>
+            <li><code>drawBoundary</code> — 绘制画布边界</li>
+            <li><code>drawBoundaryForAllViews</code> — 为所有视图绘制边界</li>
+            <li><code>BOUNDARY_MARGIN</code> — 边界宽度常量 (10px)</li>
+          </ul>
+          <h4>依赖</h4>
+          <ul><li><code>window.fabric</code>（保持全局，不迁移）</li></ul>
+          <h4>代码变更</h4>
+          <div class="comparison">
+            <div class="comp-box before"><div class="comp-label">迁移前</div><span class="cm">// 全局作用域</span><br><span class="kw">const</span> BOUNDARY_MARGIN = <span class="str">10</span>;<br><span class="kw">function</span> <span class="fn">drawBoundary</span>(canvas) { ... }</div>
+            <div class="comp-box after"><div class="comp-label">迁移后</div><span class="kw">export const</span> BOUNDARY_MARGIN = <span class="str">10</span>;<br><span class="kw">export function</span> <span class="fn">drawBoundary</span>(canvas) { ... }</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">2. color-utils.js → color-utils.mjs</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出</h4>
+          <ul>
+            <li><code>getCurrentSelectedColor</code> — 获取当前选中颜色（3 个消费者）</li>
+            <li><code>getExplicitSelectedColor</code> — 获取显式选中颜色</li>
+          </ul>
+          <h4>操作</h4>
+          <ul><li>删除 2 个 <code>window.*</code> 赋值</li></ul>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">3. image-analyze.js → image-analyze.mjs</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出</h4>
+          <ul>
+            <li><code>getPixelData</code> — 获取像素数据（1 个消费者）</li>
+            <li><code>getTopMargin</code>, <code>getTopMostY</code>, <code>getBottomMostY</code>, <code>getBoundingRectHeight</code></li>
+            <li><code>analyzeImageInfo</code> — 图片分析</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">4. canvas-manager.js → canvas-manager.mjs</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出</h4>
+          <ul>
+            <li><code>CanvasManager</code> — 画布管理器类</li>
+            <li><code>canvasManager</code> — 单例实例</li>
+          </ul>
+          <h4>消费者</h4>
+          <ul>
+            <li><code>canvas-init.js</code> — 初始化画布</li>
+            <li><code>page-bootstrap.js</code> — 页面引导</li>
+            <li><code>multi-view-init.js</code> — 多视图初始化</li>
+            <li><code>export.js</code> — 导出功能</li>
+            <li><code>product-image-canvas.js</code> — 产品图片画布（5 处引用）</li>
+          </ul>
+          <h4>代码变更</h4>
+          <div class="comparison">
+            <div class="comp-box before"><div class="comp-label">迁移前</div><span class="kw">class</span> <span class="fn">CanvasManager</span> { ... }<br><span class="kw">const</span> canvasManager = <span class="kw">new</span> <span class="fn">CanvasManager</span>();<br>window.CanvasManager = canvasManager;</div>
+            <div class="comp-box after"><div class="comp-label">迁移后</div><span class="kw">export class</span> <span class="fn">CanvasManager</span> { ... }<br><span class="kw">export const</span> canvasManager = <span class="kw">new</span> <span class="fn">CanvasManager</span>();</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">5. ui-state-access.js → ui-state-access.mjs ⭐ 最高优先级</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出</h4>
+          <ul>
+            <li><code>pwcaUiStateAccess</code> — UI 状态访问器对象</li>
+          </ul>
+          <h4>消费者（12 个文件引用 — 使用最广泛的全局变量）</h4>
+          <ul>
+            <li><code>toolbar.js</code> (4 处)</li>
+            <li><code>page-bootstrap.js</code></li>
+            <li><code>header-controls.js</code></li>
+            <li><code>core-init.js</code></li>
+            <li><code>dongtai-toolbar.js</code></li>
+            <li><code>capture.js</code></li>
+            <li><code>customization-area.js</code></li>
+            <li><code>canvas-state-manager.js</code></li>
+            <li><code>canvas-state-integration.js</code></li>
+            <li><code>operation-panel-colors.js</code></li>
+          </ul>
+          <p style="color:var(--accent-yellow);margin-top:0.5rem">⚠️ 迁移此文件需要同步更新 12 个消费者的 import，建议使用 bridge.js 过渡</p>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">6. view-flow-resolver.js → view-flow-resolver.mjs</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出</h4>
+          <ul>
+            <li><code>pwcaIsFourGridFlow</code> — 判断四格流程（4 个消费者）</li>
+            <li><code>pwcaGetFlowConfig</code> — 获取流程配置（2 个消费者）</li>
+            <li><code>pwcaGetFlowPreviewImageConfigs</code> — 获取预览配置（3 个消费者）</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">7. messageUtils.js → message-utils.mjs</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出</h4>
+          <ul>
+            <li><code>showSuccessMessage</code>, <code>showErrorMessage</code>, <code>showInfoMessage</code>, <code>showMessage</code></li>
+          </ul>
+          <h4>注意</h4>
+          <ul>
+            <li>消费者包括 PHP 模板中的内联脚本 — 需要在 bridge.js 中保留 <code>window.*</code> 暴露</li>
+            <li>或修改 PHP 模板中的内联脚本为 <code>&lt;script type="module"&gt;</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2: Mid-layer -->
+  <div class="phase" data-phase="2">
+    <div class="phase-dot"></div>
+    <div class="phase-header" onclick="togglePhase(this)">
+      <span class="phase-icon">🔗</span>
+      <span class="phase-title">阶段 2：中间层模块迁移</span>
+      <div class="phase-meta">
+        <span class="phase-badge badge-time">2-3 天</span>
+        <span class="phase-badge badge-count">10 个文件</span>
+      </div>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="phase-detail">
+      <p>迁移依赖阶段 1 模块的中间层文件。这些文件本身被更上层的模块依赖。</p>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">8. print-area-validator.js → print-area-validator.mjs</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出</h4>
+          <ul><li><code>PrintAreaValidator</code> 对象（8 个消费者）</li></ul>
+          <h4>消费者</h4>
+          <ul>
+            <li><code>canvas-init.js</code>, <code>multi-view-init.js</code>, <code>capture.js</code></li>
+            <li><code>dongtai-toolbar.js</code>, <code>layers-sync.js</code></li>
+            <li><code>print-method-assignment-service.js</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">9-10. canvas-state-manager / integration（已是 ESM，清理 window）</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>操作</h4>
+          <ul>
+            <li>这两个文件已经是 ES Module，但仍有 <code>window.*</code> 桥接</li>
+            <li>删除未使用的 <code>window.*</code> 赋值（阶段 0 已处理）</li>
+            <li>保留 <code>window.canvasStateManager</code> 和 <code>window.canvasStateIntegration</code> 直到消费者迁移完成</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">11. preview.js → preview.mjs</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出</h4>
+          <ul><li><code>pwcaUpdatePreviewCanvas</code>（4 个消费者）</li></ul>
+          <h4>新增 import</h4>
+          <ul>
+            <li><code>import { pwcaUiStateAccess } from './ui-state-access.mjs'</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">12. capture.js → capture.mjs</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出</h4>
+          <ul><li><code>captureViewForPDF</code>（2 个消费者）</li></ul>
+          <h4>新增 import</h4>
+          <ul>
+            <li><code>import { pwcaUiStateAccess } from './ui-state-access.mjs'</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">13. grid-preview.js → grid-preview.mjs</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出</h4>
+          <ul><li><code>generateUniversalViewImages</code>（3 个消费者）</li></ul>
+          <h4>新增 import</h4>
+          <ul>
+            <li><code>import { pwcaUiStateAccess } from './ui-state-access.mjs'</code></li>
+            <li><code>import { getCurrentSelectedColor } from './color-utils.mjs'</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">14-17. layers-sync / events / toolbar / piniaSync</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>layers-sync.mjs</h4>
+          <ul><li>导出所有图层同步函数，删除 9 个 <code>window.*</code> 赋值</li></ul>
+          <h4>events.mjs</h4>
+          <ul><li>导出事件监听函数，删除 2 个 <code>window.*</code> 赋值</li></ul>
+          <h4>toolbar.mjs</h4>
+          <ul><li>导出工具栏函数（~14 个），删除 2 个 <code>window.*</code> 赋值</li></ul>
+          <h4>piniaSync.mjs</h4>
+          <ul><li>导出 <code>syncPiniaToElement</code></li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3: Core modules -->
+  <div class="phase" data-phase="3">
+    <div class="phase-dot"></div>
+    <div class="phase-header" onclick="togglePhase(this)">
+      <span class="phase-icon">⚡</span>
+      <span class="phase-title">阶段 3：核心模块迁移</span>
+      <div class="phase-meta">
+        <span class="phase-badge badge-time">2-3 天</span>
+        <span class="phase-badge badge-count">5 个文件</span>
+      </div>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="phase-detail">
+      <p>迁移核心初始化和状态管理模块。这些是最复杂的文件，拥有最多的全局变量。</p>
+
+      <div class="task" data-filter-tags="dup">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">18. design/stores/index.js — 清理 window 桥接</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>操作</h4>
+          <ul>
+            <li>已是 ES Module，删除所有 <code>window.*</code> 赋值</li>
+            <li>包括 <code>window.pinia</code>, <code>window.useCanvasStore</code>, <code>window.usePrintMethodStore</code> 等</li>
+          </ul>
+          <h4>重复定义问题</h4>
+          <ul>
+            <li><span class="tag-dup">重复</span> <code>window.usePrintMethodStore</code> 在此文件和 <code>printMethodStore.js</code> 都有定义</li>
+            <li>迁移后消费者统一通过 <code>import { useCanvasStore } from '../stores/index.js'</code> 获取</li>
+          </ul>
+          <h4>代码变更</h4>
+          <div class="comparison">
+            <div class="comp-box before"><div class="comp-label">迁移前</div><span class="kw">export</span> { useCanvasStore, ... };<br>window.pinia = pinia;<br>window.useCanvasStore = useCanvasStore;<br>window.usePrintMethodStore = usePrintMethodStore;</div>
+            <div class="comp-box after"><div class="comp-label">迁移后</div><span class="kw">export</span> { useCanvasStore, usePrintMethodStore, pinia, ... };<br><span class="cm">// 不再挂到 window</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="dup">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">19. core-init.js → core-init.mjs</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出（~20 个函数/常量）</h4>
+          <ul>
+            <li>操作面板: <code>pwcaSwitchOperationPanelTab</code>, <code>pwcaGetCurrentActiveTab</code>, <code>pwcaBindOperationPanelModuleSync</code> 等</li>
+            <li>画布控制: <code>pwcaGetActiveCanvas</code>, <code>pwcaSetGlobalCanvas</code></li>
+            <li>颜色: <code>pwca_default_color</code>, <code>pwca_current_color</code></li>
+            <li><code>CanvasInitializationState</code>, <code>isUserInitiatedAction</code></li>
+          </ul>
+          <h4>重复定义问题</h4>
+          <ul>
+            <li><span class="tag-dup">重复</span> <code>window.pwcaApplyOperationPanelModuleVisibility</code> 在此文件赋值了两次（行 306 和 355）</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">20. canvas-init.js → canvas-init.mjs</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出</h4>
+          <ul>
+            <li><code>initCanvasSystem</code>, <code>triggerAutoZoomAdjustment</code></li>
+          </ul>
+          <h4>新增 import</h4>
+          <ul>
+            <li><code>import { canvasManager } from './canvas-manager.mjs'</code></li>
+            <li><code>import { drawBoundary } from './boundary.mjs'</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="dup">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">21. multi-view-init.js → multi-view-init.mjs</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出（~30 个函数/常量 — 第二大全局污染源）</h4>
+          <ul>
+            <li>文本: <code>pwcaIsTextLikeObject</code>, <code>pwcaApplyArcPathToTextObject</code></li>
+            <li>滤镜: <code>pwcaApplyTintFilter</code>, <code>pwcaApplyGradientFilter</code>, <code>pwcaClearAllGradientRects</code></li>
+            <li>初始化: <code>pwcaEnsureMultiViewInitialization</code>, <code>pwcaInitializeMultiViewCanvases</code></li>
+            <li>工具: <code>pwcaGetBaseLayerPixelBounds</code>, <code>getFabricPlacementForLayer</code> 等</li>
+          </ul>
+          <h4>重复定义问题</h4>
+          <ul>
+            <li><span class="tag-dup">重复</span> <code>pwcaIsTextLikeObject</code> 在此文件和 <code>toolbar.js</code> 都有定义</li>
+            <li><span class="tag-dup">重复</span> <code>window.canvas</code> / <code>window.fabricCanvas</code> 在此文件重复设置</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">22. page-bootstrap.js → page-bootstrap.mjs（最后迁移）</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>导出（~55 个顶层 const 箭头函数 — 最大全局污染源）</h4>
+          <ul>
+            <li>启动: <code>initializePageBootstrap</code>, <code>pwcaInitializeAsyncStartup</code></li>
+            <li>购物车: <code>addCustomizedProductToCart</code>, <code>buildAddToCartRequestBody</code></li>
+            <li>PDF: <code>generateMultiViewPDF</code>, <code>runGeneratePdfFlow</code></li>
+            <li>预览: <code>runPreviewRenderFlow</code>, <code>createPreviewRenderTasks</code></li>
+            <li>视图: <code>toggleVisibleViewContainer</code>, <code>syncGlobalCanvasForView</code></li>
+          </ul>
+          <h4>迁移后效果</h4>
+          <ul>
+            <li>所有 ~55 个 <code>const</code> 自动变为模块作用域</li>
+            <li>仅通过 <code>export</code> 暴露需要外部使用的函数</li>
+            <li>内部辅助函数（如 <code>pwcaLogAsyncFlow</code>）不再污染全局</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 4: Product module -->
+  <div class="phase" data-phase="4">
+    <div class="phase-dot"></div>
+    <div class="phase-header" onclick="togglePhase(this)">
+      <span class="phase-icon">🛍️</span>
+      <span class="phase-title">阶段 4：产品模块迁移</span>
+      <div class="phase-meta">
+        <span class="phase-badge badge-time">1-2 天</span>
+        <span class="phase-badge badge-count">15+ 个文件</span>
+      </div>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="phase-detail">
+      <p>迁移 <code>front_product</code> 模块的 API、Store 和 Vue 组件。Vue 组件需要特别处理——PHP 模板中通过 <code>window.*</code> 引用它们。</p>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">23. product/api/*.js — 4 个 API 服务文件</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>文件与导出</h4>
+          <table class="var-table">
+            <tr><th>文件</th><th>全局名</th><th>消费者数</th></tr>
+            <tr><td><code>productDataAPI.js</code></td><td><code>ProductDataAPI</code></td><td>1</td></tr>
+            <tr><td><code>productResponseMapper.js</code></td><td><code>ProductResponseMapper</code></td><td>1</td></tr>
+            <tr><td><code>canvasPayloadBuilder.js</code></td><td><code>ProductCanvasPayloadBuilder</code></td><td>1</td></tr>
+            <tr><td><code>cartSubmitService.js</code></td><td><code>ProductCartSubmitService</code></td><td>3</td></tr>
+          </table>
+          <p style="margin-top:0.5rem">所有消费者集中在 <code>productStore.js</code>，迁移成本低。</p>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">24. productStore.js — 产品 Store</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>操作</h4>
+          <ul>
+            <li>从 IIFE 转为 ES Module</li>
+            <li>导出 <code>useProductStore</code></li>
+            <li>删除 <code>window.useProductStore</code> 赋值</li>
+            <li>改为 <code>import</code> 4 个 API 服务</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">25. product/components/*.js — 8 个 Vue 组件</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>组件列表</h4>
+          <table class="var-table">
+            <tr><th>组件</th><th>全局名</th></tr>
+            <tr><td><code>CheckboxOptions.js</code></td><td><code>window.CheckboxOptions</code></td></tr>
+            <tr><td><code>QuantityDiscountSlider.js</code></td><td><code>window.QuantityDiscountSlider</code></td></tr>
+            <tr><td><code>ProductQuantity.js</code></td><td><code>window.ProductQuantity</code></td></tr>
+            <tr><td><code>ProductPriceInfo.js</code></td><td><code>window.ProductPriceInfo</code></td></tr>
+            <tr><td><code>AddToCart.js</code></td><td><code>window.AddToCart</code></td></tr>
+            <tr><td><code>ProductAccessories.js</code></td><td><code>window.ProductAccessories</code></td></tr>
+            <tr><td><code>ColorVariants.js</code></td><td><code>window.ColorVariants</code></td></tr>
+            <tr><td><code>CustomColorsButton.js</code></td><td><code>window.CustomColorsButton</code></td></tr>
+          </table>
+          <h4>特殊处理</h4>
+          <ul>
+            <li>这些组件通过 <code>window.*</code> 暴露给 PHP 模板中的 Vue <code>app.component()</code> 注册</li>
+            <li>需要在 bridge.js 中保留 <code>window.*</code> 暴露，或改为在 JS 入口文件中统一注册组件</li>
+            <li>推荐方案：在 <code>main.js</code> 的 Vue app 初始化处通过 <code>import</code> 注册组件，不再挂到 window</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 5: Cleanup -->
+  <div class="phase" data-phase="5">
+    <div class="phase-dot"></div>
+    <div class="phase-header" onclick="togglePhase(this)">
+      <span class="phase-icon">✅</span>
+      <span class="phase-title">阶段 5：清理桥接层 & 全面测试</span>
+      <div class="phase-meta">
+        <span class="phase-badge badge-time">0.5 天</span>
+      </div>
+      <span class="chevron">▶</span>
+    </div>
+    <div class="phase-detail">
+      <p>所有模块迁移完成后，清理过渡期的桥接层，进行全面回归测试。</p>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">26. 删除 bridge.js 临时桥接层</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>操作</h4>
+          <ul>
+            <li>确认所有 <code>window.*</code> 引用已改为 <code>import</code></li>
+            <li>删除 <code>bridge.js</code> 文件</li>
+            <li>从 PHP 加载队列中移除 <code>pwca-bridge</code> handle</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">27. 更新 PHP 加载文件</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>PHP 修改方案</h4>
+          <div class="code-block"><span class="cm">// 方法 A: wp_script_add_data（推荐）</span><br><span class="fn">wp_enqueue_script</span>(<span class="str">'pwca-boundary'</span>, ..., [], <span class="str">'1.0'</span>, <span class="kw">true</span>);<br><span class="fn">wp_script_add_data</span>(<span class="str">'pwca-boundary'</span>, <span class="str">'type'</span>, <span class="str">'module'</span>);<br><br><span class="cm">// 方法 B: filter_script_loader_tag（批量）</span><br><span class="fn">add_filter</span>(<span class="str">'script_loader_tag'</span>, <span class="kw">function</span>($tag, $handle) {<br>  $module_handles = [<span class="str">'pwca-boundary'</span>, <span class="str">'pwca-canvas-manager'</span>, ...];<br>  <span class="kw">if</span> (<span class="fn">in_array</span>($handle, $module_handles)) {<br>    <span class="kw">return</span> <span class="fn">str_replace</span>(<span class="str">"type='text/javascript'"</span>, <span class="str">"type='module'"</span>, $tag);<br>  }<br>  <span class="kw">return</span> $tag;<br>}, <span class="str">10</span>, <span class="str">2</span>);</div>
+        </div>
+      </div>
+
+      <div class="task" data-filter-tags="active">
+        <div class="task-header" onclick="toggleTask(this)">
+          <div class="task-status"></div>
+          <span class="task-name">28. 全面回归测试</span>
+          <span class="task-arrow">▶</span>
+        </div>
+        <div class="task-detail">
+          <h4>测试清单</h4>
+          <ul>
+            <li>画布初始化 — 多视图加载正常</li>
+            <li>工具栏 — 文字/图片添加、弧形效果、字体切换</li>
+            <li>颜色选择 — 普通颜色、渐变色、应用到所有视图</li>
+            <li>图层管理 — 拖拽、选择、删除、打印方式分配</li>
+            <li>预览 — 四格预览、通用预览、PDF 生成</li>
+            <li>购物车 — 添加自定义产品、编辑已有设计</li>
+            <li>产品页面 — 颜色变体、数量折扣、配件选择</li>
+            <li>浏览器控制台 — 确认无 <code>xxx is not defined</code> 错误</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Summary -->
+<div style="margin-top:2rem;padding:1.2rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;">
+  <h3 style="margin-bottom:0.8rem;">📊 预期收益</h3>
+  <div class="stats-bar" style="margin-bottom:0;">
+    <div class="stat-card stat-red">
+      <div class="num" style="font-size:1.5rem">95 → ~5</div>
+      <div class="label">window.* 全局变量</div>
+    </div>
+    <div class="stat-card stat-yellow">
+      <div class="num" style="font-size:1.5rem">85 → 0</div>
+      <div class="label">顶层作用域污染</div>
+    </div>
+    <div class="stat-card stat-green">
+      <div class="num" style="font-size:1.5rem">42 → 0</div>
+      <div class="label">未使用全局变量</div>
+    </div>
+    <div class="stat-card stat-purple">
+      <div class="num" style="font-size:1.5rem">6 → 0</div>
+      <div class="label">重复定义</div>
+    </div>
+  </div>
+  <p style="color:var(--text-dim);font-size:0.85rem;margin-top:0.8rem;text-align:center;">总预估工时: <strong style="color:var(--accent-blue)">7-11 个工作日</strong> · 不需要构建工具 · 浏览器原生 ES Module</p>
+</div>
+
+<script>
+function togglePhase(header) {
+  const phase = header.closest('.phase');
+  const wasActive = phase.classList.contains('active');
+  // Don't close other phases — allow multiple open
+  phase.classList.toggle('active', !wasActive);
+}
+
+function toggleTask(header) {
+  const task = header.closest('.task');
+  task.classList.toggle('expanded');
+}
+
+function expandAll() {
+  document.querySelectorAll('.phase').forEach(p => p.classList.add('active'));
+  document.querySelectorAll('.task').forEach(t => t.classList.add('expanded'));
+}
+
+function collapseAll() {
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.task').forEach(t => t.classList.remove('expanded'));
+}
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('.task').forEach(task => {
+      if (filter === 'all') {
+        task.style.display = '';
+      } else {
+        const tags = task.dataset.filterTags || '';
+        task.style.display = tags.includes(filter) ? '' : 'none';
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>

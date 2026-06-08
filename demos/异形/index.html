@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>异形画布 Demo</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #f5f5f5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  .pwca-demo {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .pwca-demo__title {
+    font-size: 18px;
+    color: #333;
+    align-self: flex-start;
+  }
+  .pwca-demo__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    align-self: stretch;
+  }
+  .pwca-demo__btn {
+    padding: 6px 12px;
+    border: 1px solid #d0d0d0;
+    background: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .pwca-demo__btn:hover { background: #f0f6ff; border-color: #6aa9ff; }
+  .pwca-demo__btn--danger { color: #c0392b; }
+  .pwca-demo__stage-wrap {
+    /* 舞台外框：棋盘格底 + 阴影 + 内边距，把"舞台"和"页面"区分开 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    background-color: #f7f7f7;
+    /* 浅色棋盘格，表示"非舞台区域" */
+    background-image:
+      linear-gradient(45deg, #ececec 25%, transparent 25%),
+      linear-gradient(-45deg, #ececec 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #ececec 75%),
+      linear-gradient(-45deg, transparent 75%, #ececec 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    padding: 32px;
+    max-width: 95vw;
+    max-height: 85vh;
+    overflow: auto;
+  }
+  /* fabric.js 注入的 .canvas-container：居中 + 阴影 + 白底 */
+  .pwca-demo__stage-wrap .canvas-container {
+    margin: 0 auto;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    background: #fff;
+  }
+  .pwca-demo__stage { display: block; }
+  .pwca-demo__file { display: none; }
+
+  /* micromodal 基础样式 */
+  /* 默认隐藏：micromodal 通过 .is-open 控制显隐 */
+  .modal { display: none; }
+  .modal.is-open { display: block; }
+  .modal__overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+  }
+  .modal__container {
+    background: #fff;
+    border-radius: 8px;
+    max-width: 480px;
+    width: 90%;
+    padding: 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  }
+  .modal__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .modal__title { font-size: 16px; font-weight: 600; margin: 0; }
+  .modal__close { background: none; border: 0; font-size: 20px; cursor: pointer; }
+  .modal__content label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; }
+  .modal__content input[type="text"] {
+    width: 100%; box-sizing: border-box;
+    padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;
+  }
+  .modal__footer { margin-top: 16px; display: flex; justify-content: flex-end; gap: 8px; }
+
+  /* toast */
+  .pwca-toast {
+    position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%);
+    background: rgba(0,0,0,0.78); color: #fff;
+    padding: 8px 16px; border-radius: 4px; font-size: 13px;
+    z-index: 10000; opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+  }
+  .pwca-toast.is-show { opacity: 1; }
+</style>
+</head>
+<body>
+  <div class="pwca-demo">
+    <div class="pwca-demo__title">异形画布 Demo（fabric.js CDN，舞台 = bg.jpg 原始尺寸）</div>
+
+    <div class="pwca-demo__toolbar">
+      <button class="pwca-demo__btn" id="pwca-btn-add-text">添加文字</button>
+      <button class="pwca-demo__btn" id="pwca-btn-add-image">上传图片</button>
+      <button class="pwca-demo__btn" id="pwca-btn-add-url">添加图片(URL)</button>
+      <span style="flex:1"></span>
+      <button class="pwca-demo__btn" id="pwca-btn-front">上移一层</button>
+      <button class="pwca-demo__btn" id="pwca-btn-back">下移一层</button>
+      <button class="pwca-demo__btn pwca-demo__btn--danger" id="pwca-btn-delete">删除选中</button>
+      <button class="pwca-demo__btn pwca-demo__btn--danger" id="pwca-btn-clear">清空图层</button>
+    </div>
+
+    <div class="pwca-demo__stage-wrap">
+      <canvas id="pwca-canvas" class="pwca-demo__stage" width="800" height="800"></canvas>
+    </div>
+
+    <input type="file" id="pwca-file" class="pwca-demo__file" accept="image/*" />
+  </div>
+
+  <!-- micromodal: 添加图片URL弹窗 -->
+  <div class="modal micromodal-slide" id="pwca-modal-url" aria-hidden="true">
+    <div class="modal__overlay" data-micromodal-close>
+      <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pwca-modal-url-title">
+        <header class="modal__header">
+          <h2 class="modal__title" id="pwca-modal-url-title">添加图片</h2>
+          <button class="modal__close" aria-label="关闭" data-micromodal-close>&times;</button>
+        </header>
+        <div class="modal__content">
+          <label for="pwca-url-input">图片 URL</label>
+          <input type="text" id="pwca-url-input" placeholder="https://..." />
+        </div>
+        <footer class="modal__footer">
+          <button class="pwca-demo__btn" data-micromodal-close>取消</button>
+          <button class="pwca-demo__btn" id="pwca-url-confirm">添加</button>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <div class="pwca-toast" id="pwca-toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/micromodal@0.4.10/dist/micromodal.min.js"></script>
+  <script>
+    (function () {
+      const BG_URL = './bg.jpg';
+
+      const canvasEl = document.getElementById('pwca-canvas');
+      const canvas = new fabric.Canvas(canvasEl, {
+        backgroundColor: '#ffffff',
+        selection: true,
+        preserveObjectStacking: true
+      });
+
+      // ============ toast ============
+      const toastEl = document.getElementById('pwca-toast');
+      let toastTimer = null;
+      function toast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('is-show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove('is-show'), 1800);
+      }
+
+      // ============ 工具：获取舞台中心 ============
+      function centerX() { return canvas.getWidth() / 2; }
+      function centerY() { return canvas.getHeight() / 2; }
+      function isModalOpen() {
+        return document.querySelector('.modal.is-open') !== null;
+      }
+
+      // ============ 背景：尺寸 = bg.jpg 原始尺寸 ============
+      function loadBackground() {
+        fabric.Image.fromURL(BG_URL, function (img) {
+          if (!img || !img.getElement() || !img.getElement().naturalWidth) {
+            console.warn('[PWCA Demo] 背景图加载失败：', BG_URL);
+            toast('背景图加载失败');
+            return;
+          }
+
+          // 关键：把 canvas 内部坐标系改成 bg.jpg 原始尺寸
+          canvas.setWidth(img.width);
+          canvas.setHeight(img.height);
+
+          // 背景图填满整个 canvas（坐标系 1:1）
+          img.set({
+            originX: 'left',
+            originY: 'top',
+            left: 0,
+            top: 0,
+            scaleX: 1,
+            scaleY: 1,
+            selectable: false,
+            evented: false,
+            hoverCursor: 'default',
+            excludeFromExport: false
+          });
+          img.set('data', Object.assign(img.data || {}, { role: 'background' }));
+
+          // 清空已有对象再加入背景（避免重复）
+          canvas.getObjects().slice().forEach(o => canvas.remove(o));
+          canvas.add(img);
+          canvas.sendToBack(img);
+          canvas.requestRenderAll();
+
+          console.log('[PWCA Demo] 舞台已设为背景图尺寸', { w: img.width, h: img.height });
+          toast('舞台尺寸：' + img.width + ' × ' + img.height);
+        }, { crossOrigin: 'anonymous' });
+      }
+
+      // ============ 文字 ============
+      function addText() {
+        const t = new fabric.IText('双击编辑文字', {
+          left: centerX(),
+          top: centerY(),
+          originX: 'center',
+          originY: 'center',
+          fontSize: Math.max(24, Math.round(canvas.getWidth() / 24)),
+          fill: '#222',
+          fontFamily: 'Microsoft YaHei, sans-serif',
+          editable: true
+        });
+        t.set('data', { role: 'text' });
+        canvas.add(t);
+        canvas.setActiveObject(t);
+        t.enterEditing();
+        t.selectAll();
+        canvas.requestRenderAll();
+      }
+
+      // ============ 图片 ============
+      function addImageFromURL(url) {
+        return new Promise((resolve, reject) => {
+          fabric.Image.fromURL(url, function (img) {
+            if (!img) return reject(new Error('图片加载失败：' + url));
+            fitAndAddImage(img);
+            resolve(img);
+          }, { crossOrigin: 'anonymous' });
+        });
+      }
+
+      function addImageFromFile(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            fabric.Image.fromURL(e.target.result, function (img) {
+              if (!img) return reject(new Error('文件读取失败'));
+              fitAndAddImage(img);
+              resolve(img);
+            });
+          };
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // 图片适配：最大边 ≤ 舞台短边的 50%，居中放置
+      function fitAndAddImage(img) {
+        const stageShort = Math.min(canvas.getWidth(), canvas.getHeight());
+        const maxSide = Math.max(50, stageShort * 0.5);
+        const scale = Math.min(maxSide / img.width, maxSide / img.height, 1);
+        img.set({
+          left: centerX(),
+          top: centerY(),
+          originX: 'center',
+          originY: 'center',
+          scaleX: scale,
+          scaleY: scale
+        });
+        img.set('data', { role: 'image' });
+        canvas.add(img);
+        canvas.setActiveObject(img);
+        canvas.requestRenderAll();
+      }
+
+      // ============ 删除：优先删选中，没选中就删最后添加的图层 ============
+      function pickRemovable() {
+        const sel = canvas.getActiveObject();
+        if (sel && !(sel.data && sel.data.role === 'background')) return sel;
+        // 兜底：找最上层且非背景的对象
+        const objs = canvas.getObjects().filter(o => !(o.data && o.data.role === 'background'));
+        return objs.length ? objs[objs.length - 1] : null;
+      }
+
+      function deleteOne() {
+        const target = pickRemovable();
+        if (!target) {
+          toast('没有可删除的图层');
+          return;
+        }
+        if (canvas.getActiveObject() === target) canvas.discardActiveObject();
+        canvas.remove(target);
+        canvas.requestRenderAll();
+        toast('已删除：' + ((target.data && target.data.role) || target.type));
+      }
+
+      function bringForward() {
+        const obj = canvas.getActiveObject();
+        if (!obj) { toast('请先选中一个图层'); return; }
+        canvas.bringForward(obj);
+        canvas.requestRenderAll();
+      }
+
+      function sendBackward() {
+        const obj = canvas.getActiveObject();
+        if (!obj) { toast('请先选中一个图层'); return; }
+        if (obj.data && obj.data.role === 'background') { toast('背景已是最底层'); return; }
+        canvas.sendBackwards(obj);
+        const bg = canvas.getObjects().find(o => o.data && o.data.role === 'background');
+        if (bg) canvas.sendToBack(bg);
+        canvas.requestRenderAll();
+      }
+
+      function clearLayers() {
+        const keep = canvas.getObjects().filter(o => o.data && o.data.role === 'background');
+        canvas.getObjects().slice().forEach(o => canvas.remove(o));
+        keep.forEach(o => canvas.add(o));
+        if (keep.length) canvas.sendToBack(keep[0]);
+        canvas.discardActiveObject();
+        canvas.requestRenderAll();
+        toast('已清空图层（保留背景）');
+      }
+
+      // micromodal 初始化（必须 init 后 data-micromodal-close 才生效）
+      function initMicroModal() {
+        if (!window.MicroModal) return;
+        try {
+          MicroModal.init({
+            awaitCloseAnimation: false,
+            debugMode: false
+          });
+        } catch (e) {
+          console.warn('[PWCA Demo] MicroModal.init 失败', e);
+        }
+        // 兜底：手动绑定关闭按钮（避免 CDN 异常或版本差异）
+        const modal = document.getElementById('pwca-modal-url');
+        if (!modal) return;
+        modal.querySelectorAll('[data-micromodal-close], [data-pwca-modal-close]')
+          .forEach(btn => btn.addEventListener('click', () => {
+            if (window.MicroModal) MicroModal.close('pwca-modal-url');
+            else modal.classList.remove('is-open');
+            // 关闭后清空 input
+            const input = document.getElementById('pwca-url-input');
+            if (input) input.value = '';
+          }));
+        // ESC 关闭
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && modal.classList.contains('is-open')) {
+            if (window.MicroModal) MicroModal.close('pwca-modal-url');
+            else modal.classList.remove('is-open');
+            const input = document.getElementById('pwca-url-input');
+            if (input) input.value = '';
+          }
+        });
+      }
+
+      // ============ 事件绑定 ============
+      initMicroModal();
+
+      document.getElementById('pwca-btn-add-text').addEventListener('click', addText);
+
+      document.getElementById('pwca-btn-add-image').addEventListener('click', () => {
+        document.getElementById('pwca-file').click();
+      });
+      document.getElementById('pwca-file').addEventListener('change', (e) => {
+        const f = e.target.files && e.target.files[0];
+        if (f) {
+          addImageFromFile(f)
+            .then(() => toast('图片已添加'))
+            .catch(err => { console.error(err); toast('添加失败：' + err.message); });
+        }
+        e.target.value = '';
+      });
+
+      document.getElementById('pwca-btn-add-url').addEventListener('click', () => {
+        if (window.MicroModal) MicroModal.show('pwca-modal-url');
+        else {
+          const url = prompt('图片 URL');
+          if (url) addImageFromURL(url).catch(err => alert(err.message));
+        }
+      });
+      document.getElementById('pwca-url-confirm').addEventListener('click', () => {
+        const input = document.getElementById('pwca-url-input');
+        const url = (input.value || '').trim();
+        if (!url) return;
+        addImageFromURL(url)
+          .then(() => toast('图片已添加'))
+          .catch(err => toast('加载失败：' + err.message));
+        input.value = '';
+        if (window.MicroModal) MicroModal.close('pwca-modal-url');
+      });
+
+      document.getElementById('pwca-btn-front').addEventListener('click', bringForward);
+      document.getElementById('pwca-btn-back').addEventListener('click', sendBackward);
+      document.getElementById('pwca-btn-delete').addEventListener('click', deleteOne);
+      document.getElementById('pwca-btn-clear').addEventListener('click', clearLayers);
+
+      // 键盘：只用 Delete 键，避免 Backspace 触发浏览器返回
+      // 文字编辑中不响应，弹窗打开时不响应
+      window.addEventListener('keydown', (e) => {
+        if (e.key !== 'Delete') return;
+        if (isModalOpen()) return;
+        const obj = canvas.getActiveObject();
+        if (obj && obj.isEditing) return;
+        // 阻止在非编辑态冒泡
+        e.preventDefault();
+        deleteOne();
+      });
+
+      // 暴露调试 API
+      window.pwcaCanvas = canvas;
+      window.pwcaAddText = addText;
+      window.pwcaAddImage = addImageFromURL;
+      window.pwcaClear = clearLayers;
+      window.pwcaDelete = deleteOne;
+      window.pwcaStageSize = () => ({ w: canvas.getWidth(), h: canvas.getHeight() });
+
+      // 启动
+      loadBackground();
+    })();
+  </script>
+</body>
+</html>
