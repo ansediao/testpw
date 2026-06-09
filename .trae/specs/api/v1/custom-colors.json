@@ -1,0 +1,21 @@
+{
+	"code": 200,
+	"message": "success",
+	"data": {
+		"id": 12,
+		"created_at": "2026-04-07 03:07:19",
+		"updated_at": "2026-04-07 03:07:19",
+		"deleted_at": null,
+		"name": "保温杯颜色",
+		"colors": [
+			{
+				"name": "红色",
+				"hex_code": "#ff0000"
+			},
+			{
+				"name": "黑色",
+				"hex_code": "#000000"
+			}
+		]
+	}
+}
