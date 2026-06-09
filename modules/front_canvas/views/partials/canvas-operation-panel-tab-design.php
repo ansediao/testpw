@@ -1,27 +1,27 @@
 <!-- 设计内容 (隐藏) -->
-<div id="content-sheji" class="content-pane">
+<div id="content-sheji" class="pwca-content-pane">
     <div id="pwca-design-search-app">
         <!-- Vue app will be mounted here -->
     </div>
 </div>
 
 <template id="pwca-design-search-template">
-    <div class="search-filter-container">
-        <!-- 快速搜索输入框 -->
-        <div class="quick-search-row">
-            <div class="search-input-wrapper">
-                <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20">
+    <div class="pwca-search-filter-container">
+        <!-- 快速搜索区域 -->
+        <div class="pwca-quick-search-row">
+            <div class="pwca-search-input-wrapper">
+                <svg class="pwca-search-icon" viewBox="0 0 24 24" width="20" height="20">
                     <path fill="#9ca3af" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
                 </svg>
                 <input 
                     type="text" 
-                    class="search" 
+                    class="pwca-search" 
                     placeholder="Search Design Folders" 
                     v-model="state.quickSearch"
                 >
             </div>
             <button 
-                class="filter-toggle-btn"
+                class="pwca-filter-toggle-btn"
                 @click="toggleAdvanced"
             >
                 <svg viewBox="0 0 24 24" width="20" height="20">
@@ -32,10 +32,10 @@
         </div>
 
         <!-- 高级搜索行 (默认隐藏) -->
-        <div class="advanced-search-row" v-show="state.isAdvancedVisible">
-            <div class="advanced-search-field">
+        <div class="pwca-advanced-search-row" v-show="state.isAdvancedVisible">
+            <div class="pwca-advanced-search-field">
                 <label>Folder</label>
-                <select v-model="state.filterOperator" class="filter-operator">
+                <select v-model="state.filterOperator" class="pwca-filter-operator">
                     <option value="is">is</option>
                     <option value="isnot">is not</option>
                     <option value="contains">contains</option>
@@ -44,7 +44,7 @@
                 <input 
                     type="text" 
                     v-model="state.advancedSearch" 
-                    class="advanced-search-input" 
+                    class="pwca-advanced-search-input" 
                     placeholder=""
                 >
             </div>
@@ -53,27 +53,27 @@
 
     <hr>
 
-    <div class="content-sheji" :class="{ active: state.isCategoryDetailOpen }">
-        <div class="list">
+    <div class="pwca-content-sheji" :class="{ active: state.isCategoryDetailOpen }">
+        <div class="pwca-list">
             <div 
                 v-for="category in filteredCategories" 
                 :key="category.id"
-                class="category-item" 
+                class="pwca-category-item" 
                 :class="{ active: state.activeCategoryId === category.id }"
                 @click="selectCategory(category.id)"
             >
-                <div class="category-item-header">
-                    <div class="category_name name">
+                <div class="pwca-category-item-header">
+                    <div class="pwca-category-name name">
                         <img :src="designIconUrl" alt="Designs ICON">
                         {{ category.name }}
                     </div>
-                    <button class="back-button" @click.stop="deselectCategory">Back to Design Folders</button>
+                    <button class="pwca-back-button" @click.stop="deselectCategory">Back to Design Folders</button>
                 </div>
-                <div class="designs-grid">
+                <div class="pwca-designs-grid">
                     <div 
                         v-for="design in category.designs" 
                         :key="design.id"
-                        class="design-item"
+                        class="pwca-design-item"
                         @click.stop="addDesign(design.id)"
                     >
                         <img 

@@ -139,12 +139,12 @@ final class Pwca_Public_Cart_Design_Column {
 		$print_method_names = isset( $view_print_methods_map[ $view_id ] ) ? (array) $view_print_methods_map[ $view_id ] : array();
 		$view_edit_url      = $this->build_view_edit_url( $added_from, $product_id, $view_id );
 
-		$html  = '<div class="pw-design-view">';
-		$html .= '<div class="pw-design-view-name">' . $vname . '</div>';
+		$html  = '<div class="pwca-design-view">';
+        $html .= '<div class="pwca-design-view-name">' . $vname . '</div>';
 		if ( ! empty( $print_method_names ) ) {
 			$html .= '<div class="pw-design-print-methods">' . esc_html( implode( ', ', $print_method_names ) ) . '</div>';
 		}
-		$html .= '<div class="pw-design-view-images">';
+		$html .= '<div class="pwca-design-view-images">';
 
 		$img_count = count( $images );
 		foreach ( array_values( $images ) as $idx => $url ) {

@@ -1125,8 +1125,9 @@
             "modules/front_canvas/views/canvas-page.php (模板使用)",
             "modules/front_canvas/assets/js/ (JS中使用)"
           ],
-          "status": "未处理",
-          "frontend_area": "画布设计页 - 全部UI区域"
+          "status": "已处理",
+          "frontend_area": "画布设计页 - 全部UI区域",
+          "notes": "9个SCSS文件全部类名已加 pwca- 前缀，下划线改连字符。同步更新了JS和PHP模板中的所有类名引用。CSS已删除需重新编译。"
         },
         {
           "id": "CSS-CLASS-002",
@@ -1148,8 +1149,9 @@
             "modules/admin_design/assets/js/pwca-admin-design-app.js",
             "modules/admin_design/assets/js/pwca-admin-design-modals.js"
           ],
-          "status": "未处理",
-          "frontend_area": "后台 - 设计库管理页面"
+          "status": "已处理",
+          "frontend_area": "后台 - 设计库管理页面",
+          "notes": "所有 pw- 类名已改为 pwca- 前缀。"
         },
         {
           "id": "CSS-CLASS-003",
@@ -1175,8 +1177,9 @@
             "modules/front_product/assets/js/product/product-image-canvas.js",
             "modules/front_product/assets/js/product/components/ColorVariants.js"
           ],
-          "status": "未处理",
-          "frontend_area": "产品页 - 颜色变体/画布/渐变弹窗/组合组件"
+          "status": "已处理",
+          "frontend_area": "产品页 - 颜色变体/画布/渐变弹窗/组合组件",
+          "notes": "5个SCSS文件所有 pw- 类名改为 pwca- 前缀。同步更新了前端JS组件中的类名引用。"
         },
         {
           "id": "CSS-CLASS-004",
@@ -1192,8 +1195,9 @@
           "related_references": [
             "modules/front_cart/assets/js/pwca-cart-design-column.js"
           ],
-          "status": "未处理",
-          "frontend_area": "购物车页 - 设计信息列"
+          "status": "已处理",
+          "frontend_area": "购物车页 - 设计信息列",
+          "notes": "pw- 类名已改为 pwca- 前缀。"
         },
         {
           "id": "CSS-CLASS-005",
@@ -1213,8 +1217,9 @@
           ],
           "violation": "模板/JSX/className中使用了无前缀或 `pw-` 前缀的类名",
           "related_references": ["对应SCSS文件"],
-          "status": "未处理",
-          "frontend_area": "全站前端页面 - 各组件模板"
+          "status": "已处理",
+          "frontend_area": "全站前端页面 - 各组件模板",
+          "notes": "所有JS/PHP模板中的类名字面量已同步更新为 pwca- 前缀。CSS文件已删除需重新编译。"
         }
       ],
       "note": "SCSS文件中还包含大量通用的状态类（`.active`、`.selected`、`.disabled`等）和第三方库类（Micromodal、WooCommerce），这些属于可接受的例外。"

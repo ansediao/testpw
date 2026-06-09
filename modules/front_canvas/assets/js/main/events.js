@@ -186,7 +186,7 @@ function pwcaSyncOperationPanelBySelectedObject(selectedObj) {
         }
 
         try {
-            document.querySelectorAll('.img_toolbar .toolbar_button').forEach((btn) => btn.classList.remove('active'));
+            document.querySelectorAll('.pwca-img-toolbar .pwca-toolbar-button').forEach((btn) => btn.classList.remove('active'));
         } catch (err) {}
         return;
     }

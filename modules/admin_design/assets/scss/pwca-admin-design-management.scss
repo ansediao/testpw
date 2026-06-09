@@ -1,8 +1,8 @@
 .pwca-admin-design {
-	.pw-design-controls {
+	.pwca-design-controls {
 		margin-bottom: 20px;
 
-		.pw-design-actions {
+		.pwca-design-actions {
 			margin-bottom: 20px;
 
 			.button {
@@ -10,7 +10,7 @@
 			}
 		}
 
-		.pw-design-filters {
+		.pwca-design-filters {
 			margin-bottom: 20px;
 			display: flex;
 			gap: 10px;
@@ -38,7 +38,7 @@
 		}
 	}
 
-	.pw-design-tabs {
+	.pwca-design-tabs {
 		margin-bottom: 20px;
 		width: fit-content;
 		.nav-tab {
@@ -46,7 +46,7 @@
 		}
 	}
 
-	.pw-design-bulk-actions {
+	.pwca-design-bulk-actions {
 		margin-bottom: 20px;
 
 		.button,label {
@@ -55,13 +55,13 @@
 		
 	}
 
-	.pw-design-grid {
+	.pwca-design-grid {
 		margin-bottom: 20px;
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 		gap: 20px;
 
-		.pw-design-card {
+		.pwca-design-card {
 			border: 1px solid #ddd;
 			border-radius: 5px;
 			padding: 15px;
@@ -69,7 +69,7 @@
 			background-color: #fff;
 			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 
-			.pw-design-thumbnail {
+			.pwca-design-thumbnail {
 				position: relative;
 				width: 100%;
 				height: 180px;
@@ -80,25 +80,25 @@
 				align-items: center;
 				justify-content: center;
 
-				.pw-design-checkbox {
+				.pwca-design-checkbox {
 					position: absolute;
 					top: 8px;
 					left: 8px;
 				}
 
-				.pw-design-thumbnail-img {
+				.pwca-design-thumbnail-img {
 					width: 100%;
 					height: 100%;
 					object-fit: cover;
 				}
 			}
 
-			.pw-design-name {
+			.pwca-design-name {
 				margin-top: 10px;
 				font-weight: 600;
 			}
 
-			.pw-design-actions-bottom {
+			.pwca-design-actions-bottom {
 				display: flex;
 				justify-content: center;
 				gap: 10px;
@@ -122,14 +122,14 @@
 					color: #555;
 				}
 
-				.pw-delete-design-link .dashicons {
+				.pwca-delete-design-link .dashicons {
 					color: #d63638;
 				}
 			}
 		}
 	}
 
-	.pw-pagination {
+	.pwca-pagination {
 		margin-top: 20px;
 		text-align: center;
 		display: flex;
@@ -177,7 +177,7 @@
 		width: 90vw;
 	}
 
-	.pw-form-field {
+	.pwca-form-field {
 		margin-bottom: 16px;
 
 		label {
@@ -226,7 +226,7 @@
 		max-height: 80vh;
 	}
 
-	.pw-category-item {
+	.pwca-category-item {
 		display: flex;
 		gap: 10px;
 		align-items: center;
@@ -236,7 +236,7 @@
 		margin-bottom: 10px;
 		background: #fff;
 
-		.pw-category-name-input {
+		.pwca-category-name-input {
 			flex: 1;
 			padding: 8px 12px;
 			border: 1px solid #ddd;
@@ -244,8 +244,8 @@
 			font-size: 14px;
 		}
 
-		.pw-category-settings-btn,
-		.pw-category-delete-btn {
+		.pwca-category-settings-btn,
+		.pwca-category-delete-btn {
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
@@ -255,11 +255,11 @@
 			cursor: pointer;
 		}
 
-		.pw-category-settings-btn .dashicons {
+		.pwca-category-settings-btn .dashicons {
 			color: #0073aa;
 		}
 
-		.pw-category-delete-btn .dashicons {
+		.pwca-category-delete-btn .dashicons {
 			color: #d63638;
 		}
 	}
@@ -287,7 +287,7 @@
 		overflow: hidden;
 	}
 
-	.pw-filter-search-field {
+	.pwca-filter-search-field {
 		display: flex;
 		align-items: center;
 		padding: 6px 10px;
@@ -321,29 +321,29 @@
 		}
 	}
 
-	.pw-filter-section {
+	.pwca-filter-section {
 		margin-top: 12px;
 
-		.pw-filter-toggle {
+		.pwca-filter-toggle {
 			margin: 0 0 4px;
 			font-size: 13px;
 			font-weight: 600;
 			color: #444;
 		}
 
-		.pw-filter-options {
+		.pwca-filter-options {
 			padding: 8px 0;
 			border-top: 1px solid #eee;
 		}
 	}
 
-	.pw-empty {
+	.pwca-empty {
 		padding: 4px 0;
 		font-style: italic;
 		color: #999;
 	}
 
-	.pw-filter-item {
+	.pwca-filter-item {
 		padding: 6px 0;
 		border-bottom: 1px solid #f1f1f1;
 
@@ -351,7 +351,7 @@
 			border-bottom: 0;
 		}
 
-		.pw-filter-item-header {
+		.pwca-filter-item-header {
 			margin-bottom: 4px;
 
 			label {
@@ -361,7 +361,7 @@
 			}
 		}
 
-		.pw-filter-condition {
+		.pwca-filter-condition {
 			display: flex;
 			align-items: center;
 			gap: 6px;
@@ -378,7 +378,7 @@
 		}
 	}
 
-	.pw-filter-item-available {
+	.pwca-filter-item-available {
 		padding: 4px 0;
 
 		label {
@@ -387,24 +387,24 @@
 		}
 	}
 
-	.pw-toggle-switch {
+	.pwca-toggle-switch {
 		display: flex;
 		align-items: center;
 		gap: 8px;
 		margin-top: 4px;
 	}
 
-	.pw-toggle-input {
+	.pwca-toggle-input {
 		display: none;
 	}
 
-	.pw-toggle-label {
+	.pwca-toggle-label {
 		position: relative;
 		display: inline-block;
 		width: 40px;
 		height: 20px;
 
-		.pw-toggle-slider {
+		.pwca-toggle-slider {
 			position: absolute;
 			inset: 0;
 			border-radius: 20px;
@@ -427,15 +427,15 @@
 		}
 	}
 
-	.pw-toggle-input:checked + .pw-toggle-label .pw-toggle-slider {
+	.pwca-toggle-input:checked + .pwca-toggle-label .pwca-toggle-slider {
 		background: #2271b1;
 	}
 
-	.pw-toggle-input:checked + .pw-toggle-label .pw-toggle-slider::before {
+	.pwca-toggle-input:checked + .pwca-toggle-label .pwca-toggle-slider::before {
 		transform: translateX(20px);
 	}
 
-	.pw-toggle-text {
+	.pwca-toggle-text {
 		font-size: 12px;
 		color: #555;
 	}
@@ -453,7 +453,7 @@
  
 // ---- 以下样式用于位于 .pwca-admin-design 容器之外的模态框 ----
 
-.pw-form-field {
+.pwca-form-field {
 	margin-bottom: 16px;
 
 	label {
@@ -514,7 +514,7 @@
 	}
 }
 
-.pw-category-item {
+.pwca-category-item {
 	display: flex;
 	gap: 10px;
 	align-items: center;
@@ -524,7 +524,7 @@
 	margin-bottom: 10px;
 	background: #fff;
 
-	.pw-category-name-input {
+	.pwca-category-name-input {
 		flex: 1;
 		padding: 8px 12px;
 		border: 1px solid #ddd;
@@ -532,8 +532,8 @@
 		font-size: 14px;
 	}
 
-	.pw-category-settings-btn,
-	.pw-category-delete-btn {
+	.pwca-category-settings-btn,
+	.pwca-category-delete-btn {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -543,11 +543,11 @@
 		cursor: pointer;
 	}
 
-	.pw-category-settings-btn .dashicons {
+	.pwca-category-settings-btn .dashicons {
 		color: #0073aa;
 	}
 
-	.pw-category-delete-btn .dashicons {
+	.pwca-category-delete-btn .dashicons {
 		color: #d63638;
 	}
 }
@@ -567,24 +567,24 @@
 	cursor: pointer;
 }
 
-.pw-toggle-switch {
+.pwca-toggle-switch {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	margin-top: 4px;
 }
 
-.pw-toggle-input {
+.pwca-toggle-input {
 	display: none;
 }
 
-.pw-toggle-label {
+.pwca-toggle-label {
 	position: relative;
 	display: inline-block;
 	width: 40px;
 	height: 20px;
 
-	.pw-toggle-slider {
+	.pwca-toggle-slider {
 		position: absolute;
 		inset: 0;
 		border-radius: 20px;
@@ -607,16 +607,15 @@
 	}
 }
 
-.pw-toggle-input:checked + .pw-toggle-label .pw-toggle-slider {
+.pwca-toggle-input:checked + .pwca-toggle-label .pwca-toggle-slider {
 	background: #2271b1;
 }
 
-.pw-toggle-input:checked + .pw-toggle-label .pw-toggle-slider::before {
+.pwca-toggle-input:checked + .pwca-toggle-label .pwca-toggle-slider::before {
 	transform: translateX(20px);
 }
 
-.pw-toggle-text {
+.pwca-toggle-text {
 	font-size: 12px;
 	color: #555;
 }
-

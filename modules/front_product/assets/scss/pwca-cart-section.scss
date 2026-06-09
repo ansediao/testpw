@@ -1,15 +1,15 @@
 @import 'variables';
 @import 'mixins';
 
-.cart-section { 
-    .button-group { 
+.pwca-cart-section { 
+    .pwca-button-group { 
         display: flex; 
         gap: 12px; 
         align-items: center; 
         flex-wrap: wrap; 
 
-        .cart-btn, 
-        .customize-btn { 
+        .pwca-cart-btn, 
+        .pwca-customize-btn { 
             padding: 12px 24px; 
             border: none; 
             border-radius: 6px; 
@@ -26,7 +26,7 @@
             min-width: 140px; 
         } 
 
-        .cart-btn { 
+        .pwca-cart-btn { 
             background-color: #0073aa; 
             color: white; 
 
@@ -52,7 +52,7 @@
             } 
         } 
 
-        .customize-btn { 
+        .pwca-customize-btn { 
             background-color: #ff6b35; 
             color: white; 
 
@@ -74,13 +74,13 @@
 } 
 
 @media (max-width: 768px) { 
-    .cart-section { 
-        .button-group { 
+    .pwca-cart-section { 
+        .pwca-button-group { 
             flex-direction: column; 
             width: 100%; 
 
-            .cart-btn, 
-            .customize-btn { 
+            .pwca-cart-btn, 
+            .pwca-customize-btn { 
                 width: 100%; 
                 flex: none; 
             } 

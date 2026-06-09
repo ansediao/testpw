@@ -65,14 +65,14 @@
 
         // 需要隐藏的元素选择器
         const elementsToHide = [
-            'header.header',
-            '.dongtai-area',
-            '.product-card',
-            '.zoom-control',
-            '.tabs-nav',
-            '.content-area-footer',
-            '.panel-collapse-btn',
-            '.customization-area'
+            'header.pwca-header',
+            '.pwca-dongtai-area',
+            '.pwca-product-card',
+            '.pwca-zoom-control',
+            '.pwca-tabs-nav',
+            '.pwca-content-area-footer',
+            '.pwca-panel-collapse-btn',
+            '.pwca-customization-area'
         ];
 
         // 隐藏指定元素
@@ -84,7 +84,7 @@
         });
 
         // 处理 .content-area，只显示 #content-tuan
-        const contentArea = document.querySelector('.content-area');
+        const contentArea = document.querySelector('.pwca-content-area');
         if (contentArea) {
             // 隐藏所有 content-pane
             const contentPanes = contentArea.querySelectorAll('.content-pane');
@@ -102,7 +102,7 @@
         }
 
         // 处理 footer，强制 justify-content: right
-        const footer = document.querySelector('footer.footer');
+        const footer = document.querySelector('footer.pwca-footer');
         if (footer) {
             footer.style.justifyContent = 'right';
         }
@@ -126,7 +126,7 @@
 
         // 如果是 main 视图，添加特定 class
         if (viewParam === 'main') {
-            const designArea = document.querySelector('.design_area');
+            const designArea = document.querySelector('.pwca-design-area');
             if (designArea) {
                 designArea.classList.add('pwca-view-main');
             }

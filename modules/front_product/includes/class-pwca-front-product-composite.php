@@ -76,7 +76,7 @@ final class Pwca_Public_Product_Composite {
 	}
 
 	private function render_list_html( $current_product_id, $main_product_id, $child_product_ids ) {
-		echo '<ul class="pw-composite-components">';
+		echo '<ul class="pwca-composite-components">';
 
 		$this->render_link_item( $current_product_id, $main_product_id );
 

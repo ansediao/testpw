@@ -275,7 +275,7 @@ function pwcaSwitchOperationPanelTab(tabId, opts = {}) {
             if (addTextBox) addTextBox.style.display = 'block';
         } catch (e) {}
         try {
-            const textButtons = document.querySelectorAll('.text_toolbar .toolbar_button');
+            const textButtons = document.querySelectorAll('.pwca-text-toolbar .pwca-toolbar-button');
             textButtons.forEach(btn => btn.classList.remove('active'));
             const textInputBtn = document.getElementById('text_input');
             if (textInputBtn) textInputBtn.classList.add('active');

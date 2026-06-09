@@ -1,6 +1,6 @@
-body.wpcanvas {
-    #app.container {
-        .customization-area {
+body.pwca-canvas {
+    #app.pwca-container {
+        .pwca-customization-area {
             overflow-y: auto;
             border-bottom: 1px solid #dee2e6;
             flex-shrink: 0;
@@ -8,7 +8,7 @@ body.wpcanvas {
             justify-content: center;
             padding: 6px 0px;
 
-            .viewer-switch-btn {
+            .pwca-viewer-switch-btn {
                 margin: 0px;
                 padding: 13px 30px;
                 font-family: "Arial-BoldMT", "Arial Bold", "Arial", sans-serif;

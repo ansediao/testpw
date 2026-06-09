@@ -8,27 +8,27 @@
  * SCSS 混合器集中定义文件
  * 用于复用常见样式模式
  */
-.color-variants-section .pw-color-variants-module .pw-color-variants-header {
+.color-variants-section .pwca-color-variants-module .pwca-color-variants-header {
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 10px;
 }
-.color-variants-section .pw-color-variants-module .pw-color-variants-grid {
+.color-variants-section .pwca-color-variants-module .pwca-color-variants-grid {
   display: flex;
   gap: 10px;
 }
-.color-variants-section .pw-color-variants-module .pw-color-variants-grid .pw-variants-container {
+.color-variants-section .pwca-color-variants-module .pwca-color-variants-grid .pwca-variants-container {
   display: flex;
   gap: 10px;
 }
-.color-variants-section .pw-color-variants-module .pw-color-variants-grid .pw-variants-container .pw-color-variant-item {
+.color-variants-section .pwca-color-variants-module .pwca-color-variants-grid .pwca-variants-container .pwca-color-variant-item {
   cursor: pointer;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
-.color-variants-section .pw-color-variants-module .pw-color-variants-grid .pw-variants-container .pw-color-variant-item:hover {
+.color-variants-section .pwca-color-variants-module .pwca-color-variants-grid .pwca-variants-container .pwca-color-variant-item:hover {
   transform: scale(1.05);
 }
-.color-variants-section .pw-color-variants-module .pw-color-variants-grid .pw-variants-container .pw-color-variant-item .pw-color-swatch {
+.color-variants-section .pwca-color-variants-module .pwca-color-variants-grid .pwca-variants-container .pwca-color-variant-item .pwca-color-swatch {
   width: 30px;
   height: 30px;
   border-radius: 5px;

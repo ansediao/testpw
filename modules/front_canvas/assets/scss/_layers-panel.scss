@@ -40,21 +40,21 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
 
 /*
   SCSS 样式严格按照 HTML 结构嵌套
-  根选择器: .layers-box
+  根选择器: .pwca-layers-box
   整合现有变量和新增样式结构
 */
 
-.layers-box {
+.pwca-layers-box {
     height: inherit;
-    .layers-panel {
+    .pwca-layers-panel {
         height: inherit;
-        .layers-list {
+        .pwca-layers-list {
             height: inherit;
             overflow-y: auto;
 
             // --- 通用图层项定义 ---
-            // .layer-item 会同时出现在顶层和 .layer-group 内部
-            .layer-item {
+            // .pwca-layer-item 会同时出现在顶层和 .pwca-layer-group 内部
+            .pwca-layer-item {
                 display: flex;
                 padding: 5px;
                 border: 1px solid #d7d7d7;
@@ -70,7 +70,7 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
                     background-color: #dbeafe;
                 }
 
-                .layer-icon {
+                .pwca-layer-icon {
                     width: 40px;
                     height: 40px;
                     margin-right: 12px;
@@ -82,12 +82,12 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
                     border: 1px solid #d1d5db;
                     overflow: hidden;
 
-                    .layer-text-icon {
+                    .pwca-layer-text-icon {
                         font-weight: 600;
                         font-size: 16px;
                         color: #374151;
                     }
-                    .layer-thumbnail {
+                    .pwca-layer-thumbnail {
                         width: 100%;
                         height: 100%;
                         display: flex;
@@ -101,19 +101,19 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
                     }
                 }
 
-                .layer-info {
+                .pwca-layer-info {
                     flex: 1;
                     min-width: 0;
                     display: flex;
                     flex-direction: column;
                     gap: 4px;
 
-                    .layer-name {
+                    .pwca-layer-name {
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
 
-                        .layer-type {
+                        .pwca-layer-type {
                             border-radius: 4px;
                             background-color: #f2f2f2;
                             font-size: 14px;
@@ -121,17 +121,17 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
                             padding: 5px;
                         }
 
-                        .layer-controls {
+                        .pwca-layer-controls {
                             display: flex;
                             gap: $layer-controls-gap;
                             align-items: center;
 
-                            // .layer-btn 样式在下方通用部分定义
+                            // .pwca-layer-btn 样式在下方通用部分定义
                         }
                     }
 
-                    .layer-actions {
-                        .assign-btn {
+                    .pwca-layer-actions {
+                        .pwca-assign-btn {
                             padding: 2px 6px;
                             font-size: 11px;
                             background: #11bbf5;
@@ -170,22 +170,22 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
                 }
 
                 &.grouped {
-                    .layer-xiaji-icon {
+                    .pwca-layer-xiaji-icon {
                         font-size: 24px;
                     }
                 }
             }
 
             // --- 图层组定义 ---
-            .layer-group {
+            .pwca-layer-group {
                 margin-bottom: 8px;
                 background: #fff;
-                .group-header {
+                .pwca-group-header {
                     background: #fff;
                     cursor: pointer;
                     transition: background-color 0.2s;
 
-                    .expand-icon {
+                    .pwca-expand-icon {
                         margin-right: 8px;
                         font-size: 12px;
                         color: #6b7280;
@@ -193,7 +193,7 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
                         user-select: none;
                     }
 
-                    .group-name {
+                    .pwca-group-name {
                         font-weight: 500;
                         color: #374151;
                         padding: 8px;
@@ -201,29 +201,29 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
                         margin-bottom: 8px;
                     }
 
-                    .group-actions {
+                    .pwca-group-actions {
                         display: flex;
                         padding: 8px;
-                        // .layer-btn 样式在下方通用部分定义
-                        .group-actions-buttonBox {
+                        // .pwca-layer-btn 样式在下方通用部分定义
+                        .pwca-group-actions-buttonbox {
                             display: flex;
                             gap: 4px;
                             margin-left: auto;
-                            .group-copy {
+                            .pwca-group-copy {
                                 color: #11bbf5;
                             }
                         }
                     }
                 }
 
-                .group-content {
+                .pwca-group-content {
                     ;
-                    // 此处包含的 .layer-item 会自动应用上面的 .layer-item 样式
+                    // 此处包含的 .pwca-layer-item 会自动应用上面的 .pwca-layer-item 样式
                 }
             }
 
-            // --- 通用控件按钮定义 (作用于 .layer-controls 和 .group-actions) ---
-            .layer-btn {
+            // --- 通用控件按钮定义 (作用于 .pwca-layer-controls 和 .pwca-group-actions) ---
+            .pwca-layer-btn {
                 @include canvas-button-base;
                 padding: 4px 6px;
                 border: none;
@@ -253,7 +253,7 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
                 }
 
                 // 特定的删除按钮悬停效果
-                &.delete {
+                &.pwca-delete {
                     color: #dc2626;
                     border-color: $canvas-error-color;
                     &:hover {
@@ -266,7 +266,7 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
                     }
                 }
 
-                &.layer-copy {
+                &.pwca-layer-copy {
                     color: #11bbf5;
                     border-color: $canvas-primary-color;
 
@@ -341,11 +341,11 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
 
 /*
   打印方法对话框 (Print Method Dialog) 的 SCSS 样式
-  根选择器: .print-method-dialog-overlay
+  根选择器: .pwca-print-method-dialog-overlay
   整合到图层面板样式文件中
 */
 
-.print-method-dialog-overlay {
+.pwca-print-method-dialog-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -357,7 +357,7 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
     justify-content: center;
     z-index: 10000;
 
-    .print-method-dialog {
+    .pwca-print-method-dialog {
         background: white;
         border-radius: 8px;
         padding: 24px;
@@ -367,7 +367,7 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
         overflow-y: auto;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 
-        .dialog-header {
+        .pwca-dialog-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -383,7 +383,7 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
                 color: #333;
             }
 
-            .close-btn {
+            .pwca-close-btn {
                 background: none;
                 border: none;
                 font-size: 20px;
@@ -403,24 +403,15 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
             }
         }
 
-        .print-methods {
+        .pwca-print-methods {
             margin: 30px 30px 0;
             border-bottom: 1px solid #d7d7d7;
 
-            // .method-row {
-            //     display: flex;
-            //     gap: 12px;
-            //     margin-bottom: 12px;
-
-            //     &:last-child {
-            //         margin-bottom: 0;
-            //     }
-            // }
-            .method-grid {
+            .pwca-method-grid {
                 display: grid;
                 grid-template-columns: repeat(3, 1fr); /* 创建三列等宽布局 */
                 padding-bottom: 30px;
-                .method-option {
+                .pwca-method-option {
                     flex: 1;
                     display: flex;
                     align-items: center;
@@ -431,13 +422,13 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
                         margin-right: 8px;
                         accent-color: #2196f3; // 控制选中时单选框的颜色
 
-                        &:checked + .method-label {
+                        &:checked + .pwca-method-label {
                             color: #2196f3;
                             font-weight: 500;
                         }
                     }
 
-                    .method-label {
+                    .pwca-method-label {
                         font-size: 14px;
                         color: #333;
                     }
@@ -445,13 +436,13 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
             }
         }
 
-        .method-tabs {
+        .pwca-method-tabs {
             display: flex;
             border-bottom: 1px solid #ddd;
             margin-top: 20px;
             margin-bottom: 20px;
 
-            .tab {
+            .pwca-tab {
                 padding: 12px 20px;
                 cursor: pointer;
                 border-bottom: 2px solid transparent;
@@ -472,7 +463,7 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
             }
         }
 
-        .tab-content {
+        .pwca-tab-content {
             min-height: 100px;
             margin-bottom: 20px;
             padding: 16px;
@@ -488,14 +479,14 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
             margin: auto;
         }
 
-        .dialog-actions {
+        .pwca-dialog-actions {
             display: flex;
             justify-content: center;
             gap: 12px;
             padding-top: 12px;
             border-top: 1px solid #eee;
 
-            .save-btn {
+            .pwca-save-btn {
                 background: #e74f4c;
                 color: white;
                 border: none;
@@ -511,7 +502,7 @@ $color-red-50: #fef2f2; // 用于删除按钮悬停背景
 
 // 响应式设计
 @media(max-width: 768px) {
-    .layer-btn {
+    .pwca-layer-btn {
         width: $layer-btn-size-mobile;
         height: $layer-btn-size-mobile;
 

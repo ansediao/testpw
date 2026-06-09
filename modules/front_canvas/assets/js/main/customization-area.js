@@ -63,7 +63,7 @@
 
         views.forEach((view, index) => {
             const button = document.createElement('button');
-            button.className = 'viewer-switch-btn';
+            button.className = 'pwca-viewer-switch-btn';
             button.textContent = view.view_name || view.name || 'View';
             button.setAttribute('data-view-id', view.id);
 
@@ -76,7 +76,7 @@
                     return;
                 }
 
-                container.querySelectorAll('.viewer-switch-btn').forEach((btn) => {
+                container.querySelectorAll('.pwca-viewer-switch-btn').forEach((btn) => {
                     btn.classList.remove('active');
                 });
                 button.classList.add('active');
@@ -112,7 +112,7 @@
 
                 const targetButton = nextContainer.querySelector('[data-view-id="' + viewId + '"]');
                 if (targetButton && !targetButton.classList.contains('active')) {
-                    nextContainer.querySelectorAll('.viewer-switch-btn').forEach((btn) => {
+                    nextContainer.querySelectorAll('.pwca-viewer-switch-btn').forEach((btn) => {
                         btn.classList.remove('active');
                     });
                     targetButton.classList.add('active');

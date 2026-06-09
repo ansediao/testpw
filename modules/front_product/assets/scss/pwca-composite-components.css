@@ -8,18 +8,18 @@
  * SCSS 混合器集中定义文件
  * 用于复用常见样式模式
  */
-ul.pw-composite-components {
+ul.pwca-composite-components {
   display: flex;
   gap: 30px;
 }
-ul.pw-composite-components li {
+ul.pwca-composite-components li {
   padding: 12px 30px;
   border: 1px solid #000;
   border-radius: 10px;
 }
-ul.pw-composite-components li.active {
+ul.pwca-composite-components li.active {
   border: 1px dashed #000;
 }
-ul.pw-composite-components li a:hover {
+ul.pwca-composite-components li a:hover {
   color: red;
 }/*# sourceMappingURL=pwca-composite-components.css.map */

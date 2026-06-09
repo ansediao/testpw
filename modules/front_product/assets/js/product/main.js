@@ -180,7 +180,7 @@ function initializeModularApp(productId) {
                         <ProductPriceInfo />
                     </div>
                     
-                    <div class="cart-section">
+                    <div class="pwca-cart-section">
                         <AddToCart />
                     </div>
                 </div>                

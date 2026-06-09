@@ -1,12 +1,12 @@
-body.wpcanvas {
+body.pwca-canvas {
     margin: 0;
     padding: 0;
     font-family: "Arial", sans-serif;
 
-    #app.container {
+    #app.pwca-container {
         // 每个视图最外围
-        .view-container {
-            .canvas-wrapper {
+        .pwca-view-container {
+            .pwca-canvas-wrapper {
                 position: absolute;
                 top: 0;
                 left: 0;
@@ -15,7 +15,7 @@ body.wpcanvas {
             }
         }
 
-        .btn {
+        .pwca-btn {
             padding: 0.5rem;
             border: none;
             border-radius: 0.5rem;
@@ -25,13 +25,13 @@ body.wpcanvas {
             white-space: nowrap;
         }
 
-        .btn-custom {
+        .pwca-btn-custom {
             background-color: #18afe2;
             color: #ffffff;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .btn-custom:hover {
+        .pwca-btn-custom:hover {
             background-color: #0099ee;
         }
 

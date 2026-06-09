@@ -365,7 +365,7 @@ const resolveMoqAndDiscount = () => {
       discountText = ps?.getDiscountText || '';
       quantityDiscountsJson = JSON.stringify(ps?.quantityDiscounts || []);
     } else {
-      const qtyEl = document.querySelector('.product-card__input');
+      const qtyEl = document.querySelector('.pwca-product-card__input');
       minOrderQuantity = qtyEl ? parseInt(qtyEl.getAttribute('min') || '1', 10) || 1 : 1;
       batchQuantity = qtyEl ? parseInt(qtyEl.getAttribute('step') || '1', 10) || 1 : 1;
     }
@@ -570,7 +570,7 @@ const addCustomizedProductToCart = async () => {
     return;
   }
 
-  const quantityInput = document.querySelector('.product-card__input');
+  const quantityInput = document.querySelector('.pwca-product-card__input');
   const quantity = quantityInput ? parseInt(quantityInput.value || '1', 10) || 1 : 1;
   if (quantity <= 0) {
     alert('请输入有效的数量');
@@ -631,7 +631,7 @@ const toggleVisibleViewContainer = (viewId) => {
     return;
   }
 
-  document.querySelectorAll('.view-container').forEach((container) => {
+  document.querySelectorAll('.pwca-view-container').forEach((container) => {
     container.style.display = 'none';
   });
   targetViewContainer.style.display = 'block';

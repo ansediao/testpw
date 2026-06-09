@@ -210,7 +210,7 @@
         }
 
         // 尝试从父元素获取颜色信息
-        const variantItem = colorSwatch.closest('.pw-color-variant-item');
+        const variantItem = colorSwatch.closest('.pwca-color-variant-item');
         if (variantItem) {
             const variantColor = variantItem.dataset.color || variantItem.dataset.variantColor;
             if (variantColor) {
@@ -330,7 +330,7 @@
 
         // 创建Canvas容器
         canvasContainer = document.createElement('div');
-        canvasContainer.className = 'pw-product-canvas-container';
+        canvasContainer.className = 'pwca-product-canvas-container';
         canvasContainer.style.cssText = `
             width: ${displayWidth}px;
             height: ${displayHeight}px;

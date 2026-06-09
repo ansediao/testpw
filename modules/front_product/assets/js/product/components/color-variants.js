@@ -6,8 +6,8 @@
 // 颜色变体组件
 const ColorVariants = {
     template: `
-        <div class="pw-color-variants-module">
-            <div class="pw-color-variants-header">
+        <div class="pwca-color-variants-module">
+            <div class="pwca-color-variants-header">
                 <h4>Select Color:</h4>
             </div>
             
@@ -23,7 +23,7 @@ const ColorVariants = {
                     <div 
                         v-for="(variant, index) in store.variants.filter(v => v.variant_color)" 
                         :key="variant.id"
-                        class="pw-color-variant-item"
+                        class="pwca-color-variant-item"
                         :class="{ 
                             selected: store.selectedVariant?.id === variant.id,
                             disabled: !isVariantClickable
@@ -31,7 +31,7 @@ const ColorVariants = {
                         @click="selectVariant(variant)"
                     >
                         <div 
-                            class="pw-color-swatch" 
+                            class="pwca-color-swatch" 
                             :style="{ backgroundColor: variant.variant_color }"
                         ></div>
                     </div>

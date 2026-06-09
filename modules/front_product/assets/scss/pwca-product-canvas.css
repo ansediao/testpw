@@ -13,7 +13,7 @@
  * 为Canvas替换功能提供美观的界面样式 
  */
 /* Canvas容器样式 */
-.pw-product-canvas-container {
+.pwca-product-canvas-container {
   width: 100%;
   max-width: 600px;
   height: 400px;
@@ -25,15 +25,15 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   margin: 20px 0;
-  animation: pw-fadeIn 0.5s ease-in-out;
+  animation: pwca-fadeIn 0.5s ease-in-out;
 }
-.pw-product-canvas-container:hover {
+.pwca-product-canvas-container:hover {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
-.pw-product-canvas-container {
+.pwca-product-canvas-container {
   /* Canvas元素样式 */
 }
-.pw-product-canvas-container canvas {
+.pwca-product-canvas-container canvas {
   display: block;
   width: 100% !important;
   height: 100% !important;
@@ -41,7 +41,7 @@
 }
 
 /* Canvas工具栏样式 */
-.pw-canvas-toolbar {
+.pwca-canvas-toolbar {
   position: absolute;
   top: 12px;
   right: 12px;
@@ -55,7 +55,7 @@
   backdrop-filter: blur(4px);
   /* 工具栏按钮样式 */
 }
-.pw-canvas-toolbar button {
+.pwca-canvas-toolbar button {
   background: #007cba;
   color: white;
   border: none;
@@ -67,31 +67,31 @@
   transition: all 0.2s ease;
   min-width: 60px;
 }
-.pw-canvas-toolbar button:hover {
+.pwca-canvas-toolbar button:hover {
   background: #005a87;
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
-.pw-canvas-toolbar button:active {
+.pwca-canvas-toolbar button:active {
   transform: translateY(0);
 }
-.pw-canvas-toolbar button:focus {
+.pwca-canvas-toolbar button:focus {
   outline: 2px solid #007cba;
   outline-offset: 2px;
 }
-.pw-canvas-toolbar button {
+.pwca-canvas-toolbar button {
   /* 清空按钮特殊样式 */
 }
-.pw-canvas-toolbar button:last-child {
+.pwca-canvas-toolbar button:last-child {
   background: #dc3232;
 }
-.pw-canvas-toolbar button:last-child:hover {
+.pwca-canvas-toolbar button:last-child:hover {
   background: #a02622;
 }
-.pw-canvas-toolbar button {
+.pwca-canvas-toolbar button {
   /* 工具提示样式 */
 }
-.pw-canvas-toolbar button[title]:hover::after {
+.pwca-canvas-toolbar button[title]:hover::after {
   content: attr(title);
   position: absolute;
   bottom: -30px;
@@ -107,36 +107,36 @@
 }
 
 /* 颜色变体项目 */
-.pw-color-variant-item {
+.pwca-color-variant-item {
   /* 选中状态的颜色样本 */
 }
-.pw-color-variant-item.selected .pw-color-swatch {
+.pwca-color-variant-item.selected .pwca-color-swatch {
   box-shadow: 0 0 0 3px rgba(0, 123, 186, 0.3);
   border: 2px solid #007cba;
 }
 
 /* 颜色样本增强样式 */
-.pw-color-swatch {
+.pwca-color-swatch {
   transition: all 0.2s ease;
   cursor: pointer;
   border-radius: 4px;
   position: relative;
 }
-.pw-color-swatch:hover {
+.pwca-color-swatch:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 10;
 }
-.pw-color-swatch:active {
+.pwca-color-swatch:active {
   transform: scale(0.95);
 }
-.pw-color-swatch:focus {
+.pwca-color-swatch:focus {
   outline: 2px solid #007cba;
   outline-offset: 2px;
 }
 
 /* Loading states */
-.pw-canvas-loading {
+.pwca-canvas-loading {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -147,7 +147,7 @@
   text-align: center;
   z-index: 1000;
 }
-.pw-canvas-loading::after {
+.pwca-canvas-loading::after {
   content: "";
   display: inline-block;
   width: 20px;
@@ -155,12 +155,12 @@
   border: 2px solid #f3f3f3;
   border-top: 2px solid #007cba;
   border-radius: 50%;
-  animation: pw-spin 1s linear infinite;
+  animation: pwca-spin 1s linear infinite;
   margin-left: 10px;
 }
 
 /* Loading spinner animation */
-.pw-loading-spinner {
+.pwca-loading-spinner {
   width: 20px;
   height: 20px;
   border: 2px solid #f3f3f3;
@@ -171,23 +171,23 @@
   margin: 0 auto;
 }
 
-.pw-loading-variants {
+.pwca-loading-variants {
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 20px;
   color: #666;
 }
-.pw-loading-variants.error {
+.pwca-loading-variants.error {
   color: #d63384;
 }
 
 /* 与WooCommerce主题兼容性 */
-.woocommerce .pw-product-canvas-container {
+.woocommerce .pwca-product-canvas-container {
   margin: 1em 0;
 }
 
-.woocommerce-product-gallery + .pw-product-canvas-container {
+.woocommerce-product-gallery + .pwca-product-canvas-container {
   margin-top: 2em;
 }
 
@@ -200,7 +200,7 @@
     transform: rotate(360deg);
   }
 }
-@keyframes pw-spin {
+@keyframes pwca-spin {
   0% {
     transform: rotate(0deg);
   }
@@ -208,7 +208,7 @@
     transform: rotate(360deg);
   }
 }
-@keyframes pw-fadeIn {
+@keyframes pwca-fadeIn {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -220,27 +220,27 @@
 }
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .pw-product-canvas-container {
+  .pwca-product-canvas-container {
     height: 300px;
     margin: 15px 0;
   }
-  .pw-canvas-toolbar {
+  .pwca-canvas-toolbar {
     top: 8px;
     right: 8px;
     padding: 6px 8px;
   }
-  .pw-canvas-toolbar button {
+  .pwca-canvas-toolbar button {
     padding: 6px 12px;
     font-size: 12px;
     min-width: 50px;
   }
 }
 @media (max-width: 480px) {
-  .pw-product-canvas-container {
+  .pwca-product-canvas-container {
     height: 250px;
     margin: 10px 0;
   }
-  .pw-canvas-toolbar {
+  .pwca-canvas-toolbar {
     position: relative;
     top: auto;
     right: auto;
@@ -251,26 +251,26 @@
 }
 /* 暗色主题支持 */
 @media (prefers-color-scheme: dark) {
-  .pw-product-canvas-container {
+  .pwca-product-canvas-container {
     background: #2c3e50;
     border-color: #34495e;
   }
-  .pw-canvas-toolbar {
+  .pwca-canvas-toolbar {
     background: rgba(44, 62, 80, 0.95);
     color: #ecf0f1;
   }
-  .pw-canvas-loading {
+  .pwca-canvas-loading {
     background: rgba(44, 62, 80, 0.9);
     color: #ecf0f1;
   }
 }
 /* 高对比度模式支持 */
 @media (prefers-contrast: high) {
-  .pw-product-canvas-container {
+  .pwca-product-canvas-container {
     border-width: 3px;
     border-color: #000;
   }
-  .pw-canvas-toolbar button {
+  .pwca-canvas-toolbar button {
     border: 2px solid #000;
   }
 }/*# sourceMappingURL=pwca-product-canvas.css.map */

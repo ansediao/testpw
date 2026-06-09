@@ -1,5 +1,5 @@
-body.wpcanvas {
-    .popup-modal {
+body.pwca-canvas {
+    .pwca-popup-modal {
         display: none;
         position: fixed;
         left: 0;
@@ -11,7 +11,7 @@ body.wpcanvas {
         align-items: center;
         justify-content: center;
 
-        .modal-box {
+        .pwca-modal-box {
             background: #fff;
             border-radius: 8px;
             max-width: 500px;
@@ -30,7 +30,7 @@ body.wpcanvas {
                 cursor: pointer;
             }
 
-            .popup_header {
+            .pwca-popup-header {
                 p {
                     padding: 10px;
                     margin: unset;
@@ -43,14 +43,14 @@ body.wpcanvas {
                 }
             }
 
-            .popup_body {
+            .pwca-popup-body {
                 padding: 2rem;
 
                 #review-tabs {
                     display: flex;
                     margin-bottom: 1rem;
 
-                    .review-tab {
+                    .pwca-review-tab {
                         cursor: pointer;
                         padding: 0.5rem 1rem;
 

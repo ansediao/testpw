@@ -8,14 +8,14 @@
  * SCSS 混合器集中定义文件
  * 用于复用常见样式模式
  */
-.cart-section .button-group {
+.pwca-cart-section .pwca-button-group {
   display: flex;
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
 }
-.cart-section .button-group .cart-btn,
-.cart-section .button-group .customize-btn {
+.pwca-cart-section .pwca-button-group .pwca-cart-btn,
+.pwca-cart-section .pwca-button-group .pwca-customize-btn {
   padding: 12px 24px;
   border: none;
   border-radius: 6px;
@@ -31,50 +31,50 @@
   flex: 1;
   min-width: 140px;
 }
-.cart-section .button-group .cart-btn {
+.pwca-cart-section .pwca-button-group .pwca-cart-btn {
   background-color: #0073aa;
   color: white;
 }
-.cart-section .button-group .cart-btn:hover:not(:disabled) {
+.pwca-cart-section .pwca-button-group .pwca-cart-btn:hover:not(:disabled) {
   background-color: #005a87;
   transform: translateY(-1px);
 }
-.cart-section .button-group .cart-btn:disabled {
+.pwca-cart-section .pwca-button-group .pwca-cart-btn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
   opacity: 0.6;
 }
-.cart-section .button-group .cart-btn.loading {
+.pwca-cart-section .pwca-button-group .pwca-cart-btn.loading {
   background-color: #005a87;
   cursor: wait;
 }
-.cart-section .button-group .cart-btn:focus {
+.pwca-cart-section .pwca-button-group .pwca-cart-btn:focus {
   outline: 2px solid #005a87;
   outline-offset: 2px;
 }
-.cart-section .button-group .customize-btn {
+.pwca-cart-section .pwca-button-group .pwca-customize-btn {
   background-color: #ff6b35;
   color: white;
 }
-.cart-section .button-group .customize-btn:hover {
+.pwca-cart-section .pwca-button-group .pwca-customize-btn:hover {
   background-color: #e55a2b;
   transform: translateY(-1px);
 }
-.cart-section .button-group .customize-btn:active {
+.pwca-cart-section .pwca-button-group .pwca-customize-btn:active {
   transform: translateY(0);
 }
-.cart-section .button-group .customize-btn:focus {
+.pwca-cart-section .pwca-button-group .pwca-customize-btn:focus {
   outline: 2px solid #e55a2b;
   outline-offset: 2px;
 }
 
 @media (max-width: 768px) {
-  .cart-section .button-group {
+  .pwca-cart-section .pwca-button-group {
     flex-direction: column;
     width: 100%;
   }
-  .cart-section .button-group .cart-btn,
-  .cart-section .button-group .customize-btn {
+  .pwca-cart-section .pwca-button-group .pwca-cart-btn,
+  .pwca-cart-section .pwca-button-group .pwca-customize-btn {
     width: 100%;
     flex: none;
   }

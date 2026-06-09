@@ -1,5 +1,5 @@
 function getCurrentSelectedColor() {
-    const selectedSwatch = document.querySelector('.color-swatch.selected');
+    const selectedSwatch = document.querySelector('.pwca-color-swatch.selected');
     if (selectedSwatch) {
         const color = selectedSwatch.getAttribute('data-color');
         if (color) return color;
@@ -11,7 +11,7 @@ function getCurrentSelectedColor() {
 }
 
 function getExplicitSelectedColor() {
-    const selectedSwatch = document.querySelector('.color-swatch.selected');
+    const selectedSwatch = document.querySelector('.pwca-color-swatch.selected');
     if (selectedSwatch) {
         const color = selectedSwatch.getAttribute('data-color');
         if (color) return color;

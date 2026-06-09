@@ -85,45 +85,45 @@ td.product-design {
   min-width: 200px;
   max-width: 250px;
 }
-td.product-design .pw-design-view .pw-design-view-name {
+td.product-design .pwca-design-view .pwca-design-view-name {
   font-weight: 500;
   margin-bottom: 8px;
   text-align: center;
 }
-td.product-design .pw-design-view .pw-design-view-images {
+td.product-design .pwca-design-view .pwca-design-view-images {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   justify-items: center;
 }
-td.product-design .pw-design-view .pw-design-view-images .pwca-design-item {
+td.product-design .pwca-design-view .pwca-design-view-images .pwca-design-item {
   display: flex;
   flex-direction: column;
 }
-td.product-design .pw-design-view .pw-design-view-images .pwca-design-item img {
+td.product-design .pwca-design-view .pwca-design-view-images .pwca-design-item img {
   width: 100%;
   height: auto;
   border: 1px solid #ddd;
   background: #fff;
 }
-td.product-design .pw-design-view .pw-design-view-images .pwca-design-item .pwca-draft-link,
-td.product-design .pw-design-view .pw-design-view-images .pwca-design-item .pwca-image-preview {
+td.product-design .pwca-design-view .pwca-design-view-images .pwca-design-item .pwca-draft-link,
+td.product-design .pwca-design-view .pwca-design-view-images .pwca-design-item .pwca-image-preview {
   display: block;
   text-decoration: none;
   cursor: pointer;
 }
-td.product-design .pw-design-view .pw-design-view-images .pwca-design-item .pwca-draft-link img,
-td.product-design .pw-design-view .pw-design-view-images .pwca-design-item .pwca-image-preview img {
+td.product-design .pwca-design-view .pwca-design-view-images .pwca-design-item .pwca-draft-link img,
+td.product-design .pwca-design-view .pwca-design-view-images .pwca-design-item .pwca-image-preview img {
   transition: opacity 0.2s ease;
 }
-td.product-design .pw-design-view .pw-design-view-images .pwca-design-item .pwca-draft-link:hover img,
-td.product-design .pw-design-view .pw-design-view-images .pwca-design-item .pwca-image-preview:hover img {
+td.product-design .pwca-design-view .pwca-design-view-images .pwca-design-item .pwca-draft-link:hover img,
+td.product-design .pwca-design-view .pwca-design-view-images .pwca-design-item .pwca-image-preview:hover img {
   opacity: 0.8;
 }
-td.product-design .pw-design-view .pw-design-view-images .pwca-design-item .pwca-image-preview {
+td.product-design .pwca-design-view .pwca-design-view-images .pwca-design-item .pwca-image-preview {
   position: relative;
 }
-td.product-design .pw-design-view .pw-design-view-images .pwca-design-item .pwca-image-preview::after {
+td.product-design .pwca-design-view .pwca-design-view-images .pwca-design-item .pwca-image-preview::after {
   content: "🔍";
   position: absolute;
   top: 4px;
@@ -140,10 +140,10 @@ td.product-design .pw-design-view .pw-design-view-images .pwca-design-item .pwca
   opacity: 0;
   transition: opacity 0.2s ease;
 }
-td.product-design .pw-design-view .pw-design-view-images .pwca-design-item .pwca-image-preview:hover::after {
+td.product-design .pwca-design-view .pwca-design-view-images .pwca-design-item .pwca-image-preview:hover::after {
   opacity: 1;
 }
-td.product-design .pw-design-view .pw-design-view-images .pwca-design-item .pwca-design-label {
+td.product-design .pwca-design-view .pwca-design-view-images .pwca-design-item .pwca-design-label {
   font-size: 12px;
   color: #666;
   margin-top: 2px;

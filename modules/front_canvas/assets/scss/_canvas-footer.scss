@@ -1,6 +1,6 @@
-body.wpcanvas {
-    #app.container {
-        .footer {
+body.pwca-canvas {
+    #app.pwca-container {
+        .pwca-footer {
             background-color: #f8f9fa;
             padding: 15px;
             border-top: 1px solid #dee2e6;
@@ -13,7 +13,7 @@ body.wpcanvas {
             padding: 10px 0;
             align-items: center;
 
-            .product-card {
+            .pwca-product-card {
                 background-color: #fff;
                 border: 1px solid #d1d5db;
                 padding: 1rem;

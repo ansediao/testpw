@@ -6,19 +6,19 @@ $plugin_url = plugin_dir_url(__FILE__);
 <?php include __DIR__ . '/canvas-operation-panel-nav.php'; ?>
 
 <!-- 右侧内容区域 -->
-<div class="content-area">
+<div class="pwca-content-area">
     <!-- 收缩按钮 -->
-    <div class="panel-collapse-btn" id="panelCollapseBtn">
+    <div class="pwca-panel-collapse-btn" id="panelCollapseBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
     </div>
     <!-- 品名内容 -->
-    <div id="content-pinming" class="content-pane active">
-        <div class="tab_header">
-            <div class="tab_header_title"><?php echo get_the_title($product_id); ?></div>
+    <div id="content-pinming" class="pwca-content-pane active">
+        <div class="pwca-tab-header">
+            <div class="pwca-tab-header-title"><?php echo get_the_title($product_id); ?></div>
         </div>
-        <div class="rating">
+        <div class="pwca-rating">
             <?php
             $rating = get_post_meta($product_id, 'rating', true);
             $rating = is_numeric($rating) ? floatval($rating) : 0;
@@ -52,23 +52,23 @@ $plugin_url = plugin_dir_url(__FILE__);
             <a href="#" id="show-cuzInfo-link">Customization Instructions</a>
 
             <!-- 评价弹窗 -->
-            <div id="reviews-modal" class="popup-modal">
-                <div class="modal-box">
+            <div id="reviews-modal" class="pwca-popup-modal">
+                <div class="pwca-modal-box">
                     <button id="close-reviews-modal">&times;</button>
                     <!-- 产品标题 -->
-                    <div class="popup_header">
+                    <div class="pwca-popup-header">
                         <p><?php echo get_the_title($product_id); ?></p>
                     </div>
 
-                    <div class="popup_body">
+                    <div class="pwca-popup-body">
                         <!-- 评价/描述/定制说明 Tab 切换 -->
                         <div id="review-tabs">
-                            <div class="review-tab active" data-tab="desc">Info</div>
-                            <div class="review-tab" data-tab="reviews">Reviews</div>
-                            <div class="review-tab" data-tab="custom">Customization Instructions</div>
+                            <div class="pwca-review-tab active" data-tab="desc">Info</div>
+                            <div class="pwca-review-tab" data-tab="reviews">Reviews</div>
+                            <div class="pwca-review-tab" data-tab="custom">Customization Instructions</div>
                         </div>
                         <div id="review-tab-content">
-                            <div class="review-tab-pane active" data-content="desc">
+                            <div class="pwca-review-tab-pane active" data-content="desc">
                                 <div>
                                     <div class="product-price-section">
                                         <div class="section-title">Price</div>
@@ -154,7 +154,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                                 </div>
                             </div>
 
-                            <div class="review-tab-pane" data-content="custom" style="display:none;">
+                            <div class="pwca-review-tab-pane" data-content="custom" style="display:none;">
                                 <div>
                                     <?php
                                     // 你可以自定义定制说明字段，或用自定义字段
@@ -174,20 +174,20 @@ $plugin_url = plugin_dir_url(__FILE__);
             </div>
         </div>
 
-        <div class="color-section">
+        <div class="pwca-color-section">
             <h3>Trim color</h3>
-            <div class="color-swatches-box" id="color-swatches-container">
+            <div class="pwca-color-swatches-box" id="color-swatches-container">
                 <!-- 颜色样本将通过 JavaScript 动态生成 -->
             </div>
         </div>
 
-        <div class="action-buttons">
-            <button class="btn btn-custom">Gradient</button>
-            <button class="btn btn-custom">Custom Colors</button>
+        <div class="pwca-action-buttons">
+            <button class="pwca-btn pwca-btn-custom">Gradient</button>
+            <button class="pwca-btn pwca-btn-custom">Custom Colors</button>
         </div>
 
         <div
-            class="color-status-display"
+            class="pwca-color-status-display"
             id="colorStatusDisplay"
             style="margin-top: 10px; font-size: 14px; color: #666; min-height: 20px; display: none;"
         >
@@ -222,7 +222,7 @@ $plugin_url = plugin_dir_url(__FILE__);
                     value="#000000"
                     style="width:100%; height:100px; margin-bottom:1rem;"
                 />
-                <button id="applyCustomColor" class="btn btn-inquiry" style="width:100%;">应用颜色</button>
+                <button id="applyCustomColor" class="pwca-btn pwca-btn-inquiry" style="width:100%;">应用颜色</button>
             </div>
         </div>
 

@@ -1,6 +1,6 @@
 async function showUniversalViewPreview(views) {
     function pwcaSwitchUniversalPreviewBackToDesign() {
-        const designButton = document.querySelector('.design-switch-btn-box .design-switch-btn[data-tab="viewDesign"]');
+        const designButton = document.querySelector('.pwca-design-switch-btn-box .pwca-design-switch-btn[data-tab="viewDesign"]');
         if (designButton instanceof HTMLButtonElement) {
             designButton.click();
         }

@@ -27,12 +27,12 @@ const AddToCart = {
     },
     
     template: `
-            <div class="button-group">
+            <div class="pwca-button-group">
                 <button 
                     v-show="store.shouldShowAddToCart"
                     @click="addToCart"
                     :disabled="!store.canAddToCart"
-                    :class="['cart-btn', { 'loading': store.loading }]"
+                    :class="['pwca-cart-btn', { 'loading': store.loading }]"
                 >
                     {{ store.loading ? 'Adding...' : 'Add to Cart' }}
                 </button>
@@ -40,7 +40,7 @@ const AddToCart = {
                 <button 
                     v-show="store.shouldShowCustomize"
                     @click="customizeNow"
-                    class="customize-btn"
+                    class="pwca-customize-btn"
                 >
                     Customizing Now
                 </button>

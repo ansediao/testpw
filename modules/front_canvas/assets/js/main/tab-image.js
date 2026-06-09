@@ -566,7 +566,7 @@
             return;
         }
 
-        const allContainers = document.querySelectorAll('.view-container');
+        const allContainers = document.querySelectorAll('.pwca-view-container');
         allContainers.forEach(function (container) {
             container.style.display = 'none';
         });

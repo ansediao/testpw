@@ -1,26 +1,26 @@
-body.wpcanvas {
-    #app.container {
-        .main-content {
-            .canvas-area {
+body.pwca-canvas {
+    #app.pwca-container {
+        .pwca-main-content {
+            .pwca-canvas-area {
                 flex: 3;
                 display: flex;
                 flex-direction: column;
                 background-color: #f8f8f8;
                 padding: 15px;
 
-                .dongtai-area {
+                .pwca-dongtai-area {
                     background-color: #fff;
                     padding: 10px;
                     text-align: left;
                     flex-shrink: 0;
                     min-height: 23px;
 
-                    .text_toolbar,
-                    .img_toolbar {
+                    .pwca-text-toolbar,
+                    .pwca-img-toolbar {
                         display: none;
                     }
 
-                    .toolbar_button {
+                    .pwca-toolbar-button {
                         background-color: unset;
                         border: unset;
                         cursor: pointer;
@@ -39,7 +39,7 @@ body.wpcanvas {
                     }
                 }
 
-                .canvas-box {
+                .pwca-canvas-box {
                     flex-grow: 1;
                     overflow: auto;
                     display: flex;
@@ -56,7 +56,7 @@ body.wpcanvas {
                     position: relative;
                     transition: height 0.3s ease;
 
-                    .design_area {
+                    .pwca-design-area {
                         position: relative;
                         height: 100%;
                         display: flex;
@@ -66,25 +66,25 @@ body.wpcanvas {
                         #multi-view-container {
                             padding: 20px;
                             background-color: #e8e8e8;
-                            .view-container{
+                            .pwca-view-container{
                                 background-color: #fff;
                             }
                         }
 
-                        .canvas-container {
+                        .pwca-canvas-container {
                         }
                     }
                 }
             }
         }
 
-        .dongtai-area {
+        .pwca-dongtai-area {
             padding: 10px;
             border-radius: 5px;
             margin-bottom: 10px;
         }
 
-        .toolbar-item {
+        .pwca-toolbar-item {
             margin: 10px 0;
             align-items: center;
 
@@ -115,11 +115,11 @@ body.wpcanvas {
             width: 100%;
         }
 
-        .tab_control_title {
+        .pwca-tab-control-title {
             margin-right: 0px;
         }
 
-        .zoom-control {
+        .pwca-zoom-control {
             background-color: #f5f5f5;
             padding: 10px;
             border-radius: 5px;
@@ -133,32 +133,32 @@ body.wpcanvas {
             }
         }
 
-        .canvas-box {
+        .pwca-canvas-box {
             position: relative;
             overflow: hidden;
             transition: height 0.3s ease;
         }
 
-        .view-container .canvas-wrapper {
+        .pwca-view-container .pwca-canvas-wrapper {
             position: absolute;
             top: 0;
             left: 0;
         }
 
-        .canvas-wrapper--base {
+        .pwca-canvas-wrapper--base {
             z-index: 10;
         }
 
-        .canvas-wrapper--main {
+        .pwca-canvas-wrapper--main {
             z-index: 20;
         }
 
-        .canvas-wrapper--overlay {
+        .pwca-canvas-wrapper--overlay {
             z-index: 30;
             pointer-events: none;
         }
 
-        .canvas-wrapper--mask {
+        .pwca-canvas-wrapper--mask {
             z-index: 40;
             pointer-events: none;
         }

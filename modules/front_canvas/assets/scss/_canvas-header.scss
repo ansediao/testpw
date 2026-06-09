@@ -1,6 +1,6 @@
-body.wpcanvas {
-    #app.container {
-        .header {
+body.pwca-canvas {
+    #app.pwca-container {
+        .pwca-header {
             padding: 20px;
             border-bottom: 1px solid #dee2e6;
             flex-shrink: 0;
@@ -9,8 +9,8 @@ body.wpcanvas {
             align-items: center;
             margin-bottom: 0px;
 
-            .header_left {
-                .header_title {
+            .pwca-header-left {
+                .pwca-header-title {
                     font-family: Arial-BoldMT, "Arial Bold", Arial, sans-serif;
                     font-weight: 700;
                     font-style: normal;
@@ -19,18 +19,18 @@ body.wpcanvas {
                 }
             }
 
-            .header_right {
+            .pwca-header-right {
                 display: flex;
                 gap: 10px;
                 align-items: center;
 
-                .header_right_content {
+                .pwca-header-right-content {
                     display: flex;
                     align-items: center;
                     gap: 10px;
                 }
 
-                .history-btn i {
+                .pwca-history-btn i {
                     font-size: 20px;
                 }
 
@@ -40,14 +40,14 @@ body.wpcanvas {
                     cursor: pointer;
                 }
 
-                .design-switch-btn-box {
+                .pwca-design-switch-btn-box {
                     background-color: rgba(229, 231, 235, 0.8);
                     padding: 0.25rem;
                     border-radius: 0.5rem;
                     display: flex;
                     gap: 0.25rem;
 
-                    button.design-switch-btn {
+                    button.pwca-design-switch-btn {
                         width: 100%;
                         padding: 0.5rem 1rem;
                         border-radius: 0.375rem;

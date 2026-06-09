@@ -1,6 +1,6 @@
 <!-- 图层 -->
-<div id="content-tuan" class="content-pane">
-    <div id="layers-box" class="layers-box">
+<div id="content-tuan" class="pwca-content-pane">
+    <div id="layers-box" class="pwca-layers-box">
 
     </div>
     <!-- <div class="layers-panel">

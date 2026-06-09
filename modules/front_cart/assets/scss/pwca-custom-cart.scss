@@ -100,14 +100,14 @@ td.product-design {
     min-width: 200px;
     max-width: 250px;
     
-    .pw-design-view {
-        .pw-design-view-name {
+    .pwca-design-view {
+        .pwca-design-view-name {
             font-weight: 500;
             margin-bottom: 8px;
             text-align: center;
         }
         
-        .pw-design-view-images {
+        .pwca-design-view-images {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;

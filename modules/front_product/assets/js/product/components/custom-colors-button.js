@@ -271,7 +271,7 @@ window.CustomColorsButton = {
             }
             
             // 确保移除Canvas容器（如果存在）
-            const canvasContainer = document.querySelector('.pw-product-canvas-container');
+            const canvasContainer = document.querySelector('.pwca-product-canvas-container');
             if (canvasContainer) {
                 canvasContainer.remove();
             }

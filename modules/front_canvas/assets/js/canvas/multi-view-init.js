@@ -1318,7 +1318,7 @@ function pwcaCreateViewContainers(views, store) {
 
         const viewContainer = document.createElement('div');
         viewContainer.id = `view-container-${view.id}`;
-        viewContainer.className = 'view-container';
+        viewContainer.className = 'pwca-view-container';
         viewContainer.style.cssText = `
             position: relative;
             width: ${canvasWidth}px;
@@ -1327,16 +1327,16 @@ function pwcaCreateViewContainers(views, store) {
         `;
 
         const canvasHtml = `
-            <div class="canvas-wrapper canvas-wrapper--base" id="baseWrapper-${view.id}">
+            <div class="pwca-canvas-wrapper pwca-canvas-wrapper--base" id="baseWrapper-${view.id}">
                 <canvas id="baseCanvas-${view.id}"></canvas>
             </div>
-            <div class="canvas-wrapper canvas-wrapper--main" id="mainWrapper-${view.id}">
+            <div class="pwca-canvas-wrapper pwca-canvas-wrapper--main" id="mainWrapper-${view.id}">
                 <canvas id="mainCanvas-${view.id}"></canvas>
             </div>
-            <div class="canvas-wrapper canvas-wrapper--overlay" id="overlayWrapper-${view.id}">
+            <div class="pwca-canvas-wrapper pwca-canvas-wrapper--overlay" id="overlayWrapper-${view.id}">
                 <canvas id="overlayCanvas-${view.id}"></canvas>
             </div>
-            <div class="canvas-wrapper canvas-wrapper--mask" id="maskWrapper-${view.id}">
+            <div class="pwca-canvas-wrapper pwca-canvas-wrapper--mask" id="maskWrapper-${view.id}">
                 <canvas id="maskCanvas-${view.id}"></canvas>
             </div>
         `;

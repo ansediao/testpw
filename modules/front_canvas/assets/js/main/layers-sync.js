@@ -94,8 +94,8 @@ function updateDongtaiAreaButtons(objectId) {
 
 function showRelevantButtonGroup(selectedObject) {
     if (!selectedObject) return;
-    const textToolbar = document.querySelector('.text_toolbar');
-    const imgToolbar = document.querySelector('.img_toolbar');
+    const textToolbar = document.querySelector('.pwca-text-toolbar');
+    const imgToolbar = document.querySelector('.pwca-img-toolbar');
     const isTextLike =
         typeof window.pwcaIsTextLikeObject === 'function'
             ? window.pwcaIsTextLikeObject(selectedObject)

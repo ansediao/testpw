@@ -45,17 +45,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const tabs = document.querySelectorAll('.tab');
-    const contentPanes = document.querySelectorAll('.content-pane');
+    const tabs = document.querySelectorAll('.pwca-tab');
+    const contentPanes = document.querySelectorAll('.pwca-content-pane');
 
     tabs.forEach((tab) => {
         tab.addEventListener('click', () => {
-            const mainContent = document.querySelector('.main-content');
+            const mainContent = document.querySelector('.pwca-main-content');
             if (mainContent) {
                 mainContent.classList.remove('panel-collapsed');
             }
 
-            const operationPanel = document.querySelector('.operation-panel');
+            const operationPanel = document.querySelector('.pwca-operation-panel');
             if (operationPanel) {
                 operationPanel.classList.remove('collapsed');
             }
@@ -125,17 +125,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const collapseBtn = document.getElementById('panelCollapseBtn');
-    const operationPanel = document.querySelector('.operation-panel');
-    const mainContent = document.querySelector('.main-content');
+    const operationPanel = document.querySelector('.pwca-operation-panel');
+    const mainContent = document.querySelector('.pwca-main-content');
 
     if (collapseBtn && operationPanel && mainContent) {
         collapseBtn.addEventListener('click', () => {
             operationPanel.classList.toggle('collapsed');
             mainContent.classList.toggle('panel-collapsed');
 
-            const tabsNav = document.querySelector('.tabs-nav');
+            const tabsNav = document.querySelector('.pwca-tabs-nav');
             if (tabsNav) {
-                tabsNav.querySelectorAll('.tab').forEach((tab) => {
+                tabsNav.querySelectorAll('.pwca-tab').forEach((tab) => {
                     tab.classList.remove('active');
                 });
             }

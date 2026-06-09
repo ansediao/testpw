@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const selectedSwatch = document.querySelector('.color-swatch.selected');
+            const selectedSwatch = document.querySelector('.pwca-color-swatch.selected');
             if (!selectedSwatch) {
                 console.warn('未找到选中的颜色样本元素');
                 return;
@@ -542,7 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = colorSwatchesContainer;
         if (!container) return;
 
-        const currentSelected = container.querySelector('.color-swatch.selected');
+        const currentSelected = container.querySelector('.pwca-color-swatch.selected');
         const selectedColor = currentSelected
             ? currentSelected.getAttribute('data-color')
             : null;
@@ -597,7 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function bindColorSwatchEvents() {
-        const colorSwatches = document.querySelectorAll('.color-swatch');
+        const colorSwatches = document.querySelectorAll('.pwca-color-swatch');
         colorSwatches.forEach((swatch) => {
             if (swatch._colorSwatchHandler) {
                 swatch.removeEventListener('click', swatch._colorSwatchHandler);
@@ -666,7 +666,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.currentColor = '#000000';
 
-        const colorSwatches = document.querySelectorAll('.color-swatch');
+        const colorSwatches = document.querySelectorAll('.pwca-color-swatch');
         colorSwatches.forEach((s) => s.classList.remove('selected'));
 
         const stateAccess = getUiStateAccess();
@@ -772,9 +772,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.clearExplicitColorSelection = function () {
         try {
-            const swatches = document.querySelectorAll('.color-swatch');
+            const swatches = document.querySelectorAll('.pwca-color-swatch');
             swatches.forEach((s) => s.classList.remove('selected'));
-            const customSwatch = document.querySelector('.color-swatch[data-custom-color="true"]');
+            const customSwatch = document.querySelector('.pwca-color-swatch[data-custom-color="true"]');
             if (customSwatch) {
                 customSwatch.remove();
             }
@@ -788,7 +788,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const customColorBtn = document.querySelector('.action-buttons .btn:nth-child(2)');
+    const customColorBtn = document.querySelector('.pwca-action-buttons .pwca-btn:nth-child(2)');
     const customColorModal = document.getElementById('custom-color-modal');
     const closeCustomColorModal = document.getElementById('close-custom-color-modal');
     const applyCustomColorBtn = document.getElementById('applyCustomColor');
@@ -1221,7 +1221,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            const swatches = document.querySelectorAll('.color-swatch');
+            const swatches = document.querySelectorAll('.pwca-color-swatch');
             swatches.forEach((s) => s.classList.remove('selected'));
 
             if (typeof window.hideGradientModal === 'function') {

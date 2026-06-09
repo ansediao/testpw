@@ -20,10 +20,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</title>
 	<?php wp_head(); ?>
 </head>
-<body <?php body_class( 'wpcanvas' ); ?>>
+<body <?php body_class( 'pwca-canvas' ); ?>>
 	<div
 		id="app"
-		class="container"
+		class="pwca-container"
 		data-product-id="<?php echo esc_attr( $product_id ); ?>"
 		data-pw-id="<?php echo esc_attr( $pw_id ); ?>"
 		data-edit-mode="<?php echo esc_attr( $is_edit_mode ? '1' : '0' ); ?>"
@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		data-blank-item="<?php echo esc_attr( $show_sample ? '1' : '0' ); ?>"
 		data-inquiry-button="<?php echo esc_attr( $show_inquiry ? '1' : '0' ); ?>"
 	>
-		<header class="header">
+		<header class="pwca-header">
 			<?php
 			$header_view = $module_path . '/views/partials/canvas-header.php';
 			if ( is_readable( $header_view ) ) {
@@ -43,7 +43,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			}
 			?>
 		</header>
-		<div class="customization-area">
+		<div class="pwca-customization-area">
 			<?php
 			$customization_view = $module_path . '/views/partials/canvas-customization-area.php';
 			if ( is_readable( $customization_view ) ) {
@@ -51,8 +51,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 			}
 			?>
 		</div>
-		<main class="main-content">
-			<div class="operation-panel">
+		<main class="pwca-main-content">
+			<div class="pwca-operation-panel">
 				<?php
 				$panel_view = $module_path . '/views/partials/canvas-operation-panel.php';
 				if ( is_readable( $panel_view ) ) {
@@ -61,8 +61,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 				?>
 			</div>
 
-			<div class="canvas-area">
-				<div class="dongtai-area">
+			<div class="pwca-canvas-area">
+				<div class="pwca-dongtai-area">
 					<?php
 					$dongtai_view = $module_path . '/views/partials/canvas-dongtai-area.php';
 					if ( is_readable( $dongtai_view ) ) {
@@ -71,8 +71,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 					?>
 				</div>
 
-				<div class="canvas-box">
-					<div class="design_area">
+				<div class="pwca-canvas-box">
+					<div class="pwca-design-area">
 						<?php
 						$design_view = $module_path . '/views/partials/canvas-design_area.php';
 						if ( is_readable( $design_view ) ) {
@@ -83,9 +83,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</div>
 			</div>
 		</main>
-		<footer class="footer" id="footer">
-			<div class="product-card" id="product-card-footer"></div>
-			<div class="zoom-control">
+		<footer class="pwca-footer" id="footer">
+			<div class="pwca-product-card" id="product-card-footer"></div>
+			<div class="pwca-zoom-control">
 				<label for="zoomSlider">Scale: <span id="zoomValue">100%</span></label>
 				<input type="range" id="zoomSlider" min="50" max="200" value="100">
 			</div>
@@ -98,8 +98,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<input type="range" id="arcSlider" min="-200" max="200" value="0">
 				</div>
 			<?php endif; ?>
-			<div class="product-card-btn">
-				<button id="addToCartBtn" class="product-card__add-to-cart">
+			<div class="pwca-product-card-btn">
+				<button id="addToCartBtn" class="pwca-product-card__add-to-cart">
 					<?php echo esc_html( $is_edit_mode ? __( 'Update', 'pw-admin' ) : __( 'Add to Cart', 'pw-admin' ) ); ?>
 				</button>
 			</div>

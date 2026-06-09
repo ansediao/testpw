@@ -85,7 +85,7 @@
     }
 
     function syncViewContainers(viewId) {
-        document.querySelectorAll('.view-container').forEach((container) => {
+        document.querySelectorAll('.pwca-view-container').forEach((container) => {
             container.style.display = 'none';
         });
 

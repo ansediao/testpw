@@ -1,10 +1,10 @@
 /* 内容区域需要相对定位 */
-.content-area {
+.pwca-content-area {
     position: relative;
 }
 
 /* 收缩按钮样式 */
-.panel-collapse-btn {
+.pwca-panel-collapse-btn {
     position: absolute;
     top: 50%;
     right: -20px;
@@ -22,21 +22,21 @@
     z-index: 100;
 }
 
-.panel-collapse-btn:hover {
+.pwca-panel-collapse-btn:hover {
     background: #f9fafb;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.panel-collapse-btn svg {
+.pwca-panel-collapse-btn svg {
     color: #6b7280;
 }
 
-.panel-collapse-btn:hover svg {
+.pwca-panel-collapse-btn:hover svg {
     color: #374151;
 }
 
 /* 关闭按钮样式 */
-.close-btn {
+.pwca-close-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -50,40 +50,40 @@
     transition: all 0.2s ease;
 }
 
-.close-btn:hover {
+.pwca-close-btn:hover {
     background: #ef4444;
     border-color: #ef4444;
 }
 
-.close-btn:hover svg {
+.pwca-close-btn:hover svg {
     color: #ffffff;
 }
 
-.close-btn svg {
+.pwca-close-btn svg {
     color: #6b7280;
     transition: color 0.2s ease;
 }
 
 /* Image Width/Height control grid layout */
-.tab_control_imageWidthHeight {
+.pwca-tab-control-imagewidthheight {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 30px;
     align-items: start;
 }
 
-.tab_control_imageWidthHeight .tab_control_imageWidth,
-.tab_control_imageWidthHeight .tab_control_imageHeight {
+.pwca-tab-control-imagewidthheight .pwca-tab-control-imagewidth,
+.pwca-tab-control-imagewidthheight .pwca-tab-control-imageheight {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
 
-.tab_control_imageWidthHeight .tab_control_title {
+.pwca-tab-control-imagewidthheight .pwca-tab-control-title {
     margin-bottom: 4px;
 }
 
-.tab_control_imageWidthHeight input[type="number"] {
+.pwca-tab-control-imagewidthheight input[type="number"] {
     width: 100%;
     box-sizing: border-box;
 }
@@ -305,4 +305,3 @@
 .pwca-add-text-btn {
     display: block;
 }
-

@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
         gradientColorModal.setAttribute('aria-hidden', 'true');
     };
 
-    const gradientColorBtn = document.querySelector('.action-buttons .btn:first-child');
+    const gradientColorBtn = document.querySelector('.pwca-action-buttons .pwca-btn:first-child');
     if (gradientColorBtn) {
         gradientColorBtn.addEventListener('click', function(e) {
             e.preventDefault();

@@ -8,19 +8,19 @@
  * SCSS 混合器集中定义文件
  * 用于复用常见样式模式
  */
-body.wpcanvas {
+body.pwca-canvas {
   margin: 0;
   padding: 0;
   font-family: "Arial", sans-serif;
 }
-body.wpcanvas #app.container .view-container .canvas-wrapper {
+body.pwca-canvas #app.pwca-container .pwca-view-container .pwca-canvas-wrapper {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
 }
-body.wpcanvas #app.container .btn {
+body.pwca-canvas #app.pwca-container .pwca-btn {
   padding: 0.5rem;
   border: none;
   border-radius: 0.5rem;
@@ -29,21 +29,21 @@ body.wpcanvas #app.container .btn {
   cursor: pointer;
   white-space: nowrap;
 }
-body.wpcanvas #app.container .btn-custom {
+body.pwca-canvas #app.pwca-container .pwca-btn-custom {
   background-color: #18afe2;
   color: #ffffff;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-body.wpcanvas #app.container .btn-custom:hover {
+body.pwca-canvas #app.pwca-container .pwca-btn-custom:hover {
   background-color: #0099ee;
 }
-body.wpcanvas #app.container {
+body.pwca-canvas #app.pwca-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
 }
 
-body.wpcanvas #app.container .header {
+body.pwca-canvas #app.pwca-container .pwca-header {
   padding: 20px;
   border-bottom: 1px solid #dee2e6;
   flex-shrink: 0;
@@ -52,39 +52,39 @@ body.wpcanvas #app.container .header {
   align-items: center;
   margin-bottom: 0px;
 }
-body.wpcanvas #app.container .header .header_left .header_title {
+body.pwca-canvas #app.pwca-container .pwca-header .pwca-header-left .pwca-header-title {
   font-family: Arial-BoldMT, "Arial Bold", Arial, sans-serif;
   font-weight: 700;
   font-style: normal;
   font-size: 18px;
   color: #303236;
 }
-body.wpcanvas #app.container .header .header_right {
+body.pwca-canvas #app.pwca-container .pwca-header .pwca-header-right {
   display: flex;
   gap: 10px;
   align-items: center;
 }
-body.wpcanvas #app.container .header .header_right .header_right_content {
+body.pwca-canvas #app.pwca-container .pwca-header .pwca-header-right .pwca-header-right-content {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-body.wpcanvas #app.container .header .header_right .history-btn i {
+body.pwca-canvas #app.pwca-container .pwca-header .pwca-header-right .pwca-history-btn i {
   font-size: 20px;
 }
-body.wpcanvas #app.container .header .header_right button {
+body.pwca-canvas #app.pwca-container .pwca-header .pwca-header-right button {
   border: unset;
   background-color: unset;
   cursor: pointer;
 }
-body.wpcanvas #app.container .header .header_right .design-switch-btn-box {
+body.pwca-canvas #app.pwca-container .pwca-header .pwca-header-right .pwca-design-switch-btn-box {
   background-color: rgba(229, 231, 235, 0.8);
   padding: 0.25rem;
   border-radius: 0.5rem;
   display: flex;
   gap: 0.25rem;
 }
-body.wpcanvas #app.container .header .header_right .design-switch-btn-box button.design-switch-btn {
+body.pwca-canvas #app.pwca-container .pwca-header .pwca-header-right .pwca-design-switch-btn-box button.pwca-design-switch-btn {
   width: 100%;
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
@@ -96,14 +96,14 @@ body.wpcanvas #app.container .header .header_right .design-switch-btn-box button
   color: #4b5563;
   transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-body.wpcanvas #app.container .header .header_right .design-switch-btn-box button.design-switch-btn.active {
+body.pwca-canvas #app.pwca-container .pwca-header .pwca-header-right .pwca-design-switch-btn-box button.pwca-design-switch-btn.active {
   background-color: white;
   color: #111827;
   font-weight: 600;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
 }
 
-body.wpcanvas #app.container .customization-area {
+body.pwca-canvas #app.pwca-container .pwca-customization-area {
   overflow-y: auto;
   border-bottom: 1px solid #dee2e6;
   flex-shrink: 0;
@@ -111,7 +111,7 @@ body.wpcanvas #app.container .customization-area {
   justify-content: center;
   padding: 6px 0px;
 }
-body.wpcanvas #app.container .customization-area .viewer-switch-btn {
+body.pwca-canvas #app.pwca-container .pwca-customization-area .pwca-viewer-switch-btn {
   margin: 0px;
   padding: 13px 30px;
   font-family: "Arial-BoldMT", "Arial Bold", "Arial", sans-serif;
@@ -123,28 +123,28 @@ body.wpcanvas #app.container .customization-area .viewer-switch-btn {
   background-color: unset;
   border-radius: 8px;
 }
-body.wpcanvas #app.container .customization-area .viewer-switch-btn:hover, body.wpcanvas #app.container .customization-area .viewer-switch-btn.active {
+body.pwca-canvas #app.pwca-container .pwca-customization-area .pwca-viewer-switch-btn:hover, body.pwca-canvas #app.pwca-container .pwca-customization-area .pwca-viewer-switch-btn.active {
   background-color: rgba(23, 176, 228, 0.3568627451);
   cursor: pointer;
   color: #18afe2;
 }
 
-body.wpcanvas #app.container .main-content {
+body.pwca-canvas #app.pwca-container .pwca-main-content {
   flex-grow: 1;
   display: flex;
   flex-direction: row;
   overflow: hidden;
 }
-body.wpcanvas #app.container .main-content .operation-panel {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel {
   flex: 100px;
   display: flex;
   justify-content: start;
 }
-body.wpcanvas #app.container .main-content .operation-panel .tabs-nav {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel .pwca-tabs-nav {
   display: flex;
   flex-direction: column;
 }
-body.wpcanvas #app.container .main-content .operation-panel .tabs-nav .tab {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel .pwca-tabs-nav .pwca-tab {
   padding: 1rem 1rem;
   text-align: center;
   border: 1px solid #d1d5db;
@@ -156,42 +156,42 @@ body.wpcanvas #app.container .main-content .operation-panel .tabs-nav .tab {
   align-items: center;
   width: 60px;
 }
-body.wpcanvas #app.container .main-content .operation-panel .tabs-nav .tab img {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel .pwca-tabs-nav .pwca-tab img {
   width: 32px;
   height: auto;
 }
-body.wpcanvas #app.container .main-content .operation-panel .tabs-nav .tab .tab_title {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel .pwca-tabs-nav .pwca-tab .pwca-tab-title {
   font-family: ArialMT, Arial, sans-serif;
   font-weight: 400;
   font-style: normal;
   font-size: 13px;
   color: #303236;
 }
-body.wpcanvas #app.container .main-content .operation-panel .tabs-nav .tab.active {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel .pwca-tabs-nav .pwca-tab.active {
   background-color: #ccc;
 }
-body.wpcanvas #app.container .main-content .operation-panel .tabs-nav .tab.active .tab_title {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel .pwca-tabs-nav .pwca-tab.active .pwca-tab-title {
   font-weight: 600;
 }
-body.wpcanvas #app.container .main-content .operation-panel.collapsed {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel.collapsed {
   flex: unset;
 }
-body.wpcanvas #app.container .main-content .operation-panel.collapsed .content-area {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel.collapsed .pwca-content-area {
   display: none !important;
 }
-body.wpcanvas #app.container .main-content .tabs-nav {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-tabs-nav {
   margin-right: -1px;
 }
-body.wpcanvas #app.container .main-content .tab:hover {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-tab:hover {
   background-color: #e5e7eb;
 }
-body.wpcanvas #app.container .main-content .tab.active {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-tab.active {
   background-color: white;
   z-index: 10;
   font-weight: 600;
   color: #111827;
 }
-body.wpcanvas #app.container .main-content .content-area {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-content-area {
   flex-grow: 1;
   background-color: white;
   padding: 1.5rem;
@@ -199,105 +199,105 @@ body.wpcanvas #app.container .main-content .content-area {
   border: 1px solid #d1d5db;
   position: relative;
 }
-body.wpcanvas #app.container .main-content .content-area i.iconfont {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-content-area i.iconfont {
   font-size: 26px;
 }
-body.wpcanvas #app.container .main-content .content-area .content-area-footer {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-content-area .pwca-content-area-footer {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
 }
-body.wpcanvas #app.container .main-content .content-area .content-area-footer .tab_footer {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-content-area .pwca-content-area-footer .pwca-tab-footer {
   display: flex;
   justify-content: space-between;
   box-sizing: border-box;
   padding: 1.5rem;
   width: 100%;
 }
-body.wpcanvas #app.container .main-content .content-area .content-area-footer .tab_footer .sample-check {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-content-area .pwca-content-area-footer .pwca-tab-footer .pwca-sample-check {
   display: flex;
   align-items: center;
 }
-body.wpcanvas #app.container .main-content .content-area .content-area-footer .tab_footer .sample-check label {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-content-area .pwca-content-area-footer .pwca-tab-footer .pwca-sample-check label {
   margin-left: 0.5rem;
   font-size: 0.875rem;
   color: #374151;
 }
-body.wpcanvas #app.container .main-content .content-area .content-area-footer .tab_footer .btn-inquiry {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-content-area .pwca-content-area-footer .pwca-tab-footer .pwca-btn-inquiry {
   background-color: #18afe2;
   color: #ffffff;
   font-weight: 700;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-body.wpcanvas #app.container .main-content .content-area .content-area-footer .tab_footer .btn-inquiry:hover {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-content-area .pwca-content-area-footer .pwca-tab-footer .pwca-btn-inquiry:hover {
   background-color: #0099ee;
 }
-body.wpcanvas #app.container .main-content .content-pane {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-content-pane {
   display: none;
   position: relative;
   height: 100%;
 }
-body.wpcanvas #app.container .main-content .content-pane.active {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-content-pane.active {
   display: block;
 }
-body.wpcanvas #app.container .main-content .content-pane .tab_control_title {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-content-pane .pwca-tab-control-title {
   font-family: "Arial-BoldMT", "Arial Bold", "Arial", sans-serif;
   font-weight: 700;
   font-style: normal;
   font-size: 16px;
   color: #303236;
 }
-body.wpcanvas #app.container .main-content .content-pane #img_add_controls button {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-content-pane #img_add_controls button {
   padding: 5px;
 }
-body.wpcanvas #app.container .main-content .tab_header {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-tab-header {
   margin-bottom: 15px;
 }
-body.wpcanvas #app.container .main-content .tab_header .tab_header_title {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-tab-header .pwca-tab-header-title {
   font-family: "Arial-BoldMT", "Arial Bold", "Arial", sans-serif;
   font-weight: 700;
   font-style: normal;
   font-size: 15px;
   color: #303236;
 }
-body.wpcanvas #app.container .main-content #content-pinming .rating {
+body.pwca-canvas #app.pwca-container .pwca-main-content #content-pinming .pwca-rating {
   font-size: 0.875rem;
   color: #303236;
   margin-bottom: 1.5rem;
 }
-body.wpcanvas #app.container .main-content #content-pinming .rating a {
+body.pwca-canvas #app.pwca-container .pwca-main-content #content-pinming .pwca-rating a {
   margin-left: 1rem;
   color: #374151;
   text-decoration: none;
 }
-body.wpcanvas #app.container .main-content #content-pinming .rating a:hover {
+body.pwca-canvas #app.pwca-container .pwca-main-content #content-pinming .pwca-rating a:hover {
   text-decoration: underline;
 }
-body.wpcanvas #app.container .main-content #content-pinming .color-section h3 {
+body.pwca-canvas #app.pwca-container .pwca-main-content #content-pinming .pwca-color-section h3 {
   font-size: 1rem;
   font-weight: 600;
   color: #374151;
   margin-bottom: 0.75rem;
 }
-body.wpcanvas #app.container .main-content #content-pinming .color-swatches-box {
+body.pwca-canvas #app.pwca-container .pwca-main-content #content-pinming .pwca-color-swatches-box {
   margin-bottom: 1.5rem;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
-body.wpcanvas #app.container .main-content #content-pinming .color-swatch {
+body.pwca-canvas #app.pwca-container .pwca-main-content #content-pinming .pwca-color-swatch {
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 0.375rem;
   cursor: pointer;
   border: 1px solid #d1d5db;
 }
-body.wpcanvas #app.container .main-content #content-pinming .color-swatch.selected {
+body.pwca-canvas #app.pwca-container .pwca-main-content #content-pinming .pwca-color-swatch.selected {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
-body.wpcanvas #app.container .main-content #content-pinming .action-buttons {
+body.pwca-canvas #app.pwca-container .pwca-main-content #content-pinming .pwca-action-buttons {
   margin-bottom: 2rem;
   margin: auto;
   border-top: 1px solid #ccc;
@@ -305,33 +305,33 @@ body.wpcanvas #app.container .main-content #content-pinming .action-buttons {
   display: flex;
   gap: 10px;
 }
-body.wpcanvas #app.container .main-content #content-pinming .action-buttons .btn {
+body.pwca-canvas #app.pwca-container .pwca-main-content #content-pinming .pwca-action-buttons .pwca-btn {
   flex: 1;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .search-filter-container {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-search-filter-container {
   padding: 16px;
   background: #f8f9fa;
   border-radius: 8px;
   margin-bottom: 16px;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .quick-search-row {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-quick-search-row {
   display: flex;
   gap: 12px;
   align-items: center;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .search-input-wrapper {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-search-input-wrapper {
   flex: 1;
   position: relative;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .search-icon {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-search-icon {
   position: absolute;
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .search,
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .advanced-search-input {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-search,
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-advanced-search-input {
   width: 100%;
   padding: 12px 12px 12px 44px;
   border: 2px solid #e5e7eb;
@@ -340,12 +340,12 @@ body.wpcanvas #app.container .main-content .operation-panel #content-sheji .adva
   background: #ffffff;
   box-sizing: border-box;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .search:focus,
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .advanced-search-input:focus {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-search:focus,
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-advanced-search-input:focus {
   outline: none;
   border-color: #3b82f6;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .filter-toggle-btn {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-filter-toggle-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -359,26 +359,26 @@ body.wpcanvas #app.container .main-content .operation-panel #content-sheji .filt
   cursor: pointer;
   transition: background-color 0.2s;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .filter-toggle-btn:hover {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-filter-toggle-btn:hover {
   background: #0891b2;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .advanced-search-row {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-advanced-search-row {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid #e5e7eb;
   display: none;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .advanced-search-field {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-advanced-search-field {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .advanced-search-field label {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-advanced-search-field label {
   font-weight: 500;
   color: #374151;
   min-width: 100px;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .filter-operator {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-filter-operator {
   padding: 8px 12px;
   border: 2px solid #e5e7eb;
   border-radius: 6px;
@@ -386,27 +386,27 @@ body.wpcanvas #app.container .main-content .operation-panel #content-sheji .filt
   font-size: 14px;
   min-width: 120px;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .filter-operator:focus {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-filter-operator:focus {
   outline: none;
   border-color: #3b82f6;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .advanced-search-input {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-advanced-search-input {
   flex: 1;
   padding: 8px 12px;
   margin: 0;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji > .list {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji > .pwca-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji.active > .list {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji.active > .pwca-list {
   display: block;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji.active .category-item:not(.active) {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji.active .pwca-category-item:not(.active) {
   display: none;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji:not(.active) .category-item-header .category_name {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji:not(.active) .pwca-category-item-header .pwca-category-name {
   width: 100%;
   height: 175px;
   display: flex;
@@ -417,15 +417,15 @@ body.wpcanvas #app.container .main-content .operation-panel #content-sheji .cont
   border-radius: 8px;
   cursor: pointer;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji:not(.active) .category-item-header .category_name img {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji:not(.active) .pwca-category-item-header .pwca-category-name img {
   display: block;
   margin: 0 auto 8px;
   max-width: 40px;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji:not(.active) .category-item-header .back-button {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji:not(.active) .pwca-category-item-header .pwca-back-button {
   display: none;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item .category-item-header .back-button {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji .pwca-category-item .pwca-category-item-header .pwca-back-button {
   display: none;
   color: #11bbf5;
   font-family: "ArialMT", "Arial", sans-serif;
@@ -437,15 +437,15 @@ body.wpcanvas #app.container .main-content .operation-panel #content-sheji .cont
   border: unset;
   cursor: pointer;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item .designs-grid {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji .pwca-category-item .pwca-designs-grid {
   display: none;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item.active .category-item-header {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji .pwca-category-item.active .pwca-category-item-header {
   margin-bottom: 15px;
   display: flex;
   justify-content: space-between;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item.active .category-item-header .category_name {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji .pwca-category-item.active .pwca-category-item-header .pwca-category-name {
   width: unset;
   height: unset;
   display: block;
@@ -460,18 +460,18 @@ body.wpcanvas #app.container .main-content .operation-panel #content-sheji .cont
   font-style: normal;
   font-size: 16px;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item.active .category-item-header .category_name img {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji .pwca-category-item.active .pwca-category-item-header .pwca-category-name img {
   display: none;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item.active .category-item-header .back-button {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji .pwca-category-item.active .pwca-category-item-header .pwca-back-button {
   display: block;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item.active .designs-grid {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji .pwca-category-item.active .pwca-designs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item.active .designs-grid .design-item {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji .pwca-category-item.active .pwca-designs-grid .pwca-design-item {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -482,32 +482,32 @@ body.wpcanvas #app.container .main-content .operation-panel #content-sheji .cont
   height: 125px;
   overflow: hidden;
 }
-body.wpcanvas #app.container .main-content .operation-panel #content-sheji .content-sheji .category-item.active .designs-grid .design-item img {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-operation-panel #content-sheji .pwca-content-sheji .pwca-category-item.active .pwca-designs-grid .pwca-design-item img {
   width: 100%;
   height: 100%;
   -o-object-fit: cover;
      object-fit: cover;
 }
 
-body.wpcanvas #app.container .main-content .canvas-area {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-canvas-area {
   flex: 3;
   display: flex;
   flex-direction: column;
   background-color: #f8f8f8;
   padding: 15px;
 }
-body.wpcanvas #app.container .main-content .canvas-area .dongtai-area {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-canvas-area .pwca-dongtai-area {
   background-color: #fff;
   padding: 10px;
   text-align: left;
   flex-shrink: 0;
   min-height: 23px;
 }
-body.wpcanvas #app.container .main-content .canvas-area .dongtai-area .text_toolbar,
-body.wpcanvas #app.container .main-content .canvas-area .dongtai-area .img_toolbar {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-canvas-area .pwca-dongtai-area .pwca-text-toolbar,
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-canvas-area .pwca-dongtai-area .pwca-img-toolbar {
   display: none;
 }
-body.wpcanvas #app.container .main-content .canvas-area .dongtai-area .toolbar_button {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-canvas-area .pwca-dongtai-area .pwca-toolbar-button {
   background-color: unset;
   border: unset;
   cursor: pointer;
@@ -519,11 +519,11 @@ body.wpcanvas #app.container .main-content .canvas-area .dongtai-area .toolbar_b
   padding: 5px;
   border-radius: 5px;
 }
-body.wpcanvas #app.container .main-content .canvas-area .dongtai-area .toolbar_button.active {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-canvas-area .pwca-dongtai-area .pwca-toolbar-button.active {
   color: #18AFE2;
   background-color: rgba(23, 176, 228, 0.3568627451);
 }
-body.wpcanvas #app.container .main-content .canvas-area .canvas-box {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-canvas-area .pwca-canvas-box {
   flex-grow: 1;
   overflow: auto;
   display: flex;
@@ -536,94 +536,94 @@ body.wpcanvas #app.container .main-content .canvas-area .canvas-box {
   position: relative;
   transition: height 0.3s ease;
 }
-body.wpcanvas #app.container .main-content .canvas-area .canvas-box .design_area {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-canvas-area .pwca-canvas-box .pwca-design-area {
   position: relative;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
 }
-body.wpcanvas #app.container .main-content .canvas-area .canvas-box .design_area #multi-view-container {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-canvas-area .pwca-canvas-box .pwca-design-area #multi-view-container {
   padding: 20px;
   background-color: #e8e8e8;
 }
-body.wpcanvas #app.container .main-content .canvas-area .canvas-box .design_area #multi-view-container .view-container {
+body.pwca-canvas #app.pwca-container .pwca-main-content .pwca-canvas-area .pwca-canvas-box .pwca-design-area #multi-view-container .pwca-view-container {
   background-color: #fff;
 }
-body.wpcanvas #app.container .dongtai-area {
+body.pwca-canvas #app.pwca-container .pwca-dongtai-area {
   padding: 10px;
   border-radius: 5px;
   margin-bottom: 10px;
 }
-body.wpcanvas #app.container .toolbar-item {
+body.pwca-canvas #app.pwca-container .pwca-toolbar-item {
   margin: 10px 0;
   align-items: center;
 }
-body.wpcanvas #app.container .toolbar-item label {
+body.pwca-canvas #app.pwca-container .pwca-toolbar-item label {
   margin-right: 10px;
   min-width: 60px;
 }
-body.wpcanvas #app.container .toolbar-item select,
-body.wpcanvas #app.container .toolbar-item input:not([type=range]) {
+body.pwca-canvas #app.pwca-container .pwca-toolbar-item select,
+body.pwca-canvas #app.pwca-container .pwca-toolbar-item input:not([type=range]) {
   padding: 5px;
   border-radius: 3px;
   border: 1px solid #ccc;
 }
-body.wpcanvas #app.container .toolbar-item input[type=color] {
+body.pwca-canvas #app.pwca-container .pwca-toolbar-item input[type=color] {
   height: 30px;
   width: 50px;
 }
-body.wpcanvas #app.container .pwca-crop-apply,
-body.wpcanvas #app.container .pwca-crop-cancel {
+body.pwca-canvas #app.pwca-container .pwca-crop-apply,
+body.pwca-canvas #app.pwca-container .pwca-crop-cancel {
   display: none;
 }
-body.wpcanvas #app.container select#fontFamily {
+body.pwca-canvas #app.pwca-container select#fontFamily {
   width: 100%;
 }
-body.wpcanvas #app.container .tab_control_title {
+body.pwca-canvas #app.pwca-container .pwca-tab-control-title {
   margin-right: 0px;
 }
-body.wpcanvas #app.container .zoom-control {
+body.pwca-canvas #app.pwca-container .pwca-zoom-control {
   background-color: #f5f5f5;
   padding: 10px;
   border-radius: 5px;
 }
-body.wpcanvas #app.container .zoom-control label {
+body.pwca-canvas #app.pwca-container .pwca-zoom-control label {
   font-weight: bold;
 }
-body.wpcanvas #app.container .zoom-control input[type=range] {
+body.pwca-canvas #app.pwca-container .pwca-zoom-control input[type=range] {
   cursor: pointer;
 }
-body.wpcanvas #app.container .canvas-box {
+body.pwca-canvas #app.pwca-container .pwca-canvas-box {
   position: relative;
   overflow: hidden;
   transition: height 0.3s ease;
 }
-body.wpcanvas #app.container .view-container .canvas-wrapper {
+body.pwca-canvas #app.pwca-container .pwca-view-container .pwca-canvas-wrapper {
   position: absolute;
   top: 0;
   left: 0;
 }
-body.wpcanvas #app.container .canvas-wrapper--base {
+body.pwca-canvas #app.pwca-container .pwca-canvas-wrapper--base {
   z-index: 10;
 }
-body.wpcanvas #app.container .canvas-wrapper--main {
+body.pwca-canvas #app.pwca-container .pwca-canvas-wrapper--main {
   z-index: 20;
 }
-body.wpcanvas #app.container .canvas-wrapper--overlay {
+body.pwca-canvas #app.pwca-container .pwca-canvas-wrapper--overlay {
   z-index: 30;
   pointer-events: none;
 }
-body.wpcanvas #app.container .canvas-wrapper--mask {
+body.pwca-canvas #app.pwca-container .pwca-canvas-wrapper--mask {
   z-index: 40;
   pointer-events: none;
 }
-body.wpcanvas #app.container #boundaryLayer {
+body.pwca-canvas #app.pwca-container #boundaryLayer {
   pointer-events: none;
   z-index: 999;
 }
 
-body.wpcanvas #app.container .footer {
+body.pwca-canvas #app.pwca-container .pwca-footer {
   background-color: #f8f9fa;
   padding: 15px;
   border-top: 1px solid #dee2e6;
@@ -636,7 +636,7 @@ body.wpcanvas #app.container .footer {
   padding: 10px 0;
   align-items: center;
 }
-body.wpcanvas #app.container .footer .product-card {
+body.pwca-canvas #app.pwca-container .pwca-footer .pwca-product-card {
   background-color: #fff;
   border: 1px solid #d1d5db;
   padding: 1rem;
@@ -645,57 +645,57 @@ body.wpcanvas #app.container .footer .product-card {
   justify-content: center;
   gap: 1rem;
 }
-body.wpcanvas #app.container .footer .product-card__info {
+body.pwca-canvas #app.pwca-container .pwca-footer .pwca-product-card__info {
   display: flex;
   gap: 1rem;
 }
-body.wpcanvas #app.container .footer .product-card__detail {
+body.pwca-canvas #app.pwca-container .pwca-footer .pwca-product-card__detail {
   display: flex;
   align-items: baseline;
   font-size: 0.875rem;
 }
-body.wpcanvas #app.container .footer .product-card__label {
+body.pwca-canvas #app.pwca-container .pwca-footer .pwca-product-card__label {
   margin-right: 0.5rem;
   text-align: left;
 }
-body.wpcanvas #app.container .footer .product-card__value {
+body.pwca-canvas #app.pwca-container .pwca-footer .pwca-product-card__value {
   color: #6b7280;
   text-align: left;
 }
-body.wpcanvas #app.container .footer .product-card__sub-value {
+body.pwca-canvas #app.pwca-container .pwca-footer .pwca-product-card__sub-value {
   padding-left: 2.5rem;
   color: #6b7280;
 }
-body.wpcanvas #app.container .footer .product-card__quantity {
+body.pwca-canvas #app.pwca-container .pwca-footer .pwca-product-card__quantity {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
-body.wpcanvas #app.container .footer .product-card__button {
+body.pwca-canvas #app.pwca-container .pwca-footer .pwca-product-card__button {
   background-color: #e5e7eb;
   color: #4b5563;
   padding: 0.25rem 0.5rem;
   border: none;
   cursor: pointer;
 }
-body.wpcanvas #app.container .footer .product-card__input {
+body.pwca-canvas #app.pwca-container .pwca-footer .pwca-product-card__input {
   width: 3rem;
   text-align: center;
   border: 1px solid #d1d5db;
   padding: 0.25rem;
 }
-body.wpcanvas #app.container .footer .product-card__add-to-cart {
+body.pwca-canvas #app.pwca-container .pwca-footer .pwca-product-card__add-to-cart {
   background-color: #ef4444;
   color: #fff;
   padding: 0.5rem 1rem;
   border: none;
   cursor: pointer;
 }
-body.wpcanvas #app.container .footer .product-card__add-to-cart:hover {
+body.pwca-canvas #app.pwca-container .pwca-footer .pwca-product-card__add-to-cart:hover {
   background-color: rgb(234.9802955665, 21.0197044335, 21.0197044335);
 }
 
-body.wpcanvas .popup-modal {
+body.pwca-canvas .pwca-popup-modal {
   display: none;
   position: fixed;
   left: 0;
@@ -707,7 +707,7 @@ body.wpcanvas .popup-modal {
   align-items: center;
   justify-content: center;
 }
-body.wpcanvas .popup-modal .modal-box {
+body.pwca-canvas .pwca-popup-modal .pwca-modal-box {
   background: #fff;
   border-radius: 8px;
   max-width: 500px;
@@ -716,7 +716,7 @@ body.wpcanvas .popup-modal .modal-box {
   overflow: auto;
   position: relative;
 }
-body.wpcanvas .popup-modal .modal-box #close-reviews-modal {
+body.pwca-canvas .pwca-popup-modal .pwca-modal-box #close-reviews-modal {
   position: absolute;
   right: 1rem;
   top: 1rem;
@@ -725,7 +725,7 @@ body.wpcanvas .popup-modal .modal-box #close-reviews-modal {
   font-size: 1.5rem;
   cursor: pointer;
 }
-body.wpcanvas .popup-modal .modal-box .popup_header p {
+body.pwca-canvas .pwca-popup-modal .pwca-modal-box .pwca-popup-header p {
   padding: 10px;
   margin: unset;
   font-family: "Arial-BoldMT", "Arial Bold", "Arial", sans-serif;
@@ -735,18 +735,18 @@ body.wpcanvas .popup-modal .modal-box .popup_header p {
   color: #303236;
   border-bottom: 1px solid #ccc;
 }
-body.wpcanvas .popup-modal .modal-box .popup_body {
+body.pwca-canvas .pwca-popup-modal .pwca-modal-box .pwca-popup-body {
   padding: 2rem;
 }
-body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs {
+body.pwca-canvas .pwca-popup-modal .pwca-modal-box .pwca-popup-body #review-tabs {
   display: flex;
   margin-bottom: 1rem;
 }
-body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab {
+body.pwca-canvas .pwca-popup-modal .pwca-modal-box .pwca-popup-body #review-tabs .pwca-review-tab {
   cursor: pointer;
   padding: 0.5rem 1rem;
 }
-body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.active {
+body.pwca-canvas .pwca-popup-modal .pwca-modal-box .pwca-popup-body #review-tabs .pwca-review-tab.active {
   cursor: pointer;
   padding: 0.5rem 1rem;
   border-bottom: 2px solid #000;
@@ -1545,20 +1545,20 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
 }
 /*
   SCSS 样式严格按照 HTML 结构嵌套
-  根选择器: .layers-box
+  根选择器: .pwca-layers-box
   整合现有变量和新增样式结构
 */
-.layers-box {
+.pwca-layers-box {
   height: inherit;
 }
-.layers-box .layers-panel {
+.pwca-layers-box .pwca-layers-panel {
   height: inherit;
 }
-.layers-box .layers-panel .layers-list {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list {
   height: inherit;
   overflow-y: auto;
 }
-.layers-box .layers-panel .layers-list .layer-item {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item {
   display: flex;
   padding: 5px;
   border: 1px solid #d7d7d7;
@@ -1567,10 +1567,10 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   position: relative;
   margin-bottom: 10px;
 }
-.layers-box .layers-panel .layers-list .layer-item.active {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item.active {
   background-color: #dbeafe;
 }
-.layers-box .layers-panel .layers-list .layer-item .layer-icon {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item .pwca-layer-icon {
   width: 40px;
   height: 40px;
   margin-right: 12px;
@@ -1582,49 +1582,49 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   border: 1px solid #d1d5db;
   overflow: hidden;
 }
-.layers-box .layers-panel .layers-list .layer-item .layer-icon .layer-text-icon {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item .pwca-layer-icon .pwca-layer-text-icon {
   font-weight: 600;
   font-size: 16px;
   color: #374151;
 }
-.layers-box .layers-panel .layers-list .layer-item .layer-icon .layer-thumbnail {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item .pwca-layer-icon .pwca-layer-thumbnail {
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
 }
-.layers-box .layers-panel .layers-list .layer-item .layer-icon .layer-thumbnail img {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item .pwca-layer-icon .pwca-layer-thumbnail img {
   width: 100%;
   height: 100%;
   -o-object-fit: contain;
      object-fit: contain;
 }
-.layers-box .layers-panel .layers-list .layer-item .layer-info {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item .pwca-layer-info {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-name {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item .pwca-layer-info .pwca-layer-name {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-name .layer-type {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item .pwca-layer-info .pwca-layer-name .pwca-layer-type {
   border-radius: 4px;
   background-color: #f2f2f2;
   font-size: 14px;
   color: #303236;
   padding: 5px;
 }
-.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-name .layer-controls {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item .pwca-layer-info .pwca-layer-name .pwca-layer-controls {
   display: flex;
   gap: 4px;
   align-items: center;
 }
-.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-actions .assign-btn {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item .pwca-layer-info .pwca-layer-actions .pwca-assign-btn {
   padding: 2px 6px;
   font-size: 11px;
   background: #11bbf5;
@@ -1634,11 +1634,11 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   transition: all 0.2s;
   border: unset;
 }
-.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-actions .assign-btn:hover {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item .pwca-layer-info .pwca-layer-actions .pwca-assign-btn:hover {
   background: #0ea5db;
   transform: translateY(-1px);
 }
-.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-actions .assign-btn.disabled {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item .pwca-layer-info .pwca-layer-actions .pwca-assign-btn.disabled {
   opacity: 0.5;
   cursor: not-allowed;
   background-color: #f5f5f5;
@@ -1646,27 +1646,27 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   border: 1px solid #ddd;
   pointer-events: none;
 }
-.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-actions .assign-btn.disabled:hover {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item .pwca-layer-info .pwca-layer-actions .pwca-assign-btn.disabled:hover {
   background-color: #f5f5f5;
   color: #999;
   transform: none;
 }
-.layers-box .layers-panel .layers-list .layer-item .layer-info .layer-actions .assign-btn.disabled i {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item .pwca-layer-info .pwca-layer-actions .pwca-assign-btn.disabled i {
   color: #999;
 }
-.layers-box .layers-panel .layers-list .layer-item.grouped .layer-xiaji-icon {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-item.grouped .pwca-layer-xiaji-icon {
   font-size: 24px;
 }
-.layers-box .layers-panel .layers-list .layer-group {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-group {
   margin-bottom: 8px;
   background: #fff;
 }
-.layers-box .layers-panel .layers-list .layer-group .group-header {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-group .pwca-group-header {
   background: #fff;
   cursor: pointer;
   transition: background-color 0.2s;
 }
-.layers-box .layers-panel .layers-list .layer-group .group-header .expand-icon {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-group .pwca-group-header .pwca-expand-icon {
   margin-right: 8px;
   font-size: 12px;
   color: #6b7280;
@@ -1675,26 +1675,26 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
      -moz-user-select: none;
           user-select: none;
 }
-.layers-box .layers-panel .layers-list .layer-group .group-header .group-name {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-group .pwca-group-header .pwca-group-name {
   font-weight: 500;
   color: #374151;
   padding: 8px;
   border: 1px solid #d7d7d7;
   margin-bottom: 8px;
 }
-.layers-box .layers-panel .layers-list .layer-group .group-header .group-actions {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-group .pwca-group-header .pwca-group-actions {
   display: flex;
   padding: 8px;
 }
-.layers-box .layers-panel .layers-list .layer-group .group-header .group-actions .group-actions-buttonBox {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-group .pwca-group-header .pwca-group-actions .pwca-group-actions-buttonbox {
   display: flex;
   gap: 4px;
   margin-left: auto;
 }
-.layers-box .layers-panel .layers-list .layer-group .group-header .group-actions .group-actions-buttonBox .group-copy {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-group .pwca-group-header .pwca-group-actions .pwca-group-actions-buttonbox .pwca-group-copy {
   color: #11bbf5;
 }
-.layers-box .layers-panel .layers-list .layer-btn {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn {
   padding: 8px 16px;
   border-radius: 4px;
   border: none;
@@ -1703,15 +1703,15 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   font-size: 14px;
   transition: all 0.2s ease-in-out;
 }
-.layers-box .layers-panel .layers-list .layer-btn:focus {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn:focus {
   outline: none;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
-.layers-box .layers-panel .layers-list .layer-btn:disabled {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
-.layers-box .layers-panel .layers-list .layer-btn {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn {
   padding: 4px 6px;
   border: none;
   background: transparent;
@@ -1728,38 +1728,38 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   border: 1px solid #d1d5db;
   background-color: #ffffff;
 }
-.layers-box .layers-panel .layers-list .layer-btn:hover {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn:hover {
   background: #e5e7eb;
   border-color: #9ca3af;
   transform: translateY(-1px);
 }
-.layers-box .layers-panel .layers-list .layer-btn i {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn i {
   font-size: 12px;
   color: #374151;
 }
-.layers-box .layers-panel .layers-list .layer-btn.delete {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.pwca-delete {
   color: #dc2626;
   border-color: #ef4444;
 }
-.layers-box .layers-panel .layers-list .layer-btn.delete:hover {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.pwca-delete:hover {
   background: #fecaca;
   border-color: #dc2626;
 }
-.layers-box .layers-panel .layers-list .layer-btn.delete i {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.pwca-delete i {
   color: #ef4444;
 }
-.layers-box .layers-panel .layers-list .layer-btn.layer-copy {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.pwca-layer-copy {
   color: #11bbf5;
   border-color: #3b82f6;
 }
-.layers-box .layers-panel .layers-list .layer-btn.layer-copy:hover {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.pwca-layer-copy:hover {
   background-color: #dbeafe;
   border-color: #2563eb;
 }
-.layers-box .layers-panel .layers-list .layer-btn.layer-copy i {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.pwca-layer-copy i {
   color: #3b82f6;
 }
-.layers-box .layers-panel .layers-list .layer-btn.layer-copy.disabled {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.pwca-layer-copy.disabled {
   color: #11bbf5;
   opacity: 0.4;
   cursor: not-allowed;
@@ -1767,49 +1767,49 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   border-color: #e5e7eb;
   pointer-events: none;
 }
-.layers-box .layers-panel .layers-list .layer-btn.layer-copy.disabled:hover {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.pwca-layer-copy.disabled:hover {
   background-color: #f9fafb;
   border-color: #e5e7eb;
   transform: none;
 }
-.layers-box .layers-panel .layers-list .layer-btn.layer-copy.disabled i {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.pwca-layer-copy.disabled i {
   color: #9ca3af;
 }
-.layers-box .layers-panel .layers-list .layer-btn.disabled {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.disabled {
   opacity: 0.4;
   cursor: not-allowed;
   background-color: #f9fafb;
   border-color: #e5e7eb;
   pointer-events: none;
 }
-.layers-box .layers-panel .layers-list .layer-btn.disabled:hover {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.disabled:hover {
   background-color: #f9fafb;
   border-color: #e5e7eb;
   transform: none;
 }
-.layers-box .layers-panel .layers-list .layer-btn.disabled i {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.disabled i {
   color: #9ca3af;
 }
-.layers-box .layers-panel .layers-list .layer-btn.pwca-group-print-method {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.pwca-group-print-method {
   color: #f59e0b;
   border-color: #f59e0b;
   background-color: #fef3c7;
 }
-.layers-box .layers-panel .layers-list .layer-btn.pwca-group-print-method:hover {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.pwca-group-print-method:hover {
   background-color: #fde68a;
   border-color: #d97706;
   transform: translateY(-1px);
 }
-.layers-box .layers-panel .layers-list .layer-btn.pwca-group-print-method i {
+.pwca-layers-box .pwca-layers-panel .pwca-layers-list .pwca-layer-btn.pwca-group-print-method i {
   color: #f59e0b;
 }
 
 /*
   打印方法对话框 (Print Method Dialog) 的 SCSS 样式
-  根选择器: .print-method-dialog-overlay
+  根选择器: .pwca-print-method-dialog-overlay
   整合到图层面板样式文件中
 */
-.print-method-dialog-overlay {
+.pwca-print-method-dialog-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -1821,7 +1821,7 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   justify-content: center;
   z-index: 10000;
 }
-.print-method-dialog-overlay .print-method-dialog {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog {
   background: white;
   border-radius: 8px;
   padding: 24px;
@@ -1831,7 +1831,7 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
-.print-method-dialog-overlay .print-method-dialog .dialog-header {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-dialog-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1839,13 +1839,13 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   padding-bottom: 12px;
   border-bottom: 1px solid #eee;
 }
-.print-method-dialog-overlay .print-method-dialog .dialog-header h3 {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-dialog-header h3 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: #333;
 }
-.print-method-dialog-overlay .print-method-dialog .dialog-header .close-btn {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-dialog-header .pwca-close-btn {
   background: none;
   border: none;
   font-size: 20px;
@@ -1859,44 +1859,44 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   justify-content: center;
   line-height: 1;
 }
-.print-method-dialog-overlay .print-method-dialog .dialog-header .close-btn:hover {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-dialog-header .pwca-close-btn:hover {
   color: #333;
 }
-.print-method-dialog-overlay .print-method-dialog .print-methods {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-print-methods {
   margin: 30px 30px 0;
   border-bottom: 1px solid #d7d7d7;
 }
-.print-method-dialog-overlay .print-method-dialog .print-methods .method-grid {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-print-methods .pwca-method-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr); /* 创建三列等宽布局 */
   padding-bottom: 30px;
 }
-.print-method-dialog-overlay .print-method-dialog .print-methods .method-grid .method-option {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-print-methods .pwca-method-grid .pwca-method-option {
   flex: 1;
   display: flex;
   align-items: center;
   cursor: pointer;
   transition: all 0.2s;
 }
-.print-method-dialog-overlay .print-method-dialog .print-methods .method-grid .method-option input[type=radio] {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-print-methods .pwca-method-grid .pwca-method-option input[type=radio] {
   margin-right: 8px;
   accent-color: #2196f3;
 }
-.print-method-dialog-overlay .print-method-dialog .print-methods .method-grid .method-option input[type=radio]:checked + .method-label {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-print-methods .pwca-method-grid .pwca-method-option input[type=radio]:checked + .pwca-method-label {
   color: #2196f3;
   font-weight: 500;
 }
-.print-method-dialog-overlay .print-method-dialog .print-methods .method-grid .method-option .method-label {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-print-methods .pwca-method-grid .pwca-method-option .pwca-method-label {
   font-size: 14px;
   color: #333;
 }
-.print-method-dialog-overlay .print-method-dialog .method-tabs {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-method-tabs {
   display: flex;
   border-bottom: 1px solid #ddd;
   margin-top: 20px;
   margin-bottom: 20px;
 }
-.print-method-dialog-overlay .print-method-dialog .method-tabs .tab {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-method-tabs .pwca-tab {
   padding: 12px 20px;
   cursor: pointer;
   border-bottom: 2px solid transparent;
@@ -1904,37 +1904,37 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   font-size: 14px;
   color: #666;
 }
-.print-method-dialog-overlay .print-method-dialog .method-tabs .tab:hover {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-method-tabs .pwca-tab:hover {
   color: #333;
   background: #f8f9fa;
 }
-.print-method-dialog-overlay .print-method-dialog .method-tabs .tab.active {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-method-tabs .pwca-tab.active {
   color: #2196f3;
   border-bottom-color: #2196f3;
   background: #f8f9fa;
 }
-.print-method-dialog-overlay .print-method-dialog .tab-content {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-tab-content {
   min-height: 100px;
   margin-bottom: 20px;
   padding: 16px;
   background: #f8f9fa;
   border-radius: 4px;
 }
-.print-method-dialog-overlay .print-method-dialog .pwca-combination-print-method-options {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-combination-print-method-options {
   display: flex;
   flex-direction: column;
   width: -moz-fit-content;
   width: fit-content;
   margin: auto;
 }
-.print-method-dialog-overlay .print-method-dialog .dialog-actions {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-dialog-actions {
   display: flex;
   justify-content: center;
   gap: 12px;
   padding-top: 12px;
   border-top: 1px solid #eee;
 }
-.print-method-dialog-overlay .print-method-dialog .dialog-actions .save-btn {
+.pwca-print-method-dialog-overlay .pwca-print-method-dialog .pwca-dialog-actions .pwca-save-btn {
   background: #e74f4c;
   color: white;
   border: none;
@@ -1946,21 +1946,21 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
 }
 
 @media (max-width: 768px) {
-  .layer-btn {
+  .pwca-layer-btn {
     width: 28px;
     height: 28px;
   }
-  .layer-btn i {
+  .pwca-layer-btn i {
     font-size: 14px;
   }
 }
 /* 内容区域需要相对定位 */
-.content-area {
+.pwca-content-area {
   position: relative;
 }
 
 /* 收缩按钮样式 */
-.panel-collapse-btn {
+.pwca-panel-collapse-btn {
   position: absolute;
   top: 50%;
   right: -20px;
@@ -1978,21 +1978,21 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   z-index: 100;
 }
 
-.panel-collapse-btn:hover {
+.pwca-panel-collapse-btn:hover {
   background: #f9fafb;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.panel-collapse-btn svg {
+.pwca-panel-collapse-btn svg {
   color: #6b7280;
 }
 
-.panel-collapse-btn:hover svg {
+.pwca-panel-collapse-btn:hover svg {
   color: #374151;
 }
 
 /* 关闭按钮样式 */
-.close-btn {
+.pwca-close-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2006,40 +2006,40 @@ body.wpcanvas .popup-modal .modal-box .popup_body #review-tabs .review-tab.activ
   transition: all 0.2s ease;
 }
 
-.close-btn:hover {
+.pwca-close-btn:hover {
   background: #ef4444;
   border-color: #ef4444;
 }
 
-.close-btn:hover svg {
+.pwca-close-btn:hover svg {
   color: #ffffff;
 }
 
-.close-btn svg {
+.pwca-close-btn svg {
   color: #6b7280;
   transition: color 0.2s ease;
 }
 
 /* Image Width/Height control grid layout */
-.tab_control_imageWidthHeight {
+.pwca-tab-control-imagewidthheight {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 30px;
   align-items: start;
 }
 
-.tab_control_imageWidthHeight .tab_control_imageWidth,
-.tab_control_imageWidthHeight .tab_control_imageHeight {
+.pwca-tab-control-imagewidthheight .pwca-tab-control-imagewidth,
+.pwca-tab-control-imagewidthheight .pwca-tab-control-imageheight {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.tab_control_imageWidthHeight .tab_control_title {
+.pwca-tab-control-imagewidthheight .pwca-tab-control-title {
   margin-bottom: 4px;
 }
 
-.tab_control_imageWidthHeight input[type=number] {
+.pwca-tab-control-imagewidthheight input[type=number] {
   width: 100%;
   box-sizing: border-box;
 }

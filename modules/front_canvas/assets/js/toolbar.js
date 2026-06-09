@@ -139,8 +139,8 @@ function pwcaUpdateDynamicToolbar(obj) {
     const textToolbarArea = document.querySelector('#content-wenzi-control');
     const imgOriginControls = document.querySelector('#img_origin_controls');
     const imgAddControls = document.querySelector('#img_add_controls');
-    const textToolbar = document.querySelector('.text_toolbar');
-    const imgToolbar = document.querySelector('.img_toolbar');
+    const textToolbar = document.querySelector('.pwca-text-toolbar');
+    const imgToolbar = document.querySelector('.pwca-img-toolbar');
     if (!textToolbarArea) {
         return;
     }
@@ -173,7 +173,7 @@ function pwcaUpdateDynamicToolbar(obj) {
             imgToolbar.style.display = 'none';
         }
         // 获取当前活动的文字工具按钮（仅限文字工具栏作用域）
-        const activeTextButton = document.querySelector('.text_toolbar .toolbar_button.active');
+        const activeTextButton = document.querySelector('.pwca-text-toolbar .pwca-toolbar-button.active');
         const activeButtonId = activeTextButton ? activeTextButton.id : 'text_input';
 
         // 根据当前按钮显示/隐藏添加文字区域
@@ -594,14 +594,14 @@ function pwcaUpdateDynamicToolbar(obj) {
         if (imgAddControls) {
             imgAddControls.style.display = 'none';
         }
-        const activeImgButton = document.querySelector('.img_toolbar .toolbar_button.active');
+        const activeImgButton = document.querySelector('.pwca-img-toolbar .pwca-toolbar-button.active');
 
         // 没有激活的图片工具按钮时，显示原始内容并取消所有激活状态
         if (!activeImgButton) {
             if (imgOriginControls) {
                 imgOriginControls.style.display = 'block';
             }
-            imgToolbar.querySelectorAll('.toolbar_button').forEach(btn => btn.classList.remove('active'));
+            imgToolbar.querySelectorAll('.pwca-toolbar-button').forEach(btn => btn.classList.remove('active'));
             return;
         }
 

@@ -127,7 +127,7 @@
                             box-shadow: 0 $canvas-spacing-xs $canvas-spacing-md rgba(0, 0, 0, 0.2);
                         }
                         
-                        &.active {
+                        &.selected {
                             border-color: $canvas-primary-color;
                             box-shadow: 0 0 0 2px $canvas-primary-color;
                         }
@@ -399,7 +399,7 @@
                             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
                         }
                         
-                        &.active {
+                        &.selected {
                             border-color: $canvas-primary-color;
                             box-shadow: 0 0 0 2px $canvas-primary-color;
                         }

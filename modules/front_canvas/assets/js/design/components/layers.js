@@ -19,7 +19,7 @@ const layersApp = Vue.createApp({
                     <div
                         v-for="layer in currentViewUngroupedLayers"
                         :key="layer.id"
-                        class="layer-item ungrouped"
+                        class="pwca-layer-item ungrouped"
                         :class="{ active: layer.id === activeObjectId }"
                         @click="selectLayer(layer.id)"
                     >
@@ -44,7 +44,7 @@ const layersApp = Vue.createApp({
                                 <div class="layer-controls">
                                     <button
                                         @click.stop="toggleLock(layer)"
-                                        class="layer-btn"
+                                        class="pwca-layer-btn"
                                     >
                                         <i
                                             :class="layer.locked ? 'iconfont icon-suoding' : 'iconfont icon-jiesuo'"
@@ -52,13 +52,13 @@ const layersApp = Vue.createApp({
                                     </button>
                                     <button
                                         @click.stop="deleteLayer(layer)"
-                                        class="layer-btn delete"
+                                        class="pwca-layer-btn delete"
                                     >
                                         <i class="iconfont icon-shanchu"></i>
                                     </button>
                                     <button
                                         @click.stop="duplicateLayer(layer)"
-                                        class="layer-btn layer-copy"
+                                        class="pwca-layer-btn layer-copy"
                                         :class="{ disabled: !isLayerCopyAllowed(layer) }"
                                         :disabled="!isLayerCopyAllowed(layer)"
                                         :title="
@@ -86,7 +86,7 @@ const layersApp = Vue.createApp({
                             <div class="layer-actions">
                                 <button
                                     @click.stop="showGroupAssignDialog(layer)"
-                                    class="assign-btn"
+                                    class="pwca-assign-btn"
                                     :class="{
                                         disabled: isLayerPrintMethodSwitchDisabled(layer)
                                     }"
@@ -105,7 +105,7 @@ const layersApp = Vue.createApp({
                 <div
                     v-for="group in currentViewLayerGroups"
                     :key="group.id"
-                    class="layer-group"
+                    class="pwca-layer-group"
                 >
                     <div
                         class="group-header"
@@ -122,7 +122,7 @@ const layersApp = Vue.createApp({
                             <div class="group-actions-buttonBox">
                                 <button
                                     @click.stop="showGroupPrintMethodDialog(group)"
-                                    class="layer-btn pwca-group-print-modal__trigger"
+                                    class="pwca-layer-btn pwca-group-print-modal__trigger"
                                     :class="{ disabled: isGroupPrintMethodSwitchDisabled }"
                                     :disabled="isGroupPrintMethodSwitchDisabled"
                                     :title="getGroupPrintMethodTooltip"
@@ -132,7 +132,7 @@ const layersApp = Vue.createApp({
                                 <button
                                     @click.stop="toggleGroupLock(group)"
                                     :class="{ locked: group.locked }"
-                                    class="layer-btn"
+                                    class="pwca-layer-btn"
                                 >
                                     <i
                                         :class="group.locked ? 'iconfont icon-suoding' : 'iconfont icon-jiesuo'"
@@ -172,7 +172,7 @@ const layersApp = Vue.createApp({
                         <div
                             v-for="layer in getGroupLayers(group.id)"
                             :key="layer.id"
-                            class="layer-item grouped"
+                            class="pwca-layer-item grouped"
                             :class="{ active: activeObjectId === layer.id }"
                             @click="selectLayer(layer.id)"
                         >
@@ -197,7 +197,7 @@ const layersApp = Vue.createApp({
                                     <div class="layer-controls">
                                         <button
                                             @click.stop="toggleLock(layer)"
-                                            class="layer-btn"
+                                            class="pwca-layer-btn"
                                         >
                                             <i
                                                 :class="layer.locked ? 'iconfont icon-suoding' : 'iconfont icon-jiesuo'"
@@ -241,7 +241,7 @@ const layersApp = Vue.createApp({
                                 <div class="layer-actions">
                                     <button
                                         @click.stop="showGroupAssignDialog(layer)"
-                                        class="assign-btn"
+                                        class="pwca-assign-btn"
                                         :class="{
                                             disabled: isLayerPrintMethodSwitchDisabled(layer)
                                         }"
@@ -275,7 +275,7 @@ const layersApp = Vue.createApp({
                         placeholder="Enter layer group name"
                         @keyup.enter="createGroup"
                     />
-                    <div class="dialog-actions">
+                    <div class="pwca-dialog-actions">
                         <button @click="createGroup">Create</button>
                         <button @click="showGroupDialog = false">Cancel</button>
                     </div>

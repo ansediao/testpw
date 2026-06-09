@@ -153,7 +153,7 @@
     function calculateAutoZoom() {
         try {
             const multiViewContainer = document.getElementById('multi-view-container');
-            const canvasBox = document.querySelector('.canvas-box');
+            const canvasBox = document.querySelector('.pwca-canvas-box');
 
             if (!multiViewContainer || !canvasBox) {
                 return 95;
@@ -171,7 +171,7 @@
 
     function calculateOptimalZoom() {
         const multiViewContainer = document.getElementById('multi-view-container');
-        const canvasBox = document.querySelector('.canvas-box');
+        const canvasBox = document.querySelector('.pwca-canvas-box');
 
         if (!multiViewContainer || !canvasBox) {
             return 95;
