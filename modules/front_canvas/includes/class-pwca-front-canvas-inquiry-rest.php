@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Canvas_Inquiry_Rest {
+final class Pwca_Public_Canvas_Inquiry_Rest {
 	public function register() {
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
 	}

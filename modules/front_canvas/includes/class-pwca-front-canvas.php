@@ -25,11 +25,11 @@ final class Pwca_Public_Canvas {
 	}
 
 	private function register() {
-		$context = new Pwca_Front_Canvas_Context();
+		$context = new Pwca_Public_Canvas_Context();
 
 		( new Pwca_Public_Canvas_Router( $context, $this->module_path ) )->register();
 		( new Pwca_Public_Canvas_Assets( $context, $this->module_path, $this->module_url ) )->register();
-		( new Pwca_Front_Canvas_Inquiry_Rest() )->register();
+		( new Pwca_Public_Canvas_Inquiry_Rest() )->register();
 	}
 }
 

@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Product_Woo_Adjustments {
+final class Pwca_Public_Product_Woo_Adjustments {
 	private $context;
 
 	public function __construct( Pwca_Front_Product_Context $context ) {

@@ -8,7 +8,7 @@ final class Pwca_Public_Canvas_Router {
 	private $context;
 	private $module_path;
 
-	public function __construct( Pwca_Front_Canvas_Context $context, $module_path ) {
+	public function __construct( Pwca_Public_Canvas_Context $context, $module_path ) {
 		$this->context     = $context;
 		$this->module_path = untrailingslashit( $module_path );
 	}

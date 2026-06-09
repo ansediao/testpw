@@ -214,9 +214,9 @@
           "code_content": "class Pwca_Front_Canvas_Inquiry_Rest {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "询价接口 REST API (/pwca/v1/inquiry)",
-          "notes": "已正确使用 pwca/v1 命名空间，仅类名需修改"
+          "notes": "已重命名并在 class-pwca-front-canvas.php 中同步更新引用。已正确使用 pwca/v1 命名空间。"
         },
         {
           "id": "PHP-CLASS-012",
@@ -228,9 +228,9 @@
           "code_content": "class Pwca_Front_Canvas_Context {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 上下文数据",
-          "notes": ""
+          "notes": "已重命名并在 Router/Assets 的构造函数类型提示中同步更新。"
         },
         {
           "id": "PHP-CLASS-013",
@@ -244,9 +244,9 @@
           "related_references": [
             "modules/front_product/views/ (CSS/JS加载)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - 前端资源加载",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-product.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-014",
@@ -258,9 +258,9 @@
           "code_content": "class Pwca_Front_Product_Woo_Adjustments {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - WooCommerce调整",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-product.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-015",
@@ -272,9 +272,9 @@
           "code_content": "class Pwca_Front_Product {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - 主控制器",
-          "notes": ""
+          "notes": "已重命名并在 front_product/index.php 中同步更新 bootstrap() 调用。"
         },
         {
           "id": "PHP-CLASS-016",

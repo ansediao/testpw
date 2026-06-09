@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Product {
+final class Pwca_Public_Product {
 	private $module_path;
 	private $module_url;
 
@@ -29,9 +29,9 @@ final class Pwca_Front_Product {
 	private function register() {
 		$context = new Pwca_Front_Product_Context();
 
-		( new Pwca_Front_Product_Assets( $context, $this->module_path, $this->module_url ) )->register();
+		( new Pwca_Public_Product_Assets( $context, $this->module_path, $this->module_url ) )->register();
 		( new Pwca_Front_Product_Mount( $context ) )->register();
-		( new Pwca_Front_Product_Woo_Adjustments( $context ) )->register();
+		( new Pwca_Public_Product_Woo_Adjustments( $context ) )->register();
 		( new Pwca_Front_Product_Composite( $context ) )->register();
 		( new Pwca_Front_Product_Inquiry( $context, $this->module_path ) )->register();
 	}

@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Canvas_Context {
+final class Pwca_Public_Canvas_Context {
 	public function is_canvas_request() {
 		if ( absint( get_query_var( 'pw_canvas' ) ) === 1 ) {
 			return true;

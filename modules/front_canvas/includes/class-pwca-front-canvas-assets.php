@@ -11,7 +11,7 @@ final class Pwca_Public_Canvas_Assets {
 	private $plugin_root_path;
 	private $plugin_root_url;
 
-	public function __construct( Pwca_Front_Canvas_Context $context, $module_path, $module_url ) {
+	public function __construct( Pwca_Public_Canvas_Context $context, $module_path, $module_url ) {
 		$this->context          = $context;
 		$this->module_path      = untrailingslashit( $module_path );
 		$this->module_url       = trailingslashit( $module_url );
