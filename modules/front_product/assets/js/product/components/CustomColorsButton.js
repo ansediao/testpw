@@ -7,6 +7,7 @@ window.CustomColorsButton = {
         <div class="pw-custom-colors-container">
             <div class="pw-custom-colors-group">
                 <button
+                    v-if="showGradientButton"
                     class="pw-custom-color-btn pw-gradient-btn"
                     :class="{ 'selected': selectedButton === 'gradient' }"
                     @click="handleGradientClick"
@@ -16,6 +17,7 @@ window.CustomColorsButton = {
                 </button>
                 
                 <button
+                    v-if="showCustomColorButton"
                     class="pw-custom-color-btn pw-custom-colors-btn"
                     :class="{ 'selected': selectedButton === 'custom' }"
                     @click="openColorModal"
@@ -88,6 +90,14 @@ window.CustomColorsButton = {
         // 当渐变状态显示时，禁用 Custom Colors 按钮
         const isCustomColorsDisabled = Vue.computed(() => {
             return !!showGradientStatus.value;
+        });
+        
+        // 从 store 获取按钮可见性 getter（用 computed 包裹以保持响应式）
+        const showGradientButton = Vue.computed(() => {
+            return productStore ? productStore.showGradientButton : true;
+        });
+        const showCustomColorButton = Vue.computed(() => {
+            return productStore ? productStore.showCustomColorButton : true;
         });
         
         // 计算按钮是否可点击（参考ColorVariants组件逻辑）
@@ -512,6 +522,8 @@ window.CustomColorsButton = {
             selectedColor,
             isButtonClickable,
             isCustomColorsDisabled,
+            showGradientButton,
+            showCustomColorButton,
             isColorModalOpen,
             selectCustomColor,
             openColorModal,

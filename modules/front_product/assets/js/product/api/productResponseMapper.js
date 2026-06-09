@@ -62,6 +62,8 @@
             buySampleChecked: productApiData.buySampleChecked,
             blankProductChecked: productApiData.blankProductChecked,
             blankItem: productApiData.blank_item,
+            enableCustomColor: productApiData.enable_custom_color,
+            enableGradientColor: productApiData.enable_gradient_color,
             accessories,
             variants: apiData && apiData.has_variants && apiData.variants && Array.isArray(apiData.variants.data)
                 ? apiData.variants.data

@@ -58,6 +58,10 @@
     // Gradient color button state
     const gradientColorApplied = Vue.ref(false);
 
+    // Custom color / Gradient color feature toggles (from API raw data)
+    const enableCustomColor = Vue.ref(true);
+    const enableGradientColor = Vue.ref(true);
+
     // Accessories price state
     const accessoriesPrice = Vue.ref(0);
     const selectedAccessoriesNames = Vue.ref([]);
@@ -229,6 +233,20 @@
         return productData.value && !loading.value && !gradientColorApplied.value;
     });
 
+    // Button visibility getters - based on API feature toggles
+    // 预留叠加其他逻辑的空间（如视图配置、店铺设置等）
+    const showGradientButton = Vue.computed(() => {
+        if (!enableGradientColor.value) return false;
+        // TODO: 后续可叠加其他条件，例如视图配置、店铺定制设置等
+        return true;
+    });
+
+    const showCustomColorButton = Vue.computed(() => {
+        if (!enableCustomColor.value) return false;
+        // TODO: 后续可叠加其他条件，例如视图配置、店铺定制设置等
+        return true;
+    });
+
     const estimatedDeliveryDate = Vue.computed(() => {
         const productApiData = productData.value && productData.value.apiData && productData.value.apiData.product
             ? productData.value.apiData.product.data
@@ -322,6 +340,14 @@
 
     const setGradientColorApplied = (applied) => {
         gradientColorApplied.value = applied;
+    };
+
+    const setEnableCustomColor = (enabled) => {
+        enableCustomColor.value = !!enabled;
+    };
+
+    const setEnableGradientColor = (enabled) => {
+        enableGradientColor.value = !!enabled;
     };
 
     const resetSelectedVariant = () => {
@@ -585,6 +611,14 @@
         if (Array.isArray(mappedData.variants)) {
             setVariants(mappedData.variants);
         }
+
+        if (mappedData.enableCustomColor !== undefined) {
+            setEnableCustomColor(mappedData.enableCustomColor);
+        }
+
+        if (mappedData.enableGradientColor !== undefined) {
+            setEnableGradientColor(mappedData.enableGradientColor);
+        }
     };
 
     // 处理产品数据的核心逻辑
@@ -731,6 +765,8 @@
         buySampleChecked,
         blankProductChecked,
         gradientColorApplied,
+        enableCustomColor,
+        enableGradientColor,
         accessoriesPrice,
         selectedAccessoriesNames,
         moqSettings,
@@ -763,6 +799,8 @@
         showCustomizeButton,
         showBuySampleCheckbox,
         showBlankProductCheckbox,
+        showGradientButton,
+        showCustomColorButton,
 
         // Actions
         setProductId,
@@ -770,6 +808,8 @@
         setLoading,
         setError,
         setGradientColorApplied,
+        setEnableCustomColor,
+        setEnableGradientColor,
         resetCustomColorState,
         updateQuantity,
         setQuantityDirect,
