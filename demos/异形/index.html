@@ -121,6 +121,10 @@
       <button class="pwca-demo__btn" id="pwca-btn-add-text">添加文字</button>
       <button class="pwca-demo__btn" id="pwca-btn-add-image">上传图片</button>
       <button class="pwca-demo__btn" id="pwca-btn-add-url">添加图片(URL)</button>
+      <button class="pwca-demo__btn" id="pwca-btn-cycle-mask" title="alpha → 灰度 → 反转 → alpha">切 mask 模式</button>
+      <button class="pwca-demo__btn" id="pwca-btn-show-mask" title="临时显示 mask，看实际形状">显示 mask</button>
+      <button class="pwca-demo__btn" id="pwca-btn-circle-test" title="临时换成圆形 clipPath，验证机制">圆形测试</button>
+      <button class="pwca-demo__btn" id="pwca-btn-toggle-bg" title="隐藏/显示 bg.jpg 背景">隐藏背景</button>
       <span style="flex:1"></span>
       <button class="pwca-demo__btn" id="pwca-btn-front">上移一层</button>
       <button class="pwca-demo__btn" id="pwca-btn-back">下移一层</button>
@@ -162,6 +166,7 @@
   <script>
     (function () {
       const BG_URL = './bg.jpg';
+      const MASK_URL = './mask.png';
 
       const canvasEl = document.getElementById('pwca-canvas');
       const canvas = new fabric.Canvas(canvasEl, {
@@ -169,6 +174,31 @@
         selection: true,
         preserveObjectStacking: true
       });
+
+      // 画布底色：棋盘格（透明感），避免纯白
+      // 跟"舞台外"的棋盘格统一，bg.jpg 隐藏时也不突兀
+      (function applyCheckerboardBg() {
+        const cell = 16;
+        const c = document.createElement('canvas');
+        c.width = c.height = cell * 2;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#fafafa';
+        ctx.fillRect(0, 0, cell * 2, cell * 2);
+        ctx.fillStyle = '#e6e6e6';
+        ctx.fillRect(0, 0, cell, cell);
+        ctx.fillRect(cell, cell, cell, cell);
+        const pattern = new fabric.Pattern({
+          source: c,
+          repeat: 'repeat'
+        });
+        canvas.backgroundColor = pattern;
+        canvas.requestRenderAll();
+      })();
+
+      // 异形遮罩：mask.png 不显示，但所有非背景图层通过它的形状裁剪
+      // maskMode: 'alpha'(默认，保留原PNG alpha通道) | 'gray'(灰度=alpha) | 'inverted'(反转)
+      let maskObj = null;
+      let maskMode = 'alpha';
 
       // ============ toast ============
       const toastEl = document.getElementById('pwca-toast');
@@ -223,7 +253,168 @@
 
           console.log('[PWCA Demo] 舞台已设为背景图尺寸', { w: img.width, h: img.height });
           toast('舞台尺寸：' + img.width + ' × ' + img.height);
+
+          // 背景就绪后加载 mask
+          loadMask();
         }, { crossOrigin: 'anonymous' });
+      }
+
+      // ============ 异形遮罩：mask.png 不显示，但作为所有图层的裁剪形状 ============
+      // 把 mask 转成 alpha-only 图像：data[i+3] 由 mode 决定
+      // - 'alpha':     保留原 PNG alpha 通道（标准用法：alpha=1 显示，alpha=0 裁掉）
+      // - 'gray':      用 RGB 灰度作为 alpha（适配"白底黑形状"等位图）
+      // - 'inverted':  反转（适配 alpha 方向反了的 mask）
+      function buildMaskCanvas(srcEl, mode) {
+        const c = document.createElement('canvas');
+        const W = srcEl.naturalWidth || srcEl.width;
+        const H = srcEl.naturalHeight || srcEl.height;
+        c.width = W;
+        c.height = H;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(srcEl, 0, 0);
+        const id = ctx.getImageData(0, 0, W, H);
+        const data = id.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const origA = data[i + 3];
+          const r = data[i], g = data[i + 1], b = data[i + 2];
+          const gray = (r + g + b) / 3;
+          if (mode === 'alpha') {
+            // 保留原 alpha（PNG 透明区 = 裁掉，不透明区 = 显示）
+            // 不修改
+          } else if (mode === 'gray') {
+            data[i + 3] = gray;
+          } else if (mode === 'inverted') {
+            // 反转原 alpha
+            data[i + 3] = 255 - origA;
+          }
+        }
+        ctx.putImageData(id, 0, 0);
+        return c;
+      }
+
+      function loadMask() {
+        fabric.Image.fromURL(MASK_URL, function (img) {
+          if (!img || !img.getElement() || !img.getElement().naturalWidth) {
+            console.warn('[PWCA Demo] mask 加载失败：', MASK_URL);
+            return;
+          }
+          const W = canvas.getWidth();
+          const H = canvas.getHeight();
+          const scale = Math.min(W / img.width, H / img.height);
+
+          // 重新创建 fabric.Image，源 = 按 mode 处理后的 canvas
+          const srcEl = img.getElement();
+          const maskedCanvas = buildMaskCanvas(srcEl, maskMode);
+          const newImg = new fabric.Image(maskedCanvas);
+
+          newImg.set({
+            originX: 'left',
+            originY: 'top',
+            left: (W - img.width * scale) / 2,
+            top: (H - img.height * scale) / 2,
+            scaleX: scale,
+            scaleY: scale,
+            selectable: false,
+            evented: false,
+            hoverCursor: 'default',
+            visible: false,
+            excludeFromExport: true
+          });
+          newImg.set('data', { role: 'mask' });
+          maskObj = newImg;
+          newImg.absolutePositioned = true;
+
+          canvas.getObjects().forEach(o => {
+            if (o.data && (o.data.role === 'background' || o.data.role === 'mask')) return;
+            applyMask(o);
+          });
+          canvas.requestRenderAll();
+
+          console.log('[PWCA Demo] mask 已加载（mode=' + maskMode + '）', {
+            w: img.width, h: img.height, scale, l: newImg.left, t: newImg.top
+          });
+          const modeLabel = { alpha: '原 alpha', gray: '灰度', inverted: '反转' }[maskMode];
+          toast('mask 已加载（' + modeLabel + '）');
+        }, { crossOrigin: 'anonymous' });
+      }
+
+      function applyMask(obj) {
+        if (!maskObj) return;
+        obj.clipPath = maskObj;
+        if (maskObj.absolutePositioned !== true) {
+          maskObj.absolutePositioned = true;
+        }
+      }
+
+      // 调试：临时显示/隐藏 mask（看 mask 实际长啥样）
+      function toggleMaskVisible() {
+        if (!maskObj) return;
+        const onCanvas = canvas.getObjects().indexOf(maskObj) !== -1;
+        if (onCanvas) {
+          canvas.remove(maskObj);
+          toast('mask 已隐藏');
+        } else {
+          maskObj.visible = true;
+          canvas.add(maskObj);
+          canvas.bringToFront(maskObj); // 顶层显示，方便观察
+          toast('mask 已显示（画布顶层）');
+        }
+        canvas.requestRenderAll();
+      }
+
+      // 切换背景显隐（保留对象在画布上，仅切换 visible）
+      function toggleBackground() {
+        const bg = canvas.getObjects().find(o => o.data && o.data.role === 'background');
+        if (!bg) { toast('背景不存在'); return; }
+        bg.visible = !bg.visible;
+        // 重排层级：背景必须在最底
+        canvas.sendToBack(bg);
+        canvas.requestRenderAll();
+        const btn = document.getElementById('pwca-btn-toggle-bg');
+        if (btn) btn.textContent = bg.visible ? '隐藏背景' : '显示背景';
+        toast('背景：' + (bg.visible ? '显示' : '隐藏'));
+      }
+
+      // 调试：圆形 clipPath 测试（验证 fabric.js clipPath 机制本身是否正常）
+      function useCircleClip() {
+        const c = new fabric.Circle({
+          radius: Math.min(canvas.getWidth(), canvas.getHeight()) / 4,
+          originX: 'center', originY: 'center',
+          left: canvas.getWidth() / 2,
+          top: canvas.getHeight() / 2
+        });
+        c.absolutePositioned = true;
+        // 移除旧 mask
+        if (maskObj) {
+          canvas.getObjects().forEach(o => { if (o.clipPath === maskObj) o.clipPath = null; });
+          const oldMask = canvas.getObjects().find(o => o.data && o.data.role === 'mask');
+          if (oldMask) canvas.remove(oldMask);
+          maskObj = null;
+        }
+        maskObj = c;
+        c.set('data', { role: 'mask' });
+        // 重新应用
+        canvas.getObjects().forEach(o => {
+          if (o.data && (o.data.role === 'background' || o.data.role === 'mask')) return;
+          applyMask(o);
+        });
+        canvas.requestRenderAll();
+        toast('已切换为圆形 clipPath（测试）');
+      }
+
+      // 切换 mask 模式：alpha -> gray -> inverted -> alpha
+      function cycleMaskMode() {
+        const order = ['alpha', 'gray', 'inverted'];
+        const idx = order.indexOf(maskMode);
+        maskMode = order[(idx + 1) % order.length];
+        // 移除旧 mask + 解除所有 clipPath 引用
+        if (maskObj) {
+          canvas.getObjects().forEach(o => { if (o.clipPath === maskObj) o.clipPath = null; });
+          const oldMask = canvas.getObjects().find(o => o.data && o.data.role === 'mask');
+          if (oldMask) canvas.remove(oldMask);
+          maskObj = null;
+        }
+        loadMask();
       }
 
       // ============ 文字 ============
@@ -240,6 +431,7 @@
         });
         t.set('data', { role: 'text' });
         canvas.add(t);
+        applyMask(t);
         canvas.setActiveObject(t);
         t.enterEditing();
         t.selectAll();
@@ -287,6 +479,7 @@
         });
         img.set('data', { role: 'image' });
         canvas.add(img);
+        applyMask(img);
         canvas.setActiveObject(img);
         canvas.requestRenderAll();
       }
@@ -294,10 +487,14 @@
       // ============ 删除：优先删选中，没选中就删最后添加的图层 ============
       function pickRemovable() {
         const sel = canvas.getActiveObject();
-        if (sel && !(sel.data && sel.data.role === 'background')) return sel;
-        // 兜底：找最上层且非背景的对象
-        const objs = canvas.getObjects().filter(o => !(o.data && o.data.role === 'background'));
+        if (sel && !isProtected(sel)) return sel;
+        // 兜底：找最上层且非受保护的对象
+        const objs = canvas.getObjects().filter(o => !isProtected(o));
         return objs.length ? objs[objs.length - 1] : null;
+      }
+      function isProtected(obj) {
+        const role = obj.data && obj.data.role;
+        return role === 'background' || role === 'mask';
       }
 
       function deleteOne() {
@@ -330,13 +527,17 @@
       }
 
       function clearLayers() {
-        const keep = canvas.getObjects().filter(o => o.data && o.data.role === 'background');
+        const keep = canvas.getObjects().filter(o => o.data && (o.data.role === 'background' || o.data.role === 'mask'));
         canvas.getObjects().slice().forEach(o => canvas.remove(o));
         keep.forEach(o => canvas.add(o));
-        if (keep.length) canvas.sendToBack(keep[0]);
+        // 重排层级：背景在最底，mask 在背景之上
+        if (keep.length) {
+          const bg = keep.find(o => o.data.role === 'background');
+          if (bg) canvas.sendToBack(bg);
+        }
         canvas.discardActiveObject();
         canvas.requestRenderAll();
-        toast('已清空图层（保留背景）');
+        toast('已清空图层（保留背景与 mask）');
       }
 
       // micromodal 初始化（必须 init 后 data-micromodal-close 才生效）
@@ -412,6 +613,10 @@
       document.getElementById('pwca-btn-back').addEventListener('click', sendBackward);
       document.getElementById('pwca-btn-delete').addEventListener('click', deleteOne);
       document.getElementById('pwca-btn-clear').addEventListener('click', clearLayers);
+      document.getElementById('pwca-btn-cycle-mask').addEventListener('click', cycleMaskMode);
+      document.getElementById('pwca-btn-show-mask').addEventListener('click', toggleMaskVisible);
+      document.getElementById('pwca-btn-circle-test').addEventListener('click', useCircleClip);
+      document.getElementById('pwca-btn-toggle-bg').addEventListener('click', toggleBackground);
 
       // 键盘：只用 Delete 键，避免 Backspace 触发浏览器返回
       // 文字编辑中不响应，弹窗打开时不响应
@@ -432,6 +637,45 @@
       window.pwcaClear = clearLayers;
       window.pwcaDelete = deleteOne;
       window.pwcaStageSize = () => ({ w: canvas.getWidth(), h: canvas.getHeight() });
+      window.pwcaMask = () => {
+        if (!maskObj) return null;
+        // 统计 mask alpha 通道
+        const srcEl = maskObj.getElement();
+        const c = document.createElement('canvas');
+        c.width = srcEl.naturalWidth || srcEl.width;
+        c.height = srcEl.naturalHeight || srcEl.height;
+        c.getContext('2d').drawImage(srcEl, 0, 0);
+        const id = c.getContext('2d').getImageData(0, 0, c.width, c.height);
+        let total = 0, nonZero = 0, maxA = 0, minA = 255;
+        for (let i = 3; i < id.data.length; i += 4) {
+          const a = id.data[i];
+          total += a;
+          if (a > 0) nonZero++;
+          if (a > maxA) maxA = a;
+          if (a < minA) minA = a;
+        }
+        return {
+          w: maskObj.width, h: maskObj.height,
+          scale: maskObj.scaleX,
+          l: maskObj.left, t: maskObj.top,
+          absolute: maskObj.absolutePositioned,
+          mode: maskMode,
+          alphaStats: {
+            total, nonZero, minA, maxA,
+            pixelCount: id.data.length / 4
+          }
+        };
+      };
+      window.pwcaCycleMask = cycleMaskMode;
+      window.pwcaShowMask = toggleMaskVisible;
+      window.pwcaCircleTest = useCircleClip;
+      window.pwcaToggleBg = toggleBackground;
+      window.pwcaListLayers = () => canvas.getObjects().map(o => ({
+        role: o.data && o.data.role,
+        type: o.type,
+        visible: o.visible,
+        hasClipPath: !!o.clipPath
+      }));
 
       // 启动
       loadBackground();
