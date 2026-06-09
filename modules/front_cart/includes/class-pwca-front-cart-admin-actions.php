@@ -4,10 +4,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Cart_Admin_Actions {
+final class Pwca_Public_Cart_Admin_Actions {
 	private $context;
 
-	public function __construct( Pwca_Front_Cart_Context $context ) {
+	public function __construct( Pwca_Public_Cart_Context $context ) {
 		$this->context = $context;
 	}
 

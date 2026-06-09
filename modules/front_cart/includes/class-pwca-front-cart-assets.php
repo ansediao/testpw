@@ -4,12 +4,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Cart_Assets {
+final class Pwca_Public_Cart_Assets {
 	private $context;
 	private $module_path;
 	private $module_url;
 
-	public function __construct( Pwca_Front_Cart_Context $context, $module_path, $module_url ) {
+	public function __construct( Pwca_Public_Cart_Context $context, $module_path, $module_url ) {
 		$this->context     = $context;
 		$this->module_path = $module_path;
 		$this->module_url  = $module_url;

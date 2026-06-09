@@ -4,11 +4,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Cart_Quantity {
+final class Pwca_Public_Cart_Quantity {
 	private $context;
-	private $quantity_config;
+	private $cart_key;
 
-	public function __construct( Pwca_Front_Cart_Context $context ) {
+	public function __construct( Pwca_Public_Cart_Context $context ) {
 		$this->context         = $context;
 		$this->quantity_config = array(
 			'products' => array(

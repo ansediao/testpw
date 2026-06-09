@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Checkout_Template_Override {
+final class Pwca_Public_Checkout_Template_Override {
 	private $plugin_root_path;
 
 	public function __construct( $plugin_root_path ) {

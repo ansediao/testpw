@@ -4,10 +4,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Checkout_Redirect {
+final class Pwca_Public_Checkout_Redirect {
 	private $context;
 
-	public function __construct( Pwca_Front_Checkout_Context $context ) {
+	public function __construct( Pwca_Public_Checkout_Context $context ) {
 		$this->context = $context;
 	}
 

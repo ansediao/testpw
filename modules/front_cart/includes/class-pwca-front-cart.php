@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Cart {
+final class Pwca_Public_Cart {
 	private $module_path;
 	private $module_url;
 
@@ -27,12 +27,12 @@ final class Pwca_Front_Cart {
 	}
 
 	private function register() {
-		$context = new Pwca_Front_Cart_Context();
+		$context = new Pwca_Public_Cart_Context();
 
-		( new Pwca_Front_Cart_Assets( $context, $this->module_path, $this->module_url ) )->register();
-		( new Pwca_Front_Cart_Handler( $context ) )->register();
-		( new Pwca_Front_Cart_Design_Column( $context ) )->register();
-		( new Pwca_Front_Cart_Admin_Actions( $context ) )->register();
-		( new Pwca_Front_Cart_Quantity( $context ) )->register();
+		( new Pwca_Public_Cart_Assets( $context, $this->module_path, $this->module_url ) )->register();
+		( new Pwca_Public_Cart_Handler( $context ) )->register();
+		( new Pwca_Public_Cart_Design_Column( $context ) )->register();
+		( new Pwca_Public_Cart_Admin_Actions( $context ) )->register();
+		( new Pwca_Public_Cart_Quantity( $context ) )->register();
 	}
 }

@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Checkout_Context {
+final class Pwca_Public_Checkout_Context {
 	public function is_checkout_context() {
 		return ( function_exists( 'is_checkout' ) && is_checkout() ) || $this->is_custom_checkout_page();
 	}

@@ -4,12 +4,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Checkout_Assets {
+final class Pwca_Public_Checkout_Assets {
 	private $context;
 	private $module_path;
 	private $module_url;
+	private $plugin_root_path;
+	private $plugin_root_url;
 
-	public function __construct( Pwca_Front_Checkout_Context $context, $module_path, $module_url ) {
+	public function __construct( Pwca_Public_Checkout_Context $context, $module_path, $module_url ) {
 		$this->context     = $context;
 		$this->module_path = $module_path;
 		$this->module_url  = $module_url;

@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Pwca_Public_Product_Woo_Adjustments {
 	private $context;
 
-	public function __construct( Pwca_Front_Product_Context $context ) {
+	public function __construct( Pwca_Public_Product_Context $context ) {
 		$this->context = $context;
 	}
 

@@ -27,13 +27,13 @@ final class Pwca_Public_Product {
 	}
 
 	private function register() {
-		$context = new Pwca_Front_Product_Context();
+		$context = new Pwca_Public_Product_Context();
 
 		( new Pwca_Public_Product_Assets( $context, $this->module_path, $this->module_url ) )->register();
-		( new Pwca_Front_Product_Mount( $context ) )->register();
+		( new Pwca_Public_Product_Mount( $context ) )->register();
 		( new Pwca_Public_Product_Woo_Adjustments( $context ) )->register();
-		( new Pwca_Front_Product_Composite( $context ) )->register();
-		( new Pwca_Front_Product_Inquiry( $context, $this->module_path ) )->register();
+		( new Pwca_Public_Product_Composite( $context ) )->register();
+		( new Pwca_Public_Product_Inquiry( $context, $this->module_path ) )->register();
 	}
 }
 

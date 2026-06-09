@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Product_Context {
+final class Pwca_Public_Product_Context {
 	public function is_product_context() {
 		return function_exists( 'is_product' ) && is_product();
 	}

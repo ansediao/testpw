@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Checkout {
+final class Pwca_Public_Checkout {
 	private $module_path;
 	private $module_url;
 
@@ -25,11 +25,11 @@ final class Pwca_Front_Checkout {
 	}
 
 	private function register() {
-		$context = new Pwca_Front_Checkout_Context();
+		$context = new Pwca_Public_Checkout_Context();
 
-		( new Pwca_Front_Checkout_Assets( $context, $this->module_path, $this->module_url ) )->register();
-		( new Pwca_Front_Checkout_Redirect( $context ) )->register();
-		( new Pwca_Front_Checkout_Template_Override( $this->get_plugin_root_path() ) )->register();
+		( new Pwca_Public_Checkout_Assets( $context, $this->module_path, $this->module_url ) )->register();
+		( new Pwca_Public_Checkout_Redirect( $context ) )->register();
+		( new Pwca_Public_Checkout_Template_Override( $this->get_plugin_root_path() ) )->register();
 	}
 
 	private function get_plugin_root_path() {

@@ -286,9 +286,9 @@
           "code_content": "class Pwca_Front_Product_Inquiry {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - 询价功能",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-product.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-017",
@@ -300,9 +300,9 @@
           "code_content": "class Pwca_Front_Product_Mount {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - 挂载点",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-product.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-018",
@@ -314,9 +314,9 @@
           "code_content": "class Pwca_Front_Product_Composite {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - 组合产品功能",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-product.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-019",
@@ -328,9 +328,9 @@
           "code_content": "class Pwca_Front_Product_Context {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - 上下文数据",
-          "notes": ""
+          "notes": "已重命名并在 Assets/Woo_Adjustments 的构造函数类型提示中同步更新。"
         },
         {
           "id": "PHP-CLASS-020",
@@ -344,9 +344,9 @@
           "related_references": [
             "modules/front_cart/assets/js/ (AJAX处理)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "购物车页 - AJAX购物车处理",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-cart.php 和 index.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-021",
@@ -360,9 +360,9 @@
           "related_references": [
             "modules/front_cart/assets/js/pwca-cart-quantity-controls.js"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "购物车页 - 数量控制",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-cart.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-022",
@@ -376,9 +376,9 @@
           "related_references": [
             "modules/front_cart/assets/js/pwca-cart-admin-actions.js"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "购物车页 - 后台操作入口",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-cart.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-023",
@@ -390,9 +390,9 @@
           "code_content": "class Pwca_Front_Cart {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "购物车页 - 主控制器",
-          "notes": ""
+          "notes": "已重命名并在 front_cart/index.php 中同步更新 bootstrap() 调用。"
         },
         {
           "id": "PHP-CLASS-024",
@@ -406,9 +406,9 @@
           "related_references": [
             "modules/front_cart/assets/js/pwca-cart-design-column.js"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "购物车页 - 设计信息列",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-cart.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-025",
@@ -420,9 +420,9 @@
           "code_content": "class Pwca_Front_Cart_Assets {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "购物车页 - 前端资源加载",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-cart.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-026",
@@ -434,9 +434,9 @@
           "code_content": "class Pwca_Front_Cart_Context {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "购物车页 - 上下文数据",
-          "notes": ""
+          "notes": "已重命名并在所有 Cart 子类的构造函数类型提示中同步更新。"
         },
         {
           "id": "PHP-CLASS-027",
@@ -448,9 +448,9 @@
           "code_content": "class Pwca_Front_Checkout_Template_Override {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "结账页 - 模板覆盖",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-checkout.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-028",
@@ -462,9 +462,9 @@
           "code_content": "class Pwca_Front_Checkout {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "结账页 - 主控制器",
-          "notes": ""
+          "notes": "已重命名并在 front_checkout/index.php 中同步更新 bootstrap() 调用。"
         },
         {
           "id": "PHP-CLASS-029",
@@ -476,9 +476,9 @@
           "code_content": "class Pwca_Front_Checkout_Context {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "结账页 - 上下文数据",
-          "notes": ""
+          "notes": "已重命名并在所有 Checkout 子类的构造函数类型提示中同步更新。"
         },
         {
           "id": "PHP-CLASS-030",
@@ -490,9 +490,9 @@
           "code_content": "class Pwca_Front_Checkout_Redirect {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "结账页 - 重定向逻辑",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-checkout.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-031",
@@ -504,9 +504,9 @@
           "code_content": "class Pwca_Front_Checkout_Assets {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "结账页 - 前端资源加载",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-checkout.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-032",
@@ -520,9 +520,9 @@
           "related_references": [
             "includes/class-pw-admin-promowares-api.php (API调用)"
           ],
-          "status": "未处理",
+          "status": "合规（规范已更新）",
           "frontend_area": "不适用（后台集成服务）",
-          "notes": "建议规范中增加 `Pwca_Integration_` 前缀的说明"
+          "notes": "naming-conventions.md 和 project_rules.md 已新增 Pwca_Integration_ 前缀定义。无需代码变更。"
         },
         {
           "id": "PHP-CLASS-033",
@@ -534,9 +534,9 @@
           "code_content": "class Pwca_Integration_Shipping {",
           "violation": "使用 `Integration_` 前缀，规范中未定义",
           "related_references": [],
-          "status": "未处理",
+          "status": "合规（规范已更新）",
           "frontend_area": "不适用（后台集成服务）",
-          "notes": ""
+          "notes": "规范已更新，无需代码变更。"
         },
         {
           "id": "PHP-CLASS-034",
@@ -548,9 +548,9 @@
           "code_content": "class Pwca_Integration_Shipping_Checkout_Validation {",
           "violation": "使用 `Integration_` 前缀，规范中未定义",
           "related_references": [],
-          "status": "未处理",
+          "status": "合规（规范已更新）",
           "frontend_area": "结账页 - 配送校验",
-          "notes": ""
+          "notes": "规范已更新，无需代码变更。"
         },
         {
           "id": "PHP-CLASS-035",
@@ -562,9 +562,9 @@
           "code_content": "class Pwca_Integration_Shipping_Shipping {",
           "violation": "使用 `Integration_` 前缀，规范中未定义",
           "related_references": [],
-          "status": "未处理",
+          "status": "合规（规范已更新）",
           "frontend_area": "不适用（配送方法类）",
-          "notes": ""
+          "notes": "规范已更新，无需代码变更。"
         },
         {
           "id": "PHP-CLASS-036",
@@ -578,9 +578,9 @@
           "related_references": [
             "modules/integration_shipping/assets/js/pwca-checkout-shipping.js"
           ],
-          "status": "未处理",
+          "status": "合规（规范已更新）",
           "frontend_area": "结账页 - AJAX配送",
-          "notes": ""
+          "notes": "规范已更新，无需代码变更。"
         },
         {
           "id": "PHP-CLASS-037",
@@ -592,9 +592,9 @@
           "code_content": "class Pwca_Integration_Shipping_Context {",
           "violation": "使用 `Integration_` 前缀，规范中未定义",
           "related_references": [],
-          "status": "未处理",
+          "status": "合规（规范已更新）",
           "frontend_area": "结账页 - 配送上下文",
-          "notes": ""
+          "notes": "规范已更新，无需代码变更。"
         },
         {
           "id": "PHP-CLASS-038",
@@ -606,9 +606,9 @@
           "code_content": "class Pwca_Integration_Shipping_Assets {",
           "violation": "使用 `Integration_` 前缀，规范中未定义",
           "related_references": [],
-          "status": "未处理",
+          "status": "合规（规范已更新）",
           "frontend_area": "结账页 - 前端资源加载",
-          "notes": ""
+          "notes": "规范已更新，无需代码变更。"
         }
       ]
     },

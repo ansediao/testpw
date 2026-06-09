@@ -4,11 +4,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Product_Inquiry {
+final class Pwca_Public_Product_Inquiry {
 	private $context;
 	private $module_path;
 
-	public function __construct( Pwca_Front_Product_Context $context, $module_path ) {
+	public function __construct( Pwca_Public_Product_Context $context, $module_path ) {
 		$this->context     = $context;
 		$this->module_path = $module_path;
 	}

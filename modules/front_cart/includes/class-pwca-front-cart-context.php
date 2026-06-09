@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Cart_Context {
+final class Pwca_Public_Cart_Context {
 	public function is_cart_context() {
 		return $this->is_cart_page() || $this->is_custom_cart_page();
 	}
