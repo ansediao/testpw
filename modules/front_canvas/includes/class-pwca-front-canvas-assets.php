@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Canvas_Assets {
+final class Pwca_Public_Canvas_Assets {
 	private $context;
 	private $module_path;
 	private $module_url;

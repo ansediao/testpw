@@ -237,7 +237,7 @@ class Pwca_Admin {
 			return;
 		}
 
-		$module_loader = new Pwca_Module_Loader( $modules_path );
+		$module_loader = new Pwca_Admin_Module_Loader( $modules_path );
 		$module_loader->load();
 	}
 

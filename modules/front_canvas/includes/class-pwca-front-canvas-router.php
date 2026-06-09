@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Canvas_Router {
+final class Pwca_Public_Canvas_Router {
 	private $context;
 	private $module_path;
 

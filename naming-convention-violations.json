@@ -138,9 +138,9 @@
           "related_references": [
             "includes/class-pw-admin.php (注册钩子)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "不适用（插件激活处理）",
-          "notes": ""
+          "notes": "已重命名并在 pw-admin.php 的 activate_pw_admin() 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-007",
@@ -154,9 +154,9 @@
           "related_references": [
             "所有模块的 index.php (加载入口)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "不适用（模块加载器）",
-          "notes": "统一加载所有模块"
+          "notes": "已重命名为 Pwca_Admin_Module_Loader，在 class-pw-admin.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-008",
@@ -170,9 +170,9 @@
           "related_references": [
             "modules/front_canvas/assets/js/canvas/page-bootstrap.js (前端路由)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - URL路由与重写规则",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-canvas.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-009",
@@ -186,9 +186,9 @@
           "related_references": [
             "modules/front_canvas/views/canvas-page.php (CSS/JS加载)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 前端资源加载",
-          "notes": ""
+          "notes": "已重命名并在 class-pwca-front-canvas.php 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-010",
@@ -200,9 +200,9 @@
           "code_content": "class Pwca_Front_Canvas {",
           "violation": "使用 `Front_` 而非规范要求的 `Public_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 主控制器",
-          "notes": ""
+          "notes": "已重命名并在 front_canvas/index.php 中同步更新 bootstrap() 调用。"
         },
         {
           "id": "PHP-CLASS-011",

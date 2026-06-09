@@ -6,8 +6,8 @@
  * @link       https://www.pw.com
  * @since      1.0.0
  *
- * @package    Pw_Admin
- * @subpackage Pw_Admin/includes
+ * @package    Pwca_Admin
+ * @subpackage Pwca_Admin/includes
  */
 
 /**
@@ -16,11 +16,11 @@
  * This class defines all code necessary to run during the plugin's activation.
  *
  * @since      1.0.0
- * @package    Pw_Admin
- * @subpackage Pw_Admin/includes
+ * @package    Pwca_Admin
+ * @subpackage Pwca_Admin/includes
  * @author     PW <pw@pwcom>
  */
-class Pw_Admin_Activator
+class Pwca_Admin_Activator
 {
 
 	/**

@@ -51,7 +51,7 @@ define('MY_PLUGIN_ICONS_URL', MY_PLUGIN_URL . 'assets/images/icons/');
 function activate_pw_admin()
 {
     require_once plugin_dir_path(__FILE__) . 'includes/class-pw-admin-activator.php';
-    Pw_Admin_Activator::activate();
+    Pwca_Admin_Activator::activate();
 }
 
 /**

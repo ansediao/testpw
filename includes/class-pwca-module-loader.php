@@ -6,7 +6,7 @@
  * 负责扫描插件根目录下的 modules/ 目录，并依次 include 各子目录中的 index.php。
  * Day 1：只做文件包含，不注册任何钩子，不改变现有行为。
  */
-class Pwca_Module_Loader {
+class Pwca_Admin_Module_Loader {
 
     /**
      * 模块根目录路径（绝对路径，以目录分隔符结尾）

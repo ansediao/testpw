@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-final class Pwca_Front_Canvas {
+final class Pwca_Public_Canvas {
 	private $module_path;
 	private $module_url;
 
@@ -27,8 +27,8 @@ final class Pwca_Front_Canvas {
 	private function register() {
 		$context = new Pwca_Front_Canvas_Context();
 
-		( new Pwca_Front_Canvas_Router( $context, $this->module_path ) )->register();
-		( new Pwca_Front_Canvas_Assets( $context, $this->module_path, $this->module_url ) )->register();
+		( new Pwca_Public_Canvas_Router( $context, $this->module_path ) )->register();
+		( new Pwca_Public_Canvas_Assets( $context, $this->module_path, $this->module_url ) )->register();
 		( new Pwca_Front_Canvas_Inquiry_Rest() )->register();
 	}
 }
