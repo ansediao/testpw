@@ -36,14 +36,14 @@ $data_payload = array(
 
 	<textarea id="pwca-design-library-data" hidden><?php echo esc_textarea( wp_json_encode( $data_payload ) ); ?></textarea>
 
-	<div class="pw-design-controls">
-		<div class="pw-design-actions">
+	<div class="pwca-design-controls">
+		<div class="pwca-design-actions">
 			<button class="button button-primary" id="pw-add-design-btn" type="button">Add Design</button>
 			<button class="button" id="pw-add-category-btn" type="button">Add Category</button>
 			<button class="button" id="pw-manage-category-btn" type="button">Manage Category</button>
 		</div>
 
-		<div class="pw-design-filters">
+		<div class="pwca-design-filters">
 			<form method="get" action="">
 				<input type="hidden" name="page" value="<?php echo esc_attr( (string) ( $_REQUEST['page'] ?? '' ) ); ?>">
 				<input type="text" name="s" value="<?php echo esc_attr( $search_query ); ?>" placeholder="Search Designs">
@@ -70,7 +70,7 @@ $data_payload = array(
 		</div>
 	</div>
 
-	<div class="pw-design-tabs nav-tab-wrapper">
+	<div class="pwca-design-tabs nav-tab-wrapper">
 		<a href="<?php echo esc_url( add_query_arg( array( 'page' => (string) ( $_REQUEST['page'] ?? '' ), 'tab' => 'all', 'category' => $selected_category, 's' => $search_query ) ) ); ?>" class="nav-tab <?php echo ( 'all' === $selected_tab ) ? 'nav-tab-active' : ''; ?>">All</a>
 		<a href="<?php echo esc_url( add_query_arg( array( 'page' => (string) ( $_REQUEST['page'] ?? '' ), 'tab' => 'universal', 'category' => $selected_category, 's' => $search_query ) ) ); ?>" class="nav-tab <?php echo ( 'universal' === $selected_tab ) ? 'nav-tab-active' : ''; ?>">Universal</a>
 		<a href="<?php echo esc_url( add_query_arg( array( 'page' => (string) ( $_REQUEST['page'] ?? '' ), 'tab' => 'universal-main-view', 'category' => $selected_category, 's' => $search_query ) ) ); ?>" class="nav-tab <?php echo ( 'universal-main-view' === $selected_tab ) ? 'nav-tab-active' : ''; ?>">Universal for Main View</a>
@@ -82,39 +82,39 @@ $data_payload = array(
 	</div>
 
 	<div id="pw-design-app" hidden aria-busy="true">
-		<div class="pw-design-bulk-actions">
+		<div class="pwca-design-bulk-actions">
 			<button class="button" type="button" @click="openFilterModal">Filter</button>
 			<label><input type="checkbox" v-model="allSelected"> Select All</label>
 			<button v-show="selectedDesignIds.length > 0" id="pw-delete-selected-designs" class="button button-danger" type="button" @click="triggerBulkDelete">Delete Selected</button>
 			<button v-show="selectedDesignIds.length > 0" id="pw-bulk-update-designs" class="button button-primary" type="button" @click="triggerBulkUpdate">Bulk Update</button>
 		</div>
 
-		<div class="pw-design-grid">
+		<div class="pwca-design-grid">
 			<div v-if="paginatedDesigns.length === 0">No designs found.</div>
-			<div v-for="design in paginatedDesigns" :key="design.id" class="pw-design-card" :data-design-id="design.id">
-				<div class="pw-design-thumbnail">
-					<input type="checkbox" class="pw-design-checkbox" :value="design.id" :checked="selectedDesignIds.includes(design.id)" @change="toggleSelection(design.id)">
-					<img v-if="design.thumbnail" :src="design.thumbnail" class="pw-design-thumbnail-img" alt="">
+			<div v-for="design in paginatedDesigns" :key="design.id" class="pwca-design-card" :data-design-id="design.id">
+				<div class="pwca-design-thumbnail">
+					<input type="checkbox" class="pwca-design-checkbox" :value="design.id" :checked="selectedDesignIds.includes(design.id)" @change="toggleSelection(design.id)">
+					<img v-if="design.thumbnail" :src="design.thumbnail" class="pwca-design-thumbnail-img" alt="">
 					<div v-else>Thumbnail Design</div>
 				</div>
-				<div class="pw-design-name">{{ design.name }}</div>
-				<button class="button pw-add-tag-button" type="button" :data-design-id="design.id" @click="triggerAddTag(design.id)">Add Tag</button>
-				<div class="pw-design-tags" :data-design-id="design.id">
-					<span v-if="design.tags && design.tags.length" class="pw-tags-label">Tags: </span>
+				<div class="pwca-design-name">{{ design.name }}</div>
+				<button class="button pwca-add-tag-button" type="button" :data-design-id="design.id" @click="triggerAddTag(design.id)">Add Tag</button>
+				<div class="pwca-design-tags" :data-design-id="design.id">
+					<span v-if="design.tags && design.tags.length" class="pwca-tags-label">Tags: </span>
 					{{ design.tags ? design.tags.join(' ') : '' }}
 				</div>
-				<div class="pw-design-actions-bottom">
-					<button type="button" class="pw-edit-design-btn" :data-design-id="design.id" title="Edit Design" @click="triggerEdit(design.id)">
+				<div class="pwca-design-actions-bottom">
+					<button type="button" class="pwca-edit-design-btn" :data-design-id="design.id" title="Edit Design" @click="triggerEdit(design.id)">
 						<span class="dashicons dashicons-edit" aria-hidden="true"></span>
 					</button>
-					<a :href="design.delete_link" title="Delete Design" class="pw-delete-design-link" :data-design-id="design.id">
+					<a :href="design.delete_link" title="Delete Design" class="pwca-delete-design-link" :data-design-id="design.id">
 						<span class="dashicons dashicons-trash" aria-hidden="true"></span>
 					</a>
 				</div>
 			</div>
 		</div>
 
-		<div class="pw-pagination" v-if="totalPages > 1">
+		<div class="pwca-pagination" v-if="totalPages > 1">
 			<button class="button" type="button" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">Previous</button>
 			<span>Page {{ currentPage }} of {{ totalPages }}</span>
 			<button class="button" type="button" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">Next</button>
@@ -128,20 +128,20 @@ $data_payload = array(
 						<button class="modal__close" type="button" aria-label="Close modal" @click="closeFilterModal">&times;</button>
 					</header>
 					<div class="modal__content">
-						<div class="pw-filter-search-field">
+						<div class="pwca-filter-search-field">
 							<span class="dashicons dashicons-search" aria-hidden="true"></span>
 							<input type="text" v-model="fieldSearch" placeholder="Search the Field Name">
 							<span v-if="fieldSearch" class="dashicons dashicons-no-alt" @click="fieldSearch = ''" role="button" aria-label="Clear"></span>
 						</div>
 
-						<div class="pw-filter-section">
-							<h5 class="pw-filter-toggle">Selected Filter Field</h5>
-							<div class="pw-filter-options">
-								<div v-for="(filter, index) in tempFilters" :key="index" class="pw-filter-item">
-									<div class="pw-filter-item-header">
+						<div class="pwca-filter-section">
+							<h5 class="pwca-filter-toggle">Selected Filter Field</h5>
+							<div class="pwca-filter-options">
+								<div v-for="(filter, index) in tempFilters" :key="index" class="pwca-filter-item">
+									<div class="pwca-filter-item-header">
 										<label><input type="checkbox" checked @change="removeFilterField(index)"> {{ filter.label }}</label>
 									</div>
-									<div class="pw-filter-condition">
+									<div class="pwca-filter-condition">
 										<select v-model="filter.operator">
 											<option value="contains" v-if="filter.type === 'text'">contains</option>
 											<option value="not_contains" v-if="filter.type === 'text'">does not contain</option>
@@ -158,17 +158,17 @@ $data_payload = array(
 										</select>
 									</div>
 								</div>
-								<div v-if="tempFilters.length === 0" class="pw-empty">--No Matching Fields--</div>
+								<div v-if="tempFilters.length === 0" class="pwca-empty">--No Matching Fields--</div>
 							</div>
 						</div>
 
-						<div class="pw-filter-section">
-							<h5 class="pw-filter-toggle">Not Selected Filter Field</h5>
-							<div class="pw-filter-options">
-								<div v-for="field in notSelectedFields" :key="field.key" class="pw-filter-item-available">
+						<div class="pwca-filter-section">
+							<h5 class="pwca-filter-toggle">Not Selected Filter Field</h5>
+							<div class="pwca-filter-options">
+								<div v-for="field in notSelectedFields" :key="field.key" class="pwca-filter-item-available">
 									<label><input type="checkbox" @change="addFilterField(field)"> {{ field.label }}</label>
 								</div>
-								<div v-if="notSelectedFields.length === 0" class="pw-empty">--No Matching Fields--</div>
+								<div v-if="notSelectedFields.length === 0" class="pwca-empty">--No Matching Fields--</div>
 							</div>
 						</div>
 					</div>
@@ -188,40 +188,40 @@ $data_payload = array(
 						<button class="modal__close" type="button" aria-label="Close modal" @click="closeBulkUpdateModal">&times;</button>
 					</header>
 					<div class="modal__content">
-						<div class="pw-filter-search-field">
+						<div class="pwca-filter-search-field">
 							<span class="dashicons dashicons-search" aria-hidden="true"></span>
 							<input type="text" v-model="updateFieldSearch" placeholder="Search the Field Name">
 							<span v-if="updateFieldSearch" class="dashicons dashicons-no-alt" @click="updateFieldSearch = ''" role="button" aria-label="Clear"></span>
 						</div>
 
-						<div class="pw-filter-section">
-							<h5 class="pw-filter-toggle">Selected Filter Field</h5>
-							<div class="pw-filter-options">
-								<div v-for="(field, index) in bulkUpdateFields" :key="index" class="pw-filter-item">
-									<div class="pw-filter-item-header">
+						<div class="pwca-filter-section">
+							<h5 class="pwca-filter-toggle">Selected Filter Field</h5>
+							<div class="pwca-filter-options">
+								<div v-for="(field, index) in bulkUpdateFields" :key="index" class="pwca-filter-item">
+									<div class="pwca-filter-item-header">
 										<label><input type="checkbox" checked @change="removeBulkUpdateField(index)"> {{ field.label }}</label>
 									</div>
-									<div class="pw-filter-condition">
+									<div class="pwca-filter-condition">
 										<input v-if="field.type === 'text'" type="text" v-model="field.value" class="regular-text" placeholder="Enter new value">
 										<select v-if="field.type === 'select'" v-model="field.value">
 											<option value="">Select {{ field.label }}</option>
 											<option v-for="opt in field.options" :value="opt.value">{{ opt.label }}</option>
 										</select>
-										<div v-if="field.type === 'toggle'" class="pw-toggle-switch">
-											<input type="checkbox" v-model="field.value" :id="'toggle-' + index" class="pw-toggle-input" true-value="publish" false-value="draft">
-											<label :for="'toggle-' + index" class="pw-toggle-label"><span class="pw-toggle-slider"></span></label>
-											<span class="pw-toggle-text">{{ field.value === 'publish' ? 'Published' : (field.value === 'draft' ? 'Draft' : 'Select Status') }}</span>
+										<div v-if="field.type === 'toggle'" class="pwca-toggle-switch">
+											<input type="checkbox" v-model="field.value" :id="'toggle-' + index" class="pwca-toggle-input" true-value="publish" false-value="draft">
+											<label :for="'toggle-' + index" class="pwca-toggle-label"><span class="pwca-toggle-slider"></span></label>
+											<span class="pwca-toggle-text">{{ field.value === 'publish' ? 'Published' : (field.value === 'draft' ? 'Draft' : 'Select Status') }}</span>
 										</div>
 									</div>
 								</div>
-								<div v-if="bulkUpdateFields.length === 0" class="pw-empty">--No Fields Selected--</div>
+								<div v-if="bulkUpdateFields.length === 0" class="pwca-empty">--No Fields Selected--</div>
 							</div>
 						</div>
 
-						<div class="pw-filter-section">
-							<h5 class="pw-filter-toggle">Not Selected Filter Field</h5>
-							<div class="pw-filter-options">
-								<div v-for="field in notSelectedUpdateFields" :key="field.key" class="pw-filter-item-available">
+						<div class="pwca-filter-section">
+							<h5 class="pwca-filter-toggle">Not Selected Filter Field</h5>
+							<div class="pwca-filter-options">
+								<div v-for="field in notSelectedUpdateFields" :key="field.key" class="pwca-filter-item-available">
 									<label><input type="checkbox" @change="addBulkUpdateField(field)"> {{ field.label }}</label>
 								</div>
 							</div>
@@ -267,7 +267,7 @@ $data_payload = array(
 				<form id="pw-add-design-form" enctype="multipart/form-data">
 					<?php wp_nonce_field( 'pw_add_design_nonce', 'pw_add_design_nonce_field' ); ?>
 
-					<div class="pw-form-field pwca-upload-field">
+					<div class="pwca-form-field pwca-upload-field">
 						<label for="pw-design-image" class="pwca-upload-label">
 							<div id="pw-upload-placeholder">
 								<span class="dashicons dashicons-cloud-upload" aria-hidden="true"></span>
@@ -283,18 +283,18 @@ $data_payload = array(
 						<input type="file" id="pw-design-image" name="design_image" accept="image/*">
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-design-name">Design Name</label>
 						<input type="text" id="pw-design-name" name="design_name" required>
 					</div>
 
-					<div class="pw-form-field pwca-design-sku-field">
+					<div class="pwca-form-field pwca-design-sku-field">
 						<label for="pw-design-sku">SKU</label>
 						<input type="text" id="pw-design-sku" name="design_sku" required>
 						<p class="pwca-field-message" id="pw-design-sku-message" aria-live="polite"></p>
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-design-category">Design Category</label>
 						<select id="pw-design-category" name="design_category">
 							<option value="">选择分类</option>
@@ -327,29 +327,29 @@ $data_payload = array(
 					<?php wp_nonce_field( 'pw_edit_design_nonce', 'pw_edit_design_nonce_field' ); ?>
 					<input type="hidden" id="pw-edit-design-id" name="design_id" value="">
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-edit-design-name">Design Name</label>
 						<input type="text" id="pw-edit-design-name" name="design_name" required>
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-edit-design-description">Description</label>
 						<textarea id="pw-edit-design-description" name="design_description" rows="4" placeholder="Enter design description..."></textarea>
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-edit-design-category">Design Category</label>
 						<select id="pw-edit-design-category" name="design_category">
 							<option value="">Select Category</option>
 						</select>
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-edit-design-tags">Tags</label>
 						<input type="text" id="pw-edit-design-tags" name="design_tags" placeholder="Enter tags separated by commas...">
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label class="pwca-checkbox-row">
 							<input type="checkbox" id="pw-edit-design-enabled" name="design_enabled" value="1">
 							<span>Enable Setting</span>
@@ -376,12 +376,12 @@ $data_payload = array(
 				<form id="pw-add-category-form">
 					<input type="hidden" name="pw_add_category_nonce_field" value="<?php echo esc_attr( (string) ( $nonces['add_category'] ?? '' ) ); ?>">
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-category-name">Category Name</label>
 						<input type="text" id="pw-category-name" name="category_name" required placeholder="Enter category name">
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-category-type">Category Type</label>
 						<select id="pw-category-type" name="category_type">
 							<option value="universal">Universal</option>
@@ -407,17 +407,17 @@ $data_payload = array(
 				<button class="modal__close" type="button" aria-label="Close modal" data-micromodal-close>&times;</button>
 			</header>
 			<div class="modal__content">
-				<div class="pw-category-list">
+				<div class="pwca-category-list">
 					<?php if ( ! empty( $terms ) ) : ?>
-						<div class="pw-category-items">
+						<div class="pwca-category-items">
 							<?php foreach ( $terms as $term ) : ?>
 								<?php if ( $term instanceof WP_Term ) : ?>
-									<div class="pw-category-item" data-category-id="<?php echo esc_attr( (string) $term->term_id ); ?>">
-										<input type="text" class="pw-category-name-input" value="<?php echo esc_attr( (string) $term->name ); ?>" maxlength="60">
-										<span class="pw-category-settings-btn" role="button" tabindex="0" data-category-id="<?php echo esc_attr( (string) $term->term_id ); ?>">
+									<div class="pwca-category-item" data-category-id="<?php echo esc_attr( (string) $term->term_id ); ?>">
+										<input type="text" class="pwca-category-name-input" value="<?php echo esc_attr( (string) $term->name ); ?>" maxlength="60">
+										<span class="pwca-category-settings-btn" role="button" tabindex="0" data-category-id="<?php echo esc_attr( (string) $term->term_id ); ?>">
 											<span class="dashicons dashicons-admin-generic" aria-hidden="true"></span>
 										</span>
-										<span class="pw-category-delete-btn" role="button" tabindex="0" data-category-id="<?php echo esc_attr( (string) $term->term_id ); ?>">
+										<span class="pwca-category-delete-btn" role="button" tabindex="0" data-category-id="<?php echo esc_attr( (string) $term->term_id ); ?>">
 											<span class="dashicons dashicons-trash" aria-hidden="true"></span>
 										</span>
 									</div>
@@ -425,7 +425,7 @@ $data_payload = array(
 							<?php endforeach; ?>
 						</div>
 					<?php else : ?>
-						<div class="pw-no-categories">
+						<div class="pwca-no-categories">
 							<p>No categories found. Create your first category!</p>
 						</div>
 					<?php endif; ?>
@@ -449,17 +449,17 @@ $data_payload = array(
 				<form id="pw-category-settings-form">
 					<input type="hidden" id="pw-settings-category-id" name="category_id" value="">
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-settings-category-name">Category Name</label>
 						<input type="text" id="pw-settings-category-name" name="category_name" required>
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-settings-category-description">Description</label>
 						<textarea id="pw-settings-category-description" name="category_description" rows="3" placeholder="Enter category description..."></textarea>
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-settings-category-type">Category Type</label>
 						<select id="pw-settings-category-type" name="category_type">
 							<option value="universal">Universal</option>
@@ -468,19 +468,19 @@ $data_payload = array(
 						</select>
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label class="pwca-checkbox-row">
 							<input type="checkbox" id="pw-exclude-from-export" name="exclude_from_export" value="1">
 							<span>Exclude From Export</span>
 						</label>
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-layer-depth">Layer Depth</label>
 						<input type="number" id="pw-layer-depth" name="layer_depth" value="-1">
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-scale-mode">Scale Mode</label>
 						<select id="pw-scale-mode" name="scale_mode">
 							<option value="fit">Fit</option>
@@ -490,38 +490,38 @@ $data_payload = array(
 						</select>
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label class="pwca-checkbox-row">
 							<input type="checkbox" id="pw-allow-resize" name="allow_resize" value="1">
 							<span>Allow Resize</span>
 						</label>
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label class="pwca-checkbox-row">
 							<input type="checkbox" id="pw-allow-rotate" name="allow_rotate" value="1">
 							<span>Allow Rotate</span>
 						</label>
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label class="pwca-checkbox-row">
 							<input type="checkbox" id="pw-allow-delete" name="allow_delete" value="1">
 							<span>Allow Delete</span>
 						</label>
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-base-price">Base Price</label>
 						<input type="number" id="pw-base-price" name="base_price" step="0.01" min="0" placeholder="0.00">
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label for="pw-price-per-unit">Price Per Unit</label>
 						<input type="number" id="pw-price-per-unit" name="price_per_unit" step="0.01" min="0" placeholder="0.00">
 					</div>
 
-					<div class="pw-form-field">
+					<div class="pwca-form-field">
 						<label class="pwca-checkbox-row">
 							<input type="checkbox" id="pw-price-enabled" name="price_enabled" value="1">
 							<span>Enable Pricing</span>

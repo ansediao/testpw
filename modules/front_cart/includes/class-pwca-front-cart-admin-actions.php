@@ -13,8 +13,8 @@ final class Pwca_Public_Cart_Admin_Actions {
 
 	public function register() {
 		add_filter( 'woocommerce_cart_item_name', array( $this, 'add_admin_action_buttons' ), 10, 3 );
-		add_action( 'wp_ajax_pw_duplicate_cart_item', array( $this, 'handle_duplicate_cart_item' ) );
-		add_action( 'wp_ajax_nopriv_pw_duplicate_cart_item', array( $this, 'handle_duplicate_cart_item' ) );
+		add_action( 'wp_ajax_pwca_duplicate_cart_item', array( $this, 'handle_duplicate_cart_item' ) );
+		add_action( 'wp_ajax_nopriv_pwca_duplicate_cart_item', array( $this, 'handle_duplicate_cart_item' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'localize_admin_actions' ) );
 	}
 

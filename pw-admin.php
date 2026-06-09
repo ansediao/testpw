@@ -131,7 +131,7 @@ function get_pw_design_images()
 }
 
 add_action('rest_api_init', function () {
-    register_rest_route('pw/v1', '/getPwDesignImages', array(
+    register_rest_route('pwca/v1', '/getPwDesignImages', array(
         'methods' => 'GET',
         'callback' => 'get_pw_design_images',
     ));

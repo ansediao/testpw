@@ -233,7 +233,7 @@
 
 				try {
 					const response = await postUrlEncoded({
-						action: 'pw_save_mock_mode',
+						action: 'pwca_save_mock_mode',
 						mode: value,
 						nonce: saveMockModeNonce,
 					})
@@ -323,7 +323,7 @@
 
 				try {
 					const response = await postUrlEncoded({
-						action: 'pw_toggle_cache',
+						action: 'pwca_toggle_cache',
 						nonce: toggleCacheNonce,
 						enabled: enabled ? 1 : 0,
 					})
@@ -358,7 +358,7 @@
 
 			try {
 				const data = await postUrlEncoded({
-					action: 'pw_get_cache_status',
+					action: 'pwca_get_cache_status',
 					nonce: cacheStatusNonce,
 				})
 
@@ -392,7 +392,7 @@
 
 			try {
 				const data = await postUrlEncoded({
-					action: 'pw_clear_product_cache',
+					action: 'pwca_clear_product_cache',
 					nonce: clearCacheNonce,
 					product_id: productId,
 				})

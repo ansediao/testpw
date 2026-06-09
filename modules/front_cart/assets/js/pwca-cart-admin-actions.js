@@ -25,7 +25,7 @@
 			type: 'POST',
 			dataType: 'json',
 			data: {
-				action: 'pw_duplicate_cart_item',
+				action: 'pwca_duplicate_cart_item',
 				cart_key: cartKey,
 				nonce: config.nonce,
 			},

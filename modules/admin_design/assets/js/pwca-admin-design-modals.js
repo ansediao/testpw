@@ -126,7 +126,7 @@
 
 	const bindDeleteConfirm = () => {
 		document.addEventListener('click', (event) => {
-			const link = event.target.closest('.pw-delete-design-link')
+			const link = event.target.closest('.pwca-delete-design-link')
 			if (!link) return
 			const ok = window.confirm('Are you sure?')
 			if (!ok) {
@@ -221,7 +221,7 @@
 
 			try {
 				const response = await postUrlEncoded({
-					action: 'pw_check_design_sku_unique',
+					action: 'pwca_check_design_sku_unique',
 					sku,
 					nonce: addDesignNonce,
 				})
@@ -304,7 +304,7 @@
 			event.preventDefault()
 			if (submitButton.disabled) return
 			const formData = new FormData(form)
-			formData.append('action', 'pw_add_design')
+			formData.append('action', 'pwca_add_design')
 
 			submitButton.disabled = true
 			try {
@@ -333,7 +333,7 @@
 
 		try {
 			const response = await postUrlEncoded({
-				action: 'pw_get_design_tags',
+				action: 'pwca_get_design_tags',
 				design_id: designId,
 				nonce: addDesignNonce,
 			})
@@ -377,7 +377,7 @@
 			saveButton.disabled = true
 			try {
 				const response = await postUrlEncoded({
-					action: 'pw_save_design_tags',
+					action: 'pwca_save_design_tags',
 					design_id: designId,
 					tags: selected,
 					nonce: addDesignNonce,
@@ -413,7 +413,7 @@
 
 		try {
 			const response = await postUrlEncoded({
-				action: 'pw_get_design_data',
+				action: 'pwca_get_design_data',
 				design_id: designId,
 				nonce: adminNonce,
 			})
@@ -491,7 +491,7 @@
 			submitButton.disabled = true
 			try {
 				const response = await postUrlEncoded({
-					action: 'pw_add_category',
+					action: 'pwca_add_category',
 					category_name: categoryName,
 					category_type: categoryType,
 					nonce: addCategoryNonce,
@@ -551,7 +551,7 @@
 
 			try {
 				const response = await postUrlEncoded({
-					action: 'pw_get_category_settings',
+					action: 'pwca_get_category_settings',
 					category_id: categoryId,
 					nonce: addCategoryNonce,
 				})
@@ -579,7 +579,7 @@
 			}
 		}
 
-		$(document).on('click', '.pw-category-delete-btn', async function (event) {
+		$(document).on('click', '.pwca-category-delete-btn', async function (event) {
 			event.preventDefault()
 			const categoryId = Number($(this).data('category-id'))
 			if (!categoryId) return
@@ -589,7 +589,7 @@
 
 			try {
 				const response = await postUrlEncoded({
-					action: 'pw_delete_category',
+					action: 'pwca_delete_category',
 					category_id: categoryId,
 					nonce: addCategoryNonce,
 				})
@@ -604,7 +604,7 @@
 			}
 		})
 
-		$(document).on('click', '.pw-category-settings-btn', function (event) {
+		$(document).on('click', '.pwca-category-settings-btn', function (event) {
 			event.preventDefault()
 			const categoryId = Number($(this).data('category-id'))
 			if (!categoryId) return
@@ -626,7 +626,7 @@
 				return
 			}
 
-			formData.append('action', 'pw_update_category_settings')
+			formData.append('action', 'pwca_update_category_settings')
 			formData.append('nonce', addCategoryNonce)
 
 			submitButton.disabled = true
@@ -667,7 +667,7 @@
 			if (!ok) return
 
 			postUrlEncoded({
-				action: 'pw_bulk_delete_designs',
+				action: 'pwca_bulk_delete_designs',
 				ids,
 				nonce: bulkDeleteNonce,
 			})
@@ -692,7 +692,7 @@
 			if (ids.length === 0 || fields.length === 0) return
 
 			postUrlEncoded({
-				action: 'pw_bulk_update_designs',
+				action: 'pwca_bulk_update_designs',
 				ids,
 				fields: JSON.stringify(fields),
 				nonce: bulkUpdateNonce,

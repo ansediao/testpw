@@ -31,7 +31,7 @@ final class Pwca_Admin_Dashboard_Product_Request {
 	}
 
 	private function register() {
-		add_action( 'wp_ajax_pw_submit_product_request', array( $this, 'handle_product_request_submission' ) );
+		add_action( 'wp_ajax_pwca_submit_product_request', array( $this, 'handle_product_request_submission' ) );
 	}
 
 	/**

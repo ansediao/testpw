@@ -60,7 +60,7 @@ final class Pwca_Admin_Dashboard_Dashboard {
 			'ajax_url'             => admin_url( 'admin-ajax.php' ),
 			'admin_page_url'       => admin_url( 'admin.php' ),
 			'store_url'            => home_url( '/' ),
-			'rest_product_base'    => trailingslashit( rest_url( 'pw/v1/product-data' ) ),
+			'rest_product_base'    => trailingslashit( rest_url( 'pwca/v1/product-data' ) ),
 			'save_token_nonce'     => wp_create_nonce( 'pw_save_token_nonce' ),
 			'connect_nonce'        => wp_create_nonce( 'pwca_get_bind_entry_url' ),
 			'disconnect_nonce'     => wp_create_nonce( 'pwca_disconnect_store' ),

@@ -1,5 +1,5 @@
 export async function fetchCanvasProductData(pwId) {
-    const response = await fetch(`/wp-json/pw/v1/product-data/${pwId}`);
+    const response = await fetch(`/wp-json/pwca/v1/product-data/${pwId}`);
 
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

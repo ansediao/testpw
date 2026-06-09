@@ -1,5 +1,5 @@
 export async function fetchPrintMethodsByIds(printingMethodIds) {
-    const response = await fetch('/wp-json/pw-canvas/v1/print-methods', {
+    const response = await fetch('/wp-json/pwca/v1/print-methods', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -22,7 +22,7 @@ export async function fetchPrintMethodsByIds(printingMethodIds) {
 }
 
 export async function fetchCustomColorsByListId(colorListId) {
-    const response = await fetch('/wp-json/pw-canvas/v1/custom-colors', {
+    const response = await fetch('/wp-json/pwca/v1/custom-colors', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

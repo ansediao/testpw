@@ -1561,9 +1561,9 @@
           "expected": "register_rest_route('pwca/v1', '/product-data/(?P<id>\\d+)', ...)",
           "violation": "REST命名空间使用 `pw/v1` 而非 `pwca/v1`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "不适用（REST API代理端点）",
-          "notes": ""
+          "notes": "已更新命名空间为 pwca/v1"
         },
         {
           "id": "API-002",
@@ -1574,9 +1574,9 @@
           "expected": "register_rest_route('pwca/v1', '/store-customization-settings', ...)",
           "violation": "REST命名空间使用 `pw-canvas/v1` 而非 `pwca/v1`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 店铺定制设置",
-          "notes": ""
+          "notes": "已更新命名空间为 pwca/v1"
         },
         {
           "id": "API-003",
@@ -1589,7 +1589,7 @@
           "related_references": [
             "modules/front_canvas/assets/js/design/api/print-method-api.js (前端调用)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 印刷方式数据"
         },
         {
@@ -1601,7 +1601,7 @@
           "expected": "register_rest_route('pwca/v1', '/custom-colors', ...)",
           "violation": "REST命名空间使用 `pw-canvas/v1` 而非 `pwca/v1`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 自定义颜色"
         },
         {
@@ -1613,7 +1613,7 @@
           "expected": "register_rest_route('pwca/v1', '/upload-image', ...)",
           "violation": "REST命名空间使用 `pw-canvas/v1` 而非 `pwca/v1`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 图片上传"
         },
         {
@@ -1625,7 +1625,7 @@
           "expected": "register_rest_route('pwca/v1', '/getPwDesignImages', ...)",
           "violation": "REST命名空间使用 `pw/v1` 而非 `pwca/v1`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "设计库 - 图片获取"
         },
         {
@@ -1639,8 +1639,9 @@
           "related_references": [
             "modules/admin_dashboard/assets/js/pwca-admin-dashboard.js (前端调用)"
           ],
-          "status": "未处理",
-          "frontend_area": "后台仪表板 - API代理/缓存切换"
+          "status": "已处理",
+          "frontend_area": "后台仪表板 - API代理/缓存切换",
+          "notes": "同步更新了 nonce 名 pw_toggle_cache_nonce → pwca_toggle_cache_nonce"
         },
         {
           "id": "API-008",
@@ -1651,7 +1652,7 @@
           "expected": "wp_ajax_pwca_check_import_progress, wp_ajax_pwca_save_token, wp_ajax_pwca_save_mock_mode",
           "violation": "AJAX操作缺少 `pwca_` 前缀或无前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "后台 - 导入/Token管理"
         },
         {
@@ -1665,7 +1666,7 @@
           "related_references": [
             "modules/front_cart/assets/js/ (前端JS AJAX调用)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "购物车页 - AJAX操作"
         },
         {
@@ -1679,7 +1680,7 @@
           "related_references": [
             "modules/front_cart/assets/js/pwca-cart-admin-actions.js"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "购物车页 - 复制购物车项"
         },
         {
@@ -1693,7 +1694,7 @@
           "related_references": [
             "modules/admin_cache/assets/js/pwca-admin-cache.js"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "后台 - 缓存管理"
         },
         {
@@ -1705,7 +1706,7 @@
           "expected": "wp_ajax_pwca_submit_product_request",
           "violation": "AJAX操作使用 `pw_` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "后台 - 产品请求"
         },
         {
@@ -1719,7 +1720,7 @@
           "related_references": [
             "modules/admin_design/assets/js/pwca-admin-design-modals.js (前端JS调用)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "后台 - 设计库管理全部功能"
         },
         {
@@ -1733,7 +1734,7 @@
           "related_references": [
             "API-007, API-011 (PHP端定义)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "后台仪表板 - AJAX调用"
         },
         {
@@ -1747,7 +1748,7 @@
           "related_references": [
             "API-011 (PHP端定义)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "后台 - 缓存管理AJAX调用"
         },
         {
@@ -1761,7 +1762,7 @@
           "related_references": [
             "API-013 (PHP端定义)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "后台 - 设计库管理AJAX调用"
         },
         {
@@ -1775,7 +1776,7 @@
           "related_references": [
             "API-010 (PHP端定义)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "购物车页 - 复制购物车项AJAX调用"
         }
       ]

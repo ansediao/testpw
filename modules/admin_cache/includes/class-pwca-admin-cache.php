@@ -21,8 +21,8 @@ final class Pwca_Admin_Cache {
 	}
 
 	public function register() {
-		add_action( 'wp_ajax_pw_clear_product_cache', array( $this, 'handle_clear_product_cache' ) );
-		add_action( 'wp_ajax_pw_get_cache_status', array( $this, 'handle_get_cache_status' ) );
+		add_action( 'wp_ajax_pwca_clear_product_cache', array( $this, 'handle_clear_product_cache' ) );
+		add_action( 'wp_ajax_pwca_get_cache_status', array( $this, 'handle_get_cache_status' ) );
 	}
 
 	public function register_menu_page() {
@@ -142,7 +142,7 @@ final class Pwca_Admin_Cache {
 	private function get_view_model() {
 		return array(
 			'ajax_url'           => admin_url( 'admin-ajax.php' ),
-			'rest_product_base'  => trailingslashit( rest_url( 'pw/v1/product-data' ) ),
+			'rest_product_base'  => trailingslashit( rest_url( 'pwca/v1/product-data' ) ),
 			'clear_cache_nonce'  => wp_create_nonce( 'pw_clear_cache_nonce' ),
 			'cache_status_nonce' => wp_create_nonce( 'pw_cache_status_nonce' ),
 		);

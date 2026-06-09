@@ -16,17 +16,17 @@ final class Pwca_Public_Cart_Handler {
 		add_filter( 'woocommerce_add_cart_item_data', array( $this, 'append_post_data_to_cart_item_data' ), 10, 3 );
 		add_action( 'template_redirect', array( $this, 'redirect_custom_cart_for_sync_products' ) );
 
-		add_action( 'wp_ajax_add_customized_product_to_cart', array( $this, 'add_customized_product_to_cart' ) );
-		add_action( 'wp_ajax_nopriv_add_customized_product_to_cart', array( $this, 'add_customized_product_to_cart' ) );
+		add_action( 'wp_ajax_pwca_add_customized_product_to_cart', array( $this, 'add_customized_product_to_cart' ) );
+		add_action( 'wp_ajax_nopriv_pwca_add_customized_product_to_cart', array( $this, 'add_customized_product_to_cart' ) );
 
-		add_action( 'wp_ajax_pw_has_blank_in_cart', array( $this, 'has_blank_in_cart' ) );
-		add_action( 'wp_ajax_nopriv_pw_has_blank_in_cart', array( $this, 'has_blank_in_cart' ) );
+		add_action( 'wp_ajax_pwca_has_blank_in_cart', array( $this, 'has_blank_in_cart' ) );
+		add_action( 'wp_ajax_nopriv_pwca_has_blank_in_cart', array( $this, 'has_blank_in_cart' ) );
 
-		add_action( 'wp_ajax_pw_cart_blank_state', array( $this, 'cart_blank_state' ) );
-		add_action( 'wp_ajax_nopriv_pw_cart_blank_state', array( $this, 'cart_blank_state' ) );
+		add_action( 'wp_ajax_pwca_cart_blank_state', array( $this, 'cart_blank_state' ) );
+		add_action( 'wp_ajax_nopriv_pwca_cart_blank_state', array( $this, 'cart_blank_state' ) );
 
-		add_action( 'wp_ajax_pw_get_cart_canvas_state', array( $this, 'get_cart_canvas_state' ) );
-		add_action( 'wp_ajax_nopriv_pw_get_cart_canvas_state', array( $this, 'get_cart_canvas_state' ) );
+		add_action( 'wp_ajax_pwca_get_cart_canvas_state', array( $this, 'get_cart_canvas_state' ) );
+		add_action( 'wp_ajax_nopriv_pwca_get_cart_canvas_state', array( $this, 'get_cart_canvas_state' ) );
 
 		add_filter( 'woocommerce_get_item_data', array( $this, 'display_custom_product_image' ), 10, 2 );
 		add_filter( 'woocommerce_order_item_name', array( $this, 'display_custom_image_in_order' ), 10, 2 );

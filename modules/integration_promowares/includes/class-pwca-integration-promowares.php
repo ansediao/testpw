@@ -31,9 +31,9 @@ final class Pwca_Integration_Promowares {
 	}
 
 	public function register() {
-		add_action( 'wp_ajax_check_import_progress', array( $this, 'handle_check_import_progress' ) );
-		add_action( 'wp_ajax_pw_save_token', array( $this, 'handle_save_token' ) );
-		add_action( 'wp_ajax_pw_save_mock_mode', array( $this, 'handle_save_mock_mode' ) );
+		add_action( 'wp_ajax_pwca_check_import_progress', array( $this, 'handle_check_import_progress' ) );
+		add_action( 'wp_ajax_pwca_save_token', array( $this, 'handle_save_token' ) );
+		add_action( 'wp_ajax_pwca_save_mock_mode', array( $this, 'handle_save_mock_mode' ) );
 
 		add_action( 'import_single_product', array( $this, 'import_single_product' ) );
 		add_action( 'import_composite_product_group', array( $this, 'import_composite_product_group' ) );

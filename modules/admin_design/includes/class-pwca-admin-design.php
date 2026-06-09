@@ -25,18 +25,18 @@ final class Pwca_Admin_Design {
 		add_filter( 'parent_file', array( $this, 'fix_tags_menu_highlight' ) );
 		add_action( 'add_meta_boxes_pw_design', array( $this, 'register_pw_design_price_metabox' ) );
 		add_action( 'save_post_pw_design', array( $this, 'save_pw_design_price_meta' ) );
-		add_action( 'wp_ajax_pw_add_category', array( $this, 'handle_add_category' ) );
-		add_action( 'wp_ajax_pw_get_category_settings', array( $this, 'handle_get_category_settings' ) );
-		add_action( 'wp_ajax_pw_update_category_settings', array( $this, 'handle_update_category_settings' ) );
-		add_action( 'wp_ajax_pw_delete_category', array( $this, 'handle_delete_category' ) );
-		add_action( 'wp_ajax_pw_add_design', array( $this, 'handle_add_design' ) );
-		add_action( 'wp_ajax_pw_check_design_sku_unique', array( $this, 'handle_check_design_sku_unique' ) );
-		add_action( 'wp_ajax_pw_get_design_tags', array( $this, 'handle_get_design_tags' ) );
-		add_action( 'wp_ajax_pw_save_design_tags', array( $this, 'handle_save_design_tags' ) );
-		add_action( 'wp_ajax_pw_bulk_delete_designs', array( $this, 'handle_bulk_delete_designs' ) );
-		add_action( 'wp_ajax_pw_bulk_update_designs', array( $this, 'handle_bulk_update_designs' ) );
-		add_action( 'wp_ajax_pw_get_design_data', array( $this, 'handle_get_design_data' ) );
-		add_action( 'wp_ajax_pw_update_design_meta', array( $this, 'handle_update_design_meta' ) );
+		add_action( 'wp_ajax_pwca_add_category', array( $this, 'handle_add_category' ) );
+		add_action( 'wp_ajax_pwca_get_category_settings', array( $this, 'handle_get_category_settings' ) );
+		add_action( 'wp_ajax_pwca_update_category_settings', array( $this, 'handle_update_category_settings' ) );
+		add_action( 'wp_ajax_pwca_delete_category', array( $this, 'handle_delete_category' ) );
+		add_action( 'wp_ajax_pwca_add_design', array( $this, 'handle_add_design' ) );
+		add_action( 'wp_ajax_pwca_check_design_sku_unique', array( $this, 'handle_check_design_sku_unique' ) );
+		add_action( 'wp_ajax_pwca_get_design_tags', array( $this, 'handle_get_design_tags' ) );
+		add_action( 'wp_ajax_pwca_save_design_tags', array( $this, 'handle_save_design_tags' ) );
+		add_action( 'wp_ajax_pwca_bulk_delete_designs', array( $this, 'handle_bulk_delete_designs' ) );
+		add_action( 'wp_ajax_pwca_bulk_update_designs', array( $this, 'handle_bulk_update_designs' ) );
+		add_action( 'wp_ajax_pwca_get_design_data', array( $this, 'handle_get_design_data' ) );
+		add_action( 'wp_ajax_pwca_update_design_meta', array( $this, 'handle_update_design_meta' ) );
 	}
 
 	public function register_pw_design_price_metabox() {

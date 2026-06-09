@@ -69,7 +69,7 @@
 		const loadCacheStatus = async () => {
 			try {
 				const response = await postUrlEncoded({
-					action: 'pw_get_cache_status',
+					action: 'pwca_get_cache_status',
 					nonce: cacheStatusNonce,
 				})
 
@@ -92,7 +92,7 @@
 
 			try {
 				const payload = {
-					action: 'pw_clear_product_cache',
+					action: 'pwca_clear_product_cache',
 					nonce: clearCacheNonce,
 				}
 

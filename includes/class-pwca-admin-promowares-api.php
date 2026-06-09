@@ -534,8 +534,8 @@ class Pwca_Admin_Promowares_Api
      */
     public function register_ajax_hooks()
     {
-        add_action('wp_ajax_pw_proxy_api_request', array($this, 'handle_proxy_api_request'));
-        add_action('wp_ajax_pw_toggle_cache', array($this, 'handle_toggle_cache'));
+        add_action('wp_ajax_pwca_proxy_api_request', array($this, 'handle_proxy_api_request'));
+        add_action('wp_ajax_pwca_toggle_cache', array($this, 'handle_toggle_cache'));
         // Note: Removed nopriv hook for security - only logged-in users should access API
     }
 
@@ -546,7 +546,7 @@ class Pwca_Admin_Promowares_Api
      */
     public function handle_toggle_cache()
     {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'pw_toggle_cache_nonce')) {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'pwca_toggle_cache_nonce')) {
             wp_send_json_error(array('message' => 'Security verification failed'));
             return;
         }
@@ -579,7 +579,7 @@ class Pwca_Admin_Promowares_Api
      */
     public function register_aggregation_endpoints()
     {
-        register_rest_route('pw/v1', '/product-data/(?P<id>\d+)', array(
+        register_rest_route('pwca/v1', '/product-data/(?P<id>\d+)', array(
             'methods' => 'GET',
             'callback' => array($this, 'get_aggregated_product_data'),
             'permission_callback' => '__return_true', // Consider stricter permissions for production
@@ -592,14 +592,14 @@ class Pwca_Admin_Promowares_Api
             ),
         ));
 
-        register_rest_route('pw-canvas/v1', '/store-customization-settings', array(
+        register_rest_route('pwca/v1', '/store-customization-settings', array(
             'methods' => 'GET',
             'callback' => array($this, 'get_store_customization_settings_data'),
             'permission_callback' => '__return_true',
         ));
 
         // Register print methods endpoint
-        register_rest_route('pw-canvas/v1', '/print-methods', array(
+        register_rest_route('pwca/v1', '/print-methods', array(
             'methods' => 'POST',
             'callback' => array($this, 'get_print_methods_data'),
             'permission_callback' => '__return_true',
@@ -617,7 +617,7 @@ class Pwca_Admin_Promowares_Api
         ));
 
         // Register custom colors endpoint
-        register_rest_route('pw-canvas/v1', '/custom-colors', array(
+        register_rest_route('pwca/v1', '/custom-colors', array(
             'methods' => 'POST',
             'callback' => array($this, 'get_custom_colors_data'),
             'permission_callback' => '__return_true',
@@ -635,7 +635,7 @@ class Pwca_Admin_Promowares_Api
         ));
 
         // Register image upload endpoint.
-        register_rest_route('pw-canvas/v1', '/upload-image', array(
+        register_rest_route('pwca/v1', '/upload-image', array(
             'methods' => 'POST',
             'callback' => array($this, 'handle_image_upload'),
             'permission_callback' => '__return_true',
