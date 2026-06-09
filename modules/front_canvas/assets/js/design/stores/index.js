@@ -675,7 +675,7 @@ export const pinia = createPinia();
 window.pinia = pinia;
 
 // 6. 导入打印方式store
-import { usePrintMethodStore } from './printMethodStore.js';
+import { usePrintMethodStore } from './print-method-store.js';
 
 // 7. 重新导出打印方式store
 export { usePrintMethodStore };

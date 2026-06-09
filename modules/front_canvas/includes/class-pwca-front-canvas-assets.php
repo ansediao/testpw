@@ -83,8 +83,8 @@ final class Pwca_Public_Canvas_Assets {
 
 		$this->enqueue_plugin_style_if_readable(
 			'pwca-gradient-modal',
-			$this->plugin_root_url . 'modules/front_product/assets/scss/pw-gradient-modal.css',
-			$this->plugin_root_path . '/modules/front_product/assets/scss/pw-gradient-modal.css',
+			$this->plugin_root_url . 'modules/front_product/assets/scss/pwca-gradient-modal.css',
+			$this->plugin_root_path . '/modules/front_product/assets/scss/pwca-gradient-modal.css',
 			array( 'pwca-front-canvas-onlinedesign' )
 		);
 	}
@@ -106,9 +106,9 @@ final class Pwca_Public_Canvas_Assets {
 
 		$this->enqueue_script_if_readable(
 			'pwca-front-canvas-pinia-sync',
-			$this->module_url . 'assets/js/utils/piniaSync.js',
+			$this->module_url . 'assets/js/utils/pinia-sync.js',
 			array(),
-			$this->module_path . '/assets/js/utils/piniaSync.js'
+			$this->module_path . '/assets/js/utils/pinia-sync.js'
 		);
 
 		$this->enqueue_script_if_readable(

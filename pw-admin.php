@@ -46,21 +46,21 @@ define('MY_PLUGIN_ICONS_URL', MY_PLUGIN_URL . 'assets/images/icons/');
 
 /**
  * The code that runs during plugin activation.
- * This action is documented in includes/class-pw-admin-activator.php
+ * This action is documented in includes/class-pwca-admin-activator.php
  */
 function activate_pw_admin()
 {
-    require_once plugin_dir_path(__FILE__) . 'includes/class-pw-admin-activator.php';
+    require_once plugin_dir_path(__FILE__) . 'includes/class-pwca-admin-activator.php';
     Pwca_Admin_Activator::activate();
 }
 
 /**
  * The code that runs during plugin deactivation.
- * This action is documented in includes/class-pw-admin-deactivator.php
+ * This action is documented in includes/class-pwca-admin-deactivator.php
  */
 function deactivate_pw_admin()
 {
-    require_once plugin_dir_path(__FILE__) . 'includes/class-pw-admin-deactivator.php';
+    require_once plugin_dir_path(__FILE__) . 'includes/class-pwca-admin-deactivator.php';
     Pwca_Admin_Deactivator::deactivate();
 }
 
@@ -71,7 +71,7 @@ register_deactivation_hook(__FILE__, 'deactivate_pw_admin');
  * The core plugin class that is used to define internationalization,
  * admin-specific hooks, and public-facing site hooks.
  */
-require plugin_dir_path(__FILE__) . 'includes/class-pw-admin.php';
+require plugin_dir_path(__FILE__) . 'includes/class-pwca-admin.php';
 
 /**
  * Begins execution of the plugin.

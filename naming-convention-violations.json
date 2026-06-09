@@ -1797,9 +1797,9 @@
           "related_references": [
             "pw-admin.php (入口文件 require 引用)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "不适用（核心文件）",
-          "notes": "需同步更新 pw-admin.php 中的 require 引用路径"
+          "notes": "6个PHP文件已重命名，pw-admin.php 和 class-pwca-admin.php 中的 require 引用已同步更新。"
         },
         {
           "id": "FILE-002",
@@ -1810,9 +1810,9 @@
           ],
           "violation": "JS文件使用 camelCase 而非 kebab-case",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 印刷方式Store",
-          "notes": "需同步更新所有 import 引用路径"
+          "notes": "已重命名并在 stores/index.js 中更新 import 路径。"
         },
         {
           "id": "FILE-003",
@@ -1823,9 +1823,9 @@
           ],
           "violation": "JS文件使用 camelCase 而非 kebab-case",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - Pinia同步工具",
-          "notes": "需同步更新所有 import 引用路径"
+          "notes": "已重命名并在 class-pwca-front-canvas-assets.php 中更新引用路径。"
         },
         {
           "id": "FILE-004",
@@ -1844,9 +1844,9 @@
           ],
           "violation": "JS文件使用 camelCase/PascalCase 而非 kebab-case",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - API/Store/工具文件",
-          "notes": "需同步更新所有 import 引用路径"
+          "notes": "6个JS文件已重命名，class-pwca-front-product-assets.php 中所有 enqueue 路径已更新。"
         },
         {
           "id": "FILE-005",
@@ -1873,9 +1873,9 @@
           ],
           "violation": "JS/CSS文件使用 PascalCase 而非 kebab-case",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - Vue组件文件",
-          "notes": "需同步更新组件注册和 import 引用"
+          "notes": "17个JS/CSS文件已重命名，class-pwca-front-product-assets.php 中所有路径已更新。window.* 组件引用不受文件命名影响。"
         },
         {
           "id": "FILE-006",
@@ -1892,9 +1892,9 @@
           "related_references": [
             "对应的 .css 和 .css.map 编译文件也需同步重命名"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - SCSS样式文件",
-          "notes": "文件名与内部类名前缀一致性问题"
+          "notes": "5个SCSS + CSS + .map 文件已重命名，class-pwca-front-product-assets.php 中路径已更新。"
         }
       ]
     }

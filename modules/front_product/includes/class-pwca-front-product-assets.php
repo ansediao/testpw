@@ -85,31 +85,31 @@ final class Pwca_Public_Product_Assets {
 	}
 
 	private function enqueue_local_styles() {
-		$this->enqueue_style_if_readable( 'pwca-cart-section', 'assets/scss/pw-cart-section.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-color-variants', 'assets/scss/pw-color-variants.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-product-canvas', 'assets/scss/pw-product-canvas.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-composite-components', 'assets/scss/pw-composite-components.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-gradient-modal', 'assets/scss/pw-gradient-modal.css', array() );
+		$this->enqueue_style_if_readable( 'pwca-cart-section', 'assets/scss/pwca-cart-section.css', array() );
+		$this->enqueue_style_if_readable( 'pwca-color-variants', 'assets/scss/pwca-color-variants.css', array() );
+		$this->enqueue_style_if_readable( 'pwca-product-canvas', 'assets/scss/pwca-product-canvas.css', array() );
+		$this->enqueue_style_if_readable( 'pwca-composite-components', 'assets/scss/pwca-composite-components.css', array() );
+		$this->enqueue_style_if_readable( 'pwca-gradient-modal', 'assets/scss/pwca-gradient-modal.css', array() );
 	}
 
 	private function enqueue_component_styles() {
-		$this->enqueue_style_if_readable( 'pwca-product-checkbox-options', 'assets/js/product/components/CheckboxOptions.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-product-price-info', 'assets/js/product/components/ProductPriceInfo.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-product-quantity', 'assets/js/product/components/ProductQuantity.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-product-quantity-discount', 'assets/js/product/components/QuantityDiscountSlider.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-product-accessories', 'assets/js/product/components/ProductAccessories.css', array() );
-		$this->enqueue_style_if_readable( 'pwca-product-custom-colors', 'assets/js/product/components/CustomColorsButton.css', array() );
+		$this->enqueue_style_if_readable( 'pwca-product-checkbox-options', 'assets/js/product/components/checkbox-options.css', array() );
+		$this->enqueue_style_if_readable( 'pwca-product-price-info', 'assets/js/product/components/product-price-info.css', array() );
+		$this->enqueue_style_if_readable( 'pwca-product-quantity', 'assets/js/product/components/product-quantity.css', array() );
+		$this->enqueue_style_if_readable( 'pwca-product-quantity-discount', 'assets/js/product/components/quantity-discount-slider.css', array() );
+		$this->enqueue_style_if_readable( 'pwca-product-accessories', 'assets/js/product/components/product-accessories.css', array() );
+		$this->enqueue_style_if_readable( 'pwca-product-custom-colors', 'assets/js/product/components/custom-colors-button.css', array() );
 	}
 
 	private function enqueue_core_scripts() {
 		$this->enqueue_script_if_readable( 'pwca-canvas-manager', $this->plugin_root_url . 'modules/front_canvas/assets/js/canvas-manager.js', array( 'pwca-vendor-fabric' ), $this->plugin_root_path . '/modules/front_canvas/assets/js/canvas-manager.js' );
 
 		$this->enqueue_script_if_readable( 'pwca-product-image-canvas', $this->module_url . 'assets/js/product/product-image-canvas.js', array( 'pwca-canvas-manager' ), $this->module_path . '/assets/js/product/product-image-canvas.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-api', $this->module_url . 'assets/js/product/api/productDataAPI.js', array(), $this->module_path . '/assets/js/product/api/productDataAPI.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-response-mapper', $this->module_url . 'assets/js/product/api/productResponseMapper.js', array( 'pwca-product-api' ), $this->module_path . '/assets/js/product/api/productResponseMapper.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-canvas-payload-builder', $this->module_url . 'assets/js/product/api/canvasPayloadBuilder.js', array( 'pwca-product-response-mapper' ), $this->module_path . '/assets/js/product/api/canvasPayloadBuilder.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-cart-submit-service', $this->module_url . 'assets/js/product/api/cartSubmitService.js', array( 'pwca-product-canvas-payload-builder' ), $this->module_path . '/assets/js/product/api/cartSubmitService.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-store', $this->module_url . 'assets/js/product/stores/productStore.js', array( 'pwca-vendor-vue', 'pwca-product-cart-submit-service' ), $this->module_path . '/assets/js/product/stores/productStore.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-api', $this->module_url . 'assets/js/product/api/product-data-api.js', array(), $this->module_path . '/assets/js/product/api/product-data-api.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-response-mapper', $this->module_url . 'assets/js/product/api/product-response-mapper.js', array( 'pwca-product-api' ), $this->module_path . '/assets/js/product/api/product-response-mapper.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-canvas-payload-builder', $this->module_url . 'assets/js/product/api/canvas-payload-builder.js', array( 'pwca-product-response-mapper' ), $this->module_path . '/assets/js/product/api/canvas-payload-builder.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-cart-submit-service', $this->module_url . 'assets/js/product/api/cart-submit-service.js', array( 'pwca-product-canvas-payload-builder' ), $this->module_path . '/assets/js/product/api/cart-submit-service.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-store', $this->module_url . 'assets/js/product/stores/product-store.js', array( 'pwca-vendor-vue', 'pwca-product-cart-submit-service' ), $this->module_path . '/assets/js/product/stores/product-store.js' );
 		if ( function_exists( 'wp_script_is' ) && wp_script_is( 'pwca-product-store', 'enqueued' ) ) {
 			wp_localize_script(
 				'pwca-product-store',
@@ -120,19 +120,19 @@ final class Pwca_Public_Product_Assets {
 				)
 			);
 		}
-		$this->enqueue_script_if_readable( 'pwca-product-messages', $this->module_url . 'assets/js/utils/messageUtils.js', array(), $this->module_path . '/assets/js/utils/messageUtils.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-messages', $this->module_url . 'assets/js/utils/message-utils.js', array(), $this->module_path . '/assets/js/utils/message-utils.js' );
 	}
 
 	private function enqueue_component_scripts() {
-		$this->enqueue_script_if_readable( 'pwca-product-component-quantity-discount', $this->module_url . 'assets/js/product/components/QuantityDiscountSlider.js', array( 'pwca-vendor-vue', 'pwca-product-store' ), $this->module_path . '/assets/js/product/components/QuantityDiscountSlider.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-component-quantity', $this->module_url . 'assets/js/product/components/ProductQuantity.js', array( 'pwca-product-component-quantity-discount' ), $this->module_path . '/assets/js/product/components/ProductQuantity.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-component-price-info', $this->module_url . 'assets/js/product/components/ProductPriceInfo.js', array( 'pwca-product-component-quantity' ), $this->module_path . '/assets/js/product/components/ProductPriceInfo.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-component-add-to-cart', $this->module_url . 'assets/js/product/components/AddToCart.js', array( 'pwca-product-component-price-info' ), $this->module_path . '/assets/js/product/components/AddToCart.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-color-selection-bridge', $this->module_url . 'assets/js/product/components/colorSelectionBridge.js', array( 'pwca-product-component-add-to-cart' ), $this->module_path . '/assets/js/product/components/colorSelectionBridge.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-component-color-variants', $this->module_url . 'assets/js/product/components/ColorVariants.js', array( 'pwca-product-color-selection-bridge' ), $this->module_path . '/assets/js/product/components/ColorVariants.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-component-checkbox-options', $this->module_url . 'assets/js/product/components/CheckboxOptions.js', array( 'pwca-product-component-color-variants' ), $this->module_path . '/assets/js/product/components/CheckboxOptions.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-component-accessories', $this->module_url . 'assets/js/product/components/ProductAccessories.js', array( 'pwca-product-component-checkbox-options' ), $this->module_path . '/assets/js/product/components/ProductAccessories.js' );
-		$this->enqueue_script_if_readable( 'pwca-product-component-custom-colors', $this->module_url . 'assets/js/product/components/CustomColorsButton.js', array( 'pwca-product-component-accessories' ), $this->module_path . '/assets/js/product/components/CustomColorsButton.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-component-quantity-discount', $this->module_url . 'assets/js/product/components/quantity-discount-slider.js', array( 'pwca-vendor-vue', 'pwca-product-store' ), $this->module_path . '/assets/js/product/components/quantity-discount-slider.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-component-quantity', $this->module_url . 'assets/js/product/components/product-quantity.js', array( 'pwca-product-component-quantity-discount' ), $this->module_path . '/assets/js/product/components/product-quantity.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-component-price-info', $this->module_url . 'assets/js/product/components/product-price-info.js', array( 'pwca-product-component-quantity' ), $this->module_path . '/assets/js/product/components/product-price-info.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-component-add-to-cart', $this->module_url . 'assets/js/product/components/add-to-cart.js', array( 'pwca-product-component-price-info' ), $this->module_path . '/assets/js/product/components/add-to-cart.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-color-selection-bridge', $this->module_url . 'assets/js/product/components/color-selection-bridge.js', array( 'pwca-product-component-add-to-cart' ), $this->module_path . '/assets/js/product/components/color-selection-bridge.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-component-color-variants', $this->module_url . 'assets/js/product/components/color-variants.js', array( 'pwca-product-color-selection-bridge' ), $this->module_path . '/assets/js/product/components/color-variants.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-component-checkbox-options', $this->module_url . 'assets/js/product/components/checkbox-options.js', array( 'pwca-product-component-color-variants' ), $this->module_path . '/assets/js/product/components/checkbox-options.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-component-accessories', $this->module_url . 'assets/js/product/components/product-accessories.js', array( 'pwca-product-component-checkbox-options' ), $this->module_path . '/assets/js/product/components/product-accessories.js' );
+		$this->enqueue_script_if_readable( 'pwca-product-component-custom-colors', $this->module_url . 'assets/js/product/components/custom-colors-button.js', array( 'pwca-product-component-accessories' ), $this->module_path . '/assets/js/product/components/custom-colors-button.js' );
 	}
 
 	private function enqueue_main_script() {

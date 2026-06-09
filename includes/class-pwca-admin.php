@@ -107,13 +107,13 @@ class Pwca_Admin {
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-pw-admin-loader.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-pwca-admin-loader.php';
 
 		/**
 		 * The class responsible for defining internationalization functionality
 		 * of the plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-pw-admin-i18n.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-pwca-admin-i18n.php';
 
 		/**
 		 * 模块加载器：扫描 modules/ 目录。
@@ -127,7 +127,7 @@ class Pwca_Admin {
 		/**
 		 * The class responsible for Promowares API communication.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-pw-admin-promowares-api.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-pwca-admin-promowares-api.php';
 
 		$this->loader = new Pwca_Admin_Loader();
 
