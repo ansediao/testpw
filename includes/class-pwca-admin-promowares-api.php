@@ -56,7 +56,7 @@ class Pwca_Admin_Promowares_Api
     public function __construct()
     {
         $this->api_base_url = 'https://dev.promowares.com/api/v1/';
-        $this->hardcoded_token = get_option('pw_api_token', '');
+        $this->hardcoded_token = get_option('pwca_api_token', '');
 
         // Register REST API routes
         $this->register_rest_routes();
@@ -472,7 +472,7 @@ class Pwca_Admin_Promowares_Api
 
     public static function calculate_shipping_options($country_code, $weight, $shipping_method = 'PK1792')
     {
-        $token = get_option('pw_api_token', '');
+        $token = get_option('pwca_api_token', '');
         if (empty($token)) {
             return new WP_Error('missing_token', 'API token is required');
         }
@@ -557,7 +557,7 @@ class Pwca_Admin_Promowares_Api
         }
 
         $enabled = isset($_POST['enabled']) ? 1 : 0;
-        update_option('pw_cache_enabled', $enabled);
+        update_option('pwca_cache_enabled', $enabled);
 
         wp_send_json_success(array('cache_enabled' => $enabled));
     }
@@ -655,7 +655,7 @@ class Pwca_Admin_Promowares_Api
      */
     public function get_store_customization_settings_data($request)
     {
-        $token = get_option('pw_api_token', '');
+        $token = get_option('pwca_api_token', '');
         if (empty($token)) {
             return new WP_REST_Response(array(
                 'success' => false,
@@ -763,8 +763,8 @@ class Pwca_Admin_Promowares_Api
     {
         $product_id = $request['id'];
         $token = $this->hardcoded_token;
-        $mock_mode = (int) get_option('pw_api_mock_mode', 0);
-        $cache_enabled = (int) get_option('pw_cache_enabled', 1);
+        $mock_mode = (int) get_option('pwca_api_mock_mode', 0);
+        $cache_enabled = (int) get_option('pwca_cache_enabled', 1);
         error_log("[PW Mock] get_aggregated_product_data called for product_id: {$product_id}, mock_mode: {$mock_mode}, cache_enabled: {$cache_enabled}");
 
         if (empty($token)) {
@@ -907,8 +907,8 @@ class Pwca_Admin_Promowares_Api
 
         // 保存缓存数据（排除模拟数据，模拟数据不缓存）
         // 只有在缓存启用且非 Mock Error 模式下才保存缓存
-        $cache_enabled = (int) get_option('pw_cache_enabled', 1);
-        $mock_mode = (int) get_option('pw_api_mock_mode', 0);
+        $cache_enabled = (int) get_option('pwca_cache_enabled', 1);
+        $mock_mode = (int) get_option('pwca_api_mock_mode', 0);
         if ($cache_enabled && $mock_mode !== 1) {
             $cache_data = $aggregated_data;
             if (isset($cache_data['mock_data'])) {
@@ -976,7 +976,7 @@ class Pwca_Admin_Promowares_Api
      */
     private function call_promowares_api($endpoint, $token)
     {
-        $mock_mode = (int) get_option('pw_api_mock_mode', 0);
+        $mock_mode = (int) get_option('pwca_api_mock_mode', 0);
         error_log("[PW Mock] call_promowares_api called for endpoint: {$endpoint}, mock_mode: {$mock_mode}");
         if ($mock_mode === 1) {
             error_log("[PW Mock] Mock Error enabled, returning error for endpoint: {$endpoint}");
@@ -1368,7 +1368,7 @@ class Pwca_Admin_Promowares_Api
     private function check_remote_data_freshness($product_id, $cache_timestamp)
     {
         // Mock Error 模式下模拟通讯失败
-        $mock_mode = (int) get_option('pw_api_mock_mode', 0);
+        $mock_mode = (int) get_option('pwca_api_mock_mode', 0);
         if ($mock_mode === 1) {
             error_log('[PW Cache] Mock Error enabled, simulating remote freshness check failure');
             return false; // 模拟通讯失败，标记缓存为过期，强制重新获取

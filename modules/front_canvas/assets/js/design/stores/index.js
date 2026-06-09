@@ -455,7 +455,7 @@ export const useCanvasStore = defineStore('canvas', {
             this.activeGroupId = null;
 
             // 切换视图时，同步对应的打印方式数据
-            const printMethodStore = window.usePrintMethodStore();
+            const printMethodStore = window.pwcaUsePrintMethodStore();
             if (printMethodStore) {
                 printMethodStore.switchToViewPrintMethods(viewId);
             }
@@ -622,7 +622,7 @@ export const useCanvasStore = defineStore('canvas', {
 
         // 仅在当前视图需要时加载印刷方式，避免初始化阶段预取所有视图
         async ensureViewPrintMethodsLoaded(viewId) {
-            const printMethodStore = window.usePrintMethodStore();
+            const printMethodStore = window.pwcaUsePrintMethodStore();
             if (!printMethodStore || !viewId) {
                 return;
             }
@@ -672,7 +672,7 @@ export const useCanvasStore = defineStore('canvas', {
 
 // 5. 创建 Pinia 实例，后续所有 Vue 应用都要 use(pinia) 才能访问全局状态
 export const pinia = createPinia();
-window.pinia = pinia;
+window.pwcaPinia = pinia;
 
 // 6. 导入打印方式store
 import { usePrintMethodStore } from './print-method-store.js';
@@ -681,8 +681,8 @@ import { usePrintMethodStore } from './print-method-store.js';
 export { usePrintMethodStore };
 
 // 8. 将 store 暴露到全局，让非 Vue 组件也能访问
-window.useCanvasStore = useCanvasStore;
-window.usePrintMethodStore = usePrintMethodStore;
+window.pwcaUseCanvasStore = useCanvasStore;
+window.pwcaUsePrintMethodStore = usePrintMethodStore;
 
 const useDesignUsageStore = defineStore('designUsage', {
     state: () => ({
@@ -747,7 +747,7 @@ const useDesignUsageStore = defineStore('designUsage', {
     }
 });
 export { useDesignUsageStore };
-window.useDesignUsageStore = useDesignUsageStore;
+window.pwcaUseDesignUsageStore = useDesignUsageStore;
 
 // 9. 暴露工具函数到全局，让其他脚本也能访问
 window.pwcaBuildMergedLayerControls = pwcaBuildMergedLayerControls;
@@ -768,8 +768,8 @@ const triggerReadyEvent = () => {
     document.dispatchEvent(new CustomEvent('canvasPiniaReady', {
         detail: {
             pinia,
-            useCanvasStore: window.useCanvasStore,
-            usePrintMethodStore: window.usePrintMethodStore
+            useCanvasStore: window.pwcaUseCanvasStore,
+            usePrintMethodStore: window.pwcaUsePrintMethodStore
         }
     }));
 

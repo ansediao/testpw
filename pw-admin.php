@@ -36,11 +36,11 @@ if (! defined('WPINC')) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define('PW_ADMIN_VERSION', '1.0.1');
+define('PWCA_ADMIN_VERSION', '1.0.1');
 
 // 定义插件根目录URL常量
-define('MY_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('MY_PLUGIN_ICONS_URL', MY_PLUGIN_URL . 'assets/images/icons/');
+define('PWCA_PLUGIN_URL', plugin_dir_url(__FILE__));
+define('PWCA_PLUGIN_ICONS_URL', PWCA_PLUGIN_URL . 'assets/images/icons/');
 
 
 

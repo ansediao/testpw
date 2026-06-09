@@ -114,7 +114,7 @@ final class Pwca_Integration_Promowares {
 			return;
 		}
 
-		$result = update_option( 'pw_api_token', $token );
+		$result = update_option( 'pwca_api_token', $token );
 		if ( $result ) {
 			wp_send_json_success( 'Token saved successfully' );
 			return;
@@ -137,7 +137,7 @@ final class Pwca_Integration_Promowares {
 		$mode_raw = isset( $_POST['mode'] ) ? sanitize_text_field( wp_unslash( $_POST['mode'] ) ) : '';
 		$mode     = (int) ( '1' === $mode_raw ? 1 : 0 );
 
-		$result = update_option( 'pw_api_mock_mode', $mode );
+		$result = update_option( 'pwca_api_mock_mode', $mode );
 		if ( $result ) {
 			wp_send_json_success( 'API mock mode updated successfully' );
 			return;
@@ -389,7 +389,7 @@ final class Pwca_Integration_Promowares {
 
 	private function maybe_store_product_templates( $post_id, $product_id ) {
 		$api   = $this->get_api_client();
-		$token = get_option( 'pw_api_token', '' );
+		$token = get_option('pwca_api_token', '');
 
 		if ( (int) $product_id <= 0 ) {
 			return;

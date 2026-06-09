@@ -25,7 +25,7 @@ const CheckboxOptions = {
         </div>
     `,
     setup() {
-        const store = useProductStore();
+        const store = window.pwcaUseProductStore();
 
         const onBuySampleChange = (checked) => {
             store.setBuySampleChecked(checked);

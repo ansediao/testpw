@@ -56,6 +56,26 @@ final class Pwca_Admin_Dashboard_Dashboard {
 	 * 获取主页面视图模型
 	 */
 	private function get_main_page_view_model() {
+		$current_token = get_option( 'pwca_api_token' );
+		if ( empty( $current_token ) ) {
+			$current_token = get_option( 'pw_api_token', '' );
+		}
+
+		$current_store_id = get_option( 'pwca_store_id' );
+		if ( empty( $current_store_id ) ) {
+			$current_store_id = get_option( 'pw_store_id', '' );
+		}
+
+		$api_mock_mode = get_option( 'pwca_api_mock_mode' );
+		if ( $api_mock_mode === false ) {
+			$api_mock_mode = get_option( 'pw_api_mock_mode', 0 );
+		}
+
+		$cache_enabled = get_option( 'pwca_cache_enabled' );
+		if ( $cache_enabled === false ) {
+			$cache_enabled = get_option( 'pw_cache_enabled', 1 );
+		}
+
 		return array(
 			'ajax_url'             => admin_url( 'admin-ajax.php' ),
 			'admin_page_url'       => admin_url( 'admin.php' ),
@@ -67,11 +87,11 @@ final class Pwca_Admin_Dashboard_Dashboard {
 			'clear_cache_nonce'    => wp_create_nonce( 'pw_clear_cache_nonce' ),
 			'cache_status_nonce'   => wp_create_nonce( 'pw_cache_status_nonce' ),
 			'toggle_cache_nonce'   => wp_create_nonce( 'pw_toggle_cache_nonce' ),
-			'current_token'        => get_option( 'pw_api_token', '' ),
-			'current_store_id'     => get_option( 'pw_store_id', '' ),
-			'has_connected_token'  => '' !== (string) get_option( 'pw_api_token', '' ) ? 1 : 0,
-			'api_mock_mode'        => (int) get_option( 'pw_api_mock_mode', 0 ),
-			'cache_enabled'        => (int) get_option( 'pw_cache_enabled', 1 ),
+			'current_token'        => $current_token,
+			'current_store_id'     => $current_store_id,
+			'has_connected_token'  => '' !== (string) $current_token ? 1 : 0,
+			'api_mock_mode'        => (int) $api_mock_mode,
+			'cache_enabled'        => (int) $cache_enabled,
 			'save_mock_mode_nonce' => wp_create_nonce( 'pw_save_mock_mode_nonce' ),
 		);
 	}
@@ -212,8 +232,8 @@ final class Pwca_Admin_Dashboard_Dashboard {
 
 		$this->delete_sync_products();
 
-		delete_option( 'pw_store_id' );
-		delete_option( 'pw_api_token' );
+		delete_option( 'pwca_store_id' );
+		delete_option( 'pwca_api_token' );
 
 		set_transient(
 			'pwca_dashboard_messages',
@@ -308,8 +328,8 @@ final class Pwca_Admin_Dashboard_Dashboard {
 
 		$messages = array();
 		if ( $is_success && ! $has_error && $store_id !== '' && $token !== '' ) {
-			update_option( 'pw_store_id', $store_id );
-			update_option( 'pw_api_token', $token );
+			update_option( 'pwca_store_id', $store_id );
+			update_option( 'pwca_api_token', $token );
 			$messages[] = array(
 				'type' => 'success',
 				'text' => 'Store connected successfully',

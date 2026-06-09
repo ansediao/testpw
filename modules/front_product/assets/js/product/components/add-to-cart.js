@@ -7,14 +7,14 @@ const AddToCart = {
     name: 'AddToCart',
     
     setup() {
-        const store = useProductStore();
+        const store = window.pwcaUseProductStore();
         
         const addToCart = async () => {
             await store.addToCart(store.quantity);
         };
         
         const customizeNow = () => {
-            const productId = window.pwProductConfig?.productId || store.productId;
+            const productId = window.pwcaProductConfig?.productId || store.productId;
             const customizeUrl = `/pwcanvas/?product_id=${productId}`;
             window.location.href = customizeUrl;
         };

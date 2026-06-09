@@ -4,12 +4,12 @@
  */
 (function () {
     function persistSelectedColor(colorValue) {
-        if (!colorValue || !window.pwProductConfig || !window.pwProductConfig.productId) {
+        if (!colorValue || !window.pwcaProductConfig || !window.pwcaProductConfig.productId) {
             return;
         }
 
         try {
-            const storageKey = `pw_product_color_${window.pwProductConfig.productId}`;
+            const storageKey = `pw_product_color_${window.pwcaProductConfig.productId}`;
             localStorage.setItem(storageKey, colorValue);
         } catch (error) {
             console.warn('Failed to save color to localStorage:', error);
@@ -17,8 +17,8 @@
     }
 
     function switchProductImageCanvas(colorValue) {
-        if (colorValue && window.ProductImageCanvas) {
-            window.ProductImageCanvas.switchToCanvas(colorValue);
+        if (colorValue && window.pwcaProductImageCanvas) {
+            window.pwcaProductImageCanvas.switchToCanvas(colorValue);
         }
     }
 
@@ -76,7 +76,7 @@
         }
     }
 
-    window.ProductColorSelectionBridge = {
+    window.pwcaProductColorSelectionBridge = {
         applyVariantSelection,
         applyCustomColorSelection,
         resetSelection

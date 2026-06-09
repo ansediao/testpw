@@ -5,13 +5,13 @@
     const EMPTY_IMAGE_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
     function clearCanvasSelections() {
-        if (!window.CanvasManager || typeof window.CanvasManager.getAllCanvasIds !== 'function') {
+        if (!window.pwcaCanvasManager || typeof window.pwcaCanvasManager.getAllCanvasIds !== 'function') {
             return;
         }
 
-        const allCanvasIds = window.CanvasManager.getAllCanvasIds();
+        const allCanvasIds = window.pwcaCanvasManager.getAllCanvasIds();
         allCanvasIds.forEach((viewId) => {
-            const fabricCanvas = window.CanvasManager.getCanvas(viewId);
+            const fabricCanvas = window.pwcaCanvasManager.getCanvas(viewId);
             if (!fabricCanvas) {
                 return;
             }
@@ -38,7 +38,7 @@
     async function buildCanvasPayload() {
         clearCanvasSelections();
 
-        const canvasStore = typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null;
+        const canvasStore = typeof window.pwcaUseCanvasStore === 'function' ? window.pwcaUseCanvasStore() : null;
         const views = canvasStore && Array.isArray(canvasStore.views) ? canvasStore.views : [];
         let viewImagesPayload = [];
 
@@ -71,7 +71,7 @@
         };
     }
 
-    window.ProductCanvasPayloadBuilder = {
+    window.pwcaProductCanvasPayloadBuilder = {
         EMPTY_IMAGE_DATA_URL,
         buildCanvasPayload
     };

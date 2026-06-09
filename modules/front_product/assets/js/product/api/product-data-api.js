@@ -2,7 +2,7 @@
  * 产品数据 API 模块
  * 使用 fetch 从 REST API 获取数据，供 Vue 使用
  */
-window.ProductDataAPI = {
+window.pwcaProductDataAPI = {
     getResponseMeta(response, pwId) {
         const meta = {
             cacheHit: false,
@@ -35,7 +35,7 @@ window.ProductDataAPI = {
      */
     async fetchProductData(pwId) {
         try {
-            const config = window.pwProductConfig;
+            const config = window.pwcaProductConfig;
 
             const response = await fetch(`${config.restApiUrl}${pwId}`, {
                 headers: {
@@ -65,7 +65,7 @@ window.ProductDataAPI = {
      * @returns {Promise} 返回当前产品数据的 Promise
      */
     async fetchCurrentProductData() {
-        const config = window.pwProductConfig;
+        const config = window.pwcaProductConfig;
         if (!config || !config.pwId) {
             throw new Error('未找到当前产品的 pw_id');
         }
@@ -101,7 +101,7 @@ window.ProductDataAPI = {
      */
     async checkApiConnection() {
         try {
-            const config = window.pwProductConfig;
+            const config = window.pwcaProductConfig;
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -124,13 +124,13 @@ window.ProductDataAPI = {
      * @returns {Object} 返回当前配置
      */
     getConfig() {
-        return window.pwProductConfig || {};
+        return window.pwcaProductConfig || {};
     }
 };
 
 // 为 Vue 组件提供全局访问
 if (typeof window !== 'undefined') {
-    window.productDataAPI = window.ProductDataAPI;
+    window.pwcaProductDataAPI = window.pwcaProductDataAPI;
 
     // ProductDataAPI 已就绪
 }

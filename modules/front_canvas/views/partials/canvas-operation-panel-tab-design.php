@@ -145,7 +145,7 @@ if (!is_wp_error($categories) && !empty($categories)) {
 <script type="text/javascript">
     window.pwcaDesignData = {
         categories: <?php echo json_encode($categories_data); ?>,
-        designIconUrl: '<?php echo MY_PLUGIN_URL; ?>assets/images/icons/design.svg'
+        designIconUrl: '<?php echo PWCA_PLUGIN_URL; ?>assets/images/icons/design.svg'
     };
 </script>
 

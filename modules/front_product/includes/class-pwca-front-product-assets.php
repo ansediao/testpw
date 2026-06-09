@@ -113,7 +113,7 @@ final class Pwca_Public_Product_Assets {
 		if ( function_exists( 'wp_script_is' ) && wp_script_is( 'pwca-product-store', 'enqueued' ) ) {
 			wp_localize_script(
 				'pwca-product-store',
-				'pwAjax',
+				'pwcaAjax',
 				array(
 					'ajaxurl' => admin_url( 'admin-ajax.php' ),
 					'nonce'   => wp_create_nonce( 'custom-product-nonce' ),

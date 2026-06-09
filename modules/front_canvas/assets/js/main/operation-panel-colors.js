@@ -103,9 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 store.setSelectedColorByView(activeViewId, colorData);
             }
 
-            if (window.useProductStore && completeVariantData) {
+            if (window.pwcaUseProductStore && completeVariantData) {
                 try {
-                    const productStore = window.useProductStore();
+                    const productStore = window.pwcaUseProductStore();
                     if (productStore && typeof productStore.setSelectedVariant === 'function') {
                         productStore.setSelectedVariant(completeVariantData);
                     }
@@ -117,9 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (error) {
                     console.warn('更新 Product Store selectedVariant 失败:', error);
                 }
-            } else if (window.useProductStore && !completeVariantData) {
+            } else if (window.pwcaUseProductStore && !completeVariantData) {
                 try {
-                    const productStore = window.useProductStore();
+                    const productStore = window.pwcaUseProductStore();
                     const basicVariant = {
                         id: variantId || 'design-' + Date.now(),
                         variant_color: selectedColor,
@@ -997,9 +997,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 direction,
             };
 
-            if (typeof window.useProductStore !== 'undefined') {
+            if (typeof window.pwcaUseProductStore !== 'undefined') {
                 try {
-                    const productStore = window.useProductStore();
+                    const productStore = window.pwcaUseProductStore();
                     if (
                         productStore &&
                         typeof productStore.setGradientColorApplied === 'function'
@@ -1012,10 +1012,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (
-                typeof window.ProductImageCanvas !== 'undefined' &&
-                window.ProductImageCanvas.switchToCanvas
+                typeof window.pwcaProductImageCanvas !== 'undefined' &&
+                window.pwcaProductImageCanvas.switchToCanvas
             ) {
-                window.ProductImageCanvas.switchToCanvas(color1);
+                window.pwcaProductImageCanvas.switchToCanvas(color1);
             }
 
             function applyGradientToBaseLayer() {
@@ -1071,10 +1071,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.warn('applyGradientToView 函数不可用');
                     }
                 } else if (
-                    typeof window.ProductImageCanvas !== 'undefined' &&
-                    window.CanvasManager
+                    typeof window.pwcaProductImageCanvas !== 'undefined' &&
+                    window.pwcaCanvasManager
                 ) {
-                    const productCanvas = window.CanvasManager.getCanvas('product-view');
+                    const productCanvas = window.pwcaCanvasManager.getCanvas('product-view');
                     if (productCanvas) {
                         const baseLayerObject = productCanvas
                             .getObjects()

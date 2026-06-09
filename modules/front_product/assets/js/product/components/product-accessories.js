@@ -8,7 +8,7 @@ const ProductAccessories = {
 
     setup() {
         // Access shared store
-        const store = useProductStore();
+        const store = window.pwcaUseProductStore();
 
         // Component state
         const isOpen = Vue.ref(false);

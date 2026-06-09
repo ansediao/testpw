@@ -22,10 +22,13 @@ final class Pwca_Public_Canvas_Router {
 	public function register_rewrite_rules() {
 		add_rewrite_rule( '^pwcanvas/?$', 'index.php?pw_canvas=1', 'top' );
 
-		$flush_flag = get_option( 'pw_canvas_flush_rewrite' );
+		$flush_flag = get_option( 'pwca_canvas_flush_rewrite' );
+		if ( $flush_flag === false ) {
+			$flush_flag = get_option( 'pw_canvas_flush_rewrite' );
+		}
 		if ( $flush_flag !== true ) {
 			flush_rewrite_rules();
-			update_option( 'pw_canvas_flush_rewrite', true );
+			update_option( 'pwca_canvas_flush_rewrite', true );
 		}
 	}
 

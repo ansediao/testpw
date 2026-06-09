@@ -97,7 +97,7 @@ async function showUniversalViewPreview(views) {
         modal.classList.add('is-open');
         document.addEventListener('keydown', onKeyDown);
     }, 10);
-    const viewImages = await window.generateUniversalViewImages(views);
+    const viewImages = await window.pwcaGenerateUniversalViewImages(views);
     const thumbnailList = document.querySelector('#universal-view-preview-modal .thumbnail-list');
     const mainPreview = document.querySelector('#universal-view-preview-modal .main-preview');
     thumbnailList.innerHTML = '';
@@ -153,4 +153,4 @@ async function showUniversalViewPreview(views) {
     }
 }
 
-window.showUniversalViewPreview = showUniversalViewPreview;
+window.pwcaShowUniversalViewPreview = showUniversalViewPreview;

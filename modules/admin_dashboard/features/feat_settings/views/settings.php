@@ -59,7 +59,7 @@ $customize_color = isset( $settings_data['customize_color'] ) ? (string) $settin
 				<th scope="row">Disable SSL</th>
 				<td>
 					<label>
-						<input type="checkbox" name="pw_disable_ssl" value="1" <?php checked( 1, $disable_ssl ); ?>>
+						<input type="checkbox" name="pwca_disable_ssl" value="1" <?php checked( 1, $disable_ssl ); ?>>
 						Use HTTP instead of HTTPS to connect to our API (may be required if the plugin does not work for some hosting configurations)
 					</label>
 				</td>
@@ -70,13 +70,13 @@ $customize_color = isset( $settings_data['customize_color'] ) ? (string) $settin
 			<tr>
 				<th scope="row">Inquiry Form</th>
 				<td>
-					<input type="text" name="pw_api_key" value="<?php echo esc_attr( $api_key ); ?>" placeholder="API integration info" class="regular-text">
+					<input type="text" name="pwca_api_key" value="<?php echo esc_attr( $api_key ); ?>" placeholder="API integration info" class="regular-text">
 				</td>
 			</tr>
 			<tr>
 				<th scope="row"></th>
 				<td>
-					<input type="text" id="pwca-settings-secret-key-input" name="pw_api_secret" value="<?php echo esc_attr( $api_secret ); ?>" placeholder="API integration info" class="regular-text">
+					<input type="text" id="pwca-settings-secret-key-input" name="pwca_api_secret" value="<?php echo esc_attr( $api_secret ); ?>" placeholder="API integration info" class="regular-text">
 				</td>
 			</tr>
 		</table>
@@ -86,13 +86,13 @@ $customize_color = isset( $settings_data['customize_color'] ) ? (string) $settin
 			<tr>
 				<th scope="row">Customization button text</th>
 				<td>
-					<input type="text" name="pw_customize_text" value="<?php echo esc_attr( $customize_text ); ?>" class="regular-text">
+					<input type="text" name="pwca_customize_text" value="<?php echo esc_attr( $customize_text ); ?>" class="regular-text">
 				</td>
 			</tr>
 			<tr>
 				<th scope="row">Customization button color</th>
 				<td>
-					<input type="color" name="pw_customize_color" value="<?php echo esc_attr( $customize_color ); ?>" class="pwca-color-picker">
+					<input type="color" name="pwca_customize_color" value="<?php echo esc_attr( $customize_color ); ?>" class="pwca-color-picker">
 				</td>
 			</tr>
 		</table>

@@ -79,7 +79,7 @@
         function checkDependencies() {
             attempts++;
 
-            if (typeof window.CanvasManager !== 'undefined' && typeof fabric !== 'undefined') {
+            if (typeof window.pwcaCanvasManager !== 'undefined' && typeof fabric !== 'undefined') {
                 callback();
                 return;
             }
@@ -228,14 +228,14 @@
     function getLayerImages() {
         try {
             // 检查是否有可用的 store
-            if (typeof window.useProductStore === 'undefined') {
+            if (typeof window.pwcaUseProductStore === 'undefined') {
                 return {
                     baseImageUrl: 'https://pwfiles.939666.xyz/t-shirt/color.png',
                     overlayImageUrl: 'https://pwfiles.939666.xyz/t-shirt/details.png'
                 };
             }
 
-            const store = window.useProductStore();
+            const store = window.pwcaUseProductStore();
             
             // 检查产品数据是否存在
             if (!store.productData || !store.productData.apiData || !store.productData.apiData.templates) {
@@ -298,7 +298,7 @@
         const layerImages = getLayerImages();
 
         // 如果已经是Canvas模式，只更新背景色
-        if (isCanvasMode && window.CanvasManager && window.CanvasManager.hasCanvas(VIEW_ID)) {
+        if (isCanvasMode && window.pwcaCanvasManager && window.pwcaCanvasManager.hasCanvas(VIEW_ID)) {
             updateCanvasBackgroundColor(backgroundColor, layerImages.overlayImageUrl);
             return;
         }
@@ -379,7 +379,7 @@
      */
     function initializeFabricCanvas(backgroundColor, baseImageUrl, overlayImageUrl) {
         // 检查Canvas管理器和Fabric.js是否已加载
-        if (typeof window.CanvasManager === 'undefined') {
+        if (typeof window.pwcaCanvasManager === 'undefined') {
             return;
         }
         if (typeof fabric === 'undefined') {
@@ -398,7 +398,7 @@
             const initHeight = (canvasEl && canvasEl.height) ? canvasEl.height : 400;
 
             // 使用Canvas管理器创建Fabric Canvas实例（动态尺寸）
-            const canvas = window.CanvasManager.createCanvas(CANVAS_ID, VIEW_ID, {
+            const canvas = window.pwcaCanvasManager.createCanvas(CANVAS_ID, VIEW_ID, {
                 width: initWidth,
                 height: initHeight,
                 backgroundColor: 'transparent'
@@ -442,7 +442,7 @@
      * @param {string} imageUrl - 可选的图片URL，如果提供则替换默认的details.png
      */
     function loadTopLayerImage(color, imageUrl) {
-        const canvas = window.CanvasManager.getCanvas(VIEW_ID);
+        const canvas = window.pwcaCanvasManager.getCanvas(VIEW_ID);
         if (!canvas) {
             return;
         }
@@ -477,7 +477,7 @@
      * @param {string} imageUrl - 可选的图片URL，如果提供则替换默认的details.png
      */
     function updateCanvasBackgroundColor(color, imageUrl) {
-        const canvas = window.CanvasManager.getCanvas(VIEW_ID);
+        const canvas = window.pwcaCanvasManager.getCanvas(VIEW_ID);
         if (!canvas) return;
 
         // 仅更新渐变覆盖层的颜色；保持 Base 和 Overlay Layer 不变
@@ -490,7 +490,7 @@
      * @param {string} color - 单色或渐变的起始颜色（本函数用于自定义颜色单色场景）
      */
     function createOrUpdateGradientOverlay(color) {
-        const canvas = window.CanvasManager.getCanvas(VIEW_ID);
+        const canvas = window.pwcaCanvasManager.getCanvas(VIEW_ID);
         if (!canvas) return;
 
         // 查找 Base Layer
@@ -546,8 +546,8 @@
      */
     function destroyCanvas() {
         // 使用Canvas管理器销毁Canvas实例
-        if (window.CanvasManager) {
-            window.CanvasManager.destroyCanvas(VIEW_ID);
+        if (window.pwcaCanvasManager) {
+            window.pwcaCanvasManager.destroyCanvas(VIEW_ID);
         }
 
         if (canvasContainer) {
@@ -562,13 +562,13 @@
     }
 
     // 公开API
-    window.ProductImageCanvas = {
+    window.pwcaProductImageCanvas = {
         init: initProductImageCanvas,
         switchToCanvas: switchToCanvasMode,
         updateBackgroundColor: updateCanvasBackgroundColor,
         destroy: destroyCanvas,
         getCurrentCanvas: function() {
-            return window.CanvasManager && window.CanvasManager.getCanvas(VIEW_ID);
+            return window.pwcaCanvasManager && window.pwcaCanvasManager.getCanvas(VIEW_ID);
         }
     };
 

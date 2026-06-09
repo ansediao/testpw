@@ -1102,8 +1102,8 @@ function pwcaAddImage(event) {
                 canvas.add(img);
                 canvas.setActiveObject(img);
                 try {
-                    if (typeof window.useDesignUsageStore === 'function') {
-                        const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
+                    if (typeof window.pwcaUseDesignUsageStore === 'function') {
+                        const store = window.pwcaPinia ? window.pwcaUseDesignUsageStore(window.pwcaPinia) : window.pwcaUseDesignUsageStore();
                         store.addDesign({ id: String(designId), name: String(designImg.alt || ''), image: String(imageUrl), sku: String((designImg && designImg.getAttribute && designImg.getAttribute('data-design-sku')) || '') });
                     }
                 } catch (e) {}
@@ -1174,8 +1174,8 @@ function pwcaAddDesignToCanvas(designId) {
             try {
                 if (typeof pwcaRecordDesignUsage === 'function') {
                     pwcaRecordDesignUsage(meta);
-                } else if (typeof window.useDesignUsageStore === 'function') {
-                    const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
+                } else if (typeof window.pwcaUseDesignUsageStore === 'function') {
+                    const store = window.pwcaPinia ? window.pwcaUseDesignUsageStore(window.pwcaPinia) : window.pwcaUseDesignUsageStore();
                     store.addDesign(meta);
                 }
             } catch (e) {
@@ -1201,8 +1201,8 @@ document.addEventListener('keydown', function (e) {
 
 function pwcaRecordDesignUsage(meta) {
     try {
-        if (typeof window.useDesignUsageStore === 'function') {
-            const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
+        if (typeof window.pwcaUseDesignUsageStore === 'function') {
+            const store = window.pwcaPinia ? window.pwcaUseDesignUsageStore(window.pwcaPinia) : window.pwcaUseDesignUsageStore();
             store.addDesign({ id: String(meta.id || ''), name: String(meta.name || ''), image: String(meta.image || ''), sku: String(meta.sku || '') });
             return true;
         }

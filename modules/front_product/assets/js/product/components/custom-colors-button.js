@@ -2,7 +2,7 @@
 // 提供Gradient和Custom Colors按钮，具有与.pw-color-swatch相同的点击逻辑
 
 // 定义CustomColorsButton组件
-window.CustomColorsButton = {
+window.pwcaCustomColorsButton = {
     template: `
         <div class="pw-custom-colors-container">
             <div class="pw-custom-colors-group">
@@ -77,8 +77,8 @@ window.CustomColorsButton = {
     setup() {
         const selectedButton = Vue.ref(null);
         const selectedColor = Vue.ref('#3498DB');
-        const canvasStore = (typeof window.useCanvasStore === 'function') ? window.useCanvasStore() : null;
-        const productStore = (typeof window.useProductStore !== 'undefined') ? window.useProductStore() : null;
+        const canvasStore = (typeof window.pwcaUseCanvasStore === 'function') ? window.pwcaUseCanvasStore() : null;
+        const productStore = (typeof window.pwcaUseProductStore !== 'undefined') ? window.pwcaUseProductStore() : null;
         const isColorModalOpen = Vue.ref(false);
         
         // 新增状态管理
@@ -121,11 +121,11 @@ window.CustomColorsButton = {
             selectedButton.value = 'gradient';
             
             // 首先销毁Canvas并恢复原始图片（类似resetCustomColor的逻辑）
-            if (window.ProductImageCanvas) {
+            if (window.pwcaProductImageCanvas) {
                 try {
                     // 调用destroy方法销毁Canvas（已包含showOriginalImage调用）
-                    if (typeof window.ProductImageCanvas.destroy === 'function') {
-                        window.ProductImageCanvas.destroy();
+                    if (typeof window.pwcaProductImageCanvas.destroy === 'function') {
+                        window.pwcaProductImageCanvas.destroy();
                     }
                 } catch (error) {
                 }
@@ -156,12 +156,12 @@ window.CustomColorsButton = {
                 let canvas = null;
                 
                 // 尝试获取产品页面的画布实例
-                if (window.ProductImageCanvas && window.ProductImageCanvas.getCurrentCanvas) {
-                    canvas = window.ProductImageCanvas.getCurrentCanvas();
-                } else if (window.CanvasManager) {
+                if (window.pwcaProductImageCanvas && window.pwcaProductImageCanvas.getCurrentCanvas) {
+                    canvas = window.pwcaProductImageCanvas.getCurrentCanvas();
+                } else if (window.pwcaCanvasManager) {
                     // 备用方案：通过CanvasManager获取
-                    canvas = window.CanvasManager.getCanvas('product-view') || 
-                            window.CanvasManager.getCanvas('baseCanvas-view1');
+                    canvas = window.pwcaCanvasManager.getCanvas('product-view') || 
+                            window.pwcaCanvasManager.getCanvas('baseCanvas-view1');
                 }
                 
                 if (canvas) {
@@ -198,11 +198,11 @@ window.CustomColorsButton = {
                     // 获取画布实例
                     let canvas = null;
                     
-                    if (window.ProductImageCanvas && window.ProductImageCanvas.getCurrentCanvas) {
-                        canvas = window.ProductImageCanvas.getCurrentCanvas();
-                    } else if (window.CanvasManager) {
-                        canvas = window.CanvasManager.getCanvas('product-view') || 
-                                window.CanvasManager.getCanvas('baseCanvas-view1');
+                    if (window.pwcaProductImageCanvas && window.pwcaProductImageCanvas.getCurrentCanvas) {
+                        canvas = window.pwcaProductImageCanvas.getCurrentCanvas();
+                    } else if (window.pwcaCanvasManager) {
+                        canvas = window.pwcaCanvasManager.getCanvas('product-view') || 
+                                window.pwcaCanvasManager.getCanvas('baseCanvas-view1');
                     }
                     
                     if (canvas) {
@@ -221,11 +221,11 @@ window.CustomColorsButton = {
             
             
             // 销毁Canvas实例并还原到原始图片
-            if (window.ProductImageCanvas) {
+            if (window.pwcaProductImageCanvas) {
                 try {
                     // 调用destroy方法销毁Canvas（已包含showOriginalImage调用）
-                    if (typeof window.ProductImageCanvas.destroy === 'function') {
-                        window.ProductImageCanvas.destroy();
+                    if (typeof window.pwcaProductImageCanvas.destroy === 'function') {
+                        window.pwcaProductImageCanvas.destroy();
                     }
                     
                 } catch (error) {
@@ -278,7 +278,7 @@ window.CustomColorsButton = {
             
             // 清除产品状态管理中的自定义颜色状态
             if (productStore) {
-                window.ProductColorSelectionBridge.resetSelection(productStore);
+                window.pwcaProductColorSelectionBridge.resetSelection(productStore);
             }
             
             // 重置组件内部状态
@@ -492,7 +492,7 @@ window.CustomColorsButton = {
         
         // 处理颜色选择的核心逻辑（模拟.pw-color-swatch的行为）
         const handleColorSelection = (colorValue, type) => {
-            window.ProductColorSelectionBridge.applyCustomColorSelection(colorValue, type, productStore);
+            window.pwcaProductColorSelectionBridge.applyCustomColorSelection(colorValue, type, productStore);
         };
         
         // 组件挂载时的初始化
@@ -544,5 +544,5 @@ window.CustomColorsButton = {
 
 // 自动注册组件到全局Vue应用（如果存在）
 if (typeof window.vueApp !== 'undefined' && window.vueApp.component) {
-    window.vueApp.component('CustomColorsButton', window.CustomColorsButton);
+    window.vueApp.component('CustomColorsButton', window.pwcaCustomColorsButton);
 }

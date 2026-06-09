@@ -623,7 +623,7 @@
 
     // 处理产品数据的核心逻辑
     const processProductData = (apiData) => {
-        const mapper = window.ProductResponseMapper;
+        const mapper = window.pwcaProductResponseMapper;
         const mappedData = mapper && typeof mapper.mapProductResponse === 'function'
             ? mapper.mapProductResponse(apiData)
             : null;
@@ -655,8 +655,8 @@
 
             try {
                 // 优先使用直接注入的缓存数据，避免API调用延迟
-                if (window.pwProductData) {
-                    const apiData = window.pwProductData;
+                if (window.pwcaProductData) {
+                    const apiData = window.pwcaProductData;
                     
                     // 处理数据并更新状态
                     processProductData(apiData);
@@ -667,11 +667,11 @@
                 }
 
                 // 如果没有缓存数据，回退到API调用
-                if (typeof window.productDataAPI === 'undefined') {
+                if (typeof window.pwcaProductDataAPI === 'undefined') {
                     throw new Error('ProductDataAPI not loaded');
                 }
 
-                const responsePayload = await window.productDataAPI.fetchCurrentProductData();
+                const responsePayload = await window.pwcaProductDataAPI.fetchCurrentProductData();
                 const apiData = responsePayload && responsePayload.data ? responsePayload.data : responsePayload;
 
                 // 处理数据并更新状态
@@ -701,9 +701,9 @@
         try {
             // 使用传入的数量参数，如果没有则使用 store 中的数量
             const finalQuantity = customQuantity !== null ? customQuantity : quantity.value;
-            await window.ProductCartSubmitService.checkCartBlankState(blankProductChecked.value);
+            await window.pwcaProductCartSubmitService.checkCartBlankState(blankProductChecked.value);
 
-            const canvasPayload = await window.ProductCanvasPayloadBuilder.buildCanvasPayload();
+            const canvasPayload = await window.pwcaProductCanvasPayloadBuilder.buildCanvasPayload();
             const variant = selectedVariant.value || (Array.isArray(variants.value) && variants.value.length > 0 ? variants.value[0] : null);
             const colorInfo = variant ? {
                 color_name: (variant.isCustom ? 'Custom Color' : (variant.variant_name || variant.name || '')),
@@ -715,7 +715,7 @@
                 variant_id: ''
             };
 
-            const formData = window.ProductCartSubmitService.buildAddToCartFormData({
+            const formData = window.pwcaProductCartSubmitService.buildAddToCartFormData({
                 productId: productId.value,
                 quantity: finalQuantity,
                 variant,
@@ -732,12 +732,12 @@
                 selectedAccessoriesNames: selectedAccessoriesNames.value
             }, canvasPayload);
 
-            await window.ProductCartSubmitService.submitAddToCart(formData);
-            window.ProductCartSubmitService.notifyAddToCartSuccess(finalQuantity);
+            await window.pwcaProductCartSubmitService.submitAddToCart(formData);
+            window.pwcaProductCartSubmitService.notifyAddToCartSuccess(finalQuantity);
             
         } catch (err) {
             setError(err.message);
-            window.ProductCartSubmitService.notifyAddToCartError(err.message);
+            window.pwcaProductCartSubmitService.notifyAddToCartError(err.message);
         } finally {
             setLoading(false);
         }
@@ -846,5 +846,5 @@
         return storeInstance;
     };
 
-    window.useProductStore = useProductStore;
+    window.pwcaUseProductStore = useProductStore;
 })();

@@ -340,8 +340,8 @@ function createFabricObjectFromLayer(canvas, layer) {
 
         let storeSettings = null;
         try {
-            if (typeof window.useCanvasStore === 'function') {
-                const store = window.useCanvasStore();
+            if (typeof window.pwcaUseCanvasStore === 'function') {
+                const store = window.pwcaUseCanvasStore();
                 if (store && typeof store.getStoreCustomizationSettings === 'function') {
                     storeSettings = store.getStoreCustomizationSettings();
                 }
@@ -617,22 +617,22 @@ async function initializeEmptyCanvas(canvasId, canvasWidth, canvasHeight, view, 
     canvasElement.__fabricCanvas = canvas;
     canvasElement.__viewId = view.id;
 
-    if (window.CanvasManager) {
-        if (!window.CanvasManager._canvasMap) {
-            window.CanvasManager._canvasMap = {};
+    if (window.pwcaCanvasManager) {
+        if (!window.pwcaCanvasManager._canvasMap) {
+            window.pwcaCanvasManager._canvasMap = {};
         }
 
         if (canvasId.includes('mainCanvas')) {
-            window.CanvasManager._canvasMap[view.id] = canvas;
+            window.pwcaCanvasManager._canvasMap[view.id] = canvas;
 
             if (store.activeViewId === view.id) {
-                window.CanvasManager.setActiveCanvas(view.id);
-                window.canvas = canvas;
-                window.fabricCanvas = canvas;
+                window.pwcaCanvasManager.setActiveCanvas(view.id);
+                window.pwcaCanvas = canvas;
+                window.pwcaFabricCanvas = canvas;
             }
         }
 
-        window.CanvasManager._canvasMap[canvasId] = canvas;
+        window.pwcaCanvasManager._canvasMap[canvasId] = canvas;
     }
 
     return canvas;
@@ -867,8 +867,8 @@ async function initializeMultiLayerCanvases(view, store) {
     await applyFlowPostInitialization(view, store);
 
     setTimeout(() => {
-        if (typeof window.triggerAutoZoomAdjustment === 'function') {
-            window.triggerAutoZoomAdjustment();
+        if (typeof window.pwcaTriggerAutoZoomAdjustment === 'function') {
+            window.pwcaTriggerAutoZoomAdjustment();
         }
     }, 200);
 
@@ -913,8 +913,8 @@ async function initializeMaskCanvas(canvasId, view, store) {
     let printAreaWidth = 100;
     let printAreaHeight = 120;
 
-    if (window.usePrintMethodStore) {
-        const printMethodStore = window.usePrintMethodStore();
+    if (window.pwcaUsePrintMethodStore) {
+        const printMethodStore = window.pwcaUsePrintMethodStore();
         const currentMethods = printMethodStore.currentViewPrintMethods;
 
         if (currentMethods && currentMethods.length > 0) {
@@ -1103,10 +1103,10 @@ function pwcaClearAllGradientRects() {
     const resolveCanvasInstance = (canvasId, fallbackId, view) => {
         let canvas = null;
 
-        if (window.CanvasManager && typeof window.CanvasManager.getCanvas === 'function') {
-            canvas = window.CanvasManager.getCanvas(canvasId);
+        if (window.pwcaCanvasManager && typeof window.pwcaCanvasManager.getCanvas === 'function') {
+            canvas = window.pwcaCanvasManager.getCanvas(canvasId);
             if (!canvas && fallbackId) {
-                canvas = window.CanvasManager.getCanvas(fallbackId);
+                canvas = window.pwcaCanvasManager.getCanvas(fallbackId);
             }
         }
 
@@ -1125,8 +1125,8 @@ function pwcaClearAllGradientRects() {
     };
 
     try {
-        if (window.useCanvasStore) {
-            const store = window.useCanvasStore();
+        if (window.pwcaUseCanvasStore) {
+            const store = window.pwcaUseCanvasStore();
             if (store && Array.isArray(store.views)) {
                 store.views.forEach((view) => {
                     const baseCanvasId = `baseCanvas-${view.id}`;
@@ -1207,7 +1207,7 @@ function pwcaMarkMultiViewInitializationFailed(error) {
 
 /**
  * 初始化多视图容器与画布。
- * 依赖：window.useCanvasStore、fabric、CanvasManager、PrintAreaValidator。
+ * 依赖：window.pwcaUseCanvasStore、fabric、pwcaCanvasManager、PrintAreaValidator。
  */
 function pwcaInitializeMultiViewCanvases(store) {
     if (!store) {
@@ -1376,15 +1376,15 @@ function pwcaCreateViewContainers(views, store) {
             if (targetView) {
                 store.setActiveViewId(targetView.id);
 
-                if (window.CanvasManager) {
-                    window.CanvasManager.setActiveCanvas(targetView.id);
-                    const canvas = window.CanvasManager.getCanvas(targetView.id);
+                if (window.pwcaCanvasManager) {
+                    window.pwcaCanvasManager.setActiveCanvas(targetView.id);
+                    const canvas = window.pwcaCanvasManager.getCanvas(targetView.id);
                     if (canvas) {
                         if (window.pwcaSetGlobalCanvas) {
                             window.pwcaSetGlobalCanvas(canvas);
                         } else {
-                            window.canvas = canvas;
-                            window.fabricCanvas = canvas;
+                            window.pwcaCanvas = canvas;
+                            window.pwcaFabricCanvas = canvas;
                         }
                     }
                 }
@@ -1442,7 +1442,7 @@ function pwcaEnsureMultiViewInitialization(store) {
             pwcaRejectMultiViewInitPromise = null;
             resolve({
                 initialized: true,
-                store: store || (typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null)
+                store: store || (typeof window.pwcaUseCanvasStore === 'function' ? window.pwcaUseCanvasStore() : null)
             });
         };
 

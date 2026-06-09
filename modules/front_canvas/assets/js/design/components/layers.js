@@ -515,9 +515,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addLayerToStore = function (layerId, layerName, layerType) {
-    if (typeof window.useCanvasStore === 'function') {
+    if (typeof window.pwcaUseCanvasStore === 'function') {
         try {
-            const store = window.useCanvasStore();
+            const store = window.pwcaUseCanvasStore();
             const currentViewId = store.activeViewId;
 
             if (!currentViewId) {

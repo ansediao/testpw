@@ -557,4 +557,4 @@ window.drawCanvasWithinBoundaryForWindow = drawCanvasWithinBoundaryForWindow;
 window.drawCanvasWithinBoundary = drawCanvasWithinBoundary;
 window.cropImageWithConfig = cropImageWithConfig;
 window.captureViewImage = captureViewImage;
-window.generateUniversalViewImages = generateUniversalViewImages;
+window.pwcaGenerateUniversalViewImages = generateUniversalViewImages;

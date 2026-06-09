@@ -13,7 +13,7 @@
  * 该函数会自动等待依赖（如 Vue 和 Pinia）加载完成，并持续尝试直到成功或发生不可恢复的错误。
  *
  * @param {string} elementId - 需要同步内容的页面元素 ID。
- * @param {function(): object} storeAccessor - 一个返回 Pinia Store 实例的函数。例如: () => window.useProductStore()。
+ * @param {function(): object} storeAccessor - 一个返回 Pinia Store 实例的函数。例如: () => window.pwcaUseProductStore()。
  * @param {string} valuePath - Store state 中所需值的路径，支持点表示法（例如 'product.name' 或 'user.info.age'）。
  */
 function syncPiniaToElement(elementId, storeAccessor, valuePath) {

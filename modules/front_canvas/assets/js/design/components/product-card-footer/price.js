@@ -110,8 +110,8 @@ export function usePriceCalculations(canvasStore, printStore, quantityRef, getIs
     const totalPrint = printStore.getTotalPrintCostFromUsedMethods || 0;
     let designFee = 0;
     try {
-      if (typeof window.useDesignUsageStore === 'function') {
-        const ds = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
+      if (typeof window.pwcaUseDesignUsageStore === 'function') {
+        const ds = window.pwcaPinia ? window.pwcaUseDesignUsageStore(window.pwcaPinia) : window.pwcaUseDesignUsageStore();
         const fee = Number(ds.totalFee || 0);
         if (Number.isFinite(fee)) designFee = fee;
       }

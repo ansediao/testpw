@@ -31,7 +31,7 @@ class Pwca_Admin_Deactivator {
 	 */
 	public static function deactivate() {
 		// 删除重写规则刷新标志
-		delete_option('pw_canvas_flush_rewrite');
+		delete_option('pwca_canvas_flush_rewrite');
 		
 		// 刷新重写规则，移除我们的自定义规则
 		flush_rewrite_rules();

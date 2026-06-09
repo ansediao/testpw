@@ -624,30 +624,95 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/canvas/multi-view-init.js",
           "functions": [
-            {"line": 11, "name": "getOriginFromAnchorPoint"},
-            {"line": 49, "name": "convertCoordinatesForOrigin"},
-            {"line": 71, "name": "getLayerRenderSize"},
-            {"line": 85, "name": "getCanvasHeightValue"},
-            {"line": 94, "name": "getFabricPlacementForLayer"},
-            {"line": 195, "name": "getTargetCanvasIdForLayer"},
-            {"line": 219, "name": "getViewRenderableLayers"},
-            {"line": 225, "name": "getFlowSizingReferenceLayer"},
-            {"line": 238, "name": "getCanvasDimensionsForView"},
-            {"line": 254, "name": "buildCanvasConfigsForView"},
-            {"line": 277, "name": "renderCanvasConfigsForView"},
-            {"line": 306, "name": "applyFlowPostInitialization"},
-            {"line": 330, "name": "createFabricObjectFromLayer"},
-            {"line": 597, "name": "initializeEmptyCanvas"},
-            {"line": 649, "name": "renderLayerToSpecificCanvas"},
-            {"line": 682, "name": "clearContentAreaClip"},
-            {"line": 708, "name": "applyContentAreaClip"},
-            {"line": 741, "name": "handleFourGridContentArea"},
-            {"line": 820, "name": "isValidImageURL"},
-            {"line": 843, "name": "initializeMultiLayerCanvases"},
-            {"line": 887, "name": "initializeMaskCanvas"}
+            {
+              "line": 11,
+              "name": "getOriginFromAnchorPoint"
+            },
+            {
+              "line": 49,
+              "name": "convertCoordinatesForOrigin"
+            },
+            {
+              "line": 71,
+              "name": "getLayerRenderSize"
+            },
+            {
+              "line": 85,
+              "name": "getCanvasHeightValue"
+            },
+            {
+              "line": 94,
+              "name": "getFabricPlacementForLayer"
+            },
+            {
+              "line": 195,
+              "name": "getTargetCanvasIdForLayer"
+            },
+            {
+              "line": 219,
+              "name": "getViewRenderableLayers"
+            },
+            {
+              "line": 225,
+              "name": "getFlowSizingReferenceLayer"
+            },
+            {
+              "line": 238,
+              "name": "getCanvasDimensionsForView"
+            },
+            {
+              "line": 254,
+              "name": "buildCanvasConfigsForView"
+            },
+            {
+              "line": 277,
+              "name": "renderCanvasConfigsForView"
+            },
+            {
+              "line": 306,
+              "name": "applyFlowPostInitialization"
+            },
+            {
+              "line": 330,
+              "name": "createFabricObjectFromLayer"
+            },
+            {
+              "line": 597,
+              "name": "initializeEmptyCanvas"
+            },
+            {
+              "line": 649,
+              "name": "renderLayerToSpecificCanvas"
+            },
+            {
+              "line": 682,
+              "name": "clearContentAreaClip"
+            },
+            {
+              "line": 708,
+              "name": "applyContentAreaClip"
+            },
+            {
+              "line": 741,
+              "name": "handleFourGridContentArea"
+            },
+            {
+              "line": 820,
+              "name": "isValidImageURL"
+            },
+            {
+              "line": 843,
+              "name": "initializeMultiLayerCanvases"
+            },
+            {
+              "line": 887,
+              "name": "initializeMaskCanvas"
+            }
           ],
           "violation": "所有顶层函数均未使用 `pwca` 前缀",
-          "related_references": ["modules/front_canvas/assets/js/canvas/page-bootstrap.js (引用)"],
+          "related_references": [
+            "modules/front_canvas/assets/js/canvas/page-bootstrap.js (引用)"
+          ],
           "status": "未处理",
           "frontend_area": "画布设计页 - 多视图初始化/4格预览"
         },
@@ -656,40 +721,135 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/canvas/page-bootstrap.js",
           "functions": [
-            {"line": 1, "name": "getSettings"},
-            {"line": 35, "name": "onReady"},
-            {"line": 43, "name": "waitFor"},
-            {"line": 278, "name": "initFetchProductData"},
-            {"line": 294, "name": "buildDesignPayload"},
-            {"line": 314, "name": "buildViewPrintMethodsPayload"},
-            {"line": 344, "name": "resolveMoqAndDiscount"},
-            {"line": 387, "name": "buildViewImagesPayload"},
-            {"line": 432, "name": "readAccessoriesNames"},
-            {"line": 454, "name": "captureCanvasStateJson"},
-            {"line": 470, "name": "buildAddToCartRequestBody"},
-            {"line": 517, "name": "submitAddToCartRequest"},
-            {"line": 534, "name": "fetchCartCanvasState"},
-            {"line": 565, "name": "addCustomizedProductToCart"},
-            {"line": 628, "name": "toggleVisibleViewContainer"},
-            {"line": 640, "name": "syncGlobalCanvasForView"},
-            {"line": 678, "name": "clearAllViewSelections"},
-            {"line": 706, "name": "generateSingleViewPDF"},
-            {"line": 749, "name": "waitForViewCanvasReady"},
-            {"line": 767, "name": "saveMultiViewPdfDocument"},
-            {"line": 907, "name": "finalizeManagedActionFlow"},
-            {"line": 919, "name": "runPreviewRenderFlow"},
-            {"line": 929, "name": "runGeneratePdfFlow"},
-            {"line": 953, "name": "generateMultiViewPDF"},
-            {"line": 955, "name": "resolveCartEditKey"},
-            {"line": 968, "name": "waitForCanvasStateIntegration"},
-            {"line": 997, "name": "initCartEditCanvasState"},
-            {"line": 1134, "name": "buildStartupTasks"},
-            {"line": 1181, "name": "finalizeAsyncStartup"},
-            {"line": 1207, "name": "bindAddToCartButton"},
-            {"line": 1218, "name": "initializePageBootstrap"}
+            {
+              "line": 1,
+              "name": "getSettings"
+            },
+            {
+              "line": 35,
+              "name": "onReady"
+            },
+            {
+              "line": 43,
+              "name": "waitFor"
+            },
+            {
+              "line": 278,
+              "name": "initFetchProductData"
+            },
+            {
+              "line": 294,
+              "name": "buildDesignPayload"
+            },
+            {
+              "line": 314,
+              "name": "buildViewPrintMethodsPayload"
+            },
+            {
+              "line": 344,
+              "name": "resolveMoqAndDiscount"
+            },
+            {
+              "line": 387,
+              "name": "buildViewImagesPayload"
+            },
+            {
+              "line": 432,
+              "name": "readAccessoriesNames"
+            },
+            {
+              "line": 454,
+              "name": "captureCanvasStateJson"
+            },
+            {
+              "line": 470,
+              "name": "buildAddToCartRequestBody"
+            },
+            {
+              "line": 517,
+              "name": "submitAddToCartRequest"
+            },
+            {
+              "line": 534,
+              "name": "fetchCartCanvasState"
+            },
+            {
+              "line": 565,
+              "name": "addCustomizedProductToCart"
+            },
+            {
+              "line": 628,
+              "name": "toggleVisibleViewContainer"
+            },
+            {
+              "line": 640,
+              "name": "syncGlobalCanvasForView"
+            },
+            {
+              "line": 678,
+              "name": "clearAllViewSelections"
+            },
+            {
+              "line": 706,
+              "name": "generateSingleViewPDF"
+            },
+            {
+              "line": 749,
+              "name": "waitForViewCanvasReady"
+            },
+            {
+              "line": 767,
+              "name": "saveMultiViewPdfDocument"
+            },
+            {
+              "line": 907,
+              "name": "finalizeManagedActionFlow"
+            },
+            {
+              "line": 919,
+              "name": "runPreviewRenderFlow"
+            },
+            {
+              "line": 929,
+              "name": "runGeneratePdfFlow"
+            },
+            {
+              "line": 953,
+              "name": "generateMultiViewPDF"
+            },
+            {
+              "line": 955,
+              "name": "resolveCartEditKey"
+            },
+            {
+              "line": 968,
+              "name": "waitForCanvasStateIntegration"
+            },
+            {
+              "line": 997,
+              "name": "initCartEditCanvasState"
+            },
+            {
+              "line": 1134,
+              "name": "buildStartupTasks"
+            },
+            {
+              "line": 1181,
+              "name": "finalizeAsyncStartup"
+            },
+            {
+              "line": 1207,
+              "name": "bindAddToCartButton"
+            },
+            {
+              "line": 1218,
+              "name": "initializePageBootstrap"
+            }
           ],
           "violation": "所有顶层函数均未使用 `pwca` 前缀",
-          "related_references": ["modules/front_canvas/assets/js/design/stores/ (Store联动)"],
+          "related_references": [
+            "modules/front_canvas/assets/js/design/stores/ (Store联动)"
+          ],
           "status": "未处理",
           "frontend_area": "画布设计页 - 页面引导/数据加载/加入购物车"
         },
@@ -698,19 +858,51 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/main/grid-preview.js",
           "functions": [
-            {"line": 301, "name": "generateUniversalViewImages"},
-            {"line": 323, "name": "generate4GridImagesForView"},
-            {"line": 369, "name": "generateCompositeImageForGrid"},
-            {"line": 408, "name": "drawLayerImageForGrid"},
-            {"line": 428, "name": "drawLayerImageForGridWithColor"},
-            {"line": 448, "name": "drawCroppedCanvasRegionWithWindowEffect"},
-            {"line": 495, "name": "drawCanvasWithinBoundaryForWindow"},
-            {"line": 502, "name": "drawCanvasWithinBoundary"},
-            {"line": 513, "name": "cropImageWithConfig"},
-            {"line": 528, "name": "captureViewImage"}
+            {
+              "line": 301,
+              "name": "generateUniversalViewImages"
+            },
+            {
+              "line": 323,
+              "name": "generate4GridImagesForView"
+            },
+            {
+              "line": 369,
+              "name": "generateCompositeImageForGrid"
+            },
+            {
+              "line": 408,
+              "name": "drawLayerImageForGrid"
+            },
+            {
+              "line": 428,
+              "name": "drawLayerImageForGridWithColor"
+            },
+            {
+              "line": 448,
+              "name": "drawCroppedCanvasRegionWithWindowEffect"
+            },
+            {
+              "line": 495,
+              "name": "drawCanvasWithinBoundaryForWindow"
+            },
+            {
+              "line": 502,
+              "name": "drawCanvasWithinBoundary"
+            },
+            {
+              "line": 513,
+              "name": "cropImageWithConfig"
+            },
+            {
+              "line": 528,
+              "name": "captureViewImage"
+            }
           ],
           "violation": "所有顶层函数均未使用 `pwca` 前缀",
-          "related_references": ["modules/front_canvas/assets/js/main/universal-preview.js"],
+          "related_references": [
+            "modules/front_canvas/assets/js/main/universal-preview.js"
+          ],
           "status": "未处理",
           "frontend_area": "画布设计页 - 4格预览/出图"
         },
@@ -719,22 +911,70 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/main/operation-panel-colors.js",
           "functions": [
-            {"line": 3, "name": "getUiStateAccess"},
-            {"line": 5, "name": "isLightColor"},
-            {"line": 15, "name": "generateDefaultColors"},
-            {"line": 38, "name": "handleColorSwatchClick"},
-            {"line": 45, "name": "saveColorToStore"},
-            {"line": 158, "name": "applyColorTint"},
-            {"line": 208, "name": "isFirstView"},
-            {"line": 356, "name": "tryApply"},
-            {"line": 391, "name": "getGradientCoords"},
-            {"line": 541, "name": "generateColorSwatches"},
-            {"line": 599, "name": "bindColorSwatchEvents"},
-            {"line": 617, "name": "waitForCanvasData"},
-            {"line": 662, "name": "clearAllColorEffects"},
-            {"line": 836, "name": "applyCustomColorToBaseLayer"},
-            {"line": 1021, "name": "applyGradientToBaseLayer"},
-            {"line": 1244, "name": "calculateSampleOrderRts"}
+            {
+              "line": 3,
+              "name": "getUiStateAccess"
+            },
+            {
+              "line": 5,
+              "name": "isLightColor"
+            },
+            {
+              "line": 15,
+              "name": "generateDefaultColors"
+            },
+            {
+              "line": 38,
+              "name": "handleColorSwatchClick"
+            },
+            {
+              "line": 45,
+              "name": "saveColorToStore"
+            },
+            {
+              "line": 158,
+              "name": "applyColorTint"
+            },
+            {
+              "line": 208,
+              "name": "isFirstView"
+            },
+            {
+              "line": 356,
+              "name": "tryApply"
+            },
+            {
+              "line": 391,
+              "name": "getGradientCoords"
+            },
+            {
+              "line": 541,
+              "name": "generateColorSwatches"
+            },
+            {
+              "line": 599,
+              "name": "bindColorSwatchEvents"
+            },
+            {
+              "line": 617,
+              "name": "waitForCanvasData"
+            },
+            {
+              "line": 662,
+              "name": "clearAllColorEffects"
+            },
+            {
+              "line": 836,
+              "name": "applyCustomColorToBaseLayer"
+            },
+            {
+              "line": 1021,
+              "name": "applyGradientToBaseLayer"
+            },
+            {
+              "line": 1244,
+              "name": "calculateSampleOrderRts"
+            }
           ],
           "violation": "所有顶层函数均未使用 `pwca` 前缀",
           "related_references": [],
@@ -746,7 +986,10 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/main/core-init.js",
           "functions": [
-            {"line": 26, "name": "isUserInitiatedAction"}
+            {
+              "line": 26,
+              "name": "isUserInitiatedAction"
+            }
           ],
           "violation": "未使用 `pwca` 前缀",
           "related_references": [],
@@ -758,17 +1001,43 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/main/layers-sync.js",
           "functions": [
-            {"line": 1, "name": "addCanvasLayerListeners"},
-            {"line": 34, "name": "syncCanvasObjectToStore"},
-            {"line": 68, "name": "syncSelectionToStore"},
-            {"line": 81, "name": "updateDongtaiAreaButtons"},
-            {"line": 95, "name": "showRelevantButtonGroup"},
-            {"line": 114, "name": "controlMaskCanvasFromMain"},
-            {"line": 132, "name": "controlMainWrapperDisplayArea"},
-            {"line": 172, "name": "applyClipForObject"}
+            {
+              "line": 1,
+              "name": "addCanvasLayerListeners"
+            },
+            {
+              "line": 34,
+              "name": "syncCanvasObjectToStore"
+            },
+            {
+              "line": 68,
+              "name": "syncSelectionToStore"
+            },
+            {
+              "line": 81,
+              "name": "updateDongtaiAreaButtons"
+            },
+            {
+              "line": 95,
+              "name": "showRelevantButtonGroup"
+            },
+            {
+              "line": 114,
+              "name": "controlMaskCanvasFromMain"
+            },
+            {
+              "line": 132,
+              "name": "controlMainWrapperDisplayArea"
+            },
+            {
+              "line": 172,
+              "name": "applyClipForObject"
+            }
           ],
           "violation": "所有顶层函数均未使用 `pwca` 前缀",
-          "related_references": ["modules/front_canvas/assets/js/design/components/layers.js"],
+          "related_references": [
+            "modules/front_canvas/assets/js/design/components/layers.js"
+          ],
           "status": "未处理",
           "frontend_area": "画布设计页 - 图层同步"
         },
@@ -777,21 +1046,59 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/main/view-switch-facade.js",
           "functions": [
-            {"line": 4, "name": "getUiStateAccess"},
-            {"line": 8, "name": "getCanvasStore"},
-            {"line": 17, "name": "getViews"},
-            {"line": 27, "name": "getCurrentActiveViewId"},
-            {"line": 37, "name": "getCanvasByViewId"},
-            {"line": 46, "name": "getAllViewCanvases"},
-            {"line": 55, "name": "waitForStore"},
-            {"line": 71, "name": "getViewById"},
-            {"line": 87, "name": "syncViewContainers"},
-            {"line": 98, "name": "syncCanvasManager"},
-            {"line": 139, "name": "emitViewSwitch"},
-            {"line": 148, "name": "switchToView"}
+            {
+              "line": 4,
+              "name": "getUiStateAccess"
+            },
+            {
+              "line": 8,
+              "name": "getCanvasStore"
+            },
+            {
+              "line": 17,
+              "name": "getViews"
+            },
+            {
+              "line": 27,
+              "name": "getCurrentActiveViewId"
+            },
+            {
+              "line": 37,
+              "name": "getCanvasByViewId"
+            },
+            {
+              "line": 46,
+              "name": "getAllViewCanvases"
+            },
+            {
+              "line": 55,
+              "name": "waitForStore"
+            },
+            {
+              "line": 71,
+              "name": "getViewById"
+            },
+            {
+              "line": 87,
+              "name": "syncViewContainers"
+            },
+            {
+              "line": 98,
+              "name": "syncCanvasManager"
+            },
+            {
+              "line": 139,
+              "name": "emitViewSwitch"
+            },
+            {
+              "line": 148,
+              "name": "switchToView"
+            }
           ],
           "violation": "所有顶层函数均未使用 `pwca` 前缀",
-          "related_references": ["modules/front_canvas/assets/js/canvas/multi-view-init.js"],
+          "related_references": [
+            "modules/front_canvas/assets/js/canvas/multi-view-init.js"
+          ],
           "status": "未处理",
           "frontend_area": "画布设计页 - 视图切换"
         },
@@ -800,20 +1107,55 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/design/utils/print-area-validator.js",
           "functions": [
-            {"line": 14, "name": "adjustObjectPosition"},
-            {"line": 52, "name": "hasPrintMethodAssigned"},
-            {"line": 80, "name": "getPrintAreaBounds"},
-            {"line": 152, "name": "calculateOverlapArea"},
-            {"line": 181, "name": "isObjectInPrintArea"},
-            {"line": 217, "name": "moveObjectToCanvasCenter"},
-            {"line": 255, "name": "validateAndRepositionObject"},
-            {"line": 296, "name": "addPrintAreaValidationListeners"},
-            {"line": 392, "name": "testPrintAreaValidation"},
-            {"line": 436, "name": "testDragEndValidation"},
-            {"line": 502, "name": "manualAddListeners"}
+            {
+              "line": 14,
+              "name": "adjustObjectPosition"
+            },
+            {
+              "line": 52,
+              "name": "hasPrintMethodAssigned"
+            },
+            {
+              "line": 80,
+              "name": "getPrintAreaBounds"
+            },
+            {
+              "line": 152,
+              "name": "calculateOverlapArea"
+            },
+            {
+              "line": 181,
+              "name": "isObjectInPrintArea"
+            },
+            {
+              "line": 217,
+              "name": "moveObjectToCanvasCenter"
+            },
+            {
+              "line": 255,
+              "name": "validateAndRepositionObject"
+            },
+            {
+              "line": 296,
+              "name": "addPrintAreaValidationListeners"
+            },
+            {
+              "line": 392,
+              "name": "testPrintAreaValidation"
+            },
+            {
+              "line": 436,
+              "name": "testDragEndValidation"
+            },
+            {
+              "line": 502,
+              "name": "manualAddListeners"
+            }
           ],
           "violation": "所有顶层函数均未使用 `pwca` 前缀",
-          "related_references": ["modules/front_canvas/assets/js/design/components/layers/print-methods.js"],
+          "related_references": [
+            "modules/front_canvas/assets/js/design/components/layers/print-methods.js"
+          ],
           "status": "未处理",
           "frontend_area": "画布设计页 - 打印区域校验"
         },
@@ -822,12 +1164,23 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/design/stores/product-data-mapper.js",
           "functions": [
-            {"line": 30, "name": "decodeHex"},
-            {"line": 337, "name": "getStoreValue"},
-            {"line": 342, "name": "getLayerValue"}
+            {
+              "line": 30,
+              "name": "decodeHex"
+            },
+            {
+              "line": 337,
+              "name": "getStoreValue"
+            },
+            {
+              "line": 342,
+              "name": "getLayerValue"
+            }
           ],
           "violation": "内部函数未使用 `pwca` 前缀",
-          "related_references": ["modules/front_canvas/assets/js/design/stores/index.js"],
+          "related_references": [
+            "modules/front_canvas/assets/js/design/stores/index.js"
+          ],
           "status": "未处理",
           "frontend_area": "画布设计页 - 产品数据映射"
         },
@@ -836,12 +1189,23 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/design/stores/print-method-mapper.js",
           "functions": [
-            {"line": 1, "name": "convertApiDataToInternalFormat"},
-            {"line": 72, "name": "attachCustomColorsToMethod"},
-            {"line": 94, "name": "normalizePrintMethodsApiPayload"}
+            {
+              "line": 1,
+              "name": "convertApiDataToInternalFormat"
+            },
+            {
+              "line": 72,
+              "name": "attachCustomColorsToMethod"
+            },
+            {
+              "line": 94,
+              "name": "normalizePrintMethodsApiPayload"
+            }
           ],
           "violation": "未使用 `pwca` 前缀",
-          "related_references": ["modules/front_canvas/assets/js/design/stores/printMethodStore.js"],
+          "related_references": [
+            "modules/front_canvas/assets/js/design/stores/printMethodStore.js"
+          ],
           "status": "未处理",
           "frontend_area": "画布设计页 - 印刷方式数据映射"
         },
@@ -850,11 +1214,19 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/design/api/print-method-api.js",
           "functions": [
-            {"line": 1, "name": "fetchPrintMethodsByIds"},
-            {"line": 24, "name": "fetchCustomColorsByListId"}
+            {
+              "line": 1,
+              "name": "fetchPrintMethodsByIds"
+            },
+            {
+              "line": 24,
+              "name": "fetchCustomColorsByListId"
+            }
           ],
           "violation": "未使用 `pwca` 前缀",
-          "related_references": ["modules/front_canvas/assets/js/design/stores/printMethodStore.js"],
+          "related_references": [
+            "modules/front_canvas/assets/js/design/stores/printMethodStore.js"
+          ],
           "status": "未处理",
           "frontend_area": "画布设计页 - 印刷方式API"
         },
@@ -863,10 +1235,15 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/design/api/product-data-api.js",
           "functions": [
-            {"line": 1, "name": "fetchCanvasProductData"}
+            {
+              "line": 1,
+              "name": "fetchCanvasProductData"
+            }
           ],
           "violation": "未使用 `pwca` 前缀",
-          "related_references": ["modules/front_canvas/assets/js/design/stores/product-data-mapper.js"],
+          "related_references": [
+            "modules/front_canvas/assets/js/design/stores/product-data-mapper.js"
+          ],
           "status": "未处理",
           "frontend_area": "画布设计页 - 产品数据API"
         },
@@ -875,14 +1252,38 @@
           "severity": "medium",
           "file_path": "modules/front_canvas/assets/js/canvas-init.js",
           "functions": [
-            {"line": 12, "name": "init"},
-            {"line": 84, "name": "initializeMultiViewCanvases"},
-            {"line": 123, "name": "initializeZoom"},
-            {"line": 153, "name": "calculateAutoZoom"},
-            {"line": 172, "name": "calculateOptimalZoom"},
-            {"line": 199, "name": "updateCanvasZoom"},
-            {"line": 208, "name": "triggerAutoZoomAdjustment"},
-            {"line": 232, "name": "handleViewSwitch"}
+            {
+              "line": 12,
+              "name": "init"
+            },
+            {
+              "line": 84,
+              "name": "initializeMultiViewCanvases"
+            },
+            {
+              "line": 123,
+              "name": "initializeZoom"
+            },
+            {
+              "line": 153,
+              "name": "calculateAutoZoom"
+            },
+            {
+              "line": 172,
+              "name": "calculateOptimalZoom"
+            },
+            {
+              "line": 199,
+              "name": "updateCanvasZoom"
+            },
+            {
+              "line": 208,
+              "name": "triggerAutoZoomAdjustment"
+            },
+            {
+              "line": 232,
+              "name": "handleViewSwitch"
+            }
           ],
           "violation": "IIFE对象内方法未使用 `pwca` 前缀",
           "related_references": [],
@@ -894,10 +1295,22 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/main/operation-panel-tabs.js",
           "functions": [
-            {"line": 2, "name": "getUiStateAccess"},
-            {"line": 4, "name": "getAllViewCanvases"},
-            {"line": 13, "name": "getActiveCanvas"},
-            {"line": 22, "name": "discardSelectionForAllViewCanvases"}
+            {
+              "line": 2,
+              "name": "getUiStateAccess"
+            },
+            {
+              "line": 4,
+              "name": "getAllViewCanvases"
+            },
+            {
+              "line": 13,
+              "name": "getActiveCanvas"
+            },
+            {
+              "line": 22,
+              "name": "discardSelectionForAllViewCanvases"
+            }
           ],
           "violation": "未使用 `pwca` 前缀",
           "related_references": [],
@@ -909,10 +1322,22 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/main/customization-area.js",
           "functions": [
-            {"line": 15, "name": "waitForStore"},
-            {"line": 26, "name": "setupStoreWatcher"},
-            {"line": 47, "name": "createViewButtons"},
-            {"line": 126, "name": "initViewSwitcher"}
+            {
+              "line": 15,
+              "name": "waitForStore"
+            },
+            {
+              "line": 26,
+              "name": "setupStoreWatcher"
+            },
+            {
+              "line": 47,
+              "name": "createViewButtons"
+            },
+            {
+              "line": 126,
+              "name": "initViewSwitcher"
+            }
           ],
           "violation": "未使用 `pwca` 前缀",
           "related_references": [],
@@ -924,10 +1349,15 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/main/universal-preview.js",
           "functions": [
-            {"line": 1, "name": "showUniversalViewPreview"}
+            {
+              "line": 1,
+              "name": "showUniversalViewPreview"
+            }
           ],
           "violation": "未使用 `pwca` 前缀",
-          "related_references": ["modules/front_canvas/assets/js/main/grid-preview.js"],
+          "related_references": [
+            "modules/front_canvas/assets/js/main/grid-preview.js"
+          ],
           "status": "未处理",
           "frontend_area": "画布设计页 - 通用预览弹窗"
         },
@@ -936,11 +1366,26 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/main/capture.js",
           "functions": [
-            {"line": 23, "name": "captureAllViewsImages"},
-            {"line": 50, "name": "captureViewForPDF"},
-            {"line": 65, "name": "captureMultiLayerCanvasWithMask"},
-            {"line": 178, "name": "captureCanvasById"},
-            {"line": 193, "name": "closeMultiViewPreview"}
+            {
+              "line": 23,
+              "name": "captureAllViewsImages"
+            },
+            {
+              "line": 50,
+              "name": "captureViewForPDF"
+            },
+            {
+              "line": 65,
+              "name": "captureMultiLayerCanvasWithMask"
+            },
+            {
+              "line": 178,
+              "name": "captureCanvasById"
+            },
+            {
+              "line": 193,
+              "name": "closeMultiViewPreview"
+            }
           ],
           "violation": "未使用 `pwca` 前缀",
           "related_references": [],
@@ -952,8 +1397,14 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/boundary.js",
           "functions": [
-            {"line": 4, "name": "drawBoundary"},
-            {"line": 42, "name": "drawBoundaryForAllViews"}
+            {
+              "line": 4,
+              "name": "drawBoundary"
+            },
+            {
+              "line": 42,
+              "name": "drawBoundaryForAllViews"
+            }
           ],
           "violation": "未使用 `pwca` 前缀",
           "related_references": [],
@@ -965,12 +1416,30 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/main/image-analyze.js",
           "functions": [
-            {"line": 1, "name": "getPixelData"},
-            {"line": 6, "name": "getTopMargin"},
-            {"line": 18, "name": "getTopMostY"},
-            {"line": 30, "name": "getBottomMostY"},
-            {"line": 42, "name": "getBoundingRectHeight"},
-            {"line": 48, "name": "analyzeImageInfo"}
+            {
+              "line": 1,
+              "name": "getPixelData"
+            },
+            {
+              "line": 6,
+              "name": "getTopMargin"
+            },
+            {
+              "line": 18,
+              "name": "getTopMostY"
+            },
+            {
+              "line": 30,
+              "name": "getBottomMostY"
+            },
+            {
+              "line": 42,
+              "name": "getBoundingRectHeight"
+            },
+            {
+              "line": 48,
+              "name": "analyzeImageInfo"
+            }
           ],
           "violation": "未使用 `pwca` 前缀",
           "related_references": [],
@@ -982,11 +1451,19 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/main/color-utils.js",
           "functions": [
-            {"line": 1, "name": "getCurrentSelectedColor"},
-            {"line": 13, "name": "getExplicitSelectedColor"}
+            {
+              "line": 1,
+              "name": "getCurrentSelectedColor"
+            },
+            {
+              "line": 13,
+              "name": "getExplicitSelectedColor"
+            }
           ],
           "violation": "未使用 `pwca` 前缀",
-          "related_references": ["modules/front_canvas/assets/js/main/operation-panel-colors.js"],
+          "related_references": [
+            "modules/front_canvas/assets/js/main/operation-panel-colors.js"
+          ],
           "status": "未处理",
           "frontend_area": "画布设计页 - 颜色工具"
         },
@@ -995,12 +1472,30 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/main/inquiry-modal.js",
           "functions": [
-            {"line": 92, "name": "openInquiryModal"},
-            {"line": 109, "name": "closeInquiryModal"},
-            {"line": 119, "name": "handleOverlayAndCloseButtons"},
-            {"line": 142, "name": "handleEscKey"},
-            {"line": 148, "name": "setupInquiryButton"},
-            {"line": 166, "name": "handleFormSubmit"}
+            {
+              "line": 92,
+              "name": "openInquiryModal"
+            },
+            {
+              "line": 109,
+              "name": "closeInquiryModal"
+            },
+            {
+              "line": 119,
+              "name": "handleOverlayAndCloseButtons"
+            },
+            {
+              "line": 142,
+              "name": "handleEscKey"
+            },
+            {
+              "line": 148,
+              "name": "setupInquiryButton"
+            },
+            {
+              "line": 166,
+              "name": "handleFormSubmit"
+            }
           ],
           "violation": "未使用 `pwca` 前缀",
           "related_references": [],
@@ -1012,14 +1507,38 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/design/url-params-handler.js",
           "functions": [
-            {"line": 52, "name": "getUrlParam"},
-            {"line": 61, "name": "handleEditMode"},
-            {"line": 118, "name": "handleViewMode"},
-            {"line": 143, "name": "waitForStoreAndSwitchView"},
-            {"line": 147, "name": "trySwitch"},
-            {"line": 181, "name": "ensureViewInitialized"},
-            {"line": 185, "name": "tryInit"},
-            {"line": 215, "name": "init"}
+            {
+              "line": 52,
+              "name": "getUrlParam"
+            },
+            {
+              "line": 61,
+              "name": "handleEditMode"
+            },
+            {
+              "line": 118,
+              "name": "handleViewMode"
+            },
+            {
+              "line": 143,
+              "name": "waitForStoreAndSwitchView"
+            },
+            {
+              "line": 147,
+              "name": "trySwitch"
+            },
+            {
+              "line": 181,
+              "name": "ensureViewInitialized"
+            },
+            {
+              "line": 185,
+              "name": "tryInit"
+            },
+            {
+              "line": 215,
+              "name": "init"
+            }
           ],
           "violation": "未使用 `pwca` 前缀",
           "related_references": [],
@@ -1031,18 +1550,54 @@
           "severity": "high",
           "file_path": "modules/front_canvas/assets/js/design/components/header-controls.js",
           "functions": [
-            {"line": 49, "name": "initHistory"},
-            {"line": 90, "name": "restoreImage"},
-            {"line": 138, "name": "updateHistory"},
-            {"line": 167, "name": "debouncedUpdateHistory"},
-            {"line": 190, "name": "startHistory"},
-            {"line": 227, "name": "handleUndo"},
-            {"line": 238, "name": "handleRedo"},
-            {"line": 247, "name": "getCanUndo"},
-            {"line": 254, "name": "getCanRedo"},
-            {"line": 262, "name": "getProductName"},
-            {"line": 266, "name": "switchTab"},
-            {"line": 290, "name": "generatePdf"}
+            {
+              "line": 49,
+              "name": "initHistory"
+            },
+            {
+              "line": 90,
+              "name": "restoreImage"
+            },
+            {
+              "line": 138,
+              "name": "updateHistory"
+            },
+            {
+              "line": 167,
+              "name": "debouncedUpdateHistory"
+            },
+            {
+              "line": 190,
+              "name": "startHistory"
+            },
+            {
+              "line": 227,
+              "name": "handleUndo"
+            },
+            {
+              "line": 238,
+              "name": "handleRedo"
+            },
+            {
+              "line": 247,
+              "name": "getCanUndo"
+            },
+            {
+              "line": 254,
+              "name": "getCanRedo"
+            },
+            {
+              "line": 262,
+              "name": "getProductName"
+            },
+            {
+              "line": 266,
+              "name": "switchTab"
+            },
+            {
+              "line": 290,
+              "name": "generatePdf"
+            }
           ],
           "violation": "Vue setup 内函数未使用 `pwca` 前缀",
           "related_references": [],
@@ -1054,17 +1609,50 @@
           "severity": "high",
           "file_path": "modules/front_product/assets/js/product/stores/productStore.js",
           "functions": [
-            {"line": 26, "name": "createProductStore"},
-            {"line": 290, "name": "setProductId"},
-            {"line": 294, "name": "setProductData"},
-            {"line": 298, "name": "setLoading"},
-            {"line": 302, "name": "setError"},
-            {"line": 306, "name": "handleProductUpdatedMeta"},
-            {"line": 362, "name": "updateQuantity"},
-            {"line": 430, "name": "setMoqSettings"},
-            {"line": 481, "name": "setQuantityDiscounts"},
-            {"line": 638, "name": "fetchProductData"},
-            {"line": 697, "name": "addToCart"}
+            {
+              "line": 26,
+              "name": "createProductStore"
+            },
+            {
+              "line": 290,
+              "name": "setProductId"
+            },
+            {
+              "line": 294,
+              "name": "setProductData"
+            },
+            {
+              "line": 298,
+              "name": "setLoading"
+            },
+            {
+              "line": 302,
+              "name": "setError"
+            },
+            {
+              "line": 306,
+              "name": "handleProductUpdatedMeta"
+            },
+            {
+              "line": 362,
+              "name": "updateQuantity"
+            },
+            {
+              "line": 430,
+              "name": "setMoqSettings"
+            },
+            {
+              "line": 481,
+              "name": "setQuantityDiscounts"
+            },
+            {
+              "line": 638,
+              "name": "fetchProductData"
+            },
+            {
+              "line": 697,
+              "name": "addToCart"
+            }
           ],
           "violation": "Pinia Store 内所有 getters/actions 均未使用 `pwca` 前缀",
           "related_references": [
@@ -1100,25 +1688,64 @@
             "modules/front_canvas/assets/scss/_operation-panel.scss"
           ],
           "violation_classes": [
-            ".container", ".view-container", ".canvas-wrapper", ".canvas-wrapper--base",
-            ".canvas-wrapper--main", ".canvas-wrapper--overlay", ".canvas-wrapper--mask",
-            ".header", ".header_left", ".header_title", ".operation-panel",
-            ".main-content", ".customization-area", ".viewer-switch-btn",
-            ".canvas-area", ".dongtai-area", ".design_area",
-            ".canvas-box", ".canvas-container", ".zoom-control",
-            ".footer", ".product-card", ".product-card__info",
-            ".product-card__detail", ".product-card__label", ".product-card__value",
-            ".product-card__quantity", ".product-card__button", ".product-card__input",
+            ".container",
+            ".view-container",
+            ".canvas-wrapper",
+            ".canvas-wrapper--base",
+            ".canvas-wrapper--main",
+            ".canvas-wrapper--overlay",
+            ".canvas-wrapper--mask",
+            ".header",
+            ".header_left",
+            ".header_title",
+            ".operation-panel",
+            ".main-content",
+            ".customization-area",
+            ".viewer-switch-btn",
+            ".canvas-area",
+            ".dongtai-area",
+            ".design_area",
+            ".canvas-box",
+            ".canvas-container",
+            ".zoom-control",
+            ".footer",
+            ".product-card",
+            ".product-card__info",
+            ".product-card__detail",
+            ".product-card__label",
+            ".product-card__value",
+            ".product-card__quantity",
+            ".product-card__button",
+            ".product-card__input",
             ".product-card__add-to-cart",
-            ".popup-modal", ".modal-box",
-            ".tabs-nav", ".tab", ".tab_title", ".content-area", ".content-pane",
-            ".color-section", ".color-swatches-box", ".color-swatch",
-            ".search-filter-container", ".designs-grid", ".design-item",
-            ".layers-panel", ".layers-list", ".layer-item", ".layer-group",
-            ".layer-thumbnail", ".layer-info", ".layer-name", ".layer-controls",
-            ".print-method-dialog-overlay", ".print-method-dialog",
-            ".text_toolbar", ".img_toolbar", ".toolbar_button",
-            ".panel-collapse-btn", ".close-btn"
+            ".popup-modal",
+            ".modal-box",
+            ".tabs-nav",
+            ".tab",
+            ".tab_title",
+            ".content-area",
+            ".content-pane",
+            ".color-section",
+            ".color-swatches-box",
+            ".color-swatch",
+            ".search-filter-container",
+            ".designs-grid",
+            ".design-item",
+            ".layers-panel",
+            ".layers-list",
+            ".layer-item",
+            ".layer-group",
+            ".layer-thumbnail",
+            ".layer-info",
+            ".layer-name",
+            ".layer-controls",
+            ".print-method-dialog-overlay",
+            ".print-method-dialog",
+            ".text_toolbar",
+            ".img_toolbar",
+            ".toolbar_button",
+            ".panel-collapse-btn",
+            ".close-btn"
           ],
           "violation": "所有类名均未使用 `pwca-` 前缀，部分使用下划线命名",
           "related_references": [
@@ -1137,12 +1764,24 @@
             "modules/admin_design/assets/scss/pwca-admin-design-management.scss"
           ],
           "violation_classes": [
-            ".pw-design-controls", ".pw-design-actions", ".pw-design-filters",
-            ".pw-design-tabs", ".pw-design-bulk-actions", ".pw-design-grid",
-            ".pw-design-card", ".pw-design-thumbnail", ".pw-design-checkbox",
-            ".pw-design-name", ".pw-pagination", ".pw-form-field",
-            ".pw-category-item", ".pw-filter-section", ".pw-toggle-switch",
-            ".pw-toggle-input", ".pw-toggle-label", ".pw-toggle-slider"
+            ".pw-design-controls",
+            ".pw-design-actions",
+            ".pw-design-filters",
+            ".pw-design-tabs",
+            ".pw-design-bulk-actions",
+            ".pw-design-grid",
+            ".pw-design-card",
+            ".pw-design-thumbnail",
+            ".pw-design-checkbox",
+            ".pw-design-name",
+            ".pw-pagination",
+            ".pw-form-field",
+            ".pw-category-item",
+            ".pw-filter-section",
+            ".pw-toggle-switch",
+            ".pw-toggle-input",
+            ".pw-toggle-label",
+            ".pw-toggle-slider"
           ],
           "violation": "使用 `pw-` 前缀而非 `pwca-`",
           "related_references": [
@@ -1165,9 +1804,12 @@
             "modules/front_product/assets/scss/pw-cart-section.scss"
           ],
           "violation_classes": [
-            ".pw-color-variants-module", ".pw-color-variants-header",
-            ".pw-color-variant-item", ".pw-color-swatch",
-            ".pw-product-canvas-container", ".pw-canvas-toolbar",
+            ".pw-color-variants-module",
+            ".pw-color-variants-header",
+            ".pw-color-variant-item",
+            ".pw-color-swatch",
+            ".pw-product-canvas-container",
+            ".pw-canvas-toolbar",
             ".pw-gradient-text-overlay",
             ".pw-composite-components"
           ],
@@ -1189,7 +1831,9 @@
             "modules/front_cart/assets/scss/pwca-custom-cart.scss"
           ],
           "violation_classes": [
-            ".pw-design-view", ".pw-design-view-name", ".pw-design-view-images"
+            ".pw-design-view",
+            ".pw-design-view-name",
+            ".pw-design-view-images"
           ],
           "violation": "部分类名使用 `pw-` 而非 `pwca-`",
           "related_references": [
@@ -1216,7 +1860,9 @@
             "modules/front_product/assets/js/product/gradient-modal.js (DOM操作)"
           ],
           "violation": "模板/JSX/className中使用了无前缀或 `pw-` 前缀的类名",
-          "related_references": ["对应SCSS文件"],
+          "related_references": [
+            "对应SCSS文件"
+          ],
           "status": "已处理",
           "frontend_area": "全站前端页面 - 各组件模板",
           "notes": "所有JS/PHP模板中的类名字面量已同步更新为 pwca- 前缀。CSS文件已删除需重新编译。"
@@ -1239,7 +1885,7 @@
           "expected": "define('PWCA_ADMIN_VERSION', '1.0.1');",
           "violation": "常量使用 `PW_ADMIN_` 而非 `PWCA_` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "不适用（PHP常量）",
           "notes": ""
         },
@@ -1255,7 +1901,7 @@
             "pw-admin.php 第43行引用 MY_PLUGIN_URL",
             "pw-admin.php 第43行引用 MY_PLUGIN_ICONS_URL"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "不适用（PHP常量）",
           "notes": ""
         },
@@ -1268,7 +1914,7 @@
           "expected": "define('PWCA_PLUGIN_ICONS_URL', PWCA_PLUGIN_URL . 'assets/images/icons/');",
           "violation": "常量使用 `MY_PLUGIN_` 而非 `PWCA_` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "不适用（PHP常量）",
           "notes": ""
         },
@@ -1286,7 +1932,7 @@
             "modules/admin_dashboard/features/feat_dashboard/includes/class-pwca-admin-dashboard-dashboard.php: 引用 pw_api_token, pw_store_id, pw_api_mock_mode, pw_cache_enabled",
             "modules/admin_dashboard/features/feat_settings/includes/class-pwca-admin-dashboard-settings.php: 引用 pw_disable_ssl, pw_api_key, pw_api_secret"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "不适用（WordPress选项）",
           "notes": "涉及约10个选项名：pw_api_token, pw_store_id, pw_api_mock_mode, pw_cache_enabled, pw_canvas_flush_rewrite, pw_disable_ssl, pw_api_key, pw_api_secret, pw_customize_text, pw_customize_color"
         },
@@ -1301,7 +1947,7 @@
           "related_references": [
             "modules/front_canvas/assets/js/canvas/multi-view-init.js (引用 CanvasManager)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - CanvasManager单例",
           "notes": "CanvasManager是核心单例，影响所有画布操作"
         },
@@ -1314,7 +1960,7 @@
           "expected": "window.pwcaInitCanvasSystem, window.pwcaTriggerAutoZoomAdjustment, window.pwcaUpdateCanvasZoom, window.pwcaInitializeZoom",
           "violation": "JS全局函数未使用 `pwca` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 初始化/缩放控制"
         },
         {
@@ -1329,7 +1975,7 @@
             "modules/front_canvas/assets/js/main/view-switch-facade.js (引用 canvas/fabricCanvas)",
             "modules/front_canvas/assets/js/canvas/multi-view-init.js (引用 canvas/fabricCanvas)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 全局画布实例/PDF生成"
         },
         {
@@ -1343,7 +1989,7 @@
           "related_references": [
             "modules/front_canvas/assets/js/canvas/page-bootstrap.js (引用 pinia)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - Pinia Store全局引用"
         },
         {
@@ -1355,7 +2001,7 @@
           "expected": "window.pwcaShowUniversalViewPreview",
           "violation": "JS全局函数未使用 `pwca` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 通用预览弹窗"
         },
         {
@@ -1367,7 +2013,7 @@
           "expected": "window.pwcaGenerateUniversalViewImages",
           "violation": "JS全局函数未使用 `pwca` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 4格出图"
         },
         {
@@ -1379,7 +2025,7 @@
           "expected": "window.pwcaCaptureViewForPDF",
           "violation": "JS全局函数未使用 `pwca` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - PDF截图"
         },
         {
@@ -1391,7 +2037,7 @@
           "expected": "window.pwcaCanvasStateManager",
           "violation": "JS全局对象未使用 `pwca` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 状态管理器"
         },
         {
@@ -1403,7 +2049,7 @@
           "expected": "window.pwcaCanvasStateIntegration",
           "violation": "JS全局对象未使用 `pwca` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 状态集成"
         },
         {
@@ -1415,7 +2061,7 @@
           "expected": "window.pwcaUseProductStore",
           "violation": "JS全局Store引用未使用 `pwca` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - Store引用"
         },
         {
@@ -1427,7 +2073,7 @@
           "expected": "window.pwcaProductResponseMapper",
           "violation": "JS全局对象未使用 `pwca` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - 数据映射"
         },
         {
@@ -1439,7 +2085,7 @@
           "expected": "window.pwcaCustomColorsButton",
           "violation": "JS全局对象未使用 `pwca` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - 自定义颜色按钮组件"
         },
         {
@@ -1451,7 +2097,7 @@
           "expected": "window.pwcaProductImageCanvas",
           "violation": "JS全局对象未使用 `pwca` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - 产品图片画布"
         },
         {
@@ -1463,7 +2109,7 @@
           "expected": "window.pwcaProductColorSelectionBridge",
           "violation": "JS全局对象未使用 `pwca` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - 颜色选择桥接"
         },
         {
@@ -1475,7 +2121,7 @@
           "expected": "window.pwcaProductCartSubmitService",
           "violation": "JS全局对象未使用 `pwca` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - 购物车提交服务"
         },
         {
@@ -1487,7 +2133,7 @@
           "expected": "window.pwcaProductCanvasPayloadBuilder",
           "violation": "JS全局对象未使用 `pwca` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - 画布载荷构建"
         },
         {
@@ -1499,7 +2145,7 @@
           "expected": "window.pwcaProductDataAPI",
           "violation": "JS全局对象未使用 `pwca` 前缀",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - 产品数据API"
         },
         {
@@ -1511,7 +2157,7 @@
           "expected": "window.pwcaProductData",
           "violation": "使用 `pw_` 前缀而非 `pwca_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - 产品数据全局变量"
         },
         {
@@ -1526,7 +2172,7 @@
             "modules/front_canvas/assets/js/main/core-init.js:340-341",
             "modules/front_canvas/assets/js/main/view-switch-facade.js:128-129"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "画布设计页 - 全局限画布实例"
         },
         {
@@ -1540,7 +2186,7 @@
           "related_references": [
             "modules/front_product/assets/js/product/ (消费此JS对象)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "产品页 - AJAX配置对象",
           "notes": "其他5处wp_localize_script调用均合规，仅此1处不合规"
         }
@@ -1792,12 +2438,36 @@
           "severity": "high",
           "file_path": "includes/",
           "file_names": [
-            {"name": "class-pw-admin-activator.php", "expected": "class-pwca-admin-activator.php", "line": "N/A"},
-            {"name": "class-pw-admin-deactivator.php", "expected": "class-pwca-admin-deactivator.php", "line": "N/A"},
-            {"name": "class-pw-admin-i18n.php", "expected": "class-pwca-admin-i18n.php", "line": "N/A"},
-            {"name": "class-pw-admin-loader.php", "expected": "class-pwca-admin-loader.php", "line": "N/A"},
-            {"name": "class-pw-admin-promowares-api.php", "expected": "class-pwca-admin-promowares-api.php", "line": "N/A"},
-            {"name": "class-pw-admin.php", "expected": "class-pwca-admin.php", "line": "N/A"}
+            {
+              "name": "class-pw-admin-activator.php",
+              "expected": "class-pwca-admin-activator.php",
+              "line": "N/A"
+            },
+            {
+              "name": "class-pw-admin-deactivator.php",
+              "expected": "class-pwca-admin-deactivator.php",
+              "line": "N/A"
+            },
+            {
+              "name": "class-pw-admin-i18n.php",
+              "expected": "class-pwca-admin-i18n.php",
+              "line": "N/A"
+            },
+            {
+              "name": "class-pw-admin-loader.php",
+              "expected": "class-pwca-admin-loader.php",
+              "line": "N/A"
+            },
+            {
+              "name": "class-pw-admin-promowares-api.php",
+              "expected": "class-pwca-admin-promowares-api.php",
+              "line": "N/A"
+            },
+            {
+              "name": "class-pw-admin.php",
+              "expected": "class-pwca-admin.php",
+              "line": "N/A"
+            }
           ],
           "violation": "PHP类文件使用 `class-pw-admin-` 而非 `class-pwca-admin-` 前缀",
           "related_references": [
@@ -1812,7 +2482,11 @@
           "severity": "medium",
           "file_path": "modules/front_canvas/assets/js/design/stores/",
           "file_names": [
-            {"name": "printMethodStore.js", "expected": "print-method-store.js", "line": "N/A"}
+            {
+              "name": "printMethodStore.js",
+              "expected": "print-method-store.js",
+              "line": "N/A"
+            }
           ],
           "violation": "JS文件使用 camelCase 而非 kebab-case",
           "related_references": [],
@@ -1825,7 +2499,11 @@
           "severity": "medium",
           "file_path": "modules/front_canvas/assets/js/utils/",
           "file_names": [
-            {"name": "piniaSync.js", "expected": "pinia-sync.js", "line": "N/A"}
+            {
+              "name": "piniaSync.js",
+              "expected": "pinia-sync.js",
+              "line": "N/A"
+            }
           ],
           "violation": "JS文件使用 camelCase 而非 kebab-case",
           "related_references": [],
@@ -1838,15 +2516,42 @@
           "severity": "medium",
           "file_path": "modules/front_product/assets/js/product/",
           "file_names": [
-            {"name": "api/canvasPayloadBuilder.js", "expected": "api/canvas-payload-builder.js"},
-            {"name": "api/cartSubmitService.js", "expected": "api/cart-submit-service.js"},
-            {"name": "api/productDataAPI.js", "expected": "api/product-data-api.js"},
-            {"name": "api/productResponseMapper.js", "expected": "api/product-response-mapper.js"},
-            {"name": "stores/productStore.js", "expected": "stores/product-store.js"},
-            {"name": "utils/messageUtils.js", "expected": "utils/message-utils.js"},
-            {"name": "product-image-canvas.js", "expected": "product-image-canvas.js (已合规)"},
-            {"name": "gradient-modal.js", "expected": "gradient-modal.js (已合规)"},
-            {"name": "main.js", "expected": "main.js (已合规)"}
+            {
+              "name": "api/canvasPayloadBuilder.js",
+              "expected": "api/canvas-payload-builder.js"
+            },
+            {
+              "name": "api/cartSubmitService.js",
+              "expected": "api/cart-submit-service.js"
+            },
+            {
+              "name": "api/productDataAPI.js",
+              "expected": "api/product-data-api.js"
+            },
+            {
+              "name": "api/productResponseMapper.js",
+              "expected": "api/product-response-mapper.js"
+            },
+            {
+              "name": "stores/productStore.js",
+              "expected": "stores/product-store.js"
+            },
+            {
+              "name": "utils/messageUtils.js",
+              "expected": "utils/message-utils.js"
+            },
+            {
+              "name": "product-image-canvas.js",
+              "expected": "product-image-canvas.js (已合规)"
+            },
+            {
+              "name": "gradient-modal.js",
+              "expected": "gradient-modal.js (已合规)"
+            },
+            {
+              "name": "main.js",
+              "expected": "main.js (已合规)"
+            }
           ],
           "violation": "JS文件使用 camelCase/PascalCase 而非 kebab-case",
           "related_references": [],
@@ -1859,23 +2564,74 @@
           "severity": "medium",
           "file_path": "modules/front_product/assets/js/product/components/",
           "file_names": [
-            {"name": "AddToCart.js", "expected": "add-to-cart.js"},
-            {"name": "CheckboxOptions.js", "expected": "checkbox-options.js"},
-            {"name": "ColorVariants.js", "expected": "color-variants.js"},
-            {"name": "CustomColorsButton.js", "expected": "custom-colors-button.js"},
-            {"name": "ProductAccessories.js", "expected": "product-accessories.js"},
-            {"name": "ProductPriceInfo.js", "expected": "product-price-info.js"},
-            {"name": "ProductQuantity.js", "expected": "product-quantity.js"},
-            {"name": "QuantityDiscountSlider.js", "expected": "quantity-discount-slider.js"},
-            {"name": "colorSelectionBridge.js", "expected": "color-selection-bridge.js"},
-            {"name": "AddToCart.css", "expected": "add-to-cart.css"},
-            {"name": "CheckboxOptions.css", "expected": "checkbox-options.css"},
-            {"name": "ColorVariants.css", "expected": "color-variants.css"},
-            {"name": "CustomColorsButton.css", "expected": "custom-colors-button.css"},
-            {"name": "ProductAccessories.css", "expected": "product-accessories.css"},
-            {"name": "ProductPriceInfo.css", "expected": "product-price-info.css"},
-            {"name": "ProductQuantity.css", "expected": "product-quantity.css"},
-            {"name": "QuantityDiscountSlider.css", "expected": "quantity-discount-slider.css"}
+            {
+              "name": "AddToCart.js",
+              "expected": "add-to-cart.js"
+            },
+            {
+              "name": "CheckboxOptions.js",
+              "expected": "checkbox-options.js"
+            },
+            {
+              "name": "ColorVariants.js",
+              "expected": "color-variants.js"
+            },
+            {
+              "name": "CustomColorsButton.js",
+              "expected": "custom-colors-button.js"
+            },
+            {
+              "name": "ProductAccessories.js",
+              "expected": "product-accessories.js"
+            },
+            {
+              "name": "ProductPriceInfo.js",
+              "expected": "product-price-info.js"
+            },
+            {
+              "name": "ProductQuantity.js",
+              "expected": "product-quantity.js"
+            },
+            {
+              "name": "QuantityDiscountSlider.js",
+              "expected": "quantity-discount-slider.js"
+            },
+            {
+              "name": "colorSelectionBridge.js",
+              "expected": "color-selection-bridge.js"
+            },
+            {
+              "name": "AddToCart.css",
+              "expected": "add-to-cart.css"
+            },
+            {
+              "name": "CheckboxOptions.css",
+              "expected": "checkbox-options.css"
+            },
+            {
+              "name": "ColorVariants.css",
+              "expected": "color-variants.css"
+            },
+            {
+              "name": "CustomColorsButton.css",
+              "expected": "custom-colors-button.css"
+            },
+            {
+              "name": "ProductAccessories.css",
+              "expected": "product-accessories.css"
+            },
+            {
+              "name": "ProductPriceInfo.css",
+              "expected": "product-price-info.css"
+            },
+            {
+              "name": "ProductQuantity.css",
+              "expected": "product-quantity.css"
+            },
+            {
+              "name": "QuantityDiscountSlider.css",
+              "expected": "quantity-discount-slider.css"
+            }
           ],
           "violation": "JS/CSS文件使用 PascalCase 而非 kebab-case",
           "related_references": [],
@@ -1888,11 +2644,26 @@
           "severity": "low",
           "file_path": "modules/front_product/assets/scss/",
           "file_names": [
-            {"name": "pw-cart-section.scss", "expected": "pwca-cart-section.scss"},
-            {"name": "pw-color-variants.scss", "expected": "pwca-color-variants.scss"},
-            {"name": "pw-composite-components.scss", "expected": "pwca-composite-components.scss"},
-            {"name": "pw-gradient-modal.scss", "expected": "pwca-gradient-modal.scss"},
-            {"name": "pw-product-canvas.scss", "expected": "pwca-product-canvas.scss"}
+            {
+              "name": "pw-cart-section.scss",
+              "expected": "pwca-cart-section.scss"
+            },
+            {
+              "name": "pw-color-variants.scss",
+              "expected": "pwca-color-variants.scss"
+            },
+            {
+              "name": "pw-composite-components.scss",
+              "expected": "pwca-composite-components.scss"
+            },
+            {
+              "name": "pw-gradient-modal.scss",
+              "expected": "pwca-gradient-modal.scss"
+            },
+            {
+              "name": "pw-product-canvas.scss",
+              "expected": "pwca-product-canvas.scss"
+            }
           ],
           "violation": "SCSS文件使用 `pw-` 前缀而非 `pwca-`",
           "related_references": [

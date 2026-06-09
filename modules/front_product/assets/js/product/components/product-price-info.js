@@ -8,7 +8,7 @@ const ProductPriceInfo = {
 
     setup() {
         const { computed } = Vue;
-        const store = useProductStore();
+        const store = window.pwcaUseProductStore();
 
         // 计算原始单价 - 包含产品价格和配件价格
         const originalUnitPrice = computed(() => {

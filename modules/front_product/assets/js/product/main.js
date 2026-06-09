@@ -82,18 +82,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const nonce = mountPoint.dataset.restNonce;
 
     if (pwId && restApiUrl && nonce) {
-        window.pwProductConfig = {
+        window.pwcaProductConfig = {
             pwId,
             productId: Number(productId) || 0,
             restApiUrl,
             nonce
         };
-        window.pwProductData = null;
+        window.pwcaProductData = null;
     }
 
     // Check if all modules are loaded
     const modulesLoaded = {
-        store: !!window.useProductStore,
+        store: !!window.pwcaUseProductStore,
         productQuantity: !!window.ProductQuantity,
         productPriceInfo: !!window.ProductPriceInfo,
         addToCart: !!window.AddToCart,
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function () {
         checkboxOptions: !!window.CheckboxOptions,
         quantityDiscountSlider: !!window.QuantityDiscountSlider,
         productAccessories: !!window.ProductAccessories,
-        customColorsButton: !!window.CustomColorsButton
+        customColorsButton: !!window.pwcaCustomColorsButton
     };
 
 
@@ -123,7 +123,7 @@ function initializeModularApp(productId) {
         name: 'ProductApp',
 
         setup() {
-            const store = useProductStore();
+            const store = window.pwcaUseProductStore();
 
             Vue.onMounted(async () => {
                 store.setProductId(productId);
@@ -146,7 +146,7 @@ function initializeModularApp(productId) {
             CheckboxOptions: window.CheckboxOptions,
             QuantityDiscountSlider: window.QuantityDiscountSlider,
             ...(window.ProductAccessories && { ProductAccessories: window.ProductAccessories }),
-            ...(window.CustomColorsButton && { CustomColorsButton: window.CustomColorsButton })
+            ...(window.pwcaCustomColorsButton && { CustomColorsButton: window.pwcaCustomColorsButton })
         },
 
         template: `
@@ -214,8 +214,8 @@ function initializeBasicApp(productId, modulesLoaded) {
     if (modulesLoaded.productAccessories && window.ProductAccessories) {
         components.ProductAccessories = window.ProductAccessories;
     }
-    if (modulesLoaded.customColorsButton && window.CustomColorsButton) {
-        components.CustomColorsButton = window.CustomColorsButton;
+    if (modulesLoaded.customColorsButton && window.pwcaCustomColorsButton) {
+        components.CustomColorsButton = window.pwcaCustomColorsButton;
     }
 
     const app = createApp({

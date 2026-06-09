@@ -152,9 +152,9 @@
             return explicitStore;
         }
 
-        if (typeof window.useCanvasStore === 'function') {
+        if (typeof window.pwcaUseCanvasStore === 'function') {
             try {
-                return window.useCanvasStore();
+                return window.pwcaUseCanvasStore();
             } catch (e) {
                 return null;
             }

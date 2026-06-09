@@ -52,7 +52,7 @@ function adjustObjectPosition(canvas, object, objectBounds, printArea, viewId) {
 function hasPrintMethodAssigned(obj) {
     if (!obj || !obj.id) return false;
     
-    const printMethodStore = window.usePrintMethodStore ? window.usePrintMethodStore() : null;
+    const printMethodStore = window.pwcaUsePrintMethodStore ? window.pwcaUsePrintMethodStore() : null;
     if (!printMethodStore) return false;
     
     // 检查图层直接分配的打印方式
@@ -107,7 +107,7 @@ function getPrintAreaBounds(viewId) {
     }
 
     // 回退：从当前视图的打印方式数据计算边界
-    const printMethodStore = window.usePrintMethodStore ? window.usePrintMethodStore() : null;
+    const printMethodStore = window.pwcaUsePrintMethodStore ? window.pwcaUsePrintMethodStore() : null;
     if (!printMethodStore || !printMethodStore.currentViewPrintMethods || printMethodStore.currentViewPrintMethods.length === 0) {
         return null;
     }
@@ -117,7 +117,7 @@ function getPrintAreaBounds(viewId) {
         return null;
     }
 
-    const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+    const canvas = window.pwcaCanvasManager ? window.pwcaCanvasManager.getCanvas(viewId) : null;
     if (!canvas) return null;
 
     const canvasWidth = canvas.width;
@@ -222,7 +222,7 @@ function moveObjectToCanvasCenter(obj, canvas, printAreaBounds) {
     const centerX = (typeof canvas.getWidth === 'function' ? canvas.getWidth() : canvas.width) / 2;
     const centerY = (typeof canvas.getHeight === 'function' ? canvas.getHeight() : canvas.height) / 2;
 
-    // 优先使用 fabric 的 setPositionByOrigin 以确保“对象中心”与“画布中心”对齐
+    // 优先使用 fabric 的 setPositionByOrigin 以确保"对象中心"与"画布中心"对齐
     if (typeof fabric !== 'undefined' && fabric.Point && typeof obj.setPositionByOrigin === 'function') {
         obj.setPositionByOrigin(new fabric.Point(centerX, centerY), 'center', 'center');
     } else {
@@ -264,7 +264,7 @@ function validateAndRepositionObject(obj, viewId) {
     }
 
     // 获取画布实例
-    const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+    const canvas = window.pwcaCanvasManager ? window.pwcaCanvasManager.getCanvas(viewId) : null;
     if (!canvas) {
         return { wasValid: true, wasMoved: false, overlapRatio: 1 };
     }
@@ -356,13 +356,13 @@ window.PrintAreaValidator = {
     // 添加调试方法
     checkModuleStatus: function() {
         
-        if (window.CanvasManager) {
+        if (window.pwcaCanvasManager) {
             // 获取CanvasManager的所有方法（包括原型链上的）
             const methods = [];
-            let obj = window.CanvasManager;
+            let obj = window.pwcaCanvasManager;
             while (obj && obj !== Object.prototype) {
                 Object.getOwnPropertyNames(obj).forEach(name => {
-                    if (typeof window.CanvasManager[name] === 'function' && !methods.includes(name)) {
+                    if (typeof window.pwcaCanvasManager[name] === 'function' && !methods.includes(name)) {
                         methods.push(name);
                     }
                 });
@@ -370,7 +370,7 @@ window.PrintAreaValidator = {
             }
             
             
-            const activeCanvas = window.CanvasManager.getActiveCanvas();
+            const activeCanvas = window.pwcaCanvasManager.getActiveCanvas();
             
             if (activeCanvas) {
                 
@@ -378,9 +378,9 @@ window.PrintAreaValidator = {
         }
         
         return {
-            canvasManager: !!window.CanvasManager,
-            printMethodStore: !!window.usePrintMethodStore,
-            canvasStore: !!window.useCanvasStore
+            canvasManager: !!window.pwcaCanvasManager,
+            printMethodStore: !!window.pwcaUsePrintMethodStore,
+            canvasStore: !!window.pwcaUseCanvasStore
         };
     }
 };
@@ -393,13 +393,13 @@ function testPrintAreaValidation() {
     
     
     // 获取当前激活的画布
-    const canvasStore = window.useCanvasStore ? window.useCanvasStore() : null;
+    const canvasStore = window.pwcaUseCanvasStore ? window.pwcaUseCanvasStore() : null;
     if (!canvasStore || !canvasStore.activeViewId) {
         return;
     }
     
     const viewId = canvasStore.activeViewId;
-    const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+    const canvas = window.pwcaCanvasManager ? window.pwcaCanvasManager.getCanvas(viewId) : null;
     if (!canvas) {
         return;
     }
@@ -437,22 +437,22 @@ function testDragEndValidation() {
     
     
     // 检查 CanvasManager 是否存在
-    if (!window.CanvasManager) {
+    if (!window.pwcaCanvasManager) {
         return;
     }
     
     
     
-    const activeCanvas = window.CanvasManager.getActiveCanvas();
+    const activeCanvas = window.pwcaCanvasManager.getActiveCanvas();
     if (!activeCanvas) {
         
         // 尝试获取所有可用的视图ID
-        const viewIds = window.CanvasManager.getViewIds();
+        const viewIds = window.pwcaCanvasManager.getViewIds();
         
         if (viewIds.length > 0) {
             
             const firstViewId = viewIds[0];
-            const firstCanvas = window.CanvasManager.getCanvas(firstViewId);
+            const firstCanvas = window.pwcaCanvasManager.getCanvas(firstViewId);
             
             if (firstCanvas) {
                 const activeObject = firstCanvas.getActiveObject();
@@ -474,14 +474,14 @@ function testDragEndValidation() {
         return;
     }
     
-    const currentViewId = window.CanvasManager.getCurrentViewId();
+    const currentViewId = window.pwcaCanvasManager.getCurrentViewId();
     
     if (!currentViewId) {
         // 如果没有当前视图ID，尝试从所有视图中找到包含激活画布的视图
-        const viewIds = window.CanvasManager.getViewIds();
+        const viewIds = window.pwcaCanvasManager.getViewIds();
         
         for (const viewId of viewIds) {
-            const canvas = window.CanvasManager.getCanvas(viewId);
+            const canvas = window.pwcaCanvasManager.getCanvas(viewId);
             if (canvas === activeCanvas) {
                 
                 validateAndRepositionObject(activeObject, viewId);
@@ -502,8 +502,8 @@ function testDragEndValidation() {
 function manualAddListeners() {
     
     
-    const activeCanvas = window.CanvasManager ? window.CanvasManager.getActiveCanvas() : null;
-    const currentViewId = window.CanvasManager ? window.CanvasManager.getCurrentViewId() : null;
+    const activeCanvas = window.pwcaCanvasManager ? window.pwcaCanvasManager.getActiveCanvas() : null;
+    const currentViewId = window.pwcaCanvasManager ? window.pwcaCanvasManager.getCurrentViewId() : null;
     
     if (!activeCanvas) {
         return false;

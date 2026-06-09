@@ -152,9 +152,9 @@ document.addEventListener('DOMContentLoaded', function() {
             direction: direction
         };
 
-        if (typeof window.useProductStore !== 'undefined') {
+        if (typeof window.pwcaUseProductStore !== 'undefined') {
             try {
-                const productStore = window.useProductStore();
+                const productStore = window.pwcaUseProductStore();
                 if (productStore && typeof productStore.setGradientColorApplied === 'function') {
                     productStore.setGradientColorApplied(true);
                 }
@@ -163,13 +163,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        if (typeof window.ProductImageCanvas !== 'undefined' && window.ProductImageCanvas.switchToCanvas) {
-            window.ProductImageCanvas.switchToCanvas(color1);
+        if (typeof window.pwcaProductImageCanvas !== 'undefined' && window.pwcaProductImageCanvas.switchToCanvas) {
+            window.pwcaProductImageCanvas.switchToCanvas(color1);
         }
 
         function applyGradientToBaseLayer() {
-            if (window.useCanvasStore) {
-                const store = window.useCanvasStore();
+            if (window.pwcaUseCanvasStore) {
+                const store = window.pwcaUseCanvasStore();
                 const activeViewId = store.activeViewId;
 
                 if (activeViewId && store.views) {
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
 
                         const baseCanvasId = `baseCanvas-${activeViewId}`;
-                        const baseCanvas = window.CanvasManager.getCanvas(baseCanvasId) ||
+                        const baseCanvas = window.pwcaCanvasManager.getCanvas(baseCanvasId) ||
                             (document.getElementById(baseCanvasId) && document.getElementById(baseCanvasId).__fabricCanvas);
 
                         if (!baseCanvas) {
@@ -261,8 +261,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     console.warn('没有激活的视图，或 store 不可用');
                 }
-            } else if (typeof window.ProductImageCanvas !== 'undefined' && window.CanvasManager) {
-                const productCanvas = window.CanvasManager.getCanvas('product-view');
+            } else if (typeof window.pwcaProductImageCanvas !== 'undefined' && window.pwcaCanvasManager) {
+                const productCanvas = window.pwcaCanvasManager.getCanvas('product-view');
                 if (!productCanvas) {
                     console.warn('无法获取产品画布实例');
                     return;

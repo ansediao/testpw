@@ -11,7 +11,7 @@
             return uiStateAccess.pwcaGetActiveCanvas();
         }
 
-        return window.canvas || window.fabricCanvas || null;
+        return window.pwcaCanvas || window.pwcaFabricCanvas || null;
     }
 
     function pwcaGetToolbarActiveObject() {

@@ -96,7 +96,7 @@
     }
 
     function syncCanvasManager(viewId) {
-        const canvasManager = window.CanvasManager;
+        const canvasManager = window.pwcaCanvasManager;
         if (!canvasManager) {
             return null;
         }
@@ -125,8 +125,8 @@
         if (typeof window.pwcaSetGlobalCanvas === 'function') {
             window.pwcaSetGlobalCanvas(canvas);
         } else {
-            window.canvas = canvas;
-            window.fabricCanvas = canvas;
+            window.pwcaCanvas = canvas;
+            window.pwcaFabricCanvas = canvas;
         }
 
         if (typeof canvas.renderAll === 'function') {

@@ -3,7 +3,7 @@ const BOUNDARY_MARGIN = 10; // 边缘限制的宽度
 
 function drawBoundary() {
     // 获取当前激活视图的 boundary canvas
-    const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
+    const canvasStore = window.pwcaPinia && window.pwcaUseCanvasStore ? window.pwcaUseCanvasStore() : null;
     let boundaryCanvas = null;
     
     if (canvasStore && canvasStore.activeViewId) {
@@ -40,7 +40,7 @@ function drawBoundary() {
 
 // 为所有视图绘制边界
 function drawBoundaryForAllViews() {
-    const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
+    const canvasStore = window.pwcaPinia && window.pwcaUseCanvasStore ? window.pwcaUseCanvasStore() : null;
     
     if (canvasStore && canvasStore.views) {
         // 多视图模式：为每个视图绘制边界

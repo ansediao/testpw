@@ -1,4 +1,4 @@
-// Canvas bootstrap using CanvasManager
+// Canvas bootstrap using pwcaCanvasManager
 (function() {
     'use strict';
 
@@ -16,14 +16,14 @@
 
         console.log('[PW Canvas] Start canvas initialization');
 
-        if (typeof window.CanvasManager === 'undefined') {
+        if (typeof window.pwcaCanvasManager === 'undefined') {
             return;
         }
 
         isInitialized = true;
         initializeZoom();
 
-        const canvasStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : null;
+        const canvasStore = window.Pinia && window.pwcaUseCanvasStore ? window.pwcaUseCanvasStore() : null;
 
         if (canvasStore && canvasStore.views && canvasStore.views.length > 0) {
             initializeMultiViewCanvases(canvasStore);
@@ -35,14 +35,14 @@
             console.log('[PW Canvas] Canvas initialization completed');
             triggerAutoZoomAdjustment();
 
-            const currentStore = window.Pinia && window.useCanvasStore ? window.useCanvasStore() : canvasStore;
+            const currentStore = window.Pinia && window.pwcaUseCanvasStore ? window.pwcaUseCanvasStore() : canvasStore;
             if (!currentStore || !currentStore.views) {
                 return;
             }
 
             currentStore.views.forEach((view) => {
                 const canvasId = `mainCanvas-${view.id}`;
-                const canvas = window.CanvasManager.getCanvas(canvasId);
+                const canvas = window.pwcaCanvasManager.getCanvas(canvasId);
                 if (canvas) {
                     canvas.on('object:modified', (event) => console.log('Object modified:', event.target));
                     canvas.on('object:added', (event) => console.log('Object added:', event.target));
@@ -97,14 +97,14 @@
             const canvasElement = document.getElementById(canvasId);
 
             if (canvasElement) {
-                const canvas = window.CanvasManager.createCanvas(canvasId, view.id, {
+                const canvas = window.pwcaCanvasManager.createCanvas(canvasId, view.id, {
                     width: canvasElement.clientWidth || 800,
                     height: canvasElement.clientHeight || 600,
                     backgroundColor: 'transparent'
                 });
 
                 if (view.id === canvasStore.activeViewId) {
-                    window.CanvasManager.setActiveCanvas(view.id);
+                    window.pwcaCanvasManager.setActiveCanvas(view.id);
                 }
 
                 if (window.PrintAreaValidator) {
@@ -231,8 +231,8 @@
 
     function handleViewSwitch(event) {
         const { viewId } = event.detail;
-        if (window.CanvasManager) {
-            window.CanvasManager.setActiveCanvas(viewId);
+        if (window.pwcaCanvasManager) {
+            window.pwcaCanvasManager.setActiveCanvas(viewId);
         }
     }
 
@@ -246,8 +246,8 @@
 
     document.addEventListener('canvasManagerReady', init);
 
-    window.initCanvasSystem = init;
-    window.triggerAutoZoomAdjustment = triggerAutoZoomAdjustment;
-    window.updateCanvasZoom = updateCanvasZoom;
-    window.initializeZoom = initializeZoom;
+    window.pwcaInitCanvasSystem = init;
+    window.pwcaTriggerAutoZoomAdjustment = triggerAutoZoomAdjustment;
+    window.pwcaUpdateCanvasZoom = updateCanvasZoom;
+    window.pwcaInitializeZoom = initializeZoom;
 })();

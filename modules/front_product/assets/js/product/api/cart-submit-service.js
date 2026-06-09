@@ -5,9 +5,8 @@
     async function checkCartBlankState(isBlankProduct) {
         const precheckForm = new FormData();
         precheckForm.append('action', 'pw_cart_blank_state');
-        precheckForm.append('security', window.pwAjax?.nonce || '');
-
-        const precheckResp = await fetch(window.pwAjax?.ajaxurl || '/wp-admin/admin-ajax.php', {
+        precheckForm.append('security', window.pwcaAjax?.nonce || '');
+        const precheckResp = await fetch(window.pwcaAjax?.ajaxurl || '/wp-admin/admin-ajax.php', {
             method: 'POST',
             body: precheckForm
         });
@@ -49,7 +48,7 @@
             formData.append('custom_color', snapshot.colorInfo.color_value);
         }
 
-        formData.append('security', window.pwAjax?.nonce || '');
+        formData.append('security', window.pwcaAjax?.nonce || '');
         formData.append('pw_min_order_quantity', String(snapshot.minQuantity));
         formData.append('pw_batch_quantity', String(snapshot.stepQuantity));
         formData.append('pw_sell_in_batch', snapshot.sellInBatch ? '1' : '0');
@@ -78,7 +77,7 @@
     }
 
     async function submitAddToCart(formData) {
-        const response = await fetch(window.pwAjax?.ajaxurl || '/wp-admin/admin-ajax.php', {
+        const response = await fetch(window.pwcaAjax?.ajaxurl || '/wp-admin/admin-ajax.php', {
             method: 'POST',
             body: formData
         });
@@ -107,7 +106,7 @@
         }
     }
 
-    window.ProductCartSubmitService = {
+    window.pwcaProductCartSubmitService = {
         checkCartBlankState,
         buildAddToCartFormData,
         submitAddToCart,

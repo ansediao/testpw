@@ -126,7 +126,7 @@ const pwcaRunAsyncTask = async (context, taskName, runner) => {
 
 const pwcaWaitForCanvasStore = async () => {
   const store = await waitFor(
-    () => (typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null),
+    () => (typeof window.pwcaUseCanvasStore === 'function' ? window.pwcaUseCanvasStore() : null),
     { timeoutMs: 10000, intervalMs: 50 }
   );
 
@@ -263,7 +263,7 @@ const pwcaGetPageBootstrapCanvasStore = () => {
     return uiStateAccess.pwcaGetCanvasStore();
   }
 
-  return typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null;
+  return typeof window.pwcaUseCanvasStore === 'function' ? window.pwcaUseCanvasStore() : null;
 };
 
 const pwcaGetPageBootstrapAllViewCanvases = () => {
@@ -293,7 +293,7 @@ const initFetchProductData = async () => {
 
 const buildDesignPayload = () => {
   const ds =
-    typeof window.useDesignUsageStore === 'function' && window.pinia ? window.useDesignUsageStore(window.pinia) : null;
+    typeof window.pwcaUseDesignUsageStore === 'function' && window.pwcaPinia ? window.pwcaUseDesignUsageStore(window.pwcaPinia) : null;
 
   const designList = ds && Array.isArray(ds.list) ? ds.list : [];
   const payload = designList.map((item) => ({
@@ -314,7 +314,7 @@ const buildDesignPayload = () => {
 const buildViewPrintMethodsPayload = () => {
   const payload = [];
   try {
-    const store = typeof window.usePrintMethodStore === 'function' ? window.usePrintMethodStore() : null;
+    const store = typeof window.pwcaUsePrintMethodStore === 'function' ? window.pwcaUsePrintMethodStore() : null;
     const byView = store && store.usedPrintMethodsByView ? store.usedPrintMethodsByView : null;
     if (!byView) return payload;
 
@@ -352,7 +352,7 @@ const resolveMoqAndDiscount = () => {
   const pwcaUseProductStore =
     typeof window.pwca_use_product_store === 'function'
       ? window.pwca_use_product_store
-      : window.useProductStore;
+      : window.pwcaUseProductStore;
 
   try {
     if (typeof pwcaUseProductStore === 'function') {
@@ -453,9 +453,9 @@ const readAccessoriesNames = (productId) => {
 
 const captureCanvasStateJson = () => {
   try {
-    if (window.canvasStateManager && typeof window.canvasStateManager.saveAllViewStates === 'function') {
-      window.canvasStateManager.saveAllViewStates();
-      const state = window.canvasStateManager.getState();
+    if (window.pwcaCanvasStateManager && typeof window.pwcaCanvasStateManager.saveAllViewStates === 'function') {
+      window.pwcaCanvasStateManager.saveAllViewStates();
+      const state = window.pwcaCanvasStateManager.getState();
       if (state) {
         return JSON.stringify(state);
       }
@@ -638,21 +638,21 @@ const toggleVisibleViewContainer = (viewId) => {
 };
 
 const syncGlobalCanvasForView = (viewId) => {
-  if (window.CanvasManager) {
-    window.CanvasManager.setActiveCanvas(viewId);
+  if (window.pwcaCanvasManager) {
+    window.pwcaCanvasManager.setActiveCanvas(viewId);
   }
 
-  const canvas = window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+  const canvas = window.pwcaCanvasManager ? window.pwcaCanvasManager.getCanvas(viewId) : null;
   if (!canvas) {
     return null;
   }
 
   const allCanvasIds =
-    window.CanvasManager && typeof window.CanvasManager.getAllCanvasIds === 'function'
-      ? window.CanvasManager.getAllCanvasIds()
+    window.pwcaCanvasManager && typeof window.pwcaCanvasManager.getAllCanvasIds === 'function'
+      ? window.pwcaCanvasManager.getAllCanvasIds()
       : [];
   allCanvasIds.forEach((canvasId) => {
-    const viewCanvas = window.CanvasManager ? window.CanvasManager.getCanvas(canvasId) : null;
+    const viewCanvas = window.pwcaCanvasManager ? window.pwcaCanvasManager.getCanvas(canvasId) : null;
     if (viewCanvas && typeof viewCanvas.discardActiveObject === 'function') {
       viewCanvas.discardActiveObject();
       if (typeof viewCanvas.renderAll === 'function') {
@@ -664,8 +664,8 @@ const syncGlobalCanvasForView = (viewId) => {
   if (typeof window.pwcaSetGlobalCanvas === 'function') {
     window.pwcaSetGlobalCanvas(canvas);
   } else {
-    window.canvas = canvas;
-    window.fabricCanvas = canvas;
+    window.pwcaCanvas = canvas;
+    window.pwcaFabricCanvas = canvas;
   }
 
   if (typeof canvas.renderAll === 'function') {
@@ -748,8 +748,8 @@ const generateSingleViewPDF = async (productName) => {
 
 const waitForViewCanvasReady = async (viewId) => {
   const readyCanvas = await waitFor(() => {
-    const canvas = window.CanvasManager && typeof window.CanvasManager.getCanvas === 'function'
-      ? window.CanvasManager.getCanvas(viewId)
+    const canvas = window.pwcaCanvasManager && typeof window.pwcaCanvasManager.getCanvas === 'function'
+      ? window.pwcaCanvasManager.getCanvas(viewId)
       : null;
     const viewContainer = document.getElementById(`view-container-${viewId}`);
     const isVisible = !!(viewContainer && viewContainer.style.display !== 'none');
@@ -837,11 +837,11 @@ const createPreviewRenderTasks = (context) => ([
     clearAllViewSelections();
   }),
   pwcaCreateInterruptibleQueueTask(context, 'showUniversalViewPreview', async (currentContext) => {
-    if (typeof window.showUniversalViewPreview !== 'function') {
-      throw new Error('window.showUniversalViewPreview is not defined.');
+    if (typeof window.pwcaShowUniversalViewPreview !== 'function') {
+      throw new Error('window.pwcaShowUniversalViewPreview is not defined.');
     }
 
-    await window.showUniversalViewPreview(currentContext.views);
+    await window.pwcaShowUniversalViewPreview(currentContext.views);
   }),
 ]);
 
@@ -878,8 +878,8 @@ const createMultiViewPdfTasks = (context) => {
         syncGlobalCanvasForView(view.id);
         await waitForViewCanvasReady(view.id);
 
-        const imageDataUrl = typeof window.captureViewForPDF === 'function'
-          ? await window.captureViewForPDF(view.id)
+        const imageDataUrl = typeof window.pwcaCaptureViewForPDF === 'function'
+          ? await window.pwcaCaptureViewForPDF(view.id)
           : null;
 
         if (!imageDataUrl) {
@@ -970,17 +970,17 @@ const waitForCanvasStateIntegration = () =>
     if (typeof window.pwcaEnsureCanvasStateIntegrationReady === 'function') {
       window.pwcaEnsureCanvasStateIntegrationReady()
         .then(resolve)
-        .catch(() => resolve(window.canvasStateIntegration || null));
+        .catch(() => resolve(window.pwcaCanvasStateIntegration || null));
       return;
     }
 
     if (
-      window.canvasStateIntegration &&
-      typeof window.canvasStateIntegration.applyExternalState === 'function' &&
-      typeof window.canvasStateIntegration.isInitialized === 'function' &&
-      window.canvasStateIntegration.isInitialized()
+      window.pwcaCanvasStateIntegration &&
+      typeof window.pwcaCanvasStateIntegration.applyExternalState === 'function' &&
+      typeof window.pwcaCanvasStateIntegration.isInitialized === 'function' &&
+      window.pwcaCanvasStateIntegration.isInitialized()
     ) {
-      resolve(window.canvasStateIntegration);
+      resolve(window.pwcaCanvasStateIntegration);
       return;
     }
 
@@ -988,7 +988,7 @@ const waitForCanvasStateIntegration = () =>
       if (event && event.detail && event.detail.integration) {
         resolve(event.detail.integration);
       } else {
-        resolve(window.canvasStateIntegration || null);
+        resolve(window.pwcaCanvasStateIntegration || null);
       }
     };
     document.addEventListener('canvasStateIntegrationReady', handler, { once: true });
@@ -1091,7 +1091,7 @@ const pwcaStartupTaskSyncUiState = async (currentContext) => {
  * 同步到 store computed，并通过 Vue watch 响应后续变化
  */
 const pwcaStartupTaskSyncFooterVisibility = async (currentContext) => {
-  const store = window.useCanvasStore && window.useCanvasStore();
+  const store = window.pwcaUseCanvasStore && window.pwcaUseCanvasStore();
   if (!store) return;
 
   // 从 #app data-* 读取（PHP 服务端渲染时直接读取 post meta，无缓存问题）

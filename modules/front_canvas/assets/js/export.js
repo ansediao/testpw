@@ -11,13 +11,13 @@
      * @returns {Promise<string>}
      */
     async function captureViewImage(viewId) {
-        if (typeof window.captureViewForPDF === 'function') {
-            return window.captureViewForPDF(viewId);
+        if (typeof window.pwcaCaptureViewForPDF === 'function') {
+            return window.pwcaCaptureViewForPDF(viewId);
         }
         
         // Fallback if captureViewForPDF is not available
-        const canvas = window.CanvasManager && typeof window.CanvasManager.getCanvas === 'function' 
-            ? window.CanvasManager.getCanvas(viewId) 
+        const canvas = window.pwcaCanvasManager && typeof window.pwcaCanvasManager.getCanvas === 'function' 
+            ? window.pwcaCanvasManager.getCanvas(viewId) 
             : null;
             
         if (!canvas) return Promise.resolve(null);

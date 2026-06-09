@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return uiStateAccess.getActiveCanvas();
         }
 
-        return window.canvas || window.fabricCanvas || null;
+        return window.pwcaCanvas || window.pwcaFabricCanvas || null;
     };
 
     const discardSelectionForAllViewCanvases = () => {

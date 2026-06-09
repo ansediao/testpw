@@ -46,8 +46,8 @@ function pwcaAddCanvasEventListeners(fabricCanvas) {
                 const meta = tgt.designMeta || {};
                 if (typeof pwcaRecordDesignRemoval === 'function') {
                     pwcaRecordDesignRemoval(meta) || (typeof pwcaQueueDesignRemoval === 'function' && pwcaQueueDesignRemoval(meta));
-                } else if (typeof window.useDesignUsageStore === 'function') {
-                    const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
+                } else if (typeof window.pwcaUseDesignUsageStore === 'function') {
+                    const store = window.pwcaPinia ? window.pwcaUseDesignUsageStore(window.pwcaPinia) : window.pwcaUseDesignUsageStore();
                     store.removeDesign({ id: meta.id || '', image: meta.image || '' });
                 }
             }
@@ -56,8 +56,8 @@ function pwcaAddCanvasEventListeners(fabricCanvas) {
 
 function pwcaRecordDesignRemoval(meta) {
     try {
-        if (typeof window.useDesignUsageStore === 'function') {
-            const store = window.pinia ? window.useDesignUsageStore(window.pinia) : window.useDesignUsageStore();
+        if (typeof window.pwcaUseDesignUsageStore === 'function') {
+            const store = window.pwcaPinia ? window.pwcaUseDesignUsageStore(window.pwcaPinia) : window.pwcaUseDesignUsageStore();
             store.removeDesign({ id: String(meta.id || ''), image: String(meta.image || '') });
             return true;
         }

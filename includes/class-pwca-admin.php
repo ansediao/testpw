@@ -67,8 +67,8 @@ class Pwca_Admin {
 	 * @since    1.0.0
 	 */
 	public function __construct() {
-		if ( defined( 'PW_ADMIN_VERSION' ) ) {
-			$this->version = PW_ADMIN_VERSION;
+		if ( defined( 'PWCA_ADMIN_VERSION' ) ) {
+			$this->version = PWCA_ADMIN_VERSION;
 		} else {
 			$this->version = '1.0.0';
 		}

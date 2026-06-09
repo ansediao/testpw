@@ -137,7 +137,7 @@ function controlMainWrapperDisplayArea(objectId) {
     const mainCanvas =
         stateAccess && typeof stateAccess.pwcaGetCanvasByViewId === 'function'
             ? stateAccess.pwcaGetCanvasByViewId(currentViewId)
-            : window.CanvasManager?.getCanvas(currentViewId);
+            : window.pwcaCanvasManager?.getCanvas(currentViewId);
     if (!mainCanvas) return;
     const maskCanvasElement = document.getElementById(`maskCanvas-${currentViewId}`);
     if (!maskCanvasElement || !maskCanvasElement.__fabricCanvas) return;

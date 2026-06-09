@@ -43,7 +43,7 @@ const ColorVariants = {
 
     setup() {
         const { computed, onMounted, watch } = Vue;
-        const store = useProductStore();
+        const store = window.pwcaUseProductStore();
 
         onMounted(() => {
         });
@@ -72,7 +72,7 @@ const ColorVariants = {
                 return;
             }
 
-            window.ProductColorSelectionBridge.applyVariantSelection(variant, store);
+            window.pwcaProductColorSelectionBridge.applyVariantSelection(variant, store);
         };
 
         return {

@@ -317,8 +317,8 @@ window.showTabControlHelp = function() {
 let canvas = null;
 
 function pwcaGetActiveCanvas() {
-    if (window.CanvasManager && typeof window.CanvasManager.getActiveCanvas === 'function') {
-        const managedCanvas = window.CanvasManager.getActiveCanvas();
+    if (window.pwcaCanvasManager && typeof window.pwcaCanvasManager.getActiveCanvas === 'function') {
+        const managedCanvas = window.pwcaCanvasManager.getActiveCanvas();
         if (managedCanvas) {
             return managedCanvas;
         }
@@ -332,13 +332,13 @@ function pwcaGetActiveCanvas() {
         }
     }
 
-    return canvas || window.canvas || window.fabricCanvas || null;
+    return canvas || window.pwcaCanvas || window.pwcaFabricCanvas || null;
 }
 
 function pwcaSetGlobalCanvas(fabricCanvas) {
     canvas = fabricCanvas;
-    window.canvas = fabricCanvas;
-    window.fabricCanvas = fabricCanvas;
+    window.pwcaCanvas = fabricCanvas;
+    window.pwcaFabricCanvas = fabricCanvas;
 }
 
 window.pwcaGetActiveCanvas = pwcaGetActiveCanvas;

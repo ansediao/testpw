@@ -204,7 +204,7 @@ function closeMultiViewPreview() {
 }
 
 window.captureAllViewsImages = captureAllViewsImages;
-window.captureViewForPDF = captureViewForPDF;
+window.pwcaCaptureViewForPDF = captureViewForPDF;
 window.captureMultiLayerCanvasWithMask = captureMultiLayerCanvasWithMask;
 window.captureCanvasById = captureCanvasById;
 window.closeMultiViewPreview = closeMultiViewPreview;

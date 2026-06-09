@@ -66,15 +66,15 @@ function validateCanvasObjects(viewId, layers) {
     if (
         !viewId ||
         !Array.isArray(layers) ||
-        !window.CanvasManager ||
-        typeof window.CanvasManager.getCanvas !== 'function' ||
+        !window.pwcaCanvasManager ||
+        typeof window.pwcaCanvasManager.getCanvas !== 'function' ||
         !window.PrintAreaValidator ||
         typeof window.PrintAreaValidator.validateAndRepositionObject !== 'function'
     ) {
         return;
     }
 
-    const canvas = window.CanvasManager.getCanvas(viewId);
+    const canvas = window.pwcaCanvasManager.getCanvas(viewId);
     if (!canvas || typeof canvas.getObjects !== 'function') {
         return;
     }

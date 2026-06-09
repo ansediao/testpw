@@ -12,7 +12,7 @@
  * 
  * @requires VueUse (window.VueUse.useStorage)
  * @requires Pinia stores (useCanvasStore, usePrintMethodStore)
- * @requires CanvasManager (window.CanvasManager)
+ * @requires CanvasManager (window.pwcaCanvasManager)
  */
 
 // 数据版本号，用于迁移
@@ -463,7 +463,7 @@ function pwcaGetCanvasStore() {
         return uiStateAccess.getCanvasStore();
     }
 
-    return window.useCanvasStore ? window.useCanvasStore() : null;
+    return window.pwcaUseCanvasStore ? window.pwcaUseCanvasStore() : null;
 }
 
 function pwcaGetPrintMethodStore() {
@@ -472,7 +472,7 @@ function pwcaGetPrintMethodStore() {
         return uiStateAccess.getPrintMethodStore();
     }
 
-    return window.usePrintMethodStore ? window.usePrintMethodStore() : null;
+    return window.pwcaUsePrintMethodStore ? window.pwcaUsePrintMethodStore() : null;
 }
 
 function pwcaGetViews() {
@@ -501,7 +501,7 @@ function pwcaGetCanvasByViewId(viewId) {
         return uiStateAccess.getCanvasByViewId(viewId);
     }
 
-    return window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+    return window.pwcaCanvasManager ? window.pwcaCanvasManager.getCanvas(viewId) : null;
 }
 
 function pwcaGetAllViewIds() {
@@ -1789,7 +1789,7 @@ export { CanvasStateManager, canvasStateManager, CURRENT_VERSION, DataValidator,
 
 // 挂载到全局对象，方便非模块化代码访问
 window.CanvasStateManager = CanvasStateManager;
-window.canvasStateManager = canvasStateManager;
+window.pwcaCanvasStateManager = canvasStateManager;
 window.CANVAS_STATE_VERSION = CURRENT_VERSION;
 window.CanvasStateDataValidator = DataValidator;
 window.CanvasStateErrorHandler = ErrorHandler;

@@ -519,4 +519,4 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
 });
 
 // 将打印方式store暴露到全局
-window.usePrintMethodStore = usePrintMethodStore;
+window.pwcaUsePrintMethodStore = usePrintMethodStore;

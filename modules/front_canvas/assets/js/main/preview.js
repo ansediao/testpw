@@ -21,7 +21,7 @@ function pwcaGetPreviewCanvasStore() {
         return uiStateAccess.getCanvasStore();
     }
 
-    return typeof window.useCanvasStore === 'function' ? window.useCanvasStore() : null;
+    return typeof window.pwcaUseCanvasStore === 'function' ? window.pwcaUseCanvasStore() : null;
 }
 
 function pwcaGetAllViewCanvases() {

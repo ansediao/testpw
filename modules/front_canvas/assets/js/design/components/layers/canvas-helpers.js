@@ -3,11 +3,11 @@
 
 export function createCanvasHelpers(store) {
     const getCanvasInstance = () => {
-        if (window.CanvasManager) {
-            return window.CanvasManager.getActiveCanvas();
+        if (window.pwcaCanvasManager) {
+            return window.pwcaCanvasManager.getActiveCanvas();
         }
 
-        let canvasInstance = window.canvas || window.fabricCanvas;
+        let canvasInstance = window.pwcaCanvas || window.pwcaFabricCanvas;
 
         if (!canvasInstance) {
             if (store.activeViewId) {

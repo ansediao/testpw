@@ -8,7 +8,7 @@ const ProductQuantity = {
     
     setup() {
         // Access shared store
-        const store = useProductStore();
+        const store = window.pwcaUseProductStore();
         
         
         // Methods

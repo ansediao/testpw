@@ -71,7 +71,7 @@
         };
     }
 
-    window.ProductResponseMapper = {
+    window.pwcaProductResponseMapper = {
         mapProductResponse
     };
 })();

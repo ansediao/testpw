@@ -12,7 +12,7 @@
  * 
  * @requires CanvasStateManager (./canvas-state-manager.js)
  * @requires Pinia stores (useCanvasStore, usePrintMethodStore)
- * @requires CanvasManager (window.CanvasManager)
+ * @requires CanvasManager (window.pwcaCanvasManager)
  */
 
 import { canvasStateManager, ErrorHandler } from './canvas-state-manager.js';
@@ -27,7 +27,7 @@ function pwcaGetCanvasStore() {
         return uiStateAccess.getCanvasStore();
     }
 
-    return window.useCanvasStore ? window.useCanvasStore() : null;
+    return window.pwcaUseCanvasStore ? window.pwcaUseCanvasStore() : null;
 }
 
 function pwcaGetPrintMethodStore() {
@@ -36,7 +36,7 @@ function pwcaGetPrintMethodStore() {
         return uiStateAccess.getPrintMethodStore();
     }
 
-    return window.usePrintMethodStore ? window.usePrintMethodStore() : null;
+    return window.pwcaUsePrintMethodStore ? window.pwcaUsePrintMethodStore() : null;
 }
 
 function pwcaGetViews() {
@@ -65,7 +65,7 @@ function pwcaGetCanvasByViewId(viewId) {
         return uiStateAccess.getCanvasByViewId(viewId);
     }
 
-    return window.CanvasManager ? window.CanvasManager.getCanvas(viewId) : null;
+    return window.pwcaCanvasManager ? window.pwcaCanvasManager.getCanvas(viewId) : null;
 }
 
 function pwcaIsCanvasStateRestoring() {
@@ -157,7 +157,7 @@ class CanvasStateIntegration {
             this._setupStoreWatchers();
             
             // 5. 将实例挂载到 window 对象
-            window.canvasStateIntegration = this;
+            window.pwcaCanvasStateIntegration = this;
             
             this.initialized = true;
             ErrorHandler.logInfo('CanvasStateIntegration 初始化成功');
@@ -632,5 +632,5 @@ export { CanvasStateIntegration, canvasStateIntegration };
 
 // 挂载到全局对象
 window.CanvasStateIntegration = CanvasStateIntegration;
-window.canvasStateIntegration = canvasStateIntegration;
+window.pwcaCanvasStateIntegration = canvasStateIntegration;
 window.pwcaEnsureCanvasStateIntegrationReady = pwcaEnsureCanvasStateIntegrationReady;

@@ -8,7 +8,7 @@ const QuantityDiscountSlider = {
     
     setup() {
         // Access shared store
-        const store = useProductStore();
+        const store = window.pwcaUseProductStore();
         
         // 计算滑块的刻度点
         const discountTiers = Vue.computed(() => {

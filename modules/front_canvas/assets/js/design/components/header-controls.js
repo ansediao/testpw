@@ -19,8 +19,8 @@ function pwcaGetCanvasByViewId(viewId) {
         return uiStateAccess.getCanvasByViewId(viewId);
     }
 
-    return window.CanvasManager && typeof window.CanvasManager.getCanvas === 'function'
-        ? window.CanvasManager.getCanvas(viewId)
+    return window.pwcaCanvasManager && typeof window.pwcaCanvasManager.getCanvas === 'function'
+        ? window.pwcaCanvasManager.getCanvas(viewId)
         : null;
 }
 
@@ -214,8 +214,8 @@ const HeaderControls = {
         // Check if initialization is already done on mount
         // onMounted(() => {
         //     // Attempt to start history if canvases are already ready
-        //     if (window.CanvasManager && typeof window.CanvasManager.getAllCanvasIds === 'function') {
-        //         const ids = window.CanvasManager.getAllCanvasIds();
+        //     if (window.pwcaCanvasManager && typeof window.pwcaCanvasManager.getAllCanvasIds === 'function') {
+        //         const ids = window.pwcaCanvasManager.getAllCanvasIds();
         //         if (ids && ids.length > 0) {
         //             console.log('HeaderControls: CanvasManager already ready, starting history...', ids);
         //             startHistory();

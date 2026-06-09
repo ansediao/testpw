@@ -1,23 +1,23 @@
 (function () {
     function pwcaGetCanvasStore() {
-        if (typeof window.useCanvasStore !== 'function') {
+        if (typeof window.pwcaUseCanvasStore !== 'function') {
             return null;
         }
 
         try {
-            return window.useCanvasStore();
+            return window.pwcaUseCanvasStore();
         } catch (error) {
             return null;
         }
     }
 
     function pwcaGetPrintMethodStore() {
-        if (typeof window.usePrintMethodStore !== 'function') {
+        if (typeof window.pwcaUsePrintMethodStore !== 'function') {
             return null;
         }
 
         try {
-            return window.usePrintMethodStore();
+            return window.pwcaUsePrintMethodStore();
         } catch (error) {
             return null;
         }
@@ -61,11 +61,11 @@
     }
 
     function pwcaGetCanvasByViewId(viewId) {
-        if (!viewId || !window.CanvasManager || typeof window.CanvasManager.getCanvas !== 'function') {
+        if (!viewId || !window.pwcaCanvasManager || typeof window.pwcaCanvasManager.getCanvas !== 'function') {
             return null;
         }
 
-        return window.CanvasManager.getCanvas(viewId);
+        return window.pwcaCanvasManager.getCanvas(viewId);
     }
 
     function pwcaGetAllViewIds() {
@@ -77,12 +77,12 @@
             return viewIdsFromStore;
         }
 
-        if (window.CanvasManager && typeof window.CanvasManager.getViewIds === 'function') {
-            return window.CanvasManager.getViewIds() || [];
+        if (window.pwcaCanvasManager && typeof window.pwcaCanvasManager.getViewIds === 'function') {
+            return window.pwcaCanvasManager.getViewIds() || [];
         }
 
-        if (window.CanvasManager && typeof window.CanvasManager.getAllCanvasIds === 'function') {
-            return (window.CanvasManager.getAllCanvasIds() || []).filter((canvasId) => {
+        if (window.pwcaCanvasManager && typeof window.pwcaCanvasManager.getAllCanvasIds === 'function') {
+            return (window.pwcaCanvasManager.getAllCanvasIds() || []).filter((canvasId) => {
                 return typeof canvasId === 'string' && canvasId.indexOf('baseCanvas-') !== 0;
             });
         }
@@ -103,8 +103,8 @@
 
         const baseCanvasId = `baseCanvas-${viewId}`;
 
-        if (window.CanvasManager && typeof window.CanvasManager.getCanvas === 'function') {
-            const managedCanvas = window.CanvasManager.getCanvas(baseCanvasId);
+        if (window.pwcaCanvasManager && typeof window.pwcaCanvasManager.getCanvas === 'function') {
+            const managedCanvas = window.pwcaCanvasManager.getCanvas(baseCanvasId);
             if (managedCanvas) {
                 return managedCanvas;
             }
@@ -126,8 +126,8 @@
             }
         }
 
-        if (window.CanvasManager && typeof window.CanvasManager.getActiveCanvas === 'function') {
-            const activeCanvas = window.CanvasManager.getActiveCanvas();
+        if (window.pwcaCanvasManager && typeof window.pwcaCanvasManager.getActiveCanvas === 'function') {
+            const activeCanvas = window.pwcaCanvasManager.getActiveCanvas();
             if (activeCanvas) {
                 return activeCanvas;
             }
@@ -141,7 +141,7 @@
             }
         }
 
-        return window.canvas || window.fabricCanvas || null;
+        return window.pwcaCanvas || window.pwcaFabricCanvas || null;
     }
 
     function pwcaGetActiveObject() {
