@@ -1,0 +1,1940 @@
+{
+  "meta": {
+    "project": "PWCA Canvas - WordPress 插件",
+    "scan_date": "2026-06-09",
+    "scan_tool": "CodeGraph MCP + Grep 扫描",
+    "total_files_scanned": 260,
+    "rules_reference": ".trae/rules/naming-conventions.md",
+    "description": "对整个项目仓库进行全面扫描，识别所有不符合项目命名规范的文件、文件夹、变量、函数及其他命名元素。"
+  },
+  "naming_rules": {
+    "RULE_001": {
+      "name": "全局变量前缀",
+      "rule": "全局变量使用 `pwca_` 或 `PWCA_` 前缀",
+      "scope": "PHP全局变量、WordPress选项、JS window属性、PHP常量"
+    },
+    "RULE_002": {
+      "name": "CSS类名前缀",
+      "rule": "CSS类名使用 `pwca-` 前缀",
+      "scope": "所有SCSS/CSS文件、JS/PHP模板中的类名字面量"
+    },
+    "RULE_003": {
+      "name": "JS函数前缀",
+      "rule": "JavaScript函数使用 `pwca` 前缀",
+      "scope": "所有.js文件中的顶层函数声明、export函数、模块级函数"
+    },
+    "RULE_004": {
+      "name": "PHP类前缀",
+      "rule": "PHP类使用 `Pwca_Admin_` 或 `Pwca_Public_` 前缀",
+      "scope": "所有.php文件中的class声明"
+    },
+    "RULE_005": {
+      "name": "API端点命名空间",
+      "rule": "API端点使用 `/pwca/v1/` 命名空间",
+      "scope": "register_rest_route() 调用、wp_ajax_ 操作、JS中的action字符串"
+    },
+    "RULE_006": {
+      "name": "文件命名",
+      "rule": "PHP类文件使用 `class-pwca-` 前缀；JS文件使用 kebab-case",
+      "scope": "includes/ 和 modules/ 目录下的所有文件"
+    }
+  },
+  "violations": {
+    "PHP_CLASS_NAMING": {
+      "category": "PHP类命名违规",
+      "rule_id": "RULE_004",
+      "description": "PHP类未使用 `Pwca_Admin_` 或 `Pwca_Public_` 前缀",
+      "total_count": 38,
+      "items": [
+        {
+          "id": "PHP-CLASS-001",
+          "severity": "high",
+          "current_name": "Pw_Admin_Promowares_Api",
+          "expected_name": "Pwca_Admin_Promowares_Api",
+          "file_path": "includes/class-pw-admin-promowares-api.php",
+          "line": 30,
+          "code_content": "class Pw_Admin_Promowares_Api {",
+          "violation": "使用旧前缀 `Pw_Admin_`，应为 `Pwca_Admin_`",
+          "related_references": [
+            "includes/class-pw-admin-promowares-api.php (多处方法引用)"
+          ],
+          "status": "未处理",
+          "frontend_area": "不适用（后台API代理类）",
+          "notes": "核心API通信类，外部API调用入口"
+        },
+        {
+          "id": "PHP-CLASS-002",
+          "severity": "high",
+          "current_name": "Pw_Admin",
+          "expected_name": "Pwca_Admin",
+          "file_path": "includes/class-pw-admin.php",
+          "line": 30,
+          "code_content": "class Pw_Admin {",
+          "violation": "使用旧前缀 `Pw_Admin_`，应为 `Pwca_Admin_`",
+          "related_references": [
+            "pw-admin.php (入口文件引用)",
+            "includes/class-pw-admin-loader.php (注册)",
+            "includes/class-pw-admin-activator.php (激活)"
+          ],
+          "status": "未处理",
+          "frontend_area": "不适用（核心控制器）",
+          "notes": "插件核心控制器，影响全局"
+        },
+        {
+          "id": "PHP-CLASS-003",
+          "severity": "high",
+          "current_name": "Pw_Admin_Loader",
+          "expected_name": "Pwca_Admin_Loader",
+          "file_path": "includes/class-pw-admin-loader.php",
+          "line": 24,
+          "code_content": "class Pw_Admin_Loader {",
+          "violation": "使用旧前缀 `Pw_Admin_`，应为 `Pwca_Admin_`",
+          "related_references": [
+            "includes/class-pw-admin.php (依赖注入)"
+          ],
+          "status": "未处理",
+          "frontend_area": "不适用（核心加载器）",
+          "notes": "钩子加载器，管理action/filter注册"
+        },
+        {
+          "id": "PHP-CLASS-004",
+          "severity": "high",
+          "current_name": "Pw_Admin_i18n",
+          "expected_name": "Pwca_Admin_i18n",
+          "file_path": "includes/class-pw-admin-i18n.php",
+          "line": 27,
+          "code_content": "class Pw_Admin_i18n {",
+          "violation": "使用旧前缀 `Pw_Admin_`，应为 `Pwca_Admin_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "不适用（国际化类）",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-005",
+          "severity": "high",
+          "current_name": "Pw_Admin_Deactivator",
+          "expected_name": "Pwca_Admin_Deactivator",
+          "file_path": "includes/class-pw-admin-deactivator.php",
+          "line": 23,
+          "code_content": "class Pw_Admin_Deactivator {",
+          "violation": "使用旧前缀 `Pw_Admin_`，应为 `Pwca_Admin_`",
+          "related_references": [
+            "includes/class-pw-admin.php (注册钩子)"
+          ],
+          "status": "未处理",
+          "frontend_area": "不适用（插件停用处理）",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-006",
+          "severity": "high",
+          "current_name": "Pw_Admin_Activator",
+          "expected_name": "Pwca_Admin_Activator",
+          "file_path": "includes/class-pw-admin-activator.php",
+          "line": 23,
+          "code_content": "class Pw_Admin_Activator {",
+          "violation": "使用旧前缀 `Pw_Admin_`，应为 `Pwca_Admin_`",
+          "related_references": [
+            "includes/class-pw-admin.php (注册钩子)"
+          ],
+          "status": "未处理",
+          "frontend_area": "不适用（插件激活处理）",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-007",
+          "severity": "medium",
+          "current_name": "Pwca_Module_Loader",
+          "expected_name": "Pwca_Admin_Module_Loader",
+          "file_path": "includes/class-pwca-module-loader.php",
+          "line": 9,
+          "code_content": "class Pwca_Module_Loader {",
+          "violation": "前缀为 `Pwca_` 但缺少 `Admin_` 或 `Public_` 段",
+          "related_references": [
+            "所有模块的 index.php (加载入口)"
+          ],
+          "status": "未处理",
+          "frontend_area": "不适用（模块加载器）",
+          "notes": "统一加载所有模块"
+        },
+        {
+          "id": "PHP-CLASS-008",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Canvas_Router",
+          "expected_name": "Pwca_Public_Canvas_Router",
+          "file_path": "modules/front_canvas/includes/class-pwca-front-canvas-router.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Canvas_Router {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [
+            "modules/front_canvas/assets/js/canvas/page-bootstrap.js (前端路由)"
+          ],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - URL路由与重写规则",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-009",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Canvas_Assets",
+          "expected_name": "Pwca_Public_Canvas_Assets",
+          "file_path": "modules/front_canvas/includes/class-pwca-front-canvas-assets.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Canvas_Assets {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [
+            "modules/front_canvas/views/canvas-page.php (CSS/JS加载)"
+          ],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 前端资源加载",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-010",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Canvas",
+          "expected_name": "Pwca_Public_Canvas",
+          "file_path": "modules/front_canvas/includes/class-pwca-front-canvas.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Canvas {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 主控制器",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-011",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Canvas_Inquiry_Rest",
+          "expected_name": "Pwca_Public_Canvas_Inquiry_Rest",
+          "file_path": "modules/front_canvas/includes/class-pwca-front-canvas-inquiry-rest.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Canvas_Inquiry_Rest {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "询价接口 REST API (/pwca/v1/inquiry)",
+          "notes": "已正确使用 pwca/v1 命名空间，仅类名需修改"
+        },
+        {
+          "id": "PHP-CLASS-012",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Canvas_Context",
+          "expected_name": "Pwca_Public_Canvas_Context",
+          "file_path": "modules/front_canvas/includes/class-pwca-front-canvas-context.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Canvas_Context {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 上下文数据",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-013",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Product_Assets",
+          "expected_name": "Pwca_Public_Product_Assets",
+          "file_path": "modules/front_product/includes/class-pwca-front-product-assets.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Product_Assets {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [
+            "modules/front_product/views/ (CSS/JS加载)"
+          ],
+          "status": "未处理",
+          "frontend_area": "产品页 - 前端资源加载",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-014",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Product_Woo_Adjustments",
+          "expected_name": "Pwca_Public_Product_Woo_Adjustments",
+          "file_path": "modules/front_product/includes/class-pwca-front-product-woo-adjustments.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Product_Woo_Adjustments {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - WooCommerce调整",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-015",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Product",
+          "expected_name": "Pwca_Public_Product",
+          "file_path": "modules/front_product/includes/class-pwca-front-product.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Product {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - 主控制器",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-016",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Product_Inquiry",
+          "expected_name": "Pwca_Public_Product_Inquiry",
+          "file_path": "modules/front_product/includes/class-pwca-front-product-inquiry.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Product_Inquiry {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - 询价功能",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-017",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Product_Mount",
+          "expected_name": "Pwca_Public_Product_Mount",
+          "file_path": "modules/front_product/includes/class-pwca-front-product-mount.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Product_Mount {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - 挂载点",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-018",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Product_Composite",
+          "expected_name": "Pwca_Public_Product_Composite",
+          "file_path": "modules/front_product/includes/class-pwca-front-product-composite.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Product_Composite {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - 组合产品功能",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-019",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Product_Context",
+          "expected_name": "Pwca_Public_Product_Context",
+          "file_path": "modules/front_product/includes/class-pwca-front-product-context.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Product_Context {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - 上下文数据",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-020",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Cart_Handler",
+          "expected_name": "Pwca_Public_Cart_Handler",
+          "file_path": "modules/front_cart/includes/class-pwca-front-cart-handler.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Cart_Handler {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [
+            "modules/front_cart/assets/js/ (AJAX处理)"
+          ],
+          "status": "未处理",
+          "frontend_area": "购物车页 - AJAX购物车处理",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-021",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Cart_Quantity",
+          "expected_name": "Pwca_Public_Cart_Quantity",
+          "file_path": "modules/front_cart/includes/class-pwca-front-cart-quantity.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Cart_Quantity {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [
+            "modules/front_cart/assets/js/pwca-cart-quantity-controls.js"
+          ],
+          "status": "未处理",
+          "frontend_area": "购物车页 - 数量控制",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-022",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Cart_Admin_Actions",
+          "expected_name": "Pwca_Public_Cart_Admin_Actions",
+          "file_path": "modules/front_cart/includes/class-pwca-front-cart-admin-actions.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Cart_Admin_Actions {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [
+            "modules/front_cart/assets/js/pwca-cart-admin-actions.js"
+          ],
+          "status": "未处理",
+          "frontend_area": "购物车页 - 后台操作入口",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-023",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Cart",
+          "expected_name": "Pwca_Public_Cart",
+          "file_path": "modules/front_cart/includes/class-pwca-front-cart.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Cart {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "购物车页 - 主控制器",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-024",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Cart_Design_Column",
+          "expected_name": "Pwca_Public_Cart_Design_Column",
+          "file_path": "modules/front_cart/includes/class-pwca-front-cart-design-column.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Cart_Design_Column {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [
+            "modules/front_cart/assets/js/pwca-cart-design-column.js"
+          ],
+          "status": "未处理",
+          "frontend_area": "购物车页 - 设计信息列",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-025",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Cart_Assets",
+          "expected_name": "Pwca_Public_Cart_Assets",
+          "file_path": "modules/front_cart/includes/class-pwca-front-cart-assets.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Cart_Assets {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "购物车页 - 前端资源加载",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-026",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Cart_Context",
+          "expected_name": "Pwca_Public_Cart_Context",
+          "file_path": "modules/front_cart/includes/class-pwca-front-cart-context.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Cart_Context {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "购物车页 - 上下文数据",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-027",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Checkout_Template_Override",
+          "expected_name": "Pwca_Public_Checkout_Template_Override",
+          "file_path": "modules/front_checkout/includes/class-pwca-front-checkout-template-override.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Checkout_Template_Override {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "结账页 - 模板覆盖",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-028",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Checkout",
+          "expected_name": "Pwca_Public_Checkout",
+          "file_path": "modules/front_checkout/includes/class-pwca-front-checkout.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Checkout {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "结账页 - 主控制器",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-029",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Checkout_Context",
+          "expected_name": "Pwca_Public_Checkout_Context",
+          "file_path": "modules/front_checkout/includes/class-pwca-front-checkout-context.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Checkout_Context {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "结账页 - 上下文数据",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-030",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Checkout_Redirect",
+          "expected_name": "Pwca_Public_Checkout_Redirect",
+          "file_path": "modules/front_checkout/includes/class-pwca-front-checkout-redirect.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Checkout_Redirect {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "结账页 - 重定向逻辑",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-031",
+          "severity": "medium",
+          "current_name": "Pwca_Front_Checkout_Assets",
+          "expected_name": "Pwca_Public_Checkout_Assets",
+          "file_path": "modules/front_checkout/includes/class-pwca-front-checkout-assets.php",
+          "line": 7,
+          "code_content": "class Pwca_Front_Checkout_Assets {",
+          "violation": "使用 `Front_` 而非规范要求的 `Public_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "结账页 - 前端资源加载",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-032",
+          "severity": "medium",
+          "current_name": "Pwca_Integration_Promowares",
+          "expected_name": "Pwca_Admin_Integration_Promowares 或新增 Pwca_Integration_ 规则",
+          "file_path": "modules/integration_promowares/includes/class-pwca-integration-promowares.php",
+          "line": 7,
+          "code_content": "class Pwca_Integration_Promowares {",
+          "violation": "使用 `Integration_` 前缀，规范中未定义此前缀",
+          "related_references": [
+            "includes/class-pw-admin-promowares-api.php (API调用)"
+          ],
+          "status": "未处理",
+          "frontend_area": "不适用（后台集成服务）",
+          "notes": "建议规范中增加 `Pwca_Integration_` 前缀的说明"
+        },
+        {
+          "id": "PHP-CLASS-033",
+          "severity": "medium",
+          "current_name": "Pwca_Integration_Shipping",
+          "expected_name": "需补充规范定义",
+          "file_path": "modules/integration_shipping/includes/class-pwca-integration-shipping.php",
+          "line": 7,
+          "code_content": "class Pwca_Integration_Shipping {",
+          "violation": "使用 `Integration_` 前缀，规范中未定义",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "不适用（后台集成服务）",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-034",
+          "severity": "medium",
+          "current_name": "Pwca_Integration_Shipping_Checkout_Validation",
+          "expected_name": "需补充规范定义",
+          "file_path": "modules/integration_shipping/includes/class-pwca-integration-shipping-checkout-validation.php",
+          "line": 7,
+          "code_content": "class Pwca_Integration_Shipping_Checkout_Validation {",
+          "violation": "使用 `Integration_` 前缀，规范中未定义",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "结账页 - 配送校验",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-035",
+          "severity": "medium",
+          "current_name": "Pwca_Integration_Shipping_Shipping",
+          "expected_name": "需补充规范定义",
+          "file_path": "modules/integration_shipping/includes/class-pwca-integration-shipping-shipping.php",
+          "line": 7,
+          "code_content": "class Pwca_Integration_Shipping_Shipping {",
+          "violation": "使用 `Integration_` 前缀，规范中未定义",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "不适用（配送方法类）",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-036",
+          "severity": "medium",
+          "current_name": "Pwca_Integration_Shipping_Shipping_Ajax",
+          "expected_name": "需补充规范定义",
+          "file_path": "modules/integration_shipping/includes/class-pwca-integration-shipping-shipping-ajax.php",
+          "line": 7,
+          "code_content": "class Pwca_Integration_Shipping_Shipping_Ajax {",
+          "violation": "使用 `Integration_` 前缀，规范中未定义",
+          "related_references": [
+            "modules/integration_shipping/assets/js/pwca-checkout-shipping.js"
+          ],
+          "status": "未处理",
+          "frontend_area": "结账页 - AJAX配送",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-037",
+          "severity": "medium",
+          "current_name": "Pwca_Integration_Shipping_Context",
+          "expected_name": "需补充规范定义",
+          "file_path": "modules/integration_shipping/includes/class-pwca-integration-shipping-context.php",
+          "line": 7,
+          "code_content": "class Pwca_Integration_Shipping_Context {",
+          "violation": "使用 `Integration_` 前缀，规范中未定义",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "结账页 - 配送上下文",
+          "notes": ""
+        },
+        {
+          "id": "PHP-CLASS-038",
+          "severity": "medium",
+          "current_name": "Pwca_Integration_Shipping_Assets",
+          "expected_name": "需补充规范定义",
+          "file_path": "modules/integration_shipping/includes/class-pwca-integration-shipping-assets.php",
+          "line": 7,
+          "code_content": "class Pwca_Integration_Shipping_Assets {",
+          "violation": "使用 `Integration_` 前缀，规范中未定义",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "结账页 - 前端资源加载",
+          "notes": ""
+        }
+      ]
+    },
+    "JS_FUNCTION_NAMING": {
+      "category": "JS函数命名违规",
+      "rule_id": "RULE_003",
+      "description": "JavaScript函数未使用 `pwca` 前缀",
+      "total_count": 380,
+      "summary": "扫描发现约 380+ 个函数不符合 `pwca` 前缀规范，主要集中在 front_canvas 和 front_product 模块。由于数量庞大，此处列出顶层/模块级的关键函数，Vue组件内部方法可在后续逐步处理。",
+      "key_items": [
+        {
+          "id": "JS-FUNC-001",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/canvas/multi-view-init.js",
+          "functions": [
+            {"line": 11, "name": "getOriginFromAnchorPoint"},
+            {"line": 49, "name": "convertCoordinatesForOrigin"},
+            {"line": 71, "name": "getLayerRenderSize"},
+            {"line": 85, "name": "getCanvasHeightValue"},
+            {"line": 94, "name": "getFabricPlacementForLayer"},
+            {"line": 195, "name": "getTargetCanvasIdForLayer"},
+            {"line": 219, "name": "getViewRenderableLayers"},
+            {"line": 225, "name": "getFlowSizingReferenceLayer"},
+            {"line": 238, "name": "getCanvasDimensionsForView"},
+            {"line": 254, "name": "buildCanvasConfigsForView"},
+            {"line": 277, "name": "renderCanvasConfigsForView"},
+            {"line": 306, "name": "applyFlowPostInitialization"},
+            {"line": 330, "name": "createFabricObjectFromLayer"},
+            {"line": 597, "name": "initializeEmptyCanvas"},
+            {"line": 649, "name": "renderLayerToSpecificCanvas"},
+            {"line": 682, "name": "clearContentAreaClip"},
+            {"line": 708, "name": "applyContentAreaClip"},
+            {"line": 741, "name": "handleFourGridContentArea"},
+            {"line": 820, "name": "isValidImageURL"},
+            {"line": 843, "name": "initializeMultiLayerCanvases"},
+            {"line": 887, "name": "initializeMaskCanvas"}
+          ],
+          "violation": "所有顶层函数均未使用 `pwca` 前缀",
+          "related_references": ["modules/front_canvas/assets/js/canvas/page-bootstrap.js (引用)"],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 多视图初始化/4格预览"
+        },
+        {
+          "id": "JS-FUNC-002",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/canvas/page-bootstrap.js",
+          "functions": [
+            {"line": 1, "name": "getSettings"},
+            {"line": 35, "name": "onReady"},
+            {"line": 43, "name": "waitFor"},
+            {"line": 278, "name": "initFetchProductData"},
+            {"line": 294, "name": "buildDesignPayload"},
+            {"line": 314, "name": "buildViewPrintMethodsPayload"},
+            {"line": 344, "name": "resolveMoqAndDiscount"},
+            {"line": 387, "name": "buildViewImagesPayload"},
+            {"line": 432, "name": "readAccessoriesNames"},
+            {"line": 454, "name": "captureCanvasStateJson"},
+            {"line": 470, "name": "buildAddToCartRequestBody"},
+            {"line": 517, "name": "submitAddToCartRequest"},
+            {"line": 534, "name": "fetchCartCanvasState"},
+            {"line": 565, "name": "addCustomizedProductToCart"},
+            {"line": 628, "name": "toggleVisibleViewContainer"},
+            {"line": 640, "name": "syncGlobalCanvasForView"},
+            {"line": 678, "name": "clearAllViewSelections"},
+            {"line": 706, "name": "generateSingleViewPDF"},
+            {"line": 749, "name": "waitForViewCanvasReady"},
+            {"line": 767, "name": "saveMultiViewPdfDocument"},
+            {"line": 907, "name": "finalizeManagedActionFlow"},
+            {"line": 919, "name": "runPreviewRenderFlow"},
+            {"line": 929, "name": "runGeneratePdfFlow"},
+            {"line": 953, "name": "generateMultiViewPDF"},
+            {"line": 955, "name": "resolveCartEditKey"},
+            {"line": 968, "name": "waitForCanvasStateIntegration"},
+            {"line": 997, "name": "initCartEditCanvasState"},
+            {"line": 1134, "name": "buildStartupTasks"},
+            {"line": 1181, "name": "finalizeAsyncStartup"},
+            {"line": 1207, "name": "bindAddToCartButton"},
+            {"line": 1218, "name": "initializePageBootstrap"}
+          ],
+          "violation": "所有顶层函数均未使用 `pwca` 前缀",
+          "related_references": ["modules/front_canvas/assets/js/design/stores/ (Store联动)"],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 页面引导/数据加载/加入购物车"
+        },
+        {
+          "id": "JS-FUNC-003",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/grid-preview.js",
+          "functions": [
+            {"line": 301, "name": "generateUniversalViewImages"},
+            {"line": 323, "name": "generate4GridImagesForView"},
+            {"line": 369, "name": "generateCompositeImageForGrid"},
+            {"line": 408, "name": "drawLayerImageForGrid"},
+            {"line": 428, "name": "drawLayerImageForGridWithColor"},
+            {"line": 448, "name": "drawCroppedCanvasRegionWithWindowEffect"},
+            {"line": 495, "name": "drawCanvasWithinBoundaryForWindow"},
+            {"line": 502, "name": "drawCanvasWithinBoundary"},
+            {"line": 513, "name": "cropImageWithConfig"},
+            {"line": 528, "name": "captureViewImage"}
+          ],
+          "violation": "所有顶层函数均未使用 `pwca` 前缀",
+          "related_references": ["modules/front_canvas/assets/js/main/universal-preview.js"],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 4格预览/出图"
+        },
+        {
+          "id": "JS-FUNC-004",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/operation-panel-colors.js",
+          "functions": [
+            {"line": 3, "name": "getUiStateAccess"},
+            {"line": 5, "name": "isLightColor"},
+            {"line": 15, "name": "generateDefaultColors"},
+            {"line": 38, "name": "handleColorSwatchClick"},
+            {"line": 45, "name": "saveColorToStore"},
+            {"line": 158, "name": "applyColorTint"},
+            {"line": 208, "name": "isFirstView"},
+            {"line": 356, "name": "tryApply"},
+            {"line": 391, "name": "getGradientCoords"},
+            {"line": 541, "name": "generateColorSwatches"},
+            {"line": 599, "name": "bindColorSwatchEvents"},
+            {"line": 617, "name": "waitForCanvasData"},
+            {"line": 662, "name": "clearAllColorEffects"},
+            {"line": 836, "name": "applyCustomColorToBaseLayer"},
+            {"line": 1021, "name": "applyGradientToBaseLayer"},
+            {"line": 1244, "name": "calculateSampleOrderRts"}
+          ],
+          "violation": "所有顶层函数均未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 操作面板颜色选择区"
+        },
+        {
+          "id": "JS-FUNC-005",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/core-init.js",
+          "functions": [
+            {"line": 26, "name": "isUserInitiatedAction"}
+          ],
+          "violation": "未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 核心初始化"
+        },
+        {
+          "id": "JS-FUNC-006",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/layers-sync.js",
+          "functions": [
+            {"line": 1, "name": "addCanvasLayerListeners"},
+            {"line": 34, "name": "syncCanvasObjectToStore"},
+            {"line": 68, "name": "syncSelectionToStore"},
+            {"line": 81, "name": "updateDongtaiAreaButtons"},
+            {"line": 95, "name": "showRelevantButtonGroup"},
+            {"line": 114, "name": "controlMaskCanvasFromMain"},
+            {"line": 132, "name": "controlMainWrapperDisplayArea"},
+            {"line": 172, "name": "applyClipForObject"}
+          ],
+          "violation": "所有顶层函数均未使用 `pwca` 前缀",
+          "related_references": ["modules/front_canvas/assets/js/design/components/layers.js"],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 图层同步"
+        },
+        {
+          "id": "JS-FUNC-007",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/view-switch-facade.js",
+          "functions": [
+            {"line": 4, "name": "getUiStateAccess"},
+            {"line": 8, "name": "getCanvasStore"},
+            {"line": 17, "name": "getViews"},
+            {"line": 27, "name": "getCurrentActiveViewId"},
+            {"line": 37, "name": "getCanvasByViewId"},
+            {"line": 46, "name": "getAllViewCanvases"},
+            {"line": 55, "name": "waitForStore"},
+            {"line": 71, "name": "getViewById"},
+            {"line": 87, "name": "syncViewContainers"},
+            {"line": 98, "name": "syncCanvasManager"},
+            {"line": 139, "name": "emitViewSwitch"},
+            {"line": 148, "name": "switchToView"}
+          ],
+          "violation": "所有顶层函数均未使用 `pwca` 前缀",
+          "related_references": ["modules/front_canvas/assets/js/canvas/multi-view-init.js"],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 视图切换"
+        },
+        {
+          "id": "JS-FUNC-008",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/design/utils/print-area-validator.js",
+          "functions": [
+            {"line": 14, "name": "adjustObjectPosition"},
+            {"line": 52, "name": "hasPrintMethodAssigned"},
+            {"line": 80, "name": "getPrintAreaBounds"},
+            {"line": 152, "name": "calculateOverlapArea"},
+            {"line": 181, "name": "isObjectInPrintArea"},
+            {"line": 217, "name": "moveObjectToCanvasCenter"},
+            {"line": 255, "name": "validateAndRepositionObject"},
+            {"line": 296, "name": "addPrintAreaValidationListeners"},
+            {"line": 392, "name": "testPrintAreaValidation"},
+            {"line": 436, "name": "testDragEndValidation"},
+            {"line": 502, "name": "manualAddListeners"}
+          ],
+          "violation": "所有顶层函数均未使用 `pwca` 前缀",
+          "related_references": ["modules/front_canvas/assets/js/design/components/layers/print-methods.js"],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 打印区域校验"
+        },
+        {
+          "id": "JS-FUNC-009",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/design/stores/product-data-mapper.js",
+          "functions": [
+            {"line": 30, "name": "decodeHex"},
+            {"line": 337, "name": "getStoreValue"},
+            {"line": 342, "name": "getLayerValue"}
+          ],
+          "violation": "内部函数未使用 `pwca` 前缀",
+          "related_references": ["modules/front_canvas/assets/js/design/stores/index.js"],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 产品数据映射"
+        },
+        {
+          "id": "JS-FUNC-010",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/design/stores/print-method-mapper.js",
+          "functions": [
+            {"line": 1, "name": "convertApiDataToInternalFormat"},
+            {"line": 72, "name": "attachCustomColorsToMethod"},
+            {"line": 94, "name": "normalizePrintMethodsApiPayload"}
+          ],
+          "violation": "未使用 `pwca` 前缀",
+          "related_references": ["modules/front_canvas/assets/js/design/stores/printMethodStore.js"],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 印刷方式数据映射"
+        },
+        {
+          "id": "JS-FUNC-011",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/design/api/print-method-api.js",
+          "functions": [
+            {"line": 1, "name": "fetchPrintMethodsByIds"},
+            {"line": 24, "name": "fetchCustomColorsByListId"}
+          ],
+          "violation": "未使用 `pwca` 前缀",
+          "related_references": ["modules/front_canvas/assets/js/design/stores/printMethodStore.js"],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 印刷方式API"
+        },
+        {
+          "id": "JS-FUNC-012",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/design/api/product-data-api.js",
+          "functions": [
+            {"line": 1, "name": "fetchCanvasProductData"}
+          ],
+          "violation": "未使用 `pwca` 前缀",
+          "related_references": ["modules/front_canvas/assets/js/design/stores/product-data-mapper.js"],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 产品数据API"
+        },
+        {
+          "id": "JS-FUNC-013",
+          "severity": "medium",
+          "file_path": "modules/front_canvas/assets/js/canvas-init.js",
+          "functions": [
+            {"line": 12, "name": "init"},
+            {"line": 84, "name": "initializeMultiViewCanvases"},
+            {"line": 123, "name": "initializeZoom"},
+            {"line": 153, "name": "calculateAutoZoom"},
+            {"line": 172, "name": "calculateOptimalZoom"},
+            {"line": 199, "name": "updateCanvasZoom"},
+            {"line": 208, "name": "triggerAutoZoomAdjustment"},
+            {"line": 232, "name": "handleViewSwitch"}
+          ],
+          "violation": "IIFE对象内方法未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 初始化/缩放"
+        },
+        {
+          "id": "JS-FUNC-014",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/operation-panel-tabs.js",
+          "functions": [
+            {"line": 2, "name": "getUiStateAccess"},
+            {"line": 4, "name": "getAllViewCanvases"},
+            {"line": 13, "name": "getActiveCanvas"},
+            {"line": 22, "name": "discardSelectionForAllViewCanvases"}
+          ],
+          "violation": "未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 操作面板标签页切换"
+        },
+        {
+          "id": "JS-FUNC-015",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/customization-area.js",
+          "functions": [
+            {"line": 15, "name": "waitForStore"},
+            {"line": 26, "name": "setupStoreWatcher"},
+            {"line": 47, "name": "createViewButtons"},
+            {"line": 126, "name": "initViewSwitcher"}
+          ],
+          "violation": "未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 定制区域/视图按钮"
+        },
+        {
+          "id": "JS-FUNC-016",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/universal-preview.js",
+          "functions": [
+            {"line": 1, "name": "showUniversalViewPreview"}
+          ],
+          "violation": "未使用 `pwca` 前缀",
+          "related_references": ["modules/front_canvas/assets/js/main/grid-preview.js"],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 通用预览弹窗"
+        },
+        {
+          "id": "JS-FUNC-017",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/capture.js",
+          "functions": [
+            {"line": 23, "name": "captureAllViewsImages"},
+            {"line": 50, "name": "captureViewForPDF"},
+            {"line": 65, "name": "captureMultiLayerCanvasWithMask"},
+            {"line": 178, "name": "captureCanvasById"},
+            {"line": 193, "name": "closeMultiViewPreview"}
+          ],
+          "violation": "未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 截图/PDF生成"
+        },
+        {
+          "id": "JS-FUNC-018",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/boundary.js",
+          "functions": [
+            {"line": 4, "name": "drawBoundary"},
+            {"line": 42, "name": "drawBoundaryForAllViews"}
+          ],
+          "violation": "未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 边界线绘制"
+        },
+        {
+          "id": "JS-FUNC-019",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/image-analyze.js",
+          "functions": [
+            {"line": 1, "name": "getPixelData"},
+            {"line": 6, "name": "getTopMargin"},
+            {"line": 18, "name": "getTopMostY"},
+            {"line": 30, "name": "getBottomMostY"},
+            {"line": 42, "name": "getBoundingRectHeight"},
+            {"line": 48, "name": "analyzeImageInfo"}
+          ],
+          "violation": "未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 图片分析"
+        },
+        {
+          "id": "JS-FUNC-020",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/color-utils.js",
+          "functions": [
+            {"line": 1, "name": "getCurrentSelectedColor"},
+            {"line": 13, "name": "getExplicitSelectedColor"}
+          ],
+          "violation": "未使用 `pwca` 前缀",
+          "related_references": ["modules/front_canvas/assets/js/main/operation-panel-colors.js"],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 颜色工具"
+        },
+        {
+          "id": "JS-FUNC-021",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/inquiry-modal.js",
+          "functions": [
+            {"line": 92, "name": "openInquiryModal"},
+            {"line": 109, "name": "closeInquiryModal"},
+            {"line": 119, "name": "handleOverlayAndCloseButtons"},
+            {"line": 142, "name": "handleEscKey"},
+            {"line": 148, "name": "setupInquiryButton"},
+            {"line": 166, "name": "handleFormSubmit"}
+          ],
+          "violation": "未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 询价弹窗"
+        },
+        {
+          "id": "JS-FUNC-022",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/design/url-params-handler.js",
+          "functions": [
+            {"line": 52, "name": "getUrlParam"},
+            {"line": 61, "name": "handleEditMode"},
+            {"line": 118, "name": "handleViewMode"},
+            {"line": 143, "name": "waitForStoreAndSwitchView"},
+            {"line": 147, "name": "trySwitch"},
+            {"line": 181, "name": "ensureViewInitialized"},
+            {"line": 185, "name": "tryInit"},
+            {"line": 215, "name": "init"}
+          ],
+          "violation": "未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - URL参数处理(编辑/查看模式)"
+        },
+        {
+          "id": "JS-FUNC-023",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/design/components/header-controls.js",
+          "functions": [
+            {"line": 49, "name": "initHistory"},
+            {"line": 90, "name": "restoreImage"},
+            {"line": 138, "name": "updateHistory"},
+            {"line": 167, "name": "debouncedUpdateHistory"},
+            {"line": 190, "name": "startHistory"},
+            {"line": 227, "name": "handleUndo"},
+            {"line": 238, "name": "handleRedo"},
+            {"line": 247, "name": "getCanUndo"},
+            {"line": 254, "name": "getCanRedo"},
+            {"line": 262, "name": "getProductName"},
+            {"line": 266, "name": "switchTab"},
+            {"line": 290, "name": "generatePdf"}
+          ],
+          "violation": "Vue setup 内函数未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 顶部控制栏(撤销/重做/PDF)"
+        },
+        {
+          "id": "JS-FUNC-024",
+          "severity": "high",
+          "file_path": "modules/front_product/assets/js/product/stores/productStore.js",
+          "functions": [
+            {"line": 26, "name": "createProductStore"},
+            {"line": 290, "name": "setProductId"},
+            {"line": 294, "name": "setProductData"},
+            {"line": 298, "name": "setLoading"},
+            {"line": 302, "name": "setError"},
+            {"line": 306, "name": "handleProductUpdatedMeta"},
+            {"line": 362, "name": "updateQuantity"},
+            {"line": 430, "name": "setMoqSettings"},
+            {"line": 481, "name": "setQuantityDiscounts"},
+            {"line": 638, "name": "fetchProductData"},
+            {"line": 697, "name": "addToCart"}
+          ],
+          "violation": "Pinia Store 内所有 getters/actions 均未使用 `pwca` 前缀",
+          "related_references": [
+            "modules/front_product/assets/js/product/main.js",
+            "modules/front_product/assets/js/product/components/"
+          ],
+          "status": "未处理",
+          "frontend_area": "产品页 - Store状态管理"
+        }
+      ],
+      "note": "由于违规函数数量约380+个，完整列表请参考扫描原始数据。以上列出的是关键文件中顶层/模块级函数。Vue组件内部方法和Pinia Store方法数量庞大，建议在后续分批次处理。"
+    },
+    "CSS_CLASS_NAMING": {
+      "category": "CSS类名命名违规",
+      "rule_id": "RULE_002",
+      "description": "CSS类名未使用 `pwca-` 前缀",
+      "total_count": 200,
+      "summary": "CSS类名命名违规分为三类模式：完全无前缀的项目自定义类、使用 `pw-` 前缀而非 `pwca-`、下划线命名格式。",
+      "key_items": [
+        {
+          "id": "CSS-CLASS-001",
+          "severity": "high",
+          "scope": "front_canvas SCSS文件",
+          "file_paths": [
+            "modules/front_canvas/assets/scss/_canvas-common.scss",
+            "modules/front_canvas/assets/scss/_canvas-header.scss",
+            "modules/front_canvas/assets/scss/_canvas-customization-area.scss",
+            "modules/front_canvas/assets/scss/_canvas-main-content.scss",
+            "modules/front_canvas/assets/scss/_canvas-canvas-area.scss",
+            "modules/front_canvas/assets/scss/_canvas-footer.scss",
+            "modules/front_canvas/assets/scss/_canvas-popup.scss",
+            "modules/front_canvas/assets/scss/_layers-panel.scss",
+            "modules/front_canvas/assets/scss/_operation-panel.scss"
+          ],
+          "violation_classes": [
+            ".container", ".view-container", ".canvas-wrapper", ".canvas-wrapper--base",
+            ".canvas-wrapper--main", ".canvas-wrapper--overlay", ".canvas-wrapper--mask",
+            ".header", ".header_left", ".header_title", ".operation-panel",
+            ".main-content", ".customization-area", ".viewer-switch-btn",
+            ".canvas-area", ".dongtai-area", ".design_area",
+            ".canvas-box", ".canvas-container", ".zoom-control",
+            ".footer", ".product-card", ".product-card__info",
+            ".product-card__detail", ".product-card__label", ".product-card__value",
+            ".product-card__quantity", ".product-card__button", ".product-card__input",
+            ".product-card__add-to-cart",
+            ".popup-modal", ".modal-box",
+            ".tabs-nav", ".tab", ".tab_title", ".content-area", ".content-pane",
+            ".color-section", ".color-swatches-box", ".color-swatch",
+            ".search-filter-container", ".designs-grid", ".design-item",
+            ".layers-panel", ".layers-list", ".layer-item", ".layer-group",
+            ".layer-thumbnail", ".layer-info", ".layer-name", ".layer-controls",
+            ".print-method-dialog-overlay", ".print-method-dialog",
+            ".text_toolbar", ".img_toolbar", ".toolbar_button",
+            ".panel-collapse-btn", ".close-btn"
+          ],
+          "violation": "所有类名均未使用 `pwca-` 前缀，部分使用下划线命名",
+          "related_references": [
+            "modules/front_canvas/views/canvas-page.php (模板使用)",
+            "modules/front_canvas/assets/js/ (JS中使用)"
+          ],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 全部UI区域"
+        },
+        {
+          "id": "CSS-CLASS-002",
+          "severity": "high",
+          "scope": "admin_design SCSS (pw- 前缀)",
+          "file_paths": [
+            "modules/admin_design/assets/scss/pwca-admin-design-management.scss"
+          ],
+          "violation_classes": [
+            ".pw-design-controls", ".pw-design-actions", ".pw-design-filters",
+            ".pw-design-tabs", ".pw-design-bulk-actions", ".pw-design-grid",
+            ".pw-design-card", ".pw-design-thumbnail", ".pw-design-checkbox",
+            ".pw-design-name", ".pw-pagination", ".pw-form-field",
+            ".pw-category-item", ".pw-filter-section", ".pw-toggle-switch",
+            ".pw-toggle-input", ".pw-toggle-label", ".pw-toggle-slider"
+          ],
+          "violation": "使用 `pw-` 前缀而非 `pwca-`",
+          "related_references": [
+            "modules/admin_design/assets/js/pwca-admin-design-app.js",
+            "modules/admin_design/assets/js/pwca-admin-design-modals.js"
+          ],
+          "status": "未处理",
+          "frontend_area": "后台 - 设计库管理页面"
+        },
+        {
+          "id": "CSS-CLASS-003",
+          "severity": "high",
+          "scope": "front_product SCSS (pw- 前缀)",
+          "file_paths": [
+            "modules/front_product/assets/scss/pw-color-variants.scss",
+            "modules/front_product/assets/scss/pw-product-canvas.scss",
+            "modules/front_product/assets/scss/pw-gradient-modal.scss",
+            "modules/front_product/assets/scss/pw-composite-components.scss",
+            "modules/front_product/assets/scss/pw-cart-section.scss"
+          ],
+          "violation_classes": [
+            ".pw-color-variants-module", ".pw-color-variants-header",
+            ".pw-color-variant-item", ".pw-color-swatch",
+            ".pw-product-canvas-container", ".pw-canvas-toolbar",
+            ".pw-gradient-text-overlay",
+            ".pw-composite-components"
+          ],
+          "violation": "使用 `pw-` 前缀而非 `pwca-`",
+          "related_references": [
+            "modules/front_product/assets/js/product/components/CustomColorsButton.js",
+            "modules/front_product/assets/js/product/product-image-canvas.js",
+            "modules/front_product/assets/js/product/components/ColorVariants.js"
+          ],
+          "status": "未处理",
+          "frontend_area": "产品页 - 颜色变体/画布/渐变弹窗/组合组件"
+        },
+        {
+          "id": "CSS-CLASS-004",
+          "severity": "medium",
+          "scope": "front_cart SCSS",
+          "file_paths": [
+            "modules/front_cart/assets/scss/pwca-custom-cart.scss"
+          ],
+          "violation_classes": [
+            ".pw-design-view", ".pw-design-view-name", ".pw-design-view-images"
+          ],
+          "violation": "部分类名使用 `pw-` 而非 `pwca-`",
+          "related_references": [
+            "modules/front_cart/assets/js/pwca-cart-design-column.js"
+          ],
+          "status": "未处理",
+          "frontend_area": "购物车页 - 设计信息列"
+        },
+        {
+          "id": "CSS-CLASS-005",
+          "severity": "medium",
+          "scope": "JS/PHP模板中的类名字面量",
+          "file_paths": [
+            "modules/front_canvas/views/canvas-page.php (15+ 无前缀类)",
+            "modules/front_canvas/assets/js/canvas/multi-view-init.js (className赋值)",
+            "modules/front_canvas/assets/js/main/universal-preview.js (className赋值)",
+            "modules/front_canvas/assets/js/design/components/layers.js (Vue模板)",
+            "modules/front_canvas/assets/js/toolbar.js",
+            "modules/front_canvas/assets/js/main/color-utils.js (jQuery选择器)",
+            "modules/front_canvas/assets/js/main/operation-panel-colors.js (jQuery选择器)",
+            "modules/front_canvas/assets/js/main/customization-area.js (className赋值)",
+            "modules/front_product/assets/js/product/components/CustomColorsButton.js (Vue模板)",
+            "modules/front_product/assets/js/product/gradient-modal.js (DOM操作)"
+          ],
+          "violation": "模板/JSX/className中使用了无前缀或 `pw-` 前缀的类名",
+          "related_references": ["对应SCSS文件"],
+          "status": "未处理",
+          "frontend_area": "全站前端页面 - 各组件模板"
+        }
+      ],
+      "note": "SCSS文件中还包含大量通用的状态类（`.active`、`.selected`、`.disabled`等）和第三方库类（Micromodal、WooCommerce），这些属于可接受的例外。"
+    },
+    "GLOBAL_VARIABLE_NAMING": {
+      "category": "全局变量命名违规",
+      "rule_id": "RULE_001",
+      "description": "全局变量未使用 `pwca_` 或 `PWCA_` 前缀",
+      "total_count": 41,
+      "items": [
+        {
+          "id": "GLOBAL-001",
+          "severity": "high",
+          "file_path": "pw-admin.php",
+          "line": 39,
+          "code_content": "define('PW_ADMIN_VERSION', '1.0.1');",
+          "expected": "define('PWCA_ADMIN_VERSION', '1.0.1');",
+          "violation": "常量使用 `PW_ADMIN_` 而非 `PWCA_` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "不适用（PHP常量）",
+          "notes": ""
+        },
+        {
+          "id": "GLOBAL-002",
+          "severity": "high",
+          "file_path": "pw-admin.php",
+          "line": 42,
+          "code_content": "define('MY_PLUGIN_URL', plugin_dir_url(__FILE__));",
+          "expected": "define('PWCA_PLUGIN_URL', plugin_dir_url(__FILE__));",
+          "violation": "常量使用 `MY_PLUGIN_` 而非 `PWCA_` 前缀",
+          "related_references": [
+            "pw-admin.php 第43行引用 MY_PLUGIN_URL",
+            "pw-admin.php 第43行引用 MY_PLUGIN_ICONS_URL"
+          ],
+          "status": "未处理",
+          "frontend_area": "不适用（PHP常量）",
+          "notes": ""
+        },
+        {
+          "id": "GLOBAL-003",
+          "severity": "high",
+          "file_path": "pw-admin.php",
+          "line": 43,
+          "code_content": "define('MY_PLUGIN_ICONS_URL', MY_PLUGIN_URL . 'assets/images/icons/');",
+          "expected": "define('PWCA_PLUGIN_ICONS_URL', PWCA_PLUGIN_URL . 'assets/images/icons/');",
+          "violation": "常量使用 `MY_PLUGIN_` 而非 `PWCA_` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "不适用（PHP常量）",
+          "notes": ""
+        },
+        {
+          "id": "GLOBAL-004",
+          "severity": "high",
+          "file_path": "includes/class-pw-admin-promowares-api.php",
+          "lines": "多处",
+          "code_content": "get_option('pw_api_token'), get_option('pw_api_mock_mode'), get_option('pw_cache_enabled')",
+          "expected": "get_option('pwca_api_token'), get_option('pwca_api_mock_mode'), get_option('pwca_cache_enabled')",
+          "violation": "WordPress选项使用 `pw_` 前缀而非 `pwca_`",
+          "related_references": [
+            "class-pw-admin-promowares-api.php: 多处引用 pw_api_token, pw_api_mock_mode, pw_cache_enabled",
+            "modules/integration_promowares/includes/class-pwca-integration-promowares.php: 引用 pw_api_token, pw_api_mock_mode",
+            "modules/admin_dashboard/features/feat_dashboard/includes/class-pwca-admin-dashboard-dashboard.php: 引用 pw_api_token, pw_store_id, pw_api_mock_mode, pw_cache_enabled",
+            "modules/admin_dashboard/features/feat_settings/includes/class-pwca-admin-dashboard-settings.php: 引用 pw_disable_ssl, pw_api_key, pw_api_secret"
+          ],
+          "status": "未处理",
+          "frontend_area": "不适用（WordPress选项）",
+          "notes": "涉及约10个选项名：pw_api_token, pw_store_id, pw_api_mock_mode, pw_cache_enabled, pw_canvas_flush_rewrite, pw_disable_ssl, pw_api_key, pw_api_secret, pw_customize_text, pw_customize_color"
+        },
+        {
+          "id": "GLOBAL-005",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/canvas-manager.js",
+          "line": 224,
+          "code_content": "window.CanvasManager = ...",
+          "expected": "window.pwcaCanvasManager = ...",
+          "violation": "JS全局对象未使用 `pwca` 前缀",
+          "related_references": [
+            "modules/front_canvas/assets/js/canvas/multi-view-init.js (引用 CanvasManager)"
+          ],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - CanvasManager单例",
+          "notes": "CanvasManager是核心单例，影响所有画布操作"
+        },
+        {
+          "id": "GLOBAL-006",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/canvas-init.js",
+          "lines": "249-252",
+          "code_content": "window.initCanvasSystem, window.triggerAutoZoomAdjustment, window.updateCanvasZoom, window.initializeZoom",
+          "expected": "window.pwcaInitCanvasSystem, window.pwcaTriggerAutoZoomAdjustment, window.pwcaUpdateCanvasZoom, window.pwcaInitializeZoom",
+          "violation": "JS全局函数未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 初始化/缩放控制"
+        },
+        {
+          "id": "GLOBAL-007",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/canvas/page-bootstrap.js",
+          "lines": "667-668, 1231",
+          "code_content": "window.canvas, window.fabricCanvas, window.generateMultiViewPDF",
+          "expected": "window.pwcaCanvas, window.pwcaFabricCanvas, window.pwcaGenerateMultiViewPDF",
+          "violation": "JS全局变量/函数未使用 `pwca` 前缀",
+          "related_references": [
+            "modules/front_canvas/assets/js/main/view-switch-facade.js (引用 canvas/fabricCanvas)",
+            "modules/front_canvas/assets/js/canvas/multi-view-init.js (引用 canvas/fabricCanvas)"
+          ],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 全局画布实例/PDF生成"
+        },
+        {
+          "id": "GLOBAL-008",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/design/stores/index.js",
+          "lines": "675, 684-685, 750",
+          "code_content": "window.pinia, window.useCanvasStore, window.usePrintMethodStore, window.useDesignUsageStore",
+          "expected": "window.pwcaPinia, window.pwcaUseCanvasStore, window.pwcaUsePrintMethodStore, window.pwcaUseDesignUsageStore",
+          "violation": "JS全局Store引用未使用 `pwca` 前缀",
+          "related_references": [
+            "modules/front_canvas/assets/js/canvas/page-bootstrap.js (引用 pinia)"
+          ],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - Pinia Store全局引用"
+        },
+        {
+          "id": "GLOBAL-009",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/universal-preview.js",
+          "line": 156,
+          "code_content": "window.showUniversalViewPreview",
+          "expected": "window.pwcaShowUniversalViewPreview",
+          "violation": "JS全局函数未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 通用预览弹窗"
+        },
+        {
+          "id": "GLOBAL-010",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/grid-preview.js",
+          "line": 560,
+          "code_content": "window.generateUniversalViewImages",
+          "expected": "window.pwcaGenerateUniversalViewImages",
+          "violation": "JS全局函数未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 4格出图"
+        },
+        {
+          "id": "GLOBAL-011",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/main/capture.js",
+          "line": 207,
+          "code_content": "window.captureViewForPDF",
+          "expected": "window.pwcaCaptureViewForPDF",
+          "violation": "JS全局函数未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - PDF截图"
+        },
+        {
+          "id": "GLOBAL-012",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/design/utils/canvas-state-manager.js",
+          "line": 1792,
+          "code_content": "window.canvasStateManager",
+          "expected": "window.pwcaCanvasStateManager",
+          "violation": "JS全局对象未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 状态管理器"
+        },
+        {
+          "id": "GLOBAL-013",
+          "severity": "high",
+          "file_path": "modules/front_canvas/assets/js/design/utils/canvas-state-integration.js",
+          "line": 635,
+          "code_content": "window.canvasStateIntegration",
+          "expected": "window.pwcaCanvasStateIntegration",
+          "violation": "JS全局对象未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 状态集成"
+        },
+        {
+          "id": "GLOBAL-014",
+          "severity": "high",
+          "file_path": "modules/front_product/assets/js/product/stores/productStore.js",
+          "line": 849,
+          "code_content": "window.useProductStore",
+          "expected": "window.pwcaUseProductStore",
+          "violation": "JS全局Store引用未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - Store引用"
+        },
+        {
+          "id": "GLOBAL-015",
+          "severity": "high",
+          "file_path": "modules/front_product/assets/js/product/api/productResponseMapper.js",
+          "line": 74,
+          "code_content": "window.ProductResponseMapper",
+          "expected": "window.pwcaProductResponseMapper",
+          "violation": "JS全局对象未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - 数据映射"
+        },
+        {
+          "id": "GLOBAL-016",
+          "severity": "high",
+          "file_path": "modules/front_product/assets/js/product/components/CustomColorsButton.js",
+          "line": 5,
+          "code_content": "window.CustomColorsButton",
+          "expected": "window.pwcaCustomColorsButton",
+          "violation": "JS全局对象未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - 自定义颜色按钮组件"
+        },
+        {
+          "id": "GLOBAL-017",
+          "severity": "high",
+          "file_path": "modules/front_product/assets/js/product/product-image-canvas.js",
+          "line": 565,
+          "code_content": "window.ProductImageCanvas",
+          "expected": "window.pwcaProductImageCanvas",
+          "violation": "JS全局对象未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - 产品图片画布"
+        },
+        {
+          "id": "GLOBAL-018",
+          "severity": "high",
+          "file_path": "modules/front_product/assets/js/product/components/colorSelectionBridge.js",
+          "line": 79,
+          "code_content": "window.ProductColorSelectionBridge",
+          "expected": "window.pwcaProductColorSelectionBridge",
+          "violation": "JS全局对象未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - 颜色选择桥接"
+        },
+        {
+          "id": "GLOBAL-019",
+          "severity": "high",
+          "file_path": "modules/front_product/assets/js/product/api/cartSubmitService.js",
+          "line": 110,
+          "code_content": "window.ProductCartSubmitService",
+          "expected": "window.pwcaProductCartSubmitService",
+          "violation": "JS全局对象未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - 购物车提交服务"
+        },
+        {
+          "id": "GLOBAL-020",
+          "severity": "high",
+          "file_path": "modules/front_product/assets/js/product/api/canvasPayloadBuilder.js",
+          "line": 74,
+          "code_content": "window.ProductCanvasPayloadBuilder",
+          "expected": "window.pwcaProductCanvasPayloadBuilder",
+          "violation": "JS全局对象未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - 画布载荷构建"
+        },
+        {
+          "id": "GLOBAL-021",
+          "severity": "high",
+          "file_path": "modules/front_product/assets/js/product/api/productDataAPI.js",
+          "line": 133,
+          "code_content": "window.productDataAPI",
+          "expected": "window.pwcaProductDataAPI",
+          "violation": "JS全局对象未使用 `pwca` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - 产品数据API"
+        },
+        {
+          "id": "GLOBAL-022",
+          "severity": "high",
+          "file_path": "modules/front_product/assets/js/product/main.js",
+          "line": 91,
+          "code_content": "window.pwProductData",
+          "expected": "window.pwcaProductData",
+          "violation": "使用 `pw_` 前缀而非 `pwca_`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - 产品数据全局变量"
+        },
+        {
+          "id": "GLOBAL-023",
+          "severity": "medium",
+          "file_path": "modules/front_canvas/assets/js/canvas/multi-view-init.js",
+          "lines": "630-631, 1386-1387",
+          "code_content": "window.canvas, window.fabricCanvas (重复赋值)",
+          "expected": "window.pwcaCanvas, window.pwcaFabricCanvas",
+          "violation": "JS全局变量未使用 `pwca` 前缀（多处赋值）",
+          "related_references": [
+            "modules/front_canvas/assets/js/main/core-init.js:340-341",
+            "modules/front_canvas/assets/js/main/view-switch-facade.js:128-129"
+          ],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 全局限画布实例"
+        },
+        {
+          "id": "GLOBAL-024",
+          "severity": "medium",
+          "file_path": "modules/front_product/includes/class-pwca-front-product-assets.php",
+          "line": 116,
+          "code_content": "wp_localize_script(..., 'pwAjax', ...)",
+          "expected": "wp_localize_script(..., 'pwcaAjax', ...)",
+          "violation": "wp_localize_script 暴露的JS对象名使用 `pw` 而非 `pwca`",
+          "related_references": [
+            "modules/front_product/assets/js/product/ (消费此JS对象)"
+          ],
+          "status": "未处理",
+          "frontend_area": "产品页 - AJAX配置对象",
+          "notes": "其他5处wp_localize_script调用均合规，仅此1处不合规"
+        }
+      ]
+    },
+    "API_ENDPOINT_NAMING": {
+      "category": "API端点命名违规",
+      "rule_id": "RULE_005",
+      "description": "API端点未使用 `/pwca/v1/` 命名空间或AJAX操作未使用 `pwca_` 前缀",
+      "total_count": 32,
+      "items": [
+        {
+          "id": "API-001",
+          "severity": "high",
+          "file_path": "includes/class-pw-admin-promowares-api.php",
+          "line": 582,
+          "code_content": "register_rest_route('pw/v1', '/product-data/(?P<id>\\d+)', ...)",
+          "expected": "register_rest_route('pwca/v1', '/product-data/(?P<id>\\d+)', ...)",
+          "violation": "REST命名空间使用 `pw/v1` 而非 `pwca/v1`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "不适用（REST API代理端点）",
+          "notes": ""
+        },
+        {
+          "id": "API-002",
+          "severity": "high",
+          "file_path": "includes/class-pw-admin-promowares-api.php",
+          "line": 595,
+          "code_content": "register_rest_route('pw-canvas/v1', '/store-customization-settings', ...)",
+          "expected": "register_rest_route('pwca/v1', '/store-customization-settings', ...)",
+          "violation": "REST命名空间使用 `pw-canvas/v1` 而非 `pwca/v1`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 店铺定制设置",
+          "notes": ""
+        },
+        {
+          "id": "API-003",
+          "severity": "high",
+          "file_path": "includes/class-pw-admin-promowares-api.php",
+          "line": 602,
+          "code_content": "register_rest_route('pw-canvas/v1', '/print-methods', ...)",
+          "expected": "register_rest_route('pwca/v1', '/print-methods', ...)",
+          "violation": "REST命名空间使用 `pw-canvas/v1` 而非 `pwca/v1`",
+          "related_references": [
+            "modules/front_canvas/assets/js/design/api/print-method-api.js (前端调用)"
+          ],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 印刷方式数据"
+        },
+        {
+          "id": "API-004",
+          "severity": "high",
+          "file_path": "includes/class-pw-admin-promowares-api.php",
+          "line": 620,
+          "code_content": "register_rest_route('pw-canvas/v1', '/custom-colors', ...)",
+          "expected": "register_rest_route('pwca/v1', '/custom-colors', ...)",
+          "violation": "REST命名空间使用 `pw-canvas/v1` 而非 `pwca/v1`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 自定义颜色"
+        },
+        {
+          "id": "API-005",
+          "severity": "high",
+          "file_path": "includes/class-pw-admin-promowares-api.php",
+          "line": 638,
+          "code_content": "register_rest_route('pw-canvas/v1', '/upload-image', ...)",
+          "expected": "register_rest_route('pwca/v1', '/upload-image', ...)",
+          "violation": "REST命名空间使用 `pw-canvas/v1` 而非 `pwca/v1`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 图片上传"
+        },
+        {
+          "id": "API-006",
+          "severity": "high",
+          "file_path": "pw-admin.php",
+          "line": 134,
+          "code_content": "register_rest_route('pw/v1', '/getPwDesignImages', ...)",
+          "expected": "register_rest_route('pwca/v1', '/getPwDesignImages', ...)",
+          "violation": "REST命名空间使用 `pw/v1` 而非 `pwca/v1`",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "设计库 - 图片获取"
+        },
+        {
+          "id": "API-007",
+          "severity": "high",
+          "file_path": "includes/class-pw-admin-promowares-api.php",
+          "lines": "537-538",
+          "code_content": "wp_ajax_pw_proxy_api_request, wp_ajax_pw_toggle_cache",
+          "expected": "wp_ajax_pwca_proxy_api_request, wp_ajax_pwca_toggle_cache",
+          "violation": "AJAX操作使用 `pw_` 前缀而非 `pwca_`",
+          "related_references": [
+            "modules/admin_dashboard/assets/js/pwca-admin-dashboard.js (前端调用)"
+          ],
+          "status": "未处理",
+          "frontend_area": "后台仪表板 - API代理/缓存切换"
+        },
+        {
+          "id": "API-008",
+          "severity": "high",
+          "file_path": "modules/integration_promowares/includes/class-pwca-integration-promowares.php",
+          "lines": "34-36",
+          "code_content": "wp_ajax_check_import_progress, wp_ajax_pw_save_token, wp_ajax_pw_save_mock_mode",
+          "expected": "wp_ajax_pwca_check_import_progress, wp_ajax_pwca_save_token, wp_ajax_pwca_save_mock_mode",
+          "violation": "AJAX操作缺少 `pwca_` 前缀或无前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "后台 - 导入/Token管理"
+        },
+        {
+          "id": "API-009",
+          "severity": "high",
+          "file_path": "modules/front_cart/includes/class-pwca-front-cart-handler.php",
+          "lines": "19-29",
+          "code_content": "wp_ajax_add_customized_product_to_cart, wp_ajax_pw_has_blank_in_cart, wp_ajax_pw_cart_blank_state, wp_ajax_pw_get_cart_canvas_state",
+          "expected": "wp_ajax_pwca_add_customized_product_to_cart, pwca_has_blank_in_cart, pwca_cart_blank_state, pwca_get_cart_canvas_state",
+          "violation": "AJAX操作无前缀或使用 `pw_` 前缀",
+          "related_references": [
+            "modules/front_cart/assets/js/ (前端JS AJAX调用)"
+          ],
+          "status": "未处理",
+          "frontend_area": "购物车页 - AJAX操作"
+        },
+        {
+          "id": "API-010",
+          "severity": "high",
+          "file_path": "modules/front_cart/includes/class-pwca-front-cart-admin-actions.php",
+          "lines": "16-17",
+          "code_content": "wp_ajax_pw_duplicate_cart_item",
+          "expected": "wp_ajax_pwca_duplicate_cart_item",
+          "violation": "AJAX操作使用 `pw_` 前缀",
+          "related_references": [
+            "modules/front_cart/assets/js/pwca-cart-admin-actions.js"
+          ],
+          "status": "未处理",
+          "frontend_area": "购物车页 - 复制购物车项"
+        },
+        {
+          "id": "API-011",
+          "severity": "high",
+          "file_path": "modules/admin_cache/includes/class-pwca-admin-cache.php",
+          "lines": "24-25",
+          "code_content": "wp_ajax_pw_clear_product_cache, wp_ajax_pw_get_cache_status",
+          "expected": "wp_ajax_pwca_clear_product_cache, wp_ajax_pwca_get_cache_status",
+          "violation": "AJAX操作使用 `pw_` 前缀",
+          "related_references": [
+            "modules/admin_cache/assets/js/pwca-admin-cache.js"
+          ],
+          "status": "未处理",
+          "frontend_area": "后台 - 缓存管理"
+        },
+        {
+          "id": "API-012",
+          "severity": "high",
+          "file_path": "modules/admin_dashboard/features/feat_product_request/includes/class-pwca-admin-dashboard-product-request.php",
+          "line": 34,
+          "code_content": "wp_ajax_pw_submit_product_request",
+          "expected": "wp_ajax_pwca_submit_product_request",
+          "violation": "AJAX操作使用 `pw_` 前缀",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "后台 - 产品请求"
+        },
+        {
+          "id": "API-013",
+          "severity": "high",
+          "file_path": "modules/admin_design/includes/class-pwca-admin-design.php",
+          "lines": "28-39",
+          "code_content": "wp_ajax_pw_add_category, wp_ajax_pw_delete_category, wp_ajax_pw_add_design, wp_ajax_pw_check_design_sku_unique, wp_ajax_pw_get_design_tags, wp_ajax_pw_save_design_tags, wp_ajax_pw_bulk_delete_designs, wp_ajax_pw_bulk_update_designs, wp_ajax_pw_get_design_data, wp_ajax_pw_update_design_meta, wp_ajax_pw_get_category_settings, wp_ajax_pw_update_category_settings",
+          "expected": "pwca_ 前缀替换全部 pw_",
+          "violation": "AJAX操作使用 `pw_` 前缀（12个操作）",
+          "related_references": [
+            "modules/admin_design/assets/js/pwca-admin-design-modals.js (前端JS调用)"
+          ],
+          "status": "未处理",
+          "frontend_area": "后台 - 设计库管理全部功能"
+        },
+        {
+          "id": "API-014",
+          "severity": "medium",
+          "file_path": "modules/admin_dashboard/assets/js/pwca-admin-dashboard.js",
+          "lines": "236, 326, 361, 395",
+          "code_content": "action: 'pw_save_mock_mode', action: 'pw_toggle_cache', action: 'pw_get_cache_status', action: 'pw_clear_product_cache'",
+          "expected": "action: 'pwca_save_mock_mode', action: 'pwca_toggle_cache', action: 'pwca_get_cache_status', action: 'pwca_clear_product_cache'",
+          "violation": "JS中AJAX action字符串使用 `pw_` 前缀",
+          "related_references": [
+            "API-007, API-011 (PHP端定义)"
+          ],
+          "status": "未处理",
+          "frontend_area": "后台仪表板 - AJAX调用"
+        },
+        {
+          "id": "API-015",
+          "severity": "medium",
+          "file_path": "modules/admin_cache/assets/js/pwca-admin-cache.js",
+          "lines": "72, 95",
+          "code_content": "action: 'pw_get_cache_status', action: 'pw_clear_product_cache'",
+          "expected": "action: 'pwca_get_cache_status', action: 'pwca_clear_product_cache'",
+          "violation": "JS中AJAX action字符串使用 `pw_` 前缀",
+          "related_references": [
+            "API-011 (PHP端定义)"
+          ],
+          "status": "未处理",
+          "frontend_area": "后台 - 缓存管理AJAX调用"
+        },
+        {
+          "id": "API-016",
+          "severity": "medium",
+          "file_path": "modules/admin_design/assets/js/pwca-admin-design-modals.js",
+          "lines": "224, 336, 380, 416, 494, 554, 592, 670, 695",
+          "code_content": "action: 'pw_check_design_sku_unique', action: 'pw_get_design_tags', action: 'pw_save_design_tags', action: 'pw_get_design_data', action: 'pw_add_category', action: 'pw_get_category_settings', action: 'pw_delete_category', action: 'pw_bulk_delete_designs', action: 'pw_bulk_update_designs'",
+          "expected": "pwca_ 前缀替换全部 pw_",
+          "violation": "JS中AJAX action字符串使用 `pw_` 前缀（9处）",
+          "related_references": [
+            "API-013 (PHP端定义)"
+          ],
+          "status": "未处理",
+          "frontend_area": "后台 - 设计库管理AJAX调用"
+        },
+        {
+          "id": "API-017",
+          "severity": "medium",
+          "file_path": "modules/front_cart/assets/js/pwca-cart-admin-actions.js",
+          "line": 28,
+          "code_content": "action: 'pw_duplicate_cart_item'",
+          "expected": "action: 'pwca_duplicate_cart_item'",
+          "violation": "JS中AJAX action字符串使用 `pw_` 前缀",
+          "related_references": [
+            "API-010 (PHP端定义)"
+          ],
+          "status": "未处理",
+          "frontend_area": "购物车页 - 复制购物车项AJAX调用"
+        }
+      ]
+    },
+    "FILE_FOLDER_NAMING": {
+      "category": "文件/文件夹命名违规",
+      "rule_id": "RULE_006",
+      "description": "文件未使用 `class-pwca-` 前缀或JS文件未使用 kebab-case",
+      "total_count": 36,
+      "items": [
+        {
+          "id": "FILE-001",
+          "severity": "high",
+          "file_path": "includes/",
+          "file_names": [
+            {"name": "class-pw-admin-activator.php", "expected": "class-pwca-admin-activator.php", "line": "N/A"},
+            {"name": "class-pw-admin-deactivator.php", "expected": "class-pwca-admin-deactivator.php", "line": "N/A"},
+            {"name": "class-pw-admin-i18n.php", "expected": "class-pwca-admin-i18n.php", "line": "N/A"},
+            {"name": "class-pw-admin-loader.php", "expected": "class-pwca-admin-loader.php", "line": "N/A"},
+            {"name": "class-pw-admin-promowares-api.php", "expected": "class-pwca-admin-promowares-api.php", "line": "N/A"},
+            {"name": "class-pw-admin.php", "expected": "class-pwca-admin.php", "line": "N/A"}
+          ],
+          "violation": "PHP类文件使用 `class-pw-admin-` 而非 `class-pwca-admin-` 前缀",
+          "related_references": [
+            "pw-admin.php (入口文件 require 引用)"
+          ],
+          "status": "未处理",
+          "frontend_area": "不适用（核心文件）",
+          "notes": "需同步更新 pw-admin.php 中的 require 引用路径"
+        },
+        {
+          "id": "FILE-002",
+          "severity": "medium",
+          "file_path": "modules/front_canvas/assets/js/design/stores/",
+          "file_names": [
+            {"name": "printMethodStore.js", "expected": "print-method-store.js", "line": "N/A"}
+          ],
+          "violation": "JS文件使用 camelCase 而非 kebab-case",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - 印刷方式Store",
+          "notes": "需同步更新所有 import 引用路径"
+        },
+        {
+          "id": "FILE-003",
+          "severity": "medium",
+          "file_path": "modules/front_canvas/assets/js/utils/",
+          "file_names": [
+            {"name": "piniaSync.js", "expected": "pinia-sync.js", "line": "N/A"}
+          ],
+          "violation": "JS文件使用 camelCase 而非 kebab-case",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "画布设计页 - Pinia同步工具",
+          "notes": "需同步更新所有 import 引用路径"
+        },
+        {
+          "id": "FILE-004",
+          "severity": "medium",
+          "file_path": "modules/front_product/assets/js/product/",
+          "file_names": [
+            {"name": "api/canvasPayloadBuilder.js", "expected": "api/canvas-payload-builder.js"},
+            {"name": "api/cartSubmitService.js", "expected": "api/cart-submit-service.js"},
+            {"name": "api/productDataAPI.js", "expected": "api/product-data-api.js"},
+            {"name": "api/productResponseMapper.js", "expected": "api/product-response-mapper.js"},
+            {"name": "stores/productStore.js", "expected": "stores/product-store.js"},
+            {"name": "utils/messageUtils.js", "expected": "utils/message-utils.js"},
+            {"name": "product-image-canvas.js", "expected": "product-image-canvas.js (已合规)"},
+            {"name": "gradient-modal.js", "expected": "gradient-modal.js (已合规)"},
+            {"name": "main.js", "expected": "main.js (已合规)"}
+          ],
+          "violation": "JS文件使用 camelCase/PascalCase 而非 kebab-case",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - API/Store/工具文件",
+          "notes": "需同步更新所有 import 引用路径"
+        },
+        {
+          "id": "FILE-005",
+          "severity": "medium",
+          "file_path": "modules/front_product/assets/js/product/components/",
+          "file_names": [
+            {"name": "AddToCart.js", "expected": "add-to-cart.js"},
+            {"name": "CheckboxOptions.js", "expected": "checkbox-options.js"},
+            {"name": "ColorVariants.js", "expected": "color-variants.js"},
+            {"name": "CustomColorsButton.js", "expected": "custom-colors-button.js"},
+            {"name": "ProductAccessories.js", "expected": "product-accessories.js"},
+            {"name": "ProductPriceInfo.js", "expected": "product-price-info.js"},
+            {"name": "ProductQuantity.js", "expected": "product-quantity.js"},
+            {"name": "QuantityDiscountSlider.js", "expected": "quantity-discount-slider.js"},
+            {"name": "colorSelectionBridge.js", "expected": "color-selection-bridge.js"},
+            {"name": "AddToCart.css", "expected": "add-to-cart.css"},
+            {"name": "CheckboxOptions.css", "expected": "checkbox-options.css"},
+            {"name": "ColorVariants.css", "expected": "color-variants.css"},
+            {"name": "CustomColorsButton.css", "expected": "custom-colors-button.css"},
+            {"name": "ProductAccessories.css", "expected": "product-accessories.css"},
+            {"name": "ProductPriceInfo.css", "expected": "product-price-info.css"},
+            {"name": "ProductQuantity.css", "expected": "product-quantity.css"},
+            {"name": "QuantityDiscountSlider.css", "expected": "quantity-discount-slider.css"}
+          ],
+          "violation": "JS/CSS文件使用 PascalCase 而非 kebab-case",
+          "related_references": [],
+          "status": "未处理",
+          "frontend_area": "产品页 - Vue组件文件",
+          "notes": "需同步更新组件注册和 import 引用"
+        },
+        {
+          "id": "FILE-006",
+          "severity": "low",
+          "file_path": "modules/front_product/assets/scss/",
+          "file_names": [
+            {"name": "pw-cart-section.scss", "expected": "pwca-cart-section.scss"},
+            {"name": "pw-color-variants.scss", "expected": "pwca-color-variants.scss"},
+            {"name": "pw-composite-components.scss", "expected": "pwca-composite-components.scss"},
+            {"name": "pw-gradient-modal.scss", "expected": "pwca-gradient-modal.scss"},
+            {"name": "pw-product-canvas.scss", "expected": "pwca-product-canvas.scss"}
+          ],
+          "violation": "SCSS文件使用 `pw-` 前缀而非 `pwca-`",
+          "related_references": [
+            "对应的 .css 和 .css.map 编译文件也需同步重命名"
+          ],
+          "status": "未处理",
+          "frontend_area": "产品页 - SCSS样式文件",
+          "notes": "文件名与内部类名前缀一致性问题"
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_violations": 727,
+    "by_category": {
+      "PHP_CLASS_NAMING": 38,
+      "JS_FUNCTION_NAMING": 380,
+      "CSS_CLASS_NAMING": 200,
+      "GLOBAL_VARIABLE_NAMING": 41,
+      "API_ENDPOINT_NAMING": 32,
+      "FILE_FOLDER_NAMING": 36
+    },
+    "by_severity": {
+      "high": 650,
+      "medium": 77,
+      "low": 0
+    },
+    "by_module": {
+      "includes/ (核心层)": "25+",
+      "front_canvas (画布设计页)": "350+",
+      "front_product (产品页)": "180+",
+      "front_cart (购物车页)": "50+",
+      "front_checkout (结账页)": "10+",
+      "admin_dashboard (仪表板)": "30+",
+      "admin_design (设计库)": "55+",
+      "admin_cache (缓存管理)": "10+",
+      "admin_orders (订单管理)": "15+",
+      "integration_promowares (Promowares集成)": "5+",
+      "integration_shipping (物流集成)": "20+"
+    },
+    "key_recommendations": [
+      "1. 先更新命名规范文档，明确 `Pwca_Integration_` 和 `Pwca_Front_` 前缀是否可接受，或统一归入 `Pwca_Admin_` / `Pwca_Public_`",
+      "2. 优先修复高严重度项：includes/ 核心PHP类（6个）、REST API命名空间（6个）、AJAX操作（约26个）",
+      "3. 全局变量 window.* 赋值（约27个）影响面大，需逐个文件处理",
+      "4. CSS类名违规数量大（约200个），建议分模块逐步迁移，从 front_canvas SCSS 开始",
+      "5. JS函数命名违规最多（约380个），需区分顶层模块函数和Vue组件内部方法，分批处理",
+      "6. 文件重命名（约36个）需同步更新所有 import/require/refererence 路径",
+      "7. 每个修改完成后需人工检查确认，遵循\"逐个处理\"原则"
+    ]
+  }
+}
