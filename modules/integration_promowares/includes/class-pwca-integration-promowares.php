@@ -372,6 +372,7 @@ final class Pwca_Integration_Promowares {
 			'anchor_price'      => $anchor_price,
 			'sku'               => $sku,
 			'product_image'     => isset( $product['product_image'] ) ? esc_url_raw( (string) $product['product_image'] ) : '',
+			'raw_data'          => $product,
 		);
 	}
 
@@ -383,6 +384,7 @@ final class Pwca_Integration_Promowares {
 		update_post_meta( $post_id, '_regular_price', $resolved['anchor_price'] );
 		update_post_meta( $post_id, '_sku', $resolved['sku'] );
 		update_post_meta( $post_id, 'pw_isSyncProduct', true );
+		update_post_meta( $post_id, 'pwca_raw_product_data', wp_json_encode( $resolved['raw_data'] ) );
 	}
 
 	private function maybe_store_product_templates( $post_id, $product_id ) {
@@ -669,6 +671,7 @@ final class Pwca_Integration_Promowares {
 			'product_image'     => isset( $product['product_image'] ) ? esc_url_raw( (string) $product['product_image'] ) : '',
 			'container_id'     => isset( $product['container_id'] ) ? (int) $product['container_id'] : 0,
 			'label_value'      => isset( $product['label_value'] ) ? sanitize_text_field( (string) $product['label_value'] ) : '',
+			'raw_data'         => $product,
 		);
 	}
 
@@ -686,6 +689,9 @@ final class Pwca_Integration_Promowares {
 		update_post_meta( $post_id, 'pw_container_value', $payload['label_value'] );
 		if ( isset( $payload['original_name'] ) ) {
 			update_post_meta( $post_id, 'pw_composite_original_name', $payload['original_name'] );
+		}
+		if ( isset( $payload['raw_data'] ) ) {
+			update_post_meta( $post_id, 'pwca_raw_product_data', wp_json_encode( $payload['raw_data'] ) );
 		}
 	}
 

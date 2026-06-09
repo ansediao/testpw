@@ -121,6 +121,57 @@ public function handle_sync_request_ajax() {
 4. **错误处理**: 成功/失败都通过 `setNotice` 显示提示
 5. **状态管理**: 使用 `finally` 确保按钮状态正确恢复
 
+## 产品数据存储
+
+同步时将 Promowares API 返回的完整产品原始数据以 JSON 格式存入 `pwca_raw_product_data` postmeta。
+
+**核心逻辑**: `modules/integration_promowares/includes/class-pwca-integration-promowares.php`
+
+### resolve 阶段：携带原始数据
+
+```php
+// resolve_single_product_payload() 和 resolve_composite_product_payload() 中
+return array(
+    // ... 其他字段 ...
+    'raw_data'  => $product,  // 完整的 API 返回数组
+);
+```
+
+### store 阶段：JSON 整体存入
+
+```php
+// store_single_product_meta() 中
+update_post_meta( $post_id, 'pwca_raw_product_data', wp_json_encode( $resolved['raw_data'] ) );
+
+// store_composite_product_meta() 中
+if ( isset( $payload['raw_data'] ) ) {
+    update_post_meta( $post_id, 'pwca_raw_product_data', wp_json_encode( $payload['raw_data'] ) );
+}
+```
+
+### 读取方式
+
+**PHP**:
+```php
+$raw_json = get_post_meta( $post_id, 'pwca_raw_product_data', true );
+$api_data = json_decode( $raw_json, true );
+$enable_custom_color  = ! empty( $api_data['enable_custom_color'] );
+$enable_gradient_color = ! empty( $api_data['enable_gradient_color'] );
+```
+
+**JS / Vue**（通过 REST API `pw/v1/product-data/{id}` 获取）:
+```javascript
+const store = window.useProductStore();
+const apiData = store.productData?.apiData?.product?.data;
+// apiData.enable_custom_color、apiData.enable_gradient_color
+```
+
+### 设计原则
+
+- 不逐字段映射，API 返回什么就存什么，新增字段无需改同步代码
+- postmeta key 使用 `pwca_` 前缀，遵循项目命名规范
+- 前端优先使用 REST API 实时数据（已集成在 `get_aggregated_product_data` 中返回完整 product 数据）
+
 ## 移除进度条
 
 如果需要移除之前的进度条功能，删除以下内容：
