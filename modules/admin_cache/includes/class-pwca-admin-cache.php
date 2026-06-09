@@ -190,6 +190,6 @@ final class Pwca_Admin_Cache {
 	}
 
 	private function get_api_client() {
-		return new Pw_Admin_Promowares_Api();
+		return new Pwca_Admin_Promowares_Api();
 	}
 }

@@ -218,7 +218,7 @@ class Pw_Admin {
 	 */
 	private function init_api_class() {
 		// Initialize Promowares API class early to ensure REST routes are registered
-		$promowares_api = new Pw_Admin_Promowares_Api();
+		$promowares_api = new Pwca_Admin_Promowares_Api();
 		$promowares_api->register_ajax_hooks();
 	}
 

@@ -58,9 +58,9 @@
           "related_references": [
             "includes/class-pw-admin-promowares-api.php (多处方法引用)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "不适用（后台API代理类）",
-          "notes": "核心API通信类，外部API调用入口"
+          "notes": "核心API通信类，外部API调用入口。已重命名为 Pwca_Admin_Promowares_Api，同步更新了5个引用文件。"
         },
         {
           "id": "PHP-CLASS-002",

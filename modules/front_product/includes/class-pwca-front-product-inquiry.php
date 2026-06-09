@@ -191,11 +191,11 @@ final class Pwca_Front_Product_Inquiry {
 			return;
 		}
 
-		if ( ! class_exists( 'Pw_Admin_Promowares_Api' ) ) {
+		if ( ! class_exists( 'Pwca_Admin_Promowares_Api' ) ) {
 			return;
 		}
 
-		$api = new Pw_Admin_Promowares_Api();
+		$api = new Pwca_Admin_Promowares_Api();
 		$api->send_product_inquiry(
 			(int) $pw_id,
 			(string) $data['first_name'],

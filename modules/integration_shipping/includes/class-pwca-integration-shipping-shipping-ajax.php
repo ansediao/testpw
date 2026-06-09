@@ -30,12 +30,12 @@ final class Pwca_Integration_Shipping_Shipping_Ajax {
 		$weight       = $this->get_cart_weight_or_default();
 		$country_code = $this->get_customer_country_or_default();
 
-		if ( ! class_exists( 'Pw_Admin_Promowares_Api' ) ) {
+		if ( ! class_exists( 'Pwca_Admin_Promowares_Api' ) ) {
 			wp_send_json_error( __( 'Shipping service unavailable', 'woocommerce' ) );
 			return;
 		}
 
-		$shipping_options = Pw_Admin_Promowares_Api::calculate_shipping_options( $country_code, $weight, 'PK1792' );
+		$shipping_options = Pwca_Admin_Promowares_Api::calculate_shipping_options( $country_code, $weight, 'PK1792' );
 		if ( is_wp_error( $shipping_options ) ) {
 			wp_send_json_error( __( 'Unable to calculate shipping costs. Please try again later.', 'woocommerce' ) );
 			return;

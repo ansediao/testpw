@@ -10,8 +10,8 @@
  * @link       https://promowares.com
  * @since      1.0.0
  *
- * @package    Pw_Admin
- * @subpackage Pw_Admin/includes
+ * @package    Pwca_Admin
+ * @subpackage Pwca_Admin/includes
  */
 
 /**
@@ -23,11 +23,11 @@
  * - User information retrieval
  * - API proxy requests
  *
- * @package    Pw_Admin
- * @subpackage Pw_Admin/includes
+ * @package    Pwca_Admin
+ * @subpackage Pwca_Admin/includes
  * @author     Promoware Team
  */
-class Pw_Admin_Promowares_Api
+class Pwca_Admin_Promowares_Api
 {
 
     /**
