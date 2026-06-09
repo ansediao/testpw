@@ -6,8 +6,8 @@
  * @link       https://www.pw.com
  * @since      1.0.0
  *
- * @package    Pw_Admin
- * @subpackage Pw_Admin/includes
+ * @package    Pwca_Admin
+ * @subpackage Pwca_Admin/includes
  */
 
 /**
@@ -17,11 +17,11 @@
  * the plugin, and register them with the WordPress API. Call the
  * run function to execute the list of actions and filters.
  *
- * @package    Pw_Admin
- * @subpackage Pw_Admin/includes
+ * @package    Pwca_Admin
+ * @subpackage Pwca_Admin/includes
  * @author     PW <pw@pwcom>
  */
-class Pw_Admin_Loader {
+class Pwca_Admin_Loader {
 
 	/**
 	 * The array of actions registered with WordPress.

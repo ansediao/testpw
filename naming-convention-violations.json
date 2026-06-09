@@ -92,9 +92,9 @@
           "related_references": [
             "includes/class-pw-admin.php (依赖注入)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "不适用（核心加载器）",
-          "notes": "钩子加载器，管理action/filter注册"
+          "notes": "钩子加载器，已重命名并在 class-pw-admin.php 中同步更新所有引用。"
         },
         {
           "id": "PHP-CLASS-004",
@@ -106,9 +106,9 @@
           "code_content": "class Pw_Admin_i18n {",
           "violation": "使用旧前缀 `Pw_Admin_`，应为 `Pwca_Admin_`",
           "related_references": [],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "不适用（国际化类）",
-          "notes": ""
+          "notes": "已重命名并在 class-pw-admin.php 的 set_locale() 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-005",
@@ -122,9 +122,9 @@
           "related_references": [
             "includes/class-pw-admin.php (注册钩子)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "不适用（插件停用处理）",
-          "notes": ""
+          "notes": "已重命名并在 pw-admin.php 的 deactivate_pw_admin() 中同步更新引用。"
         },
         {
           "id": "PHP-CLASS-006",

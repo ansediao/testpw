@@ -35,7 +35,7 @@ class Pwca_Admin {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @var      Pw_Admin_Loader    $loader    Maintains and registers all hooks for the plugin.
+	 * @var      Pwca_Admin_Loader    $loader    Maintains and registers all hooks for the plugin.
 	 */
 	protected $loader;
 
@@ -91,8 +91,8 @@ class Pwca_Admin {
 	 *
 	 * Include the following files that make up the plugin:
 	 *
-	 * - Pw_Admin_Loader. Orchestrates the hooks of the plugin.
-	 * - Pw_Admin_i18n. Defines internationalization functionality.
+	 * - Pwca_Admin_Loader. Orchestrates the hooks of the plugin.
+	 * - Pwca_Admin_i18n. Defines internationalization functionality.
 	 * - Pw_Admin_Admin. Defines all hooks for the admin area.
 	 *
 	 * Create an instance of the loader which will be used to register the hooks
@@ -129,14 +129,14 @@ class Pwca_Admin {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-pw-admin-promowares-api.php';
 
-		$this->loader = new Pw_Admin_Loader();
+		$this->loader = new Pwca_Admin_Loader();
 
 	}
 
 	/**
 	 * Define the locale for this plugin for internationalization.
 	 *
-	 * Uses the Pw_Admin_i18n class in order to set the domain and to register the hook
+	 * Uses the Pwca_Admin_i18n class in order to set the domain and to register the hook
 	 * with WordPress.
 	 *
 	 * @since    1.0.0
@@ -144,7 +144,7 @@ class Pwca_Admin {
 	 */
 	private function set_locale() {
 
-		$plugin_i18n = new Pw_Admin_i18n();
+		$plugin_i18n = new Pwca_Admin_i18n();
 
 		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
 
@@ -184,7 +184,7 @@ class Pwca_Admin {
 	 * The reference to the class that orchestrates the hooks with the plugin.
 	 *
 	 * @since     1.0.0
-	 * @return    Pw_Admin_Loader    Orchestrates the hooks of the plugin.
+	 * @return    Pwca_Admin_Loader    Orchestrates the hooks of the plugin.
 	 */
 	public function get_loader() {
 		return $this->loader;

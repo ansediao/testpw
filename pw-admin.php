@@ -61,7 +61,7 @@ function activate_pw_admin()
 function deactivate_pw_admin()
 {
     require_once plugin_dir_path(__FILE__) . 'includes/class-pw-admin-deactivator.php';
-    Pw_Admin_Deactivator::deactivate();
+    Pwca_Admin_Deactivator::deactivate();
 }
 
 register_activation_hook(__FILE__, 'activate_pw_admin');

@@ -9,8 +9,8 @@
  * @link       https://www.pw.com
  * @since      1.0.0
  *
- * @package    Pw_Admin
- * @subpackage Pw_Admin/includes
+ * @package    Pwca_Admin
+ * @subpackage Pwca_Admin/includes
  */
 
 /**
@@ -20,11 +20,11 @@
  * so that it is ready for translation.
  *
  * @since      1.0.0
- * @package    Pw_Admin
- * @subpackage Pw_Admin/includes
+ * @package    Pwca_Admin
+ * @subpackage Pwca_Admin/includes
  * @author     PW <pw@pwcom>
  */
-class Pw_Admin_i18n {
+class Pwca_Admin_i18n {
 
 
 	/**
