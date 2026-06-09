@@ -85,7 +85,7 @@ require plugin_dir_path(__FILE__) . 'includes/class-pw-admin.php';
 function run_pw_admin()
 {
 
-    $plugin = new Pw_Admin();
+    $plugin = new Pwca_Admin();
     $plugin->run();
 }
 run_pw_admin();

@@ -76,9 +76,9 @@
             "includes/class-pw-admin-loader.php (注册)",
             "includes/class-pw-admin-activator.php (激活)"
           ],
-          "status": "未处理",
+          "status": "已处理",
           "frontend_area": "不适用（核心控制器）",
-          "notes": "插件核心控制器，影响全局"
+          "notes": "插件核心控制器，已重命名为 Pwca_Admin，同步更新 pw-admin.php 入口引用。@package 注释在各自类修复时处理。"
         },
         {
           "id": "PHP-CLASS-003",

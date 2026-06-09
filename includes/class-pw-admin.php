@@ -9,8 +9,8 @@
  * @link       https://www.pw.com
  * @since      1.0.0
  *
- * @package    Pw_Admin
- * @subpackage Pw_Admin/includes
+ * @package    Pwca_Admin
+ * @subpackage Pwca_Admin/includes
  */
 
 /**
@@ -23,11 +23,11 @@
  * version of the plugin.
  *
  * @since      1.0.0
- * @package    Pw_Admin
- * @subpackage Pw_Admin/includes
+ * @package    Pwca_Admin
+ * @subpackage Pwca_Admin/includes
  * @author     PW <pw@pwcom>
  */
-class Pw_Admin {
+class Pwca_Admin {
 
 	/**
 	 * The loader that's responsible for maintaining and registering all hooks that power
