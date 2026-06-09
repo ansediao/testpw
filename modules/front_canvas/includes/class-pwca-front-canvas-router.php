@@ -54,6 +54,12 @@ final class Pwca_Front_Canvas_Router {
 		$pw_id        = $context->get_pw_id();
 		$is_edit_mode = $context->is_edit_mode();
 
+		// 读取产品级别的 UI 开关（blank_item → sample-check, inquiry_button → inquiry-btn）
+		$blank_item      = get_post_meta( $product_id, 'pw_blank_item', true );
+		$inquiry_button  = get_post_meta( $product_id, 'pw_inquiry_button', true );
+		$show_sample     = ( $blank_item === '1' || $blank_item === 1 || $blank_item === true );
+		$show_inquiry    = ( $inquiry_button === '1' || $inquiry_button === 1 || $inquiry_button === true );
+
 		include $view_path;
 		exit;
 	}

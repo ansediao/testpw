@@ -140,6 +140,21 @@ export const useCanvasStore = defineStore('canvas', {
         shouldShowMoqColor() {
             return this.moqItemsColorEnabled;
         },
+
+        // ===== Sample Check / Inquiry Button 显示控制 =====
+        // 从 productData.computed 读取产品级别的开关
+        // 预留 getter 便于后续叠加其他控制逻辑（如视图级别覆盖、店铺设置等）
+        showSampleCheck() {
+            const computed = this.productData && this.productData.computed;
+            if (!computed) return false;
+            return Boolean(computed.blank_item);
+        },
+        showInquiryBtn() {
+            const computed = this.productData && this.productData.computed;
+            if (!computed) return false;
+            return Boolean(computed.inquiry_button);
+        },
+
         // ===== 新增：获取颜色选择状态 =====
         // 获取指定视图下的颜色选择
         getSelectedColorByView: (state) => (viewId) => {

@@ -32,6 +32,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 		data-ajax-nonce="<?php echo esc_attr( wp_create_nonce( 'custom-product-nonce' ) ); ?>"
 		data-rest-url="<?php echo esc_url( rest_url() ); ?>"
 		data-rest-nonce="<?php echo esc_attr( wp_create_nonce( 'wp_rest' ) ); ?>"
+		data-blank-item="<?php echo esc_attr( $show_sample ? '1' : '0' ); ?>"
+		data-inquiry-button="<?php echo esc_attr( $show_inquiry ? '1' : '0' ); ?>"
 	>
 		<header class="header">
 			<?php

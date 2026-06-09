@@ -1109,6 +1109,16 @@ class Pw_Admin_Promowares_Api
         $computed['show_price'] = $data['has_woocommerce_product'] &&
             !empty($data['woocommerce']['price']);
 
+        // Extract blank_item / inquiry_button from post meta (set during product import)
+        $computed['blank_item'] = false;
+        $computed['inquiry_button'] = false;
+        if (!empty($data['woocommerce']['id'])) {
+            $blank_meta    = get_post_meta($data['woocommerce']['id'], 'pw_blank_item', true);
+            $inquiry_meta  = get_post_meta($data['woocommerce']['id'], 'pw_inquiry_button', true);
+            $computed['blank_item']     = ($blank_meta === '1' || $blank_meta === 1 || $blank_meta === true);
+            $computed['inquiry_button'] = ($inquiry_meta === '1' || $inquiry_meta === 1 || $inquiry_meta === true);
+        }
+
         // Process mock data if available
         $computed['mock_features'] = array();
         if ($data['has_mock_data'] && isset($data['mock_data'])) {

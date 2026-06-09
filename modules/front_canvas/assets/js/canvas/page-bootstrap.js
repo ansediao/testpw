@@ -1085,6 +1085,52 @@ const pwcaStartupTaskSyncUiState = async (currentContext) => {
   }
 };
 
+/**
+ * 同步 footer 区域可见性
+ * 从 #app data-* 属性读取服务器端确认的值（绕过缓存，最可靠）
+ * 同步到 store computed，并通过 Vue watch 响应后续变化
+ */
+const pwcaStartupTaskSyncFooterVisibility = async (currentContext) => {
+  const store = window.useCanvasStore && window.useCanvasStore();
+  if (!store) return;
+
+  // 从 #app data-* 读取（PHP 服务端渲染时直接读取 post meta，无缓存问题）
+  const appEl = document.getElementById('app');
+  const blankItem = appEl?.dataset?.blankItem === '1';
+  const inquiryBtn = appEl?.dataset?.inquiryButton === '1';
+
+  // 同步到 store computed，确保 Pinia 中的值与服务端一致
+  if (store.productData?.computed) {
+    store.productData.computed.blank_item = blankItem;
+    store.productData.computed.inquiry_button = inquiryBtn;
+  }
+
+  const { watch } = window.Vue || {};
+
+  const syncVisibility = () => {
+    const elSample = document.getElementById('pwca-sample-check');
+    const elInquiry = document.getElementById('pwca-inquiry-btn');
+
+    if (elSample) {
+      elSample.style.display = store.showSampleCheck ? '' : 'none';
+    }
+    if (elInquiry) {
+      elInquiry.style.display = store.showInquiryBtn ? '' : 'none';
+    }
+  };
+
+  // 立即同步一次
+  syncVisibility();
+
+  // 响应式监听 store getters 后续变化（支持控制台动态调试和未来业务逻辑叠加）
+  if (watch) {
+    watch(
+      () => [store.showSampleCheck, store.showInquiryBtn],
+      () => syncVisibility()
+    );
+  }
+};
+
 const buildStartupTasks = (context) => {
   // 定义初始化任务序列
   const tasks = [
@@ -1110,6 +1156,9 @@ const buildStartupTasks = (context) => {
 
     // 5. 初始化同步 UI 状态（面板可见性等）
     pwcaCreateStartupTask(context, 'syncUiState', pwcaStartupTaskSyncUiState),
+
+    // 5.1 同步 footer 可见性（blank_item → sample-check, inquiry_button → inquiry-btn）
+    pwcaCreateStartupTask(context, 'syncFooterVisibility', pwcaStartupTaskSyncFooterVisibility),
 
     // 6. 初始化画布状态集成（保存/回显逻辑）
     pwcaCreateStartupTask(
