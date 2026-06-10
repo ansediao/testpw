@@ -26,7 +26,7 @@
     const pwcaCreateProductStore = () => {
     // ===== State (按领域分组) =====
     // 核心数据
-    const productId = Vue.ref(null);
+    const productId = Vue.ref('');
     const productData = Vue.ref(null);
     const loading = Vue.ref(false);
     const error = Vue.ref(null);
@@ -90,7 +90,6 @@
     });
 
     // Getters (computed)
-    const isLoading = Vue.computed(() => loading.value);
     const hasError = Vue.computed(() => error.value !== null);
     const totalPrice = Vue.computed(() => {
         return discountedPrice.value * quantity.current;
@@ -146,12 +145,14 @@
     });
 
     // Quantity Discount computed properties
+    const shouldApplyDiscount = Vue.computed(() => features.quantityDiscount && !ui.buySampleChecked);
+
     const hasQuantityDiscounts = Vue.computed(() => {
-        return features.quantityDiscount && !ui.buySampleChecked && moq.discounts.length > 0;
+        return shouldApplyDiscount.value && moq.discounts.length > 0;
     });
 
     const currentDiscount = Vue.computed(() => {
-        if (!features.quantityDiscount || ui.buySampleChecked || !hasQuantityDiscounts.value) return 0;
+        if (!shouldApplyDiscount.value || !hasQuantityDiscounts.value) return 0;
 
         let applicableDiscount = 0;
         // 找到适用的最高折扣梯度（数量大于等于range_from的最大梯度）
@@ -165,7 +166,7 @@
     });
 
     const discountText = Vue.computed(() => {
-        if (!features.quantityDiscount || ui.buySampleChecked) return '';
+        if (!shouldApplyDiscount.value) return '';
 
         const discount = currentDiscount.value;
         if (discount === 0) return '';
@@ -175,7 +176,7 @@
     });
 
     const discountedPrice = Vue.computed(() => {
-        if (!features.quantityDiscount || ui.buySampleChecked) {
+        if (!shouldApplyDiscount.value) {
             return baseUnitPrice.value;
         }
 
@@ -745,7 +746,6 @@
         accessories,    // { price, selectedNames }
 
         // ===== Getters =====
-        isLoading,
         hasError,
         totalPrice,
         canAddToCart,

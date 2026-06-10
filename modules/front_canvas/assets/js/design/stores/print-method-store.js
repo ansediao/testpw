@@ -8,7 +8,7 @@ import {
     pwcaAttachCustomColorsToMethod,
     pwcaConvertApiDataToInternalFormat,
     pwcaNormalizePrintMethodsApiPayload
-} from './print-method-mapper.js';
+} from './mappers/print-method-mapper.js';
 
 // 确保Pinia已加载
 if (!window.Pinia) {
@@ -68,7 +68,7 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
         currentViewPrintMethods: [],
 
         // 当前选中的打印方式ID
-        selectedPrintMethodId: null,
+        selectedPrintMethodId: '',
 
         // 图层与打印方式的映射关系
         layerPrintMethodMap: {},
@@ -326,7 +326,7 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
             if (printMethods.length > 0) {
                 this.selectedPrintMethodId = printMethods[0].id;
             } else {
-                this.selectedPrintMethodId = null;
+                this.selectedPrintMethodId = '';
             }
         },
         

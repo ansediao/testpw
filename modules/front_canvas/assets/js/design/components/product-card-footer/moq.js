@@ -99,8 +99,8 @@ export function useMoqCalculations(canvasStore, printStore) {
   // 展示开关
   const showDesign = computed(() => !!canvasStore.shouldShowMoqDesign);
   const showColor = computed(() => {
-    if (Object.prototype.hasOwnProperty.call(canvasStore, 'shouldShowMoqColor')) {
-      return !!canvasStore.shouldShowMoqColor;
+    if (Object.prototype.hasOwnProperty.call(canvasStore, 'moqItemsColorEnabled')) {
+      return !!canvasStore.moqItemsColorEnabled;
     } else {
       const raw = canvasStore?.productData?.customization_settings?.data?.moq_items_color;
       return !(raw === false || raw === 0 || raw === 'false' || raw === '0' || raw === null || raw === undefined);

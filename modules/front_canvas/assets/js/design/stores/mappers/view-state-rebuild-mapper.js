@@ -1,4 +1,4 @@
-import { pwcaNormalizeViewRestorePayload } from './view-restore-helper.js';
+import { pwcaNormalizeViewRestorePayload } from './view-restore-mapper.js';
 
 function pwcaGetRestorableCanvasObjects(canvas) {
     if (!canvas || typeof canvas.getObjects !== 'function') {
