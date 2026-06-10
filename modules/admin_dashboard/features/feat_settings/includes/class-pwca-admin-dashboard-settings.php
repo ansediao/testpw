@@ -152,37 +152,12 @@ final class Pwca_Admin_Dashboard_Settings {
 	}
 
 	public static function get_settings_data() {
-		$disable_ssl = get_option( 'pwca_disable_ssl' );
-		if ( $disable_ssl === false ) {
-			$disable_ssl = get_option( 'pw_disable_ssl', 0 );
-		}
-
-		$api_key = get_option( 'pwca_api_key' );
-		if ( $api_key === false ) {
-			$api_key = get_option( 'pw_api_key', '' );
-		}
-
-		$api_secret = get_option( 'pwca_api_secret' );
-		if ( $api_secret === false ) {
-			$api_secret = get_option( 'pw_api_secret', '' );
-		}
-
-		$customize_text = get_option( 'pwca_customize_text' );
-		if ( $customize_text === false ) {
-			$customize_text = get_option( 'pw_customize_text', 'Customize' );
-		}
-
-		$customize_color = get_option( 'pwca_customize_color' );
-		if ( $customize_color === false ) {
-			$customize_color = get_option( 'pw_customize_color', '#000000' );
-		}
-
 		return array(
-			'disable_ssl'    => (int) $disable_ssl,
-			'api_key'        => (string) $api_key,
-			'api_secret'     => (string) $api_secret,
-			'customize_text' => (string) $customize_text,
-			'customize_color'=> (string) $customize_color,
+			'disable_ssl'    => (int) get_option( 'pwca_disable_ssl', 0 ),
+			'api_key'        => (string) get_option( 'pwca_api_key', '' ),
+			'api_secret'     => (string) get_option( 'pwca_api_secret', '' ),
+			'customize_text' => (string) get_option( 'pwca_customize_text', 'Customize' ),
+			'customize_color'=> (string) get_option( 'pwca_customize_color', '#000000' ),
 		);
 	}
 }

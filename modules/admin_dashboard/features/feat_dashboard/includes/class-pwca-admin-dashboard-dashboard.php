@@ -56,25 +56,10 @@ final class Pwca_Admin_Dashboard_Dashboard {
 	 * 获取主页面视图模型
 	 */
 	private function get_main_page_view_model() {
-		$current_token = get_option( 'pwca_api_token' );
-		if ( empty( $current_token ) ) {
-			$current_token = get_option( 'pw_api_token', '' );
-		}
-
-		$current_store_id = get_option( 'pwca_store_id' );
-		if ( empty( $current_store_id ) ) {
-			$current_store_id = get_option( 'pw_store_id', '' );
-		}
-
-		$api_mock_mode = get_option( 'pwca_api_mock_mode' );
-		if ( $api_mock_mode === false ) {
-			$api_mock_mode = get_option( 'pw_api_mock_mode', 0 );
-		}
-
-		$cache_enabled = get_option( 'pwca_cache_enabled' );
-		if ( $cache_enabled === false ) {
-			$cache_enabled = get_option( 'pw_cache_enabled', 1 );
-		}
+		$current_token    = get_option( 'pwca_api_token', '' );
+		$current_store_id = get_option( 'pwca_store_id', '' );
+		$api_mock_mode    = get_option( 'pwca_api_mock_mode', 0 );
+		$cache_enabled    = get_option( 'pwca_cache_enabled', 1 );
 
 		return array(
 			'ajax_url'             => admin_url( 'admin-ajax.php' ),
