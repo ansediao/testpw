@@ -304,7 +304,7 @@
 	}
 
 	try {
-		createApp(DesignApp).mount('#pw-design-app')
+		createApp(DesignApp).mount('#pwca-design-app')
 		if (loadingEl) loadingEl.remove()
 		if (appEl) {
 			appEl.hidden = false

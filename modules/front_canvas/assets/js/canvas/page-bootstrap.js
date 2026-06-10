@@ -5,7 +5,7 @@ const pwcaGetSettings = () => {
     const dataset = appEl && appEl.dataset ? appEl.dataset : {};
     return {
       productId: Number(dataset.productId || 0),
-      pwId: String(dataset.pwId || ''),
+      pwId: String(dataset.pwcaId || ''),
       isEdit: String(dataset.editMode || '0') === '1',
       ajaxUrl: String(dataset.ajaxUrl || ''),
       cartUrl: String(dataset.cartUrl || ''),

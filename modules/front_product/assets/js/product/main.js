@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Get product ID
     const productId = mountPoint.dataset.productId;
-    const pwId = mountPoint.dataset.pwId;
+    const pwId = mountPoint.dataset.pwcaId;
     const restApiUrl = mountPoint.dataset.restApiUrl;
     const nonce = mountPoint.dataset.restNonce;
 
@@ -229,7 +229,7 @@ function initializeBasicApp(productId, modulesLoaded) {
         },
         components,
         template: `
-            <div class="pw-vue-basic-app">
+            <div class="pwca-vue-basic-app">
                 <h2>Basic Product Page</h2>
                 <p>{{ message }}</p>
                 <p>Product ID: {{ productId }}</p>

@@ -75,7 +75,7 @@ final class Pwca_Public_Cart_Design_Column {
 
 		if ( empty( $views_meta ) ) {
 			if ( $added_from === 'product' || $added_from === '' ) {
-				return '<span class="pw-design-na">' . esc_html__( 'Not Available', 'pw-admin' ) . '</span>';
+				return '<span class="pwca-design-na">' . esc_html__( 'Not Available', 'pw-admin' ) . '</span>';
 			}
 			return '';
 		}
@@ -142,7 +142,7 @@ final class Pwca_Public_Cart_Design_Column {
 		$html  = '<div class="pwca-design-view">';
         $html .= '<div class="pwca-design-view-name">' . $vname . '</div>';
 		if ( ! empty( $print_method_names ) ) {
-			$html .= '<div class="pw-design-print-methods">' . esc_html( implode( ', ', $print_method_names ) ) . '</div>';
+			$html .= '<div class="pwca-design-print-methods">' . esc_html( implode( ', ', $print_method_names ) ) . '</div>';
 		}
 		$html .= '<div class="pwca-design-view-images">';
 

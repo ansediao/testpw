@@ -13,13 +13,13 @@ const PwcaColorVariants = {
             
 
             
-            <div class="pw-color-variants-grid">
-                <div v-if="store.loading" class="pw-loading-variants">
-                    <div class="pw-loading-spinner"></div>
+            <div class="pwca-color-variants-grid">
+                <div v-if="store.loading" class="pwca-loading-variants">
+                    <div class="pwca-loading-spinner"></div>
                 </div>
-                <div v-else-if="store.error" class="pw-loading-variants error">{{ store.error }}</div>
-                <div v-else-if="!store.variants || store.variants.length === 0" class="pw-loading-variants">No color variants available for this product</div>
-                <div v-else class="pw-variants-container">
+                <div v-else-if="store.error" class="pwca-loading-variants error">{{ store.error }}</div>
+                <div v-else-if="!store.variants || store.variants.length === 0" class="pwca-loading-variants">No color variants available for this product</div>
+                <div v-else class="pwca-variants-container">
                     <div 
                         v-for="(variant, index) in store.variants.filter(v => v.variant_color)" 
                         :key="variant.id"

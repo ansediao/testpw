@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		id="app"
 		class="pwca-container"
 		data-product-id="<?php echo esc_attr( $product_id ); ?>"
-		data-pw-id="<?php echo esc_attr( $pw_id ); ?>"
+		data-pwca-id="<?php echo esc_attr( $pw_id ); ?>"
 		data-edit-mode="<?php echo esc_attr( $is_edit_mode ? '1' : '0' ); ?>"
 		data-ajax-url="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>"
 		data-cart-url="<?php echo esc_url( function_exists( 'wc_get_cart_url' ) ? wc_get_cart_url() : '' ); ?>"

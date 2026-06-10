@@ -149,7 +149,7 @@
     function setupColorSwatchListeners() {
         // 使用事件委托监听颜色样本点击
         document.addEventListener('click', function (event) {
-            const colorSwatch = event.target.closest('.pw-color-swatch');
+            const colorSwatch = event.target.closest('.pwca-color-swatch');
             if (colorSwatch) {
                 handleColorSwatchClick(colorSwatch, event);
             }

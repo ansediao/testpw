@@ -38,9 +38,9 @@ $data_payload = array(
 
 	<div class="pwca-design-controls">
 		<div class="pwca-design-actions">
-			<button class="button button-primary" id="pw-add-design-btn" type="button">Add Design</button>
-			<button class="button" id="pw-add-category-btn" type="button">Add Category</button>
-			<button class="button" id="pw-manage-category-btn" type="button">Manage Category</button>
+			<button class="button button-primary" id="pwca-add-design-btn" type="button">Add Design</button>
+			<button class="button" id="pwca-add-category-btn" type="button">Add Category</button>
+			<button class="button" id="pwca-manage-category-btn" type="button">Manage Category</button>
 		</div>
 
 		<div class="pwca-design-filters">
@@ -81,12 +81,12 @@ $data_payload = array(
 		<span class="spinner is-active" aria-hidden="true"></span>
 	</div>
 
-	<div id="pw-design-app" hidden aria-busy="true">
+	<div id="pwca-design-app" hidden aria-busy="true">
 		<div class="pwca-design-bulk-actions">
 			<button class="button" type="button" @click="openFilterModal">Filter</button>
 			<label><input type="checkbox" v-model="allSelected"> Select All</label>
-			<button v-show="selectedDesignIds.length > 0" id="pw-delete-selected-designs" class="button button-danger" type="button" @click="triggerBulkDelete">Delete Selected</button>
-			<button v-show="selectedDesignIds.length > 0" id="pw-bulk-update-designs" class="button button-primary" type="button" @click="triggerBulkUpdate">Bulk Update</button>
+			<button v-show="selectedDesignIds.length > 0" id="pwca-delete-selected-designs" class="button button-danger" type="button" @click="triggerBulkDelete">Delete Selected</button>
+			<button v-show="selectedDesignIds.length > 0" id="pwca-bulk-update-designs" class="button button-primary" type="button" @click="triggerBulkUpdate">Bulk Update</button>
 		</div>
 
 		<div class="pwca-design-grid">
@@ -120,7 +120,7 @@ $data_payload = array(
 			<button class="button" type="button" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">Next</button>
 		</div>
 
-		<div class="modal" :class="{ 'is-open': isFilterModalOpen }" id="pw-vue-filter-modal" aria-hidden="true" v-show="isFilterModalOpen" :style="{ display: isFilterModalOpen ? 'block' : 'none' }">
+		<div class="modal" :class="{ 'is-open': isFilterModalOpen }" id="pwca-vue-filter-modal" aria-hidden="true" v-show="isFilterModalOpen" :style="{ display: isFilterModalOpen ? 'block' : 'none' }">
 			<div class="modal__overlay" tabindex="-1" @click="closeFilterModal">
 				<div class="modal__container" role="dialog" aria-modal="true" @click.stop>
 					<header class="modal__header">
@@ -180,7 +180,7 @@ $data_payload = array(
 			</div>
 		</div>
 
-		<div class="modal" :class="{ 'is-open': isBulkUpdateModalOpen }" id="pw-vue-bulk-update-modal" aria-hidden="true" v-show="isBulkUpdateModalOpen" :style="{ display: isBulkUpdateModalOpen ? 'block' : 'none' }">
+		<div class="modal" :class="{ 'is-open': isBulkUpdateModalOpen }" id="pwca-vue-bulk-update-modal" aria-hidden="true" v-show="isBulkUpdateModalOpen" :style="{ display: isBulkUpdateModalOpen ? 'block' : 'none' }">
 			<div class="modal__overlay" tabindex="-1" @click="closeBulkUpdateModal">
 				<div class="modal__container" role="dialog" aria-modal="true" @click.stop>
 					<header class="modal__header">
@@ -237,66 +237,66 @@ $data_payload = array(
 	</div>
 </div>
 
-<div class="modal" id="pw-tag-modal" aria-hidden="true">
+<div class="modal" id="pwca-tag-modal" aria-hidden="true">
 	<div class="modal__overlay" tabindex="-1" data-micromodal-close>
 		<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-tag-modal-title">
 			<header class="modal__header">
-				<h2 class="modal__title" id="pw-tag-modal-title">Manage Tags</h2>
+				<h2 class="modal__title" id="pwca-tag-modal-title">Manage Tags</h2>
 				<button class="modal__close" type="button" aria-label="Close modal" data-micromodal-close>&times;</button>
 			</header>
 			<div class="modal__content">
-				<div id="pw-tag-modal-body" class="pwca-tag-modal-body"></div>
-				<input type="hidden" id="pw-tag-modal-design-id" value="">
+				<div id="pwca-tag-modal-body" class="pwca-tag-modal-body"></div>
+				<input type="hidden" id="pwca-tag-modal-design-id" value="">
 			</div>
 			<footer class="modal__footer">
 				<button class="button" type="button" data-micromodal-close>Close</button>
-				<button class="button button-primary" type="button" id="pw-tag-modal-save">Save Changes</button>
+				<button class="button button-primary" type="button" id="pwca-tag-modal-save">Save Changes</button>
 			</footer>
 		</div>
 	</div>
 </div>
 
-<div class="modal" id="pw-add-design-modal" aria-hidden="true">
+<div class="modal" id="pwca-add-design-modal" aria-hidden="true">
 	<div class="modal__overlay" tabindex="-1">
 		<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-add-design-modal-title">
 			<header class="modal__header">
-				<h2 class="modal__title" id="pw-add-design-modal-title">Add New Design</h2>
+				<h2 class="modal__title" id="pwca-add-design-modal-title">Add New Design</h2>
 				<button class="modal__close" type="button" aria-label="Close modal" data-micromodal-close>&times;</button>
 			</header>
 			<div class="modal__content">
-				<form id="pw-add-design-form" enctype="multipart/form-data">
+				<form id="pwca-add-design-form" enctype="multipart/form-data">
 					<?php wp_nonce_field( 'pw_add_design_nonce', 'pw_add_design_nonce_field' ); ?>
 
 					<div class="pwca-form-field pwca-upload-field">
 						<label for="pw-design-image" class="pwca-upload-label">
-							<div id="pw-upload-placeholder">
+							<div id="pwca-upload-placeholder">
 								<span class="dashicons dashicons-cloud-upload" aria-hidden="true"></span>
 								<p>Click or drag image here to upload</p>
 								<p>Supports JPG, PNG, GIF formats</p>
 							</div>
-							<div id="pw-image-preview">
-								<img id="pw-preview-img" alt="">
-								<p><span id="pw-file-name"></span></p>
-								<button type="button" id="pw-remove-image" class="button">移除图片</button>
+							<div id="pwca-image-preview">
+								<img id="pwca-preview-img" alt="">
+								<p><span id="pwca-file-name"></span></p>
+								<button type="button" id="pwca-remove-image" class="button">移除图片</button>
 							</div>
 						</label>
-						<input type="file" id="pw-design-image" name="design_image" accept="image/*">
+						<input type="file" id="pwca-design-image" name="design_image" accept="image/*">
 					</div>
 
 					<div class="pwca-form-field">
 						<label for="pw-design-name">Design Name</label>
-						<input type="text" id="pw-design-name" name="design_name" required>
+						<input type="text" id="pwca-design-name" name="design_name" required>
 					</div>
 
 					<div class="pwca-form-field pwca-design-sku-field">
 						<label for="pw-design-sku">SKU</label>
-						<input type="text" id="pw-design-sku" name="design_sku" required>
-						<p class="pwca-field-message" id="pw-design-sku-message" aria-live="polite"></p>
+						<input type="text" id="pwca-design-sku" name="design_sku" required>
+						<p class="pwca-field-message" id="pwca-design-sku-message" aria-live="polite"></p>
 					</div>
 
 					<div class="pwca-form-field">
 						<label for="pw-design-category">Design Category</label>
-						<select id="pw-design-category" name="design_category">
+						<select id="pwca-design-category" name="design_category">
 							<option value="">选择分类</option>
 							<?php foreach ( $terms as $term ) : ?>
 								<?php if ( $term instanceof WP_Term ) : ?>
@@ -309,49 +309,49 @@ $data_payload = array(
 			</div>
 			<footer class="modal__footer">
 				<button class="button" type="button" data-micromodal-close>取消</button>
-				<button type="submit" class="button button-primary" id="pw-add-design-submit" form="pw-add-design-form" disabled>Add Design</button>
+				<button type="submit" class="button button-primary" id="pwca-add-design-submit" form="pw-add-design-form" disabled>Add Design</button>
 			</footer>
 		</div>
 	</div>
 </div>
 
-<div class="modal" id="pw-edit-design-modal" aria-hidden="true">
+<div class="modal" id="pwca-edit-design-modal" aria-hidden="true">
 	<div class="modal__overlay" tabindex="-1">
 		<div class="modal__container pwca-edit-design-modal" role="dialog" aria-modal="true" aria-labelledby="pw-edit-design-modal-title">
 			<header class="modal__header">
-				<h2 class="modal__title" id="pw-edit-design-modal-title">Edit Design Settings</h2>
+				<h2 class="modal__title" id="pwca-edit-design-modal-title">Edit Design Settings</h2>
 				<button class="modal__close" type="button" aria-label="Close modal" data-micromodal-close>&times;</button>
 			</header>
 			<div class="modal__content">
-				<form id="pw-edit-design-form">
+				<form id="pwca-edit-design-form">
 					<?php wp_nonce_field( 'pw_edit_design_nonce', 'pw_edit_design_nonce_field' ); ?>
-					<input type="hidden" id="pw-edit-design-id" name="design_id" value="">
+					<input type="hidden" id="pwca-edit-design-id" name="design_id" value="">
 
 					<div class="pwca-form-field">
 						<label for="pw-edit-design-name">Design Name</label>
-						<input type="text" id="pw-edit-design-name" name="design_name" required>
+						<input type="text" id="pwca-edit-design-name" name="design_name" required>
 					</div>
 
 					<div class="pwca-form-field">
 						<label for="pw-edit-design-description">Description</label>
-						<textarea id="pw-edit-design-description" name="design_description" rows="4" placeholder="Enter design description..."></textarea>
+						<textarea id="pwca-edit-design-description" name="design_description" rows="4" placeholder="Enter design description..."></textarea>
 					</div>
 
 					<div class="pwca-form-field">
 						<label for="pw-edit-design-category">Design Category</label>
-						<select id="pw-edit-design-category" name="design_category">
+						<select id="pwca-edit-design-category" name="design_category">
 							<option value="">Select Category</option>
 						</select>
 					</div>
 
 					<div class="pwca-form-field">
 						<label for="pw-edit-design-tags">Tags</label>
-						<input type="text" id="pw-edit-design-tags" name="design_tags" placeholder="Enter tags separated by commas...">
+						<input type="text" id="pwca-edit-design-tags" name="design_tags" placeholder="Enter tags separated by commas...">
 					</div>
 
 					<div class="pwca-form-field">
 						<label class="pwca-checkbox-row">
-							<input type="checkbox" id="pw-edit-design-enabled" name="design_enabled" value="1">
+							<input type="checkbox" id="pwca-edit-design-enabled" name="design_enabled" value="1">
 							<span>Enable Setting</span>
 						</label>
 					</div>
@@ -359,31 +359,31 @@ $data_payload = array(
 			</div>
 			<footer class="modal__footer">
 				<button class="button" type="button" data-micromodal-close>Cancel</button>
-				<button type="submit" class="button button-primary" id="pw-edit-design-submit" form="pw-edit-design-form">Update Design</button>
+				<button type="submit" class="button button-primary" id="pwca-edit-design-submit" form="pw-edit-design-form">Update Design</button>
 			</footer>
 		</div>
 	</div>
 </div>
 
-<div class="modal" id="pw-add-category-modal" aria-hidden="true">
+<div class="modal" id="pwca-add-category-modal" aria-hidden="true">
 	<div class="modal__overlay" tabindex="-1" data-micromodal-close>
 		<div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-add-category-modal-title">
 			<header class="modal__header">
-				<h2 class="modal__title" id="pw-add-category-modal-title">Add New Category</h2>
+				<h2 class="modal__title" id="pwca-add-category-modal-title">Add New Category</h2>
 				<button class="modal__close" type="button" aria-label="Close modal" data-micromodal-close>&times;</button>
 			</header>
 			<div class="modal__content">
-				<form id="pw-add-category-form">
+				<form id="pwca-add-category-form">
 					<input type="hidden" name="pw_add_category_nonce_field" value="<?php echo esc_attr( (string) ( $nonces['add_category'] ?? '' ) ); ?>">
 
 					<div class="pwca-form-field">
 						<label for="pw-category-name">Category Name</label>
-						<input type="text" id="pw-category-name" name="category_name" required placeholder="Enter category name">
+						<input type="text" id="pwca-category-name" name="category_name" required placeholder="Enter category name">
 					</div>
 
 					<div class="pwca-form-field">
 						<label for="pw-category-type">Category Type</label>
-						<select id="pw-category-type" name="category_type">
+						<select id="pwca-category-type" name="category_type">
 							<option value="universal">Universal</option>
 							<option value="main_view">Universal for Main View</option>
 							<option value="product">Product Specific</option>
@@ -393,17 +393,17 @@ $data_payload = array(
 			</div>
 			<footer class="modal__footer">
 				<button class="button" type="button" data-micromodal-close>取消</button>
-				<button type="submit" class="button button-primary" id="pw-add-category-submit" form="pw-add-category-form">Add Category</button>
+				<button type="submit" class="button button-primary" id="pwca-add-category-submit" form="pw-add-category-form">Add Category</button>
 			</footer>
 		</div>
 	</div>
 </div>
 
-<div class="modal" id="pw-manage-category-modal" aria-hidden="true">
+<div class="modal" id="pwca-manage-category-modal" aria-hidden="true">
 	<div class="modal__overlay" tabindex="-1" data-micromodal-close>
 		<div class="modal__container pwca-manage-category-modal" role="dialog" aria-modal="true" aria-labelledby="pw-manage-category-modal-title">
 			<header class="modal__header">
-				<h2 class="modal__title" id="pw-manage-category-modal-title">Manage Category</h2>
+				<h2 class="modal__title" id="pwca-manage-category-modal-title">Manage Category</h2>
 				<button class="modal__close" type="button" aria-label="Close modal" data-micromodal-close>&times;</button>
 			</header>
 			<div class="modal__content">
@@ -438,30 +438,30 @@ $data_payload = array(
 	</div>
 </div>
 
-<div class="modal" id="pw-category-settings-modal" aria-hidden="true">
+<div class="modal" id="pwca-category-settings-modal" aria-hidden="true">
 	<div class="modal__overlay" tabindex="-1">
 		<div class="modal__container pwca-edit-design-modal" role="dialog" aria-modal="true" aria-labelledby="pw-category-settings-modal-title">
 			<header class="modal__header">
-				<h2 class="modal__title" id="pw-category-settings-modal-title">Category Settings</h2>
+				<h2 class="modal__title" id="pwca-category-settings-modal-title">Category Settings</h2>
 				<button class="modal__close" type="button" aria-label="Close modal" data-micromodal-close>&times;</button>
 			</header>
 			<div class="modal__content">
-				<form id="pw-category-settings-form">
-					<input type="hidden" id="pw-settings-category-id" name="category_id" value="">
+				<form id="pwca-category-settings-form">
+					<input type="hidden" id="pwca-settings-category-id" name="category_id" value="">
 
 					<div class="pwca-form-field">
 						<label for="pw-settings-category-name">Category Name</label>
-						<input type="text" id="pw-settings-category-name" name="category_name" required>
+						<input type="text" id="pwca-settings-category-name" name="category_name" required>
 					</div>
 
 					<div class="pwca-form-field">
 						<label for="pw-settings-category-description">Description</label>
-						<textarea id="pw-settings-category-description" name="category_description" rows="3" placeholder="Enter category description..."></textarea>
+						<textarea id="pwca-settings-category-description" name="category_description" rows="3" placeholder="Enter category description..."></textarea>
 					</div>
 
 					<div class="pwca-form-field">
 						<label for="pw-settings-category-type">Category Type</label>
-						<select id="pw-settings-category-type" name="category_type">
+						<select id="pwca-settings-category-type" name="category_type">
 							<option value="universal">Universal</option>
 							<option value="main_view">Universal for Main View</option>
 							<option value="product">Product Specific</option>
@@ -470,19 +470,19 @@ $data_payload = array(
 
 					<div class="pwca-form-field">
 						<label class="pwca-checkbox-row">
-							<input type="checkbox" id="pw-exclude-from-export" name="exclude_from_export" value="1">
+							<input type="checkbox" id="pwca-exclude-from-export" name="exclude_from_export" value="1">
 							<span>Exclude From Export</span>
 						</label>
 					</div>
 
 					<div class="pwca-form-field">
 						<label for="pw-layer-depth">Layer Depth</label>
-						<input type="number" id="pw-layer-depth" name="layer_depth" value="-1">
+						<input type="number" id="pwca-layer-depth" name="layer_depth" value="-1">
 					</div>
 
 					<div class="pwca-form-field">
 						<label for="pw-scale-mode">Scale Mode</label>
-						<select id="pw-scale-mode" name="scale_mode">
+						<select id="pwca-scale-mode" name="scale_mode">
 							<option value="fit">Fit</option>
 							<option value="fill">Fill</option>
 							<option value="stretch">Stretch</option>
@@ -492,38 +492,38 @@ $data_payload = array(
 
 					<div class="pwca-form-field">
 						<label class="pwca-checkbox-row">
-							<input type="checkbox" id="pw-allow-resize" name="allow_resize" value="1">
+							<input type="checkbox" id="pwca-allow-resize" name="allow_resize" value="1">
 							<span>Allow Resize</span>
 						</label>
 					</div>
 
 					<div class="pwca-form-field">
 						<label class="pwca-checkbox-row">
-							<input type="checkbox" id="pw-allow-rotate" name="allow_rotate" value="1">
+							<input type="checkbox" id="pwca-allow-rotate" name="allow_rotate" value="1">
 							<span>Allow Rotate</span>
 						</label>
 					</div>
 
 					<div class="pwca-form-field">
 						<label class="pwca-checkbox-row">
-							<input type="checkbox" id="pw-allow-delete" name="allow_delete" value="1">
+							<input type="checkbox" id="pwca-allow-delete" name="allow_delete" value="1">
 							<span>Allow Delete</span>
 						</label>
 					</div>
 
 					<div class="pwca-form-field">
 						<label for="pw-base-price">Base Price</label>
-						<input type="number" id="pw-base-price" name="base_price" step="0.01" min="0" placeholder="0.00">
+						<input type="number" id="pwca-base-price" name="base_price" step="0.01" min="0" placeholder="0.00">
 					</div>
 
 					<div class="pwca-form-field">
 						<label for="pw-price-per-unit">Price Per Unit</label>
-						<input type="number" id="pw-price-per-unit" name="price_per_unit" step="0.01" min="0" placeholder="0.00">
+						<input type="number" id="pwca-price-per-unit" name="price_per_unit" step="0.01" min="0" placeholder="0.00">
 					</div>
 
 					<div class="pwca-form-field">
 						<label class="pwca-checkbox-row">
-							<input type="checkbox" id="pw-price-enabled" name="price_enabled" value="1">
+							<input type="checkbox" id="pwca-price-enabled" name="price_enabled" value="1">
 							<span>Enable Pricing</span>
 						</label>
 					</div>
@@ -531,7 +531,7 @@ $data_payload = array(
 			</div>
 			<footer class="modal__footer">
 				<button class="button" type="button" data-micromodal-close>Cancel</button>
-				<button type="submit" class="button button-primary" id="pw-settings-save" form="pw-category-settings-form">Update Category</button>
+				<button type="submit" class="button button-primary" id="pwca-settings-save" form="pw-category-settings-form">Update Category</button>
 			</footer>
 		</div>
 	</div>

@@ -134,10 +134,10 @@
   border-color: #0073aa;
   background: #f0f8ff;
 }
-.pwca-admin-design .pwca-upload-field #pw-image-preview {
+.pwca-admin-design .pwca-upload-field #pwca-image-preview {
   display: none;
 }
-.pwca-admin-design .pwca-upload-field #pw-image-preview img {
+.pwca-admin-design .pwca-upload-field #pwca-image-preview img {
   max-width: 100%;
   max-height: 200px;
   border-radius: 4px;
@@ -180,7 +180,7 @@
 .pwca-admin-design .pwca-field-message.is-success {
   color: #00a32a;
 }
-.pwca-admin-design .modal__footer #pw-add-design-submit:disabled {
+.pwca-admin-design .modal__footer #pwca-add-design-submit:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -234,8 +234,8 @@
   align-items: center;
   cursor: pointer;
 }
-.pwca-admin-design #pw-vue-filter-modal .modal__container,
-.pwca-admin-design #pw-vue-bulk-update-modal .modal__container {
+.pwca-admin-design #pwca-vue-filter-modal .modal__container,
+.pwca-admin-design #pwca-vue-bulk-update-modal .modal__container {
   max-width: 360px;
   width: 100%;
   padding: 20px 24px;
@@ -368,8 +368,8 @@
   font-size: 12px;
   color: #555;
 }
-.pwca-admin-design #pw-vue-filter-modal .modal__footer,
-.pwca-admin-design #pw-vue-bulk-update-modal .modal__footer {
+.pwca-admin-design #pwca-vue-filter-modal .modal__footer,
+.pwca-admin-design #pwca-vue-bulk-update-modal .modal__footer {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid #eee;
@@ -417,10 +417,10 @@
   border-color: #0073aa;
   background: #f0f8ff;
 }
-.pwca-upload-field #pw-image-preview {
+.pwca-upload-field #pwca-image-preview {
   display: none;
 }
-.pwca-upload-field #pw-image-preview img {
+.pwca-upload-field #pwca-image-preview img {
   max-width: 100%;
   max-height: 200px;
   border-radius: 4px;

@@ -1,3 +1,3 @@
-<div class="pw-view-switcher-container" id="pw-view-switcher-container"></div>
+<div class="pwca-view-switcher-container" id="pwca-view-switcher-container"></div>
 
 

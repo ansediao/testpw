@@ -34,7 +34,7 @@ final class Pwca_Public_Product_Mount {
 		$nonce    = wp_create_nonce( 'wp_rest' );
 		$rest_url = rest_url( 'pwca/v1/product-data/' );
 
-		echo '<div id="vue-dynamic-product-area" data-product-id="' . esc_attr( $product_id ) . '" data-pw-id="' . esc_attr( $pw_id ) . '" data-rest-api-url="' . esc_url( $rest_url ) . '" data-rest-nonce="' . esc_attr( $nonce ) . '"></div>';
+		echo '<div id="vue-dynamic-product-area" data-product-id="' . esc_attr( $product_id ) . '" data-pwca-id="' . esc_attr( $pw_id ) . '" data-rest-api-url="' . esc_url( $rest_url ) . '" data-rest-nonce="' . esc_attr( $nonce ) . '"></div>';
 	}
 }
 

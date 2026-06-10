@@ -7,7 +7,7 @@
 const PwcaCheckboxOptions = {
     name: 'PwcaCheckboxOptions',
     template: `
-        <div class="pw-checkbox-options">
+        <div class="pwca-checkbox-options">
             <label v-show="store.showBuySampleCheckbox">
                 <input
                     type="checkbox"

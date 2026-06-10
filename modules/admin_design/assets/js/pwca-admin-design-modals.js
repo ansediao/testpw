@@ -96,7 +96,7 @@
 		}
 	}
 
-	// 暴露公共方法，便于其他脚本复用
+	// 暴露公共方法，便于其他脚本复�?
 	window.pwcaAdminShowModal = showModal
 	window.pwcaAdminCloseModal = closeModal
 
@@ -136,18 +136,18 @@
 	}
 
 	const bindAddDesignModal = () => {
-		$('#pw-add-design-btn').on('click', (event) => {
+		$('#pwca-add-design-btn').on('click', (event) => {
 			event.preventDefault()
-			showModal('pw-add-design-modal')
+			showModal('pwca-add-design-modal')
 
-			const form = document.getElementById('pw-add-design-form')
+			const form = document.getElementById('pwca-add-design-form')
 			if (form) form.reset()
 
-			const uploadPlaceholder = document.getElementById('pw-upload-placeholder')
-			const imagePreview = document.getElementById('pw-image-preview')
-			const previewImg = document.getElementById('pw-preview-img')
-			const fileName = document.getElementById('pw-file-name')
-			const fileInput = document.getElementById('pw-design-image')
+			const uploadPlaceholder = document.getElementById('pwca-upload-placeholder')
+			const imagePreview = document.getElementById('pwca-image-preview')
+			const previewImg = document.getElementById('pwca-preview-img')
+			const fileName = document.getElementById('pwca-file-name')
+			const fileInput = document.getElementById('pwca-design-image')
 
 			if (fileInput) fileInput.value = ''
 			if (previewImg) previewImg.src = ''
@@ -155,8 +155,8 @@
 			if (uploadPlaceholder) uploadPlaceholder.style.display = 'block'
 			if (imagePreview) imagePreview.style.display = 'none'
 
-			const submitButton = document.getElementById('pw-add-design-submit')
-			const skuMessage = document.getElementById('pw-design-sku-message')
+			const submitButton = document.getElementById('pwca-add-design-submit')
+			const skuMessage = document.getElementById('pwca-design-sku-message')
 			if (submitButton) submitButton.disabled = true
 			if (skuMessage) {
 				skuMessage.textContent = ''
@@ -166,11 +166,11 @@
 	}
 
 	const bindAddDesignSkuValidation = () => {
-		const form = document.getElementById('pw-add-design-form')
-		const submitButton = document.getElementById('pw-add-design-submit')
-		const nameInput = document.getElementById('pw-design-name')
-		const skuInput = document.getElementById('pw-design-sku')
-		const skuMessage = document.getElementById('pw-design-sku-message')
+		const form = document.getElementById('pwca-add-design-form')
+		const submitButton = document.getElementById('pwca-add-design-submit')
+		const nameInput = document.getElementById('pwca-design-name')
+		const skuInput = document.getElementById('pwca-design-sku')
+		const skuMessage = document.getElementById('pwca-design-sku-message')
 		if (!form || !submitButton || !nameInput || !skuInput || !skuMessage) return
 
 		let checking = false
@@ -229,17 +229,17 @@
 				if (!response?.success) {
 					checkedSku = sku
 					skuUnique = false
-					setMessage('error', `检查失败: ${response?.data || '未知错误'}`)
+					setMessage('error', `检查失�? ${response?.data || '未知错误'}`)
 					return
 				}
 
 				checkedSku = sku
 				skuUnique = Boolean(response.data?.unique)
-				setMessage(skuUnique ? 'success' : 'error', response.data?.message || (skuUnique ? 'SKU 可用' : 'SKU 已存在，请更换'))
+				setMessage(skuUnique ? 'success' : 'error', response.data?.message || (skuUnique ? 'SKU 可用' : 'SKU 已存在，请更�?))
 			} catch (error) {
 				checkedSku = sku
 				skuUnique = false
-				setMessage('error', `检查失败: ${error instanceof Error ? error.message : '未知错误'}`)
+				setMessage('error', `检查失�? ${error instanceof Error ? error.message : '未知错误'}`)
 			} finally {
 				checking = false
 				updateSubmitState()
@@ -248,26 +248,26 @@
 	}
 
 	const bindAddCategoryModal = () => {
-		$('#pw-add-category-btn').on('click', (event) => {
+		$('#pwca-add-category-btn').on('click', (event) => {
 			event.preventDefault()
 			showModal('pw-add-category-modal')
 		})
 	}
 
 	const bindManageCategoryModal = () => {
-		$('#pw-manage-category-btn').on('click', (event) => {
+		$('#pwca-manage-category-btn').on('click', (event) => {
 			event.preventDefault()
 			showModal('pw-manage-category-modal')
 		})
 	}
 
 	const bindImagePreview = () => {
-		const fileInput = document.getElementById('pw-design-image')
-		const previewImg = document.getElementById('pw-preview-img')
-		const fileName = document.getElementById('pw-file-name')
-		const uploadPlaceholder = document.getElementById('pw-upload-placeholder')
-		const imagePreview = document.getElementById('pw-image-preview')
-		const removeButton = document.getElementById('pw-remove-image')
+		const fileInput = document.getElementById('pwca-design-image')
+		const previewImg = document.getElementById('pwca-preview-img')
+		const fileName = document.getElementById('pwca-file-name')
+		const uploadPlaceholder = document.getElementById('pwca-upload-placeholder')
+		const imagePreview = document.getElementById('pwca-image-preview')
+		const removeButton = document.getElementById('pwca-remove-image')
 
 		if (!fileInput) return
 
@@ -296,8 +296,8 @@
 	}
 
 	const bindAddDesignSubmit = () => {
-		const form = document.getElementById('pw-add-design-form')
-		const submitButton = document.getElementById('pw-add-design-submit')
+		const form = document.getElementById('pwca-add-design-form')
+		const submitButton = document.getElementById('pwca-add-design-submit')
 		if (!form || !submitButton) return
 
 		submitButton.addEventListener('click', async (event) => {
@@ -323,8 +323,8 @@
 	}
 
 	const openTagModal = async (designId) => {
-		const body = document.getElementById('pw-tag-modal-body')
-		const idInput = document.getElementById('pw-tag-modal-design-id')
+		const body = document.getElementById('pwca-tag-modal-body')
+		const idInput = document.getElementById('pwca-tag-modal-design-id')
 		if (!body || !idInput) return
 
 		idInput.value = String(designId)
@@ -365,9 +365,9 @@
 	}
 
 	const bindTagModalSave = () => {
-		const saveButton = document.getElementById('pw-tag-modal-save')
-		const idInput = document.getElementById('pw-tag-modal-design-id')
-		const body = document.getElementById('pw-tag-modal-body')
+		const saveButton = document.getElementById('pwca-tag-modal-save')
+		const idInput = document.getElementById('pwca-tag-modal-design-id')
+		const body = document.getElementById('pwca-tag-modal-body')
 		if (!saveButton || !idInput || !body) return
 
 		saveButton.addEventListener('click', async () => {
@@ -399,17 +399,17 @@
 	}
 
 	const openEditDesignModal = async (designId) => {
-		const idInput = document.getElementById('pw-edit-design-id')
-		const nameInput = document.getElementById('pw-edit-design-name')
-		const descriptionInput = document.getElementById('pw-edit-design-description')
-		const categorySelect = document.getElementById('pw-edit-design-category')
-		const tagsInput = document.getElementById('pw-edit-design-tags')
-		const enabledInput = document.getElementById('pw-edit-design-enabled')
+		const idInput = document.getElementById('pwca-edit-design-id')
+		const nameInput = document.getElementById('pwca-edit-design-name')
+		const descriptionInput = document.getElementById('pwca-edit-design-description')
+		const categorySelect = document.getElementById('pwca-edit-design-category')
+		const tagsInput = document.getElementById('pwca-edit-design-tags')
+		const enabledInput = document.getElementById('pwca-edit-design-enabled')
 
 		if (!idInput || !nameInput || !descriptionInput || !categorySelect || !tagsInput || !enabledInput) return
 
 		idInput.value = String(designId)
-		showModal('pw-edit-design-modal')
+		showModal('pwca-edit-design-modal')
 
 		try {
 			const response = await postUrlEncoded({
@@ -444,8 +444,8 @@
 	}
 
 	const bindEditDesignSubmit = () => {
-		const form = document.getElementById('pw-edit-design-form')
-		const submitButton = document.getElementById('pw-edit-design-submit')
+		const form = document.getElementById('pwca-edit-design-form')
+		const submitButton = document.getElementById('pwca-edit-design-submit')
 		if (!form || !submitButton) return
 
 		submitButton.addEventListener('click', async (event) => {
@@ -472,8 +472,8 @@
 	}
 
 	const bindAddCategorySubmit = () => {
-		const form = document.getElementById('pw-add-category-form')
-		const submitButton = document.getElementById('pw-add-category-submit')
+		const form = document.getElementById('pwca-add-category-form')
+		const submitButton = document.getElementById('pwca-add-category-submit')
 		if (!form || !submitButton) return
 
 		submitButton.addEventListener('click', async (event) => {
@@ -514,19 +514,19 @@
 
 	const bindManageCategoryActions = () => {
 		const openCategorySettingsModal = async (categoryId) => {
-			const idInput = document.getElementById('pw-settings-category-id')
-			const nameInput = document.getElementById('pw-settings-category-name')
-			const descriptionInput = document.getElementById('pw-settings-category-description')
-			const typeSelect = document.getElementById('pw-settings-category-type')
-			const excludeExport = document.getElementById('pw-exclude-from-export')
-			const layerDepth = document.getElementById('pw-layer-depth')
-			const scaleMode = document.getElementById('pw-scale-mode')
-			const allowResize = document.getElementById('pw-allow-resize')
-			const allowRotate = document.getElementById('pw-allow-rotate')
-			const allowDelete = document.getElementById('pw-allow-delete')
-			const basePrice = document.getElementById('pw-base-price')
-			const pricePerUnit = document.getElementById('pw-price-per-unit')
-			const priceEnabled = document.getElementById('pw-price-enabled')
+			const idInput = document.getElementById('pwca-settings-category-id')
+			const nameInput = document.getElementById('pwca-settings-category-name')
+			const descriptionInput = document.getElementById('pwca-settings-category-description')
+			const typeSelect = document.getElementById('pwca-settings-category-type')
+			const excludeExport = document.getElementById('pwca-exclude-from-export')
+			const layerDepth = document.getElementById('pwca-layer-depth')
+			const scaleMode = document.getElementById('pwca-scale-mode')
+			const allowResize = document.getElementById('pwca-allow-resize')
+			const allowRotate = document.getElementById('pwca-allow-rotate')
+			const allowDelete = document.getElementById('pwca-allow-delete')
+			const basePrice = document.getElementById('pwca-base-price')
+			const pricePerUnit = document.getElementById('pwca-price-per-unit')
+			const priceEnabled = document.getElementById('pwca-price-enabled')
 
 			if (
 				!idInput ||
@@ -547,7 +547,7 @@
 			}
 
 			idInput.value = String(categoryId)
-			showModal('pw-category-settings-modal')
+			showModal('pwca-category-settings-modal')
 
 			try {
 				const response = await postUrlEncoded({
@@ -613,8 +613,8 @@
 	}
 
 	const bindCategorySettingsSave = () => {
-		const form = document.getElementById('pw-category-settings-form')
-		const submitButton = document.getElementById('pw-settings-save')
+		const form = document.getElementById('pwca-category-settings-form')
+		const submitButton = document.getElementById('pwca-settings-save')
 		if (!form || !submitButton) return
 
 		submitButton.addEventListener('click', async (event) => {
@@ -663,7 +663,7 @@
 			const ids = Array.isArray(event.detail?.ids) ? event.detail.ids : []
 			if (ids.length === 0) return
 
-			const ok = window.confirm(`确定要删除选中的 ${ids.length} 个设计吗？`)
+			const ok = window.confirm(`确定要删除选中�?${ids.length} 个设计吗？`)
 			if (!ok) return
 
 			postUrlEncoded({

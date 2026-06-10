@@ -1,14 +1,14 @@
 // CustomColorsButton.js - 自定义颜色按钮组件
-// 提供Gradient和Custom Colors按钮，具有与.pw-color-swatch相同的点击逻辑
+// 提供Gradient和Custom Colors按钮，具有与.pwca-color-swatch相同的点击逻辑
 
 // 定义CustomColorsButton组件
 window.pwcaCustomColorsButton = {
     template: `
-        <div class="pw-custom-colors-container">
-            <div class="pw-custom-colors-group">
+        <div class="pwca-custom-colors-container">
+            <div class="pwca-custom-colors-group">
                 <button
                     v-if="showGradientButton"
-                    class="pw-custom-color-btn pw-gradient-btn"
+                    class="pwca-custom-color-btn pwca-gradient-btn"
                     :class="{ 'selected': selectedButton === 'gradient' }"
                     @click="handleGradientClick"
                     :disabled="!isButtonClickable"
@@ -28,7 +28,7 @@ window.pwcaCustomColorsButton = {
             </div>
             
             <!-- Status Display Area -->
-            <div class="pw-custom-colors-status" v-if="showCustomColorStatus || showGradientStatus">
+            <div class="pwca-custom-colors-status" v-if="showCustomColorStatus || showGradientStatus">
                 <!-- Custom Colors Status -->
                 <div v-if="showCustomColorStatus" class="custom-color-status">
                     Selected: {{ appliedCustomColor }} <br>
@@ -44,7 +44,7 @@ window.pwcaCustomColorsButton = {
             
             <!-- Custom Color Modal -->
             <div
-                id="pw-custom-color-modal"
+                id="pwca-custom-color-modal"
                 :class="['modal', 'micromodal-slide', { 'is-open': isColorModalOpen }]"
                 :aria-hidden="!isColorModalOpen"
             >
@@ -54,9 +54,9 @@ window.pwcaCustomColorsButton = {
                     data-micromodal-close
                     @click.self="closeColorModal"
                 >
-                    <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pw-custom-color-modal-title">
+                    <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="pwca-custom-color-modal-title">
                         <header>
-                            <h2 class="modal__title" id="pw-custom-color-modal-title">Select Custom Color</h2>
+                            <h2 class="modal__title" id="pwca-custom-color-modal-title">Select Custom Color</h2>
                             <button
                                 class="modal__close"
                                 aria-label="Close modal"
@@ -242,7 +242,7 @@ window.pwcaCustomColorsButton = {
                 '.wp-post-image',
                 '.attachment-woocommerce_single',
                 '.product-image-main',
-                '.pw-product-image-container',
+                '.pwca-product-image-container',
                 '.product-image-container',
                 '[class*="product-image"]',
                 '[class*="main-image"]'
@@ -435,7 +435,7 @@ window.pwcaCustomColorsButton = {
                 }
                 
                 // 额外清理：移除所有可能存在的文字覆盖层
-                const existingOverlays = document.querySelectorAll('.pw-gradient-text-overlay');
+                const existingOverlays = document.querySelectorAll('.pwca-gradient-text-overlay');
                     existingOverlays.forEach(overlay => {
                     overlay.remove();
                 });
@@ -470,7 +470,7 @@ window.pwcaCustomColorsButton = {
                 // 设置选中状态
                 selectedButton.value = buttonType;
                 
-                // 触发与.pw-color-swatch相同的颜色切换逻辑
+                // 触发与.pwca-color-swatch相同的颜色切换逻辑
                 handleColorSelection(colorValue, buttonType);
                 
                 // 发送自定义事件（参考ColorVariants组件）
@@ -490,7 +490,7 @@ window.pwcaCustomColorsButton = {
             }
         };
         
-        // 处理颜色选择的核心逻辑（模拟.pw-color-swatch的行为）
+        // 处理颜色选择的核心逻辑（模拟.pwca-color-swatch的行为）
         const handleColorSelection = (colorValue, type) => {
             window.pwcaProductColorSelectionBridge.applyCustomColorSelection(colorValue, type, productStore);
         };

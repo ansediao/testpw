@@ -156,11 +156,11 @@
 			}
 		}
 
-		#pw-image-preview {
+		#pwca-image-preview {
 			display: none;
 		}
 
-		#pw-image-preview img {
+		#pwca-image-preview img {
 			max-width: 100%;
 			max-height: 200px;
 			border-radius: 4px;
@@ -215,7 +215,7 @@
 	}
 
 	.modal__footer {
-		#pw-add-design-submit:disabled {
+		#pwca-add-design-submit:disabled {
 			opacity: 0.55;
 			cursor: not-allowed;
 		}
@@ -279,8 +279,8 @@
 		cursor: pointer;
 	}
 
-	#pw-vue-filter-modal .modal__container,
-	#pw-vue-bulk-update-modal .modal__container {
+	#pwca-vue-filter-modal .modal__container,
+	#pwca-vue-bulk-update-modal .modal__container {
 		max-width: 360px;
 		width: 100%;
 		padding: 20px 24px;
@@ -440,8 +440,8 @@
 		color: #555;
 	}
 
-	#pw-vue-filter-modal .modal__footer,
-	#pw-vue-bulk-update-modal .modal__footer {
+	#pwca-vue-filter-modal .modal__footer,
+	#pwca-vue-bulk-update-modal .modal__footer {
 		margin-top: 12px;
 		padding-top: 12px;
 		border-top: 1px solid #eee;
@@ -498,11 +498,11 @@
 		}
 	}
 
-	#pw-image-preview {
+	#pwca-image-preview {
 		display: none;
 	}
 
-	#pw-image-preview img {
+	#pwca-image-preview img {
 		max-width: 100%;
 		max-height: 200px;
 		border-radius: 4px;

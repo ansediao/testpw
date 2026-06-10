@@ -45,7 +45,7 @@
     };
 
     const pwcaCreateViewButtons = (store) => {
-        const container = document.getElementById('pw-view-switcher-container');
+        const container = document.getElementById('pwca-view-switcher-container');
         if (!container || !Array.isArray(store.views)) {
             return;
         }
@@ -105,7 +105,7 @@
                     return;
                 }
 
-                const nextContainer = document.getElementById('pw-view-switcher-container');
+                const nextContainer = document.getElementById('pwca-view-switcher-container');
                 if (!nextContainer) {
                     return;
                 }
