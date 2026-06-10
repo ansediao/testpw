@@ -209,7 +209,7 @@ function initializeBasicApp(productId, modulesLoaded) {
         components.PwcaCheckboxOptions = window.pwcaCheckboxOptions;
     }
     if (modulesLoaded.quantityDiscountSlider && window.pwcaQuantityDiscountSlider) {
-        components.QuantityDiscountSlider = window.pwcaQuantityDiscountSlider;
+        components.PwcaQuantityDiscountSlider = window.pwcaQuantityDiscountSlider;
     }
     if (modulesLoaded.productAccessories && window.pwcaProductAccessories) {
         components.PwcaProductAccessories = window.pwcaProductAccessories;
@@ -219,6 +219,7 @@ function initializeBasicApp(productId, modulesLoaded) {
     }
 
     const app = createApp({
+        name: 'PwcaProductBasicApp',
         data() {
             return {
                 productId: productId,

@@ -5,6 +5,7 @@
 
 // 颜色变体组件
 const PwcaColorVariants = {
+    name: 'PwcaColorVariants',
     template: `
         <div class="pwca-color-variants-module">
             <div class="pwca-color-variants-header">

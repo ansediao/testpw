@@ -16,7 +16,7 @@ import { useSampleOrder } from './product-card-footer/sample-order.js';
 import { useQuantity } from './product-card-footer/quantity.js';
 
 export const ProductCardFooter = {
-  name: 'ProductCardFooter',
+  name: 'PwcaProductPricingPanel',
   setup() {
     const canvasStore = useCanvasStore();
     const printStore = usePrintMethodStore();

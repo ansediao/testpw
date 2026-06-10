@@ -9,6 +9,7 @@ const { createApp, reactive, computed, ref, watch } = window.Vue || {};
 const { refDebounced } = window.VueUse || {};
 
 const DesignSearchApp = {
+    name: 'PwcaDesignSearchApp',
     setup() {
         const canvasStore = useCanvasStore();
         

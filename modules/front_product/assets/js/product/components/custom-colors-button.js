@@ -3,6 +3,7 @@
 
 // 定义CustomColorsButton组件
 window.pwcaCustomColorsButton = {
+    name: 'PwcaCustomColorsButton',
     template: `
         <div class="pwca-custom-colors-container">
             <div class="pwca-custom-colors-group">

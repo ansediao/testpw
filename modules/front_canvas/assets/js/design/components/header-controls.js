@@ -34,7 +34,7 @@ function pwcaGetAllViewCanvases() {
 }
 
 const HeaderControls = {
-    name: 'HeaderControls',
+    name: 'PwcaCanvasToolbar',
     setup() {
         if (!window.VueUse) {
             console.warn('HeaderControls: VueUse is not available. History features will be disabled.');

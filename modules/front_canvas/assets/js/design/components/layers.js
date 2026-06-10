@@ -11,6 +11,7 @@ import { createLayerOperations } from './layers/operations.js';
 import { createPrintMethodHelpers } from './layers/print-methods.js';
 
 const layersApp = Vue.createApp({
+    name: 'PwcaLayerPanel',
     template: `
         <div class="pwca-layers-panel">
             <div class="pwca-layers-list">
