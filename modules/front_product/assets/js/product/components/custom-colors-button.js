@@ -18,7 +18,7 @@ window.pwcaCustomColorsButton = {
                 
                 <button
                     v-if="showCustomColorButton"
-                    class="pw-custom-color-btn pw-custom-colors-btn"
+                    class="pwca-custom-color-btn pwca-custom-colors-btn"
                     :class="{ 'selected': selectedButton === 'custom' }"
                     @click="openColorModal"
                     :disabled="isCustomColorsDisabled || !isButtonClickable"

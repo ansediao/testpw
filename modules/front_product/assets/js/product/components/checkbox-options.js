@@ -11,14 +11,14 @@ const PwcaCheckboxOptions = {
             <label v-show="store.showBuySampleCheckbox">
                 <input
                     type="checkbox"
-                    :checked="store.buySampleChecked"
+                    :checked="store.ui.buySampleChecked"
                     @change="onBuySampleChange($event.target.checked)"
                 > Buy Sample
             </label>
             <label v-show="store.showBlankProductCheckbox">
                 <input
                     type="checkbox"
-                    :checked="store.blankProductChecked"
+                    :checked="store.ui.blankProductChecked"
                     @change="onBlankProductChange($event.target.checked)"
                 > Blank Product
             </label>

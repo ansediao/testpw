@@ -87,11 +87,6 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
     }),
 
     getters: {
-        // 获取所有印刷方式（当前视图）
-        getAllPrintMethods: (state) => {
-            return state.currentViewPrintMethods;
-        },
-
         // 根据ID获取印刷方式（当前视图）
         getPrintMethodById: (state) => (id) => {
             return state.currentViewPrintMethods.find(method => method.id === id);
@@ -110,12 +105,6 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
 
         // 获取当前选中的打印方式对象
         selectedPrintMethod: (state) => {
-            return state.currentViewPrintMethods.find(method => method.id === state.selectedPrintMethodId);
-        },
-
-        // 获取当前选中的印刷方式
-        getSelectedPrintMethod: (state) => {
-            if (!state.selectedPrintMethodId) return null;
             return state.currentViewPrintMethods.find(method => method.id === state.selectedPrintMethodId);
         },
 
@@ -145,16 +134,6 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
         getViewDefaultPrintMethod: (state) => (viewId) => {
             const viewMethods = state.viewPrintMethods[viewId] || [];
             return viewMethods.find(method => method.set_as_default === true);
-        },
-
-        // 获取加载状态
-        isLoadingPrintMethods: (state) => {
-            return state.loadingPrintMethods;
-        },
-
-        // 获取印刷方式加载错误信息
-        getPrintMethodsError: (state) => {
-            return state.printMethodsError;
         },
 
         // 检查图层是否允许复制

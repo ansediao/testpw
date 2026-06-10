@@ -342,8 +342,8 @@ function pwcaCreateFabricObjectFromLayer(canvas, layer) {
         try {
             if (typeof window.pwcaUseCanvasStore === 'function') {
                 const store = window.pwcaUseCanvasStore();
-                if (store && typeof store.getStoreCustomizationSettings === 'function') {
-                    storeSettings = store.getStoreCustomizationSettings();
+                if (store) {
+                    storeSettings = store.storeCustomizationSettings;
                 }
             }
         } catch (e) {

@@ -10,7 +10,7 @@ const PwcaAddToCart = {
         const store = window.pwcaUseProductStore();
         
         const addToCart = async () => {
-            await store.addToCart(store.quantity);
+            await store.addToCart(store.quantity.current);
         };
         
         const customizeNow = () => {

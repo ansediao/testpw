@@ -13,14 +13,14 @@ const PwcaProductQuantity = {
         
         // Methods
         const increaseQuantity = () => {
-            const nextQuantity = store.getNextValidQuantity(store.quantity);
-            if (nextQuantity <= store.maxQuantity) {
+            const nextQuantity = store.getNextValidQuantity(store.quantity.current);
+            if (nextQuantity <= store.quantity.max) {
                 store.setQuantityDirect(nextQuantity);
             }
         };
         
         const decreaseQuantity = () => {
-            const previousQuantity = store.getPreviousValidQuantity(store.quantity);
+            const previousQuantity = store.getPreviousValidQuantity(store.quantity.current);
             if (previousQuantity >= store.minQuantity) {
                 store.setQuantityDirect(previousQuantity);
             }
@@ -38,20 +38,20 @@ const PwcaProductQuantity = {
         
         // 计算是否可以减少数量
         const canDecrease = Vue.computed(() => {
-            return store.quantity > store.minQuantity;
+            return store.quantity.current > store.minQuantity;
         });
         
         // 计算是否可以增加数量
         const canIncrease = Vue.computed(() => {
-            return store.quantity < store.maxQuantity;
+            return store.quantity.current < store.quantity.max;
         });
         
         // 显示MOQ信息
         const moqInfo = Vue.computed(() => {
-            const settings = store.moqSettings;
+            const settings = store.moq.settings;
             if (settings.sell_in_batch === true) {
                 if (settings.batch_quantity > 1) {
-                    return `Minimum: ${store.minQuantity}, Step: ${store.stepQuantity}`;
+                    return `Minimum: ${store.minQuantity}, Step: ${store.quantity.step}`;
                 } else {
                     return `Minimum: ${store.minQuantity} (Batch sales enabled)`;
                 }
@@ -62,18 +62,18 @@ const PwcaProductQuantity = {
         // 检查QuantityDiscountSlider组件是否可用且启用
         const hasDiscountSlider = Vue.computed(() => {
             return typeof window.pwcaQuantityDiscountSlider !== 'undefined' && 
-                   store.quantityDiscountEnabled && 
-                   !store.buySampleChecked;
+                   store.features.quantityDiscount && 
+                   !store.ui.buySampleChecked;
         });
 
         // 检查当前数量是否符合批次要求
         const isQuantityValidForBatch = Vue.computed(() => {
-            if (store.moqSettings.sell_in_batch !== true) {
+            if (store.moq.settings.sell_in_batch !== true) {
                 return true; // 不按批次销售时，任何数量都有效
             }
             
-            const corrected = store.correctedQuantity(store.quantity);
-            return corrected === store.quantity;
+            const corrected = store.correctedQuantity(store.quantity.current);
+            return corrected === store.quantity.current;
         });
 
         // 获取建议的修正数量
@@ -81,7 +81,7 @@ const PwcaProductQuantity = {
             if (isQuantityValidForBatch.value) {
                 return null; // 当前数量已经有效
             }
-            return store.correctedQuantity(store.quantity);
+            return store.correctedQuantity(store.quantity.current);
         });
 
         return {
@@ -118,11 +118,11 @@ const PwcaProductQuantity = {
                 
                 <input 
                     type="number" 
-                    :value="store.quantity"
+                    :value="store.quantity.current"
                     @input="handleInput"
                     :min="store.minQuantity"
-                    :max="store.maxQuantity"
-                    :step="store.stepQuantity"
+                    :max="store.quantity.max"
+                    :step="store.quantity.step"
                     class="qty-input"
                     :class="{ 'invalid': !store.isValidQuantity }"
                 />
@@ -142,13 +142,13 @@ const PwcaProductQuantity = {
                 <p class="moq-info" v-if="store.minQuantity > 1">
                     {{ moqInfo }}
                 </p>
-                <p class="batch-info" v-if="store.moqSettings.sell_in_batch === true">
-                    Sold in batches of {{ store.stepQuantity }}
+                <p class="batch-info" v-if="store.moq.settings.sell_in_batch === true">
+                    Sold in batches of {{ store.quantity.step }}
                 </p>
                 <p class="validation-error" v-if="!store.isValidQuantity">
-                    Please enter a valid quantity ({{ store.minQuantity }} - {{ store.maxQuantity }})
+                    Please enter a valid quantity ({{ store.minQuantity }} - {{ store.quantity.max }})
                 </p>
-                <p class="batch-warning" v-if="store.moqSettings.sell_in_batch === true && !isQuantityValidForBatch" 
+                <p class="batch-warning" v-if="store.moq.settings.sell_in_batch === true && !isQuantityValidForBatch" 
                    style="color: #ff9800; font-size: 12px;">
                     Suggested quantity: {{ suggestedQuantity }} (Use +/- buttons to auto-correct)
                 </p>

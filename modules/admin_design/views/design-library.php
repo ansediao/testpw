@@ -268,7 +268,7 @@ $data_payload = array(
 					<?php wp_nonce_field( 'pw_add_design_nonce', 'pw_add_design_nonce_field' ); ?>
 
 					<div class="pwca-form-field pwca-upload-field">
-						<label for="pw-design-image" class="pwca-upload-label">
+						<label for="pwca-design-image" class="pwca-upload-label">
 							<div id="pwca-upload-placeholder">
 								<span class="dashicons dashicons-cloud-upload" aria-hidden="true"></span>
 								<p>Click or drag image here to upload</p>

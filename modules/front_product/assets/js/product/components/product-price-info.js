@@ -22,17 +22,17 @@ const PwcaProductPriceInfo = {
 
         // 计算原始总价
         const originalTotalPrice = computed(() => {
-            return originalUnitPrice.value * store.quantity;
+            return originalUnitPrice.value * store.quantity.current;
         });
 
         // 计算折扣后总价
         const totalPrice = computed(() => {
-            return unitPrice.value * store.quantity;
+            return unitPrice.value * store.quantity.current;
         });
 
         // 计算总折扣金额
         const totalDiscountAmount = computed(() => {
-            if (!store.quantityDiscountEnabled || store.buySampleChecked) {
+            if (!store.features.quantityDiscount || store.ui.buySampleChecked) {
                 return 0;
             }
             return originalTotalPrice.value - totalPrice.value;
@@ -99,7 +99,7 @@ const PwcaProductPriceInfo = {
             </div>
             
             <div class="shipping-section">
-                <div v-if="store.rts_date" class="shipping-item">
+                <div v-if="store.rts.enabled" class="shipping-item">
                     <label class="shipping-label">Estimated Ship Date:</label>
                     <span class="shipping-value">{{ estimatedShipDate }}</span>
                 </div>

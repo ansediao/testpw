@@ -295,7 +295,7 @@ const pwcaBuildDesignPayload = () => {
   const ds =
     typeof window.pwcaUseDesignUsageStore === 'function' && window.pwcaPinia ? window.pwcaUseDesignUsageStore(window.pwcaPinia) : null;
 
-  const designList = ds && Array.isArray(ds.list) ? ds.list : [];
+  const designList = ds && Array.isArray(ds.items) ? ds.items : [];
   const payload = designList.map((item) => ({
     name: String(item?.name || ''),
     image: String(item?.image || ''),
@@ -358,12 +358,12 @@ const pwcaResolveMoqAndDiscount = () => {
     if (typeof pwcaUseProductStore === 'function') {
       const ps = pwcaUseProductStore();
       minOrderQuantity = parseInt(ps?.minQuantity, 10) || 1;
-      batchQuantity = parseInt(ps?.stepQuantity, 10) || 1;
-      sellInBatch = ps?.moqSettings?.sell_in_batch ? '1' : '0';
-      discountEnabled = ps?.quantityDiscountEnabled ? '1' : '0';
-      currentDiscount = Number(ps?.getCurrentDiscount || 0);
-      discountText = ps?.getDiscountText || '';
-      quantityDiscountsJson = JSON.stringify(ps?.quantityDiscounts || []);
+      batchQuantity = parseInt(ps?.quantity?.step, 10) || 1;
+      sellInBatch = ps?.moq?.settings?.sell_in_batch ? '1' : '0';
+      discountEnabled = ps?.features?.quantityDiscount ? '1' : '0';
+      currentDiscount = Number(ps?.currentDiscount || 0);
+      discountText = ps?.discountText || '';
+      quantityDiscountsJson = JSON.stringify(ps?.moq?.discounts || []);
     } else {
       const qtyEl = document.querySelector('.pwca-product-card__input');
       minOrderQuantity = qtyEl ? parseInt(qtyEl.getAttribute('min') || '1', 10) || 1 : 1;

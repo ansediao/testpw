@@ -2,7 +2,7 @@
 	const root = document.querySelector('.pwca-admin-design')
 	if (!root) return
 
-	const appEl = document.getElementById('pw-design-app')
+	const appEl = document.getElementById('pwca-design-app')
 	if (appEl) {
 		appEl.hidden = true
 		appEl.setAttribute('aria-busy', 'true')

@@ -101,7 +101,7 @@ const PwcaProductAccessories = {
 
         // Calculate total quantity for accessories (1:1 with main product)
         const accessoryQuantity = Vue.computed(() => {
-            return store.quantity;
+            return store.quantity.current;
         });
 
         // Calculate total accessories price per unit (for store integration)

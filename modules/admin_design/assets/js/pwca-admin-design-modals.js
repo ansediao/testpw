@@ -229,17 +229,17 @@
 				if (!response?.success) {
 					checkedSku = sku
 					skuUnique = false
-					setMessage('error', `检查失�? ${response?.data || '未知错误'}`)
+					setMessage('error', `检查失败 ${response?.data || '未知错误'}`)
 					return
 				}
 
 				checkedSku = sku
 				skuUnique = Boolean(response.data?.unique)
-				setMessage(skuUnique ? 'success' : 'error', response.data?.message || (skuUnique ? 'SKU 可用' : 'SKU 已存在，请更�?))
+				setMessage(skuUnique ? 'success' : 'error', response.data?.message || (skuUnique ? 'SKU 可用' : 'SKU 已存在，请更换'))
 			} catch (error) {
 				checkedSku = sku
 				skuUnique = false
-				setMessage('error', `检查失�? ${error instanceof Error ? error.message : '未知错误'}`)
+				setMessage('error', `检查失败 ${error instanceof Error ? error.message : '未知错误'}`)
 			} finally {
 				checking = false
 				updateSubmitState()

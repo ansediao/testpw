@@ -14,11 +14,11 @@ const PwcaQuantityDiscountSlider = {
         const discountTiers = Vue.computed(() => {
             if (!store.hasQuantityDiscounts) return [];
             
-            return store.quantityDiscounts.map(discount => ({
+            return store.moq.discounts.map(discount => ({
                 quantity: discount.range_from,
                 discount: discount.discount,
                 discountText: Math.round((1 - discount.discount) * 100) + '% OFF',
-                isActive: store.quantity >= discount.range_from && 
+                isActive: store.quantity.current >= discount.range_from && 
                          (store.currentDiscount === discount.discount)
             }));
         });
@@ -89,7 +89,7 @@ const PwcaQuantityDiscountSlider = {
                         :style="{ left: currentPosition + '%' }"
                     >
                         <div class="quantity-bubble">
-                            {{ store.quantity }}
+                            {{ store.quantity.current }}
                         </div>
                     </div>
                     

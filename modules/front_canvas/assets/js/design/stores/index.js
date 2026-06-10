@@ -34,44 +34,35 @@ const { createPinia, defineStore } = window.Pinia;
 export const useCanvasStore = defineStore('canvas', {
     // 3. state 定义所有需要全局管理的数据
     state: () => ({
-        // canvasStates：存储每个画板的状态（如对象、图层等），初始包含 3 个画板
+        // ===== 画布运行时: canvas =====
         canvasStates: { canvas1: null, canvas2: null, canvas3: null },
-        // activeCanvasId：当前激活的画板 id，默认是 canvas1
         activeCanvasId: 'canvas1',
-        // layers：当前画板的所有图层对象（用于底部图层面板显示）
+        // ===== 图层/对象: layers =====
         layers: [],
-        // viewLayers：按视图分组的图层管理 { viewId: [layers] }
         viewLayers: {},
-        // activeObjectId：当前选中的对象 id（用于高亮和操作）
         activeObjectId: null,
-        // actionRequest：全局动作请求（如添加、删除、克隆图层等），用于跨组件通信
         actionRequest: null,
-        // 图层组相关状态
-        layerGroups: [],        // 图层组列表
-        // viewLayerGroups：按视图分组的图层组管理 { viewId: [layerGroups] }
+        layerGroups: [],
         viewLayerGroups: {},
-        activeGroupId: null,    // 当前选中的图层组ID
-        // ===== 状态恢复标记 =====
-        // 标记是否正在恢复状态，防止循环保存
+        activeGroupId: null,
+        // ===== 状态恢复: restoring =====
         isRestoringState: false,
-        // 产品数据相关状态
-        productData: null,      // 存储从 API 获取的产品数据
-        isLoadingProductData: false, // 产品数据加载状态
-        productDataError: null, // 产品数据加载错误信息
-        storeCustomizationSettings: null, // 店铺级 customization settings 原始响应
-        hasStoreCustomizationSettings: false, // 是否成功获取店铺级 settings
-        storeCustomizationSettingsError: null, // 店铺级 settings 错误信息
-        // 视图相关状态
-        views: [],              // 存储所有视图信息
-        activeView: null,       // 当前激活的视图对象
-        activeViewId: null,     // 当前激活的视图ID
-        productViewFlow: null,  // 产品视图流程类型，来自 productData.templates.views[0].view_flow
-        // ===== 新增：按视图记录用户选择的颜色（来源于 variants.data 的颜色） =====
-        // 结构：{ [viewId]: 完整的变体对象（包含 API 返回的所有字段 + selectedColor） }
+        // ===== 产品数据: product =====
+        productData: null,
+        isLoadingProductData: false,
+        productDataError: null,
+        // ===== 店铺定制配置: customization =====
+        storeCustomizationSettings: null,
+        hasStoreCustomizationSettings: false,
+        storeCustomizationSettingsError: null,
+        // ===== 视图管理: views =====
+        views: [],
+        activeView: null,
+        activeViewId: null,
+        productViewFlow: null,
+        // ===== 颜色选择: colors =====
         selectedColorsByView: {},
-        // ===== 使用 VueUse useStorage 持久化存储用户偏好设置 =====
-        // 通过 CDN 引入的 VueUse 功能，正确的访问方式是 window.VueUse
-        // 持久化存储用户的设计偏好，如画布背景色、网格显示等
+        // ===== 用户偏好: preferences =====
         userPreferences: window.VueUse && window.VueUse.useStorage ? window.VueUse.useStorage('pwca-user-preferences', {
             canvasBackgroundColor: '#ffffff',
             showGrid: true,
@@ -87,7 +78,6 @@ export const useCanvasStore = defineStore('canvas', {
             zoomLevel: 100,
             language: 'en'
         },
-        // 使用 VueUse useStorage 持久化存储所有视图 main 的 toJSON 数据，名字中要包含产品 id
         canvasStatesByProductId: window.VueUse && window.VueUse.useStorage ? window.VueUse.useStorage('pwca-canvas-states-by-product-id', {}) : {},
 
     }),
@@ -185,35 +175,6 @@ export const useCanvasStore = defineStore('canvas', {
             );
         },
         
-        // ===== 用户偏好设置相关 getter 方法 =====
-        // 获取用户偏好设置
-        getUserPreferences: (state) => {
-            return state.userPreferences;
-        },
-        // 获取画布背景色
-        getCanvasBackgroundColor: (state) => {
-            return state.userPreferences.canvasBackgroundColor;
-        },
-        // 获取是否显示网格
-        getShowGrid: (state) => {
-            return state.userPreferences.showGrid;
-        },
-        // 获取网格大小
-        getGridSize: (state) => {
-            return state.userPreferences.gridSize;
-        },
-        // 获取是否显示打印区域
-        getShowPrintArea: (state) => {
-            return state.userPreferences.showPrintArea;
-        },
-        // 获取缩放级别
-        getZoomLevel: (state) => {
-            return state.userPreferences.zoomLevel;
-        },
-        // 获取语言设置
-        getLanguage: (state) => {
-            return state.userPreferences.language;
-        },
         // 店铺级 customization settings 原始响应
         getStoreCustomizationSettings: (state) => {
             return state.storeCustomizationSettings;
@@ -700,9 +661,6 @@ const useDesignUsageStore = defineStore('designUsage', {
             }
             return total;
         },
-        list(state) {
-            return state.items;
-        }
     },
     actions: {
         addDesign(payload) {

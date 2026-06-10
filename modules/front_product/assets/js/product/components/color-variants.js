@@ -18,14 +18,14 @@ const PwcaColorVariants = {
                     <div class="pwca-loading-spinner"></div>
                 </div>
                 <div v-else-if="store.error" class="pwca-loading-variants error">{{ store.error }}</div>
-                <div v-else-if="!store.variants || store.variants.length === 0" class="pwca-loading-variants">No color variants available for this product</div>
+                <div v-else-if="!store.variant.list || store.variant.list.length === 0" class="pwca-loading-variants">No color variants available for this product</div>
                 <div v-else class="pwca-variants-container">
                     <div 
-                        v-for="(variant, index) in store.variants.filter(v => v.variant_color)" 
+                        v-for="(variant, index) in store.variant.list.filter(v => v.variant_color)" 
                         :key="variant.id"
                         class="pwca-color-variant-item"
                         :class="{ 
-                            selected: store.selectedVariant?.id === variant.id,
+                            selected: store.variant.selected?.id === variant.id,
                             disabled: !isVariantClickable
                         }"
                         @click="selectVariant(variant)"
@@ -50,7 +50,7 @@ const PwcaColorVariants = {
 
         // 直接使用 Store 中的响应式数据
         const showVariants = computed(() => {
-            const hasVariants = !store.loading && store.variants.length > 0;
+            const hasVariants = !store.loading && store.variant.list.length > 0;
             // PwcaColorVariants: showVariants 计算
             return hasVariants;
         });
@@ -58,7 +58,7 @@ const PwcaColorVariants = {
         // 计算颜色变体是否可以点击
         const isVariantClickable = computed(() => {
             // 如果选择了买样品，但是不提供颜色样品服务，则不可点击
-            if (store.buySampleChecked && !store.colorSampleService) {
+            if (store.ui.buySampleChecked && !store.features.colorSample) {
                 return false;
             }
             return true;

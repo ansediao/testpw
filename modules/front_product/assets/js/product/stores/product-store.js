@@ -24,98 +24,106 @@
     });
 
     const pwcaCreateProductStore = () => {
-    // State
+    // ===== State (按领域分组) =====
+    // 核心数据
     const productId = Vue.ref(null);
     const productData = Vue.ref(null);
     const loading = Vue.ref(false);
     const error = Vue.ref(null);
-    const selectedVariant = Vue.ref(null);
-    const variants = Vue.ref([]);
-    const quantity = Vue.ref(1);
-    const selectedOptions = Vue.reactive({});
-    const showDetails = Vue.ref(false);
-    const activeTab = Vue.ref('description');
+    const isDataFetched = Vue.ref(false);
+    const fetchPromise = Vue.ref(null);
 
-    // 暂时没找到的字段    
-    // 数量折扣是否开启
-    const quantityDiscountEnabled = Vue.ref(true);
-    // 颜色是否提供样品服务
-    const colorSampleService = Vue.ref(true);
-    // RTS Date
-    const rts_date = Vue.ref(true);
-    // 预计发货时间 数值
-    const rts_date_starts_from = Vue.ref(3);
-    // 批量订单额外处理时间
-    const rts_for_bulk_order = Vue.ref(2);
-    // 样品订单额外处理时间
-    const rts_for_sample_order = Vue.ref(1);
-
-
-    // Buy Sample checkbox state
-    const buySampleChecked = Vue.ref(false);
-    const blankProductChecked = Vue.ref(false);
-
-    // Gradient color button state
-    const gradientColorApplied = Vue.ref(false);
-
-    // Custom color / Gradient color feature toggles (from API raw data)
-    const enableCustomColor = Vue.ref(true);
-    const enableGradientColor = Vue.ref(true);
-
-    // Accessories price state
-    const accessoriesPrice = Vue.ref(0);
-    const selectedAccessoriesNames = Vue.ref([]);
-
-
-
-    // MOQ (Minimum Order Quantity) related state
-    const moqSettings = Vue.ref({
-        minimum_order_quantity: 1,
-        batch_quantity: 1,
-        sell_in_batch: false
+    // 变体选择
+    const variant = Vue.reactive({
+        selected: null,
+        list: [],
+        options: {},
     });
-    const minQuantity = Vue.ref(1);
-    const maxQuantity = Vue.ref(9999);
-    const stepQuantity = Vue.ref(1);
 
-    // Quantity Discount related state
-    const quantityDiscounts = Vue.ref([]);
+    // 数量相关
+    const quantity = Vue.reactive({
+        current: 1,
+        max: 9999,
+        step: 1,
+    });
+
+    // 功能开关
+    const features = Vue.reactive({
+        quantityDiscount: true,
+        colorSample: true,
+        customColor: true,
+        gradientColor: true,
+    });
+
+    // RTS (Ready to Ship) 相关
+    const rts = Vue.reactive({
+        enabled: true,
+        startsFrom: 3,
+        bulkOrder: 2,
+        sampleOrder: 1,
+    });
+
+    // UI 状态
+    const ui = Vue.reactive({
+        buySampleChecked: false,
+        blankProductChecked: false,
+        gradientColorApplied: false,
+        showDetails: false,
+        activeTab: 'description',
+    });
+
+    // MOQ 设置
+    const moq = Vue.reactive({
+        settings: { minimum_order_quantity: 1, batch_quantity: 1, sell_in_batch: false },
+        discounts: [],
+    });
+
+    // minQuantity 为 computed，根据 buySampleChecked 和 moqSettings 自动派生
+    const minQuantity = Vue.computed(() => {
+        return ui.buySampleChecked ? 1 : (moq.settings.minimum_order_quantity || 1);
+    });
+
+    // 配件
+    const accessories = Vue.reactive({
+        price: 0,
+        selectedNames: [],
+    });
 
     // Getters (computed)
     const isLoading = Vue.computed(() => loading.value);
     const hasError = Vue.computed(() => error.value !== null);
     const totalPrice = Vue.computed(() => {
-        return discountedPrice.value * quantity.value;
+        return discountedPrice.value * quantity.current;
     });
     const canAddToCart = Vue.computed(() => {
-        return productData.value && quantity.value >= minQuantity.value && !loading.value;
+        return productData.value && quantity.current >= minQuantity.value && !loading.value;
     });
-    const hasVariants = Vue.computed(() => variants.value.length > 0);
+    const hasVariants = Vue.computed(() => variant.list.length > 0);
     const selectedVariantPrice = Vue.computed(() => {
-        if (selectedVariant.value && selectedVariant.value.anchor_price) {
-            return parseFloat(selectedVariant.value.anchor_price);
+        if (variant.selected && variant.selected.anchor_price) {
+            return parseFloat(variant.selected.anchor_price);
         }
-        return selectedVariant.value ? parseFloat(selectedVariant.value.price) : 0;
+        return variant.selected ? parseFloat(variant.selected.price) : 0;
     });
 
     // Base unit price including accessories
     const baseUnitPrice = Vue.computed(() => {
         const productPrice = selectedVariantPrice.value || (productData.value ? productData.value.price : 0);
-        return productPrice + accessoriesPrice.value;
+        return productPrice + accessories.price;
     });
 
     // MOQ related computed properties
     const correctedQuantity = Vue.computed(() => {
         return (inputQuantity) => {
             const minQty = minQuantity.value;
-            const batchQty = stepQuantity.value;
-            const sellInBatch = moqSettings.value.sell_in_batch;
+            const batchQty = quantity.step;
+            const sellInBatch = moq.settings.sell_in_batch;
 
             if (inputQuantity < minQty) {
                 return minQty;
             }
 
-            if (buySampleChecked.value) {
+            if (ui.buySampleChecked) {
                 return inputQuantity;
             }
 
@@ -134,21 +142,21 @@
     });
 
     const isValidQuantity = Vue.computed(() => {
-        return quantity.value >= minQuantity.value && quantity.value <= maxQuantity.value;
+        return quantity.current >= minQuantity.value && quantity.current <= quantity.max;
     });
 
     // Quantity Discount computed properties
     const hasQuantityDiscounts = Vue.computed(() => {
-        return quantityDiscountEnabled.value && !buySampleChecked.value && quantityDiscounts.value.length > 0;
+        return features.quantityDiscount && !ui.buySampleChecked && moq.discounts.length > 0;
     });
 
     const currentDiscount = Vue.computed(() => {
-        if (!quantityDiscountEnabled.value || buySampleChecked.value || !hasQuantityDiscounts.value) return 0;
+        if (!features.quantityDiscount || ui.buySampleChecked || !hasQuantityDiscounts.value) return 0;
 
         let applicableDiscount = 0;
         // 找到适用的最高折扣梯度（数量大于等于range_from的最大梯度）
-        for (const discount of quantityDiscounts.value) {
-            if (quantity.value >= discount.range_from) {
+        for (const discount of moq.discounts) {
+            if (quantity.current >= discount.range_from) {
                 applicableDiscount = discount.discount;
                 // 继续查找更高的梯度，因为数组已按range_from排序
             }
@@ -156,10 +164,8 @@
         return applicableDiscount;
     });
 
-    const getCurrentDiscount = Vue.computed(() => currentDiscount.value);
-
     const discountText = Vue.computed(() => {
-        if (!quantityDiscountEnabled.value || buySampleChecked.value) return '';
+        if (!features.quantityDiscount || ui.buySampleChecked) return '';
 
         const discount = currentDiscount.value;
         if (discount === 0) return '';
@@ -168,10 +174,8 @@
         return `${percentage}% OFF`;
     });
 
-    const getDiscountText = Vue.computed(() => discountText.value);
-
     const discountedPrice = Vue.computed(() => {
-        if (!quantityDiscountEnabled.value || buySampleChecked.value) {
+        if (!features.quantityDiscount || ui.buySampleChecked) {
             return baseUnitPrice.value;
         }
 
@@ -184,14 +188,14 @@
         // 获取当前日期
         const currentDate = new Date();
 
-        // 基础天数：rts_date_starts_from
-        let totalDays = rts_date_starts_from.value;
+        // 基础天数：rts.startsFrom
+        let totalDays = rts.startsFrom;
 
         // 根据是否为样品订单选择额外处理时间
-        if (buySampleChecked.value) {
-            totalDays += rts_for_sample_order.value;
+        if (ui.buySampleChecked) {
+            totalDays += rts.sampleOrder;
         } else {
-            totalDays += rts_for_bulk_order.value;
+            totalDays += rts.bulkOrder;
         }
 
         // 计算目标日期
@@ -210,17 +214,13 @@
     const shouldShowAddToCart = Vue.computed(() => {
         // 当渐变颜色被应用时隐藏按钮
         // 当勾选Blank Product时显示，未勾选时隐藏
-        return productData.value && !loading.value && !gradientColorApplied.value && blankProductChecked.value;
+        return productData.value && !loading.value && !ui.gradientColorApplied && ui.blankProductChecked;
     });
-
-    const showAddToCartButton = Vue.computed(() => shouldShowAddToCart.value);
 
     const shouldShowCustomize = Vue.computed(() => {
         // 当勾选Blank Product时隐藏，未勾选时显示
-        return productData.value && !loading.value && !blankProductChecked.value;
+        return productData.value && !loading.value && !ui.blankProductChecked;
     });
-
-    const showCustomizeButton = Vue.computed(() => shouldShowCustomize.value);
 
     // Checkbox visibility getters
     const showBuySampleCheckbox = Vue.computed(() => {
@@ -230,19 +230,19 @@
 
     const showBlankProductCheckbox = Vue.computed(() => {
         // 当渐变颜色被应用时隐藏复选框
-        return productData.value && !loading.value && !gradientColorApplied.value;
+        return productData.value && !loading.value && !ui.gradientColorApplied;
     });
 
     // Button visibility getters - based on API feature toggles
     // 预留叠加其他逻辑的空间（如视图配置、店铺设置等）
     const showGradientButton = Vue.computed(() => {
-        if (!enableGradientColor.value) return false;
+        if (!features.gradientColor) return false;
         // TODO: 后续可叠加其他条件，例如视图配置、店铺定制设置等
         return true;
     });
 
     const showCustomColorButton = Vue.computed(() => {
-        if (!enableCustomColor.value) return false;
+        if (!features.customColor) return false;
         // TODO: 后续可叠加其他条件，例如视图配置、店铺定制设置等
         return true;
     });
@@ -258,10 +258,10 @@
 
         if (productApiData) {
             const avgShippingTime = parseInt(productApiData.avg_shipping_time) || 0;
-            const rtsDateStartsFrom = rts_date_starts_from.value || 3;
-            const processingTime = blankProductChecked.value
-                ? (parseInt(productApiData.rts_for_sample_order) || rts_for_sample_order.value || 1)
-                : (parseInt(productApiData.rts_for_bulk_order) || rts_for_bulk_order.value || 2);
+            const rtsDateStartsFrom = rts.startsFrom || 3;
+            const processingTime = ui.blankProductChecked
+                ? (parseInt(productApiData.rts_for_sample_order) || rts.sampleOrder || 1)
+                : (parseInt(productApiData.rts_for_bulk_order) || rts.bulkOrder || 2);
 
             const totalDays = avgShippingTime + processingTime + rtsDateStartsFrom;
             const currentDate = new Date();
@@ -339,19 +339,19 @@
     };
 
     const setGradientColorApplied = (applied) => {
-        gradientColorApplied.value = applied;
+        ui.gradientColorApplied = applied;
     };
 
     const setEnableCustomColor = (enabled) => {
-        enableCustomColor.value = !!enabled;
+        features.customColor = !!enabled;
     };
 
     const setEnableGradientColor = (enabled) => {
-        enableGradientColor.value = !!enabled;
+        features.gradientColor = !!enabled;
     };
 
     const resetSelectedVariant = () => {
-        selectedVariant.value = null;
+        variant.selected = null;
     };
 
     const resetCustomColorState = () => {
@@ -361,26 +361,26 @@
 
     const updateQuantity = (qty) => {
         // 首先确保数量在有效范围内
-        const clampedQty = Math.max(minQuantity.value, Math.min(qty, maxQuantity.value));
+        const clampedQty = Math.max(minQuantity.value, Math.min(qty, quantity.max));
 
         // 然后根据批量销售要求进行修正
         const corrected = correctedQuantity.value(clampedQty);
 
-        quantity.value = corrected;
+        quantity.current = corrected;
     };
 
     // 直接设置数量，不进行批次修正（用于输入框）
     const setQuantityDirect = (qty) => {
         // 只进行基本的范围限制，不进行批次修正
-        const clampedQty = Math.max(1, Math.min(qty, maxQuantity.value));
-        quantity.value = clampedQty;
+        const clampedQty = Math.max(1, Math.min(qty, quantity.max));
+        quantity.current = clampedQty;
     };
 
     // 获取下一个有效的批次数量（增加方向）
     const getNextValidQuantity = (currentQty) => {
         const minQty = minQuantity.value;
-        const batchQty = stepQuantity.value;
-        const sellInBatch = moqSettings.value.sell_in_batch;
+        const batchQty = quantity.step;
+        const sellInBatch = moq.settings.sell_in_batch;
 
         if (sellInBatch !== true || batchQty <= 1) {
             return currentQty + 1;
@@ -399,8 +399,8 @@
     // 获取上一个有效的批次数量（减少方向）
     const getPreviousValidQuantity = (currentQty) => {
         const minQty = minQuantity.value;
-        const batchQty = stepQuantity.value;
-        const sellInBatch = moqSettings.value.sell_in_batch;
+        const batchQty = quantity.step;
+        const sellInBatch = moq.settings.sell_in_batch;
 
         if (sellInBatch !== true || batchQty <= 1) {
             return Math.max(minQty, currentQty - 1);
@@ -429,61 +429,43 @@
 
     const setMoqSettings = (settings) => {
         if (settings) {
-            moqSettings.value = {
+            moq.settings = {
                 minimum_order_quantity: settings.minimum_order_quantity || 1,
                 batch_quantity: settings.batch_quantity || 1,
                 sell_in_batch: settings.sell_in_batch || false
             };
 
             // 更新相关的响应式状态
-            minQuantity.value = moqSettings.value.minimum_order_quantity;
+            // minQuantity 由 computed 自动派生，不再需要手动赋值
 
             // 根据 sell_in_batch 设置步进值
-            if (moqSettings.value.sell_in_batch === true) {
-                stepQuantity.value = moqSettings.value.batch_quantity;
+            if (moq.settings.sell_in_batch === true) {
+                quantity.step = moq.settings.batch_quantity;
             } else {
-                stepQuantity.value = 1; // 不按批次销售时，步进值为1
+                quantity.step = 1; // 不按批次销售时，步进值为1
             }
 
             // 如果当前数量小于最小数量，自动调整
-            if (quantity.value < minQuantity.value) {
-                quantity.value = minQuantity.value;
+            if (quantity.current < minQuantity.value) {
+                quantity.current = minQuantity.value;
             }
 
             // 如果按批次销售，确保当前数量符合批次要求
-            if (moqSettings.value.sell_in_batch === true) {
-                const corrected = correctedQuantity.value(quantity.value);
-                if (corrected !== quantity.value) {
-                    quantity.value = corrected;
+            if (moq.settings.sell_in_batch === true) {
+                const corrected = correctedQuantity.value(quantity.current);
+                if (corrected !== quantity.current) {
+                    quantity.current = corrected;
                 }
             }
         }
     };
-
-    Vue.watch(buySampleChecked, (isSample) => {
-        if (isSample) {
-            minQuantity.value = 1;
-            quantity.value = 1;
-        } else {
-            minQuantity.value = moqSettings.value.minimum_order_quantity || 1;
-            if (quantity.value < minQuantity.value) {
-                quantity.value = minQuantity.value;
-            }
-            if (moqSettings.value.sell_in_batch === true) {
-                const corrected = correctedQuantity.value(quantity.value);
-                if (corrected !== quantity.value) {
-                    quantity.value = corrected;
-                }
-            }
-        }
-    });
 
     const setQuantityDiscounts = (discounts) => {
         if (!Array.isArray(discounts)) {
             return;
         }
 
-        quantityDiscounts.value = discounts.map(discount => ({
+        moq.discounts = discounts.map(discount => ({
             type: discount.type || 'MOQ',
             range_from: parseInt(discount.range_from) || 0,
             range_to: parseInt(discount.range_to) || 0,
@@ -493,62 +475,62 @@
     };
 
     const setSelectedOption = (key, value) => {
-        selectedOptions[key] = value;
+        variant.options[key] = value;
     };
 
     const toggleDetails = () => {
-        showDetails.value = !showDetails.value;
+        ui.showDetails = !ui.showDetails;
     };
 
     const setActiveTab = (tab) => {
-        activeTab.value = tab;
+        ui.activeTab = tab;
     };
 
-    const setSelectedVariant = (variant) => {
-        selectedVariant.value = variant;
+    const setSelectedVariant = (variantData) => {
+        variant.selected = variantData;
     };
 
     const setVariants = (vars) => {
-        variants.value = vars;
+        variant.list = vars;
     };
 
     const setQuantityDiscountEnabled = (enabled) => {
-        quantityDiscountEnabled.value = !!enabled;
+        features.quantityDiscount = !!enabled;
     };
 
     const setColorSampleService = (enabled) => {
-        colorSampleService.value = !!enabled;
+        features.colorSample = !!enabled;
     };
 
     const setRtsDate = (enabled) => {
-        rts_date.value = !!enabled;
+        rts.enabled = !!enabled;
     };
 
     const setRtsDateStartsFrom = (days) => {
-        rts_date_starts_from.value = parseInt(days) || 3;
+        rts.startsFrom = parseInt(days) || 3;
     };
 
     const setRtsForBulkOrder = (days) => {
-        rts_for_bulk_order.value = parseInt(days) || 2;
+        rts.bulkOrder = parseInt(days) || 2;
     };
 
     const setRtsForSampleOrder = (days) => {
-        rts_for_sample_order.value = parseInt(days) || 1;
+        rts.sampleOrder = parseInt(days) || 1;
     };
 
     const setBuySampleChecked = (checked) => {
-        buySampleChecked.value = !!checked;
+        ui.buySampleChecked = !!checked;
     };
 
     const setBlankProductChecked = (checked) => {
-        blankProductChecked.value = !!checked;
+        ui.blankProductChecked = !!checked;
     };
 
     const setAccessoriesPrice = (price) => {
-        accessoriesPrice.value = parseFloat(price) || 0;
+        accessories.price = parseFloat(price) || 0;
     };
     const setSelectedAccessoriesNames = (names) => {
-        selectedAccessoriesNames.value = Array.isArray(names) ? names : [];
+        accessories.selectedNames = Array.isArray(names) ? names : [];
     };
 
     const applyMappedProductData = (mappedData) => {
@@ -631,10 +613,6 @@
         applyMappedProductData(mappedData);
     };
 
-    // 添加请求状态跟踪
-    const isDataFetched = Vue.ref(false);
-    const fetchPromise = Vue.ref(null);
-
     const fetchProductData = async () => {
         if (!productId.value) return;
 
@@ -700,15 +678,15 @@
         setLoading(true);
         try {
             // 使用传入的数量参数，如果没有则使用 store 中的数量
-            const finalQuantity = customQuantity !== null ? customQuantity : quantity.value;
-            await window.pwcaProductCartSubmitService.checkCartBlankState(blankProductChecked.value);
+            const finalQuantity = customQuantity !== null ? customQuantity : quantity.current;
+            await window.pwcaProductCartSubmitService.checkCartBlankState(ui.blankProductChecked);
 
             const canvasPayload = await window.pwcaProductCanvasPayloadBuilder.buildCanvasPayload();
-            const variant = selectedVariant.value || (Array.isArray(variants.value) && variants.value.length > 0 ? variants.value[0] : null);
-            const colorInfo = variant ? {
-                color_name: (variant.isCustom ? 'Custom Color' : (variant.variant_name || variant.name || '')),
-                color_value: variant.variant_color || variant.color || '',
-                variant_id: variant.id || ''
+            const selectedVariantData = variant.selected || (Array.isArray(variant.list) && variant.list.length > 0 ? variant.list[0] : null);
+            const colorInfo = selectedVariantData ? {
+                color_name: (selectedVariantData.isCustom ? 'Custom Color' : (selectedVariantData.variant_name || selectedVariantData.name || '')),
+                color_value: selectedVariantData.variant_color || selectedVariantData.color || '',
+                variant_id: selectedVariantData.id || ''
             } : {
                 color_name: '',
                 color_value: '',
@@ -718,18 +696,18 @@
             const formData = window.pwcaProductCartSubmitService.buildAddToCartFormData({
                 productId: productId.value,
                 quantity: finalQuantity,
-                variant,
+                variant: selectedVariantData,
                 colorInfo,
                 minQuantity: minQuantity.value,
-                stepQuantity: stepQuantity.value,
-                sellInBatch: !!moqSettings.value.sell_in_batch,
-                isSample: buySampleChecked.value,
-                isBlank: blankProductChecked.value,
-                discountEnabled: quantityDiscountEnabled.value,
+                stepQuantity: quantity.step,
+                sellInBatch: !!moq.settings.sell_in_batch,
+                isSample: ui.buySampleChecked,
+                isBlank: ui.blankProductChecked,
+                discountEnabled: features.quantityDiscount,
                 currentDiscount: currentDiscount.value,
                 discountText: discountText.value,
-                quantityDiscounts: quantityDiscounts.value,
-                selectedAccessoriesNames: selectedAccessoriesNames.value
+                quantityDiscounts: moq.discounts,
+                selectedAccessoriesNames: accessories.selectedNames
             }, canvasPayload);
 
             await window.pwcaProductCartSubmitService.submitAddToCart(formData);
@@ -744,37 +722,29 @@
     };
 
     return proxyRefs({
-        // State
+        // ===== State (按领域分组) =====
         productId,
         productData,
         loading,
         error,
-        selectedVariant,
-        variants,
-        quantity,
-        selectedOptions,
-        showDetails,
-        activeTab,
         isDataFetched,
-        quantityDiscountEnabled,
-        colorSampleService,
-        rts_date,
-        rts_date_starts_from,
-        rts_for_bulk_order,
-        rts_for_sample_order,
-        buySampleChecked,
-        blankProductChecked,
-        gradientColorApplied,
-        enableCustomColor,
-        enableGradientColor,
-        accessoriesPrice,
-        selectedAccessoriesNames,
-        moqSettings,
-        minQuantity,
-        maxQuantity,
-        stepQuantity,
-        quantityDiscounts,
-        // Getters
+        // 变体选择
+        variant,        // { selected, list, options }
+        // 数量相关
+        quantity,       // { current, max, step }
+        minQuantity,    // computed
+        // 功能开关
+        features,       // { quantityDiscount, colorSample, customColor, gradientColor }
+        // RTS
+        rts,            // { enabled, startsFrom, bulkOrder, sampleOrder }
+        // UI 状态
+        ui,             // { buySampleChecked, blankProductChecked, gradientColorApplied, showDetails, activeTab }
+        // MOQ
+        moq,            // { settings, discounts }
+        // 配件
+        accessories,    // { price, selectedNames }
+
+        // ===== Getters =====
         isLoading,
         hasError,
         totalPrice,
@@ -786,23 +756,19 @@
         isValidQuantity,
         hasQuantityDiscounts,
         currentDiscount,
-        getCurrentDiscount,
         discountText,
-        getDiscountText,
         discountedPrice,
         estimatedShipDate,
         estimatedDeliveryDate,
         shouldShowDeliveryDate,
         shouldShowAddToCart,
-        showAddToCartButton,
         shouldShowCustomize,
-        showCustomizeButton,
         showBuySampleCheckbox,
         showBlankProductCheckbox,
         showGradientButton,
         showCustomColorButton,
 
-        // Actions
+        // ===== Actions =====
         setProductId,
         setProductData,
         setLoading,
