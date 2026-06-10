@@ -240,7 +240,7 @@ function addMessageStyles() {
 }
 
 // 将函数暴露到全局作用域
-window.showSuccessMessage = showSuccessMessage;
-window.showErrorMessage = showErrorMessage;
-window.showInfoMessage = showInfoMessage;
-window.showMessage = showMessage;
+window.pwcaShowSuccessMessage = showSuccessMessage;
+window.pwcaShowErrorMessage = showErrorMessage;
+window.pwcaShowInfoMessage = showInfoMessage;
+window.pwcaShowMessage = showMessage;

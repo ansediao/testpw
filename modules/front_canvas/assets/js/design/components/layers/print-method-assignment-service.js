@@ -68,8 +68,8 @@ function validateCanvasObjects(viewId, layers) {
         !Array.isArray(layers) ||
         !window.pwcaCanvasManager ||
         typeof window.pwcaCanvasManager.getCanvas !== 'function' ||
-        !window.PrintAreaValidator ||
-        typeof window.PrintAreaValidator.pwcaValidateAndRepositionObject !== 'function'
+        !window.pwcaPrintAreaValidator ||
+        typeof window.pwcaPrintAreaValidator.pwcaValidateAndRepositionObject !== 'function'
     ) {
         return;
     }
@@ -87,7 +87,7 @@ function validateCanvasObjects(viewId, layers) {
         }
 
         try {
-            window.PrintAreaValidator.pwcaValidateAndRepositionObject(targetObject, viewId);
+            window.pwcaPrintAreaValidator.pwcaValidateAndRepositionObject(targetObject, viewId);
         } catch (error) {
         }
     });

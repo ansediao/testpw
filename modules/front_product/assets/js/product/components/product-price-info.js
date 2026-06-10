@@ -3,8 +3,8 @@
  * 显示产品单价、总价、预计发货时间和到货时间
  */
 
-const ProductPriceInfo = {
-    name: 'ProductPriceInfo',
+const PwcaProductPriceInfo = {
+    name: 'PwcaProductPriceInfo',
 
     setup() {
         const { computed } = Vue;
@@ -114,4 +114,4 @@ const ProductPriceInfo = {
 };
 
 // Register component globally
-window.ProductPriceInfo = ProductPriceInfo;
+window.pwcaProductPriceInfo = PwcaProductPriceInfo;

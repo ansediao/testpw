@@ -3,8 +3,8 @@
  * Displays product accessories with dropdown selection and 1:1 quantity relationship
  */
 
-const ProductAccessories = {
-    name: 'ProductAccessories',
+const PwcaProductAccessories = {
+    name: 'PwcaProductAccessories',
 
     setup() {
         // Access shared store
@@ -242,4 +242,4 @@ const ProductAccessories = {
 };
 
 // Register component globally
-window.ProductAccessories = ProductAccessories;
+window.pwcaProductAccessories = PwcaProductAccessories;

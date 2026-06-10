@@ -130,8 +130,8 @@ function pwcaCaptureMultiLayerCanvasWithMask(canvasLayers, view) {
                         if (fabricCanvas && typeof fabricCanvas.getObjects === 'function' && fabricCanvas.lowerCanvasEl) {
                             const objs = fabricCanvas.getObjects() || []; const originalVisibility = objs.map(o => o.visible);
                             const assigned = []; const unassigned = [];
-                            if (window.PrintAreaValidator && typeof window.PrintAreaValidator.pwcaHasPrintMethodAssigned === 'function') {
-                                for (const obj of objs) { if (obj && obj.id && window.PrintAreaValidator.pwcaHasPrintMethodAssigned(obj)) assigned.push(obj); else unassigned.push(obj); }
+                            if (window.pwcaPrintAreaValidator && typeof window.pwcaPrintAreaValidator.pwcaHasPrintMethodAssigned === 'function') {
+                                for (const obj of objs) { if (obj && obj.id && window.pwcaPrintAreaValidator.pwcaHasPrintMethodAssigned(obj)) assigned.push(obj); else unassigned.push(obj); }
                             }
                             for (const obj of assigned) { obj.visible = false; } fabricCanvas.renderAll(); finalCtx.drawImage(fabricCanvas.lowerCanvasEl, 0, 0);
                             objs.forEach((obj, i) => { obj.visible = originalVisibility[i]; }); fabricCanvas.renderAll();
@@ -150,7 +150,7 @@ function pwcaCaptureMultiLayerCanvasWithMask(canvasLayers, view) {
                         for (let i = 3; i < binaryImageData.data.length; i += 4) { if (binaryImageData.data[i] > 0) { binaryImageData.data[i] = 255; } }
                         try {
                             const viewId = view && (view.id || view.view_id) ? (view.id || view.view_id) : null; let bounds = null;
-                            if (viewId && window.PrintAreaValidator && typeof window.PrintAreaValidator.pwcaGetPrintAreaBounds === 'function') { bounds = window.PrintAreaValidator.pwcaGetPrintAreaBounds(viewId); }
+                            if (viewId && window.pwcaPrintAreaValidator && typeof window.pwcaPrintAreaValidator.pwcaGetPrintAreaBounds === 'function') { bounds = window.pwcaPrintAreaValidator.pwcaGetPrintAreaBounds(viewId); }
                             if (!bounds) { const w = finalCanvas.width; const h = finalCanvas.height; const left = Math.floor((w - printAreaWidth) / 2); const top = Math.floor((h - printAreaHeight) / 2); bounds = { left, top, right: left + Math.floor(printAreaWidth), bottom: top + Math.floor(printAreaHeight) }; }
                             if (bounds) {
                                 const w = binaryMaskCanvas.width; const h = binaryMaskCanvas.height; const left = Math.max(0, Math.floor(bounds.left)); const top = Math.max(0, Math.floor(bounds.top)); const right = Math.min(w, Math.ceil(bounds.right)); const bottom = Math.min(h, Math.ceil(bounds.bottom));

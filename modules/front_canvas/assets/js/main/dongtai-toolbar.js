@@ -33,9 +33,9 @@
             return false;
         }
 
-        if (window.PrintAreaValidator &&
-            typeof window.PrintAreaValidator.pwcaHasPrintMethodAssigned === 'function' &&
-            !window.PrintAreaValidator.pwcaHasPrintMethodAssigned(activeObject)) {
+        if (window.pwcaPrintAreaValidator &&
+            typeof window.pwcaPrintAreaValidator.pwcaHasPrintMethodAssigned === 'function' &&
+            !window.pwcaPrintAreaValidator.pwcaHasPrintMethodAssigned(activeObject)) {
 
             if (typeof window.pwcaTriggerPrintMethodModal === 'function') {
                 window.pwcaTriggerPrintMethodModal(activeObject.id);

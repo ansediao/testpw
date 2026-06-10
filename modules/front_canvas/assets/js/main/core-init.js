@@ -29,7 +29,7 @@ function pwcaIsUserInitiatedAction(obj) {
     return obj.userInitiated === true || obj.fromToolbar === true || obj.fromButton === true;
 }
 
-window.CanvasInitializationState = CanvasInitializationState;
+window.pwcaCanvasInitializationState = CanvasInitializationState;
 window.pwcaIsUserInitiatedAction = pwcaIsUserInitiatedAction;
 
 const pwcaOptionalTabModuleMap = {
@@ -304,7 +304,7 @@ window.pwcaListAvailableTabs = pwcaListAvailableTabs;
 window.pwcaGetEnabledOperationModules = pwcaGetEnabledOperationModules;
 window.pwcaIsOperationPanelTabAvailable = pwcaIsOperationPanelTabAvailable;
 window.pwcaApplyOperationPanelModuleVisibility = pwcaApplyOperationPanelModuleVisibility;
-window.showTabControlHelp = function() {
+window.pwcaShowTabControlHelp = function() {
     const help = {
         'pwcaSwitchOperationPanelTab(tabId)': 'Switch to the specified tab',
         'pwcaGetCurrentActiveTab()': 'Get the current active tab ID',

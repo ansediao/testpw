@@ -4,7 +4,7 @@ function pwcaGetCurrentSelectedColor() {
         const color = selectedSwatch.getAttribute('data-color');
         if (color) return color;
     }
-    if (window.currentColor) return window.currentColor;
+    if (window.pwcaCurrentColor) return window.pwcaCurrentColor;
     const customColorPicker = document.getElementById('customColorPicker');
     if (customColorPicker && customColorPicker.value) return customColorPicker.value;
     return '#000000';
@@ -16,7 +16,7 @@ function pwcaGetExplicitSelectedColor() {
         const color = selectedSwatch.getAttribute('data-color');
         if (color) return color;
     }
-    if (window.currentColor && window.currentColor !== '#000000') return window.currentColor;
+    if (window.pwcaCurrentColor && window.pwcaCurrentColor !== '#000000') return window.pwcaCurrentColor;
     const customColorPicker = document.getElementById('customColorPicker');
     if (customColorPicker && customColorPicker.value && customColorPicker.value !== '#000000') return customColorPicker.value;
     return null;

@@ -631,6 +631,6 @@ document.addEventListener('multiViewInitComplete', () => {
 export { CanvasStateIntegration, canvasStateIntegration };
 
 // 挂载到全局对象
-window.CanvasStateIntegration = CanvasStateIntegration;
+window.pwcaCanvasStateIntegrationCtor = CanvasStateIntegration;
 window.pwcaCanvasStateIntegration = canvasStateIntegration;
 window.pwcaEnsureCanvasStateIntegrationReady = pwcaEnsureCanvasStateIntegrationReady;

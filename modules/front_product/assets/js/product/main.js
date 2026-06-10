@@ -94,19 +94,19 @@ document.addEventListener('DOMContentLoaded', function () {
     // Check if all modules are loaded
     const modulesLoaded = {
         store: !!window.pwcaUseProductStore,
-        productQuantity: !!window.ProductQuantity,
-        productPriceInfo: !!window.ProductPriceInfo,
-        addToCart: !!window.AddToCart,
-        colorVariants: !!window.ColorVariants,
-        checkboxOptions: !!window.CheckboxOptions,
-        quantityDiscountSlider: !!window.QuantityDiscountSlider,
-        productAccessories: !!window.ProductAccessories,
+        productQuantity: !!window.pwcaProductQuantity,
+        productPriceInfo: !!window.pwcaProductPriceInfo,
+        addToCart: !!window.pwcaAddToCart,
+        colorVariants: !!window.pwcaColorVariants,
+        checkboxOptions: !!window.pwcaCheckboxOptions,
+        quantityDiscountSlider: !!window.pwcaQuantityDiscountSlider,
+        productAccessories: !!window.pwcaProductAccessories,
         customColorsButton: !!window.pwcaCustomColorsButton
     };
 
 
 
-    // Initialize application - make ProductAccessories optional
+    // Initialize application - make PwcaProductAccessories optional
     if (modulesLoaded.store && modulesLoaded.productQuantity && modulesLoaded.productPriceInfo && modulesLoaded.addToCart && modulesLoaded.colorVariants && modulesLoaded.checkboxOptions && modulesLoaded.quantityDiscountSlider) {
         initializeModularApp(productId);
     } else {
@@ -139,13 +139,13 @@ function initializeModularApp(productId) {
         },
 
         components: {
-            ProductQuantity: window.ProductQuantity,
-            ProductPriceInfo: window.ProductPriceInfo,
-            AddToCart: window.AddToCart,
-            ColorVariants: window.ColorVariants,
-            CheckboxOptions: window.CheckboxOptions,
-            QuantityDiscountSlider: window.QuantityDiscountSlider,
-            ...(window.ProductAccessories && { ProductAccessories: window.ProductAccessories }),
+            PwcaProductQuantity: window.pwcaProductQuantity,
+            PwcaProductPriceInfo: window.pwcaProductPriceInfo,
+            PwcaAddToCart: window.pwcaAddToCart,
+            PwcaColorVariants: window.pwcaColorVariants,
+            PwcaCheckboxOptions: window.pwcaCheckboxOptions,
+            QuantityDiscountSlider: window.pwcaQuantityDiscountSlider,
+            ...(window.pwcaProductAccessories && { PwcaProductAccessories: window.pwcaProductAccessories }),
             ...(window.pwcaCustomColorsButton && { CustomColorsButton: window.pwcaCustomColorsButton })
         },
 
@@ -154,7 +154,7 @@ function initializeModularApp(productId) {
                 
                 <div class="app-content">
                     <div class="color-variants-section">
-                        <ColorVariants />
+                        <PwcaColorVariants />
                     </div>
                     
                     <!-- 自定义颜色按钮组 -->
@@ -164,24 +164,24 @@ function initializeModularApp(productId) {
                     
                     <!-- 添加新模块 -->
                     <div class="checkbox-options-section">
-                        <CheckboxOptions />
+                        <PwcaCheckboxOptions />
                     </div>
                     
                     <div class="quantity-section">
-                        <ProductQuantity />
+                        <PwcaProductQuantity />
                     </div>
                     
                     <!-- 添加配件组件到ProductQuantity下面 -->
-                    <div class="accessories-section" v-if="$options.components.ProductAccessories">
-                        <ProductAccessories />
+                    <div class="accessories-section" v-if="$options.components.PwcaProductAccessories">
+                        <PwcaProductAccessories />
                     </div>
                     
                     <div class="price-info-section">
-                        <ProductPriceInfo />
+                        <PwcaProductPriceInfo />
                     </div>
                     
                     <div class="pwca-cart-section">
-                        <AddToCart />
+                        <PwcaAddToCart />
                     </div>
                 </div>                
                
@@ -192,8 +192,8 @@ function initializeModularApp(productId) {
     const app = createApp(App);
     
     // 全局注册QuantityDiscountSlider组件
-    if (window.QuantityDiscountSlider) {
-        app.component('QuantityDiscountSlider', window.QuantityDiscountSlider);
+    if (window.pwcaQuantityDiscountSlider) {
+        app.component('PwcaQuantityDiscountSlider', window.pwcaQuantityDiscountSlider);
     }
     
     app.mount('#vue-dynamic-product-area');
@@ -205,14 +205,14 @@ function initializeBasicApp(productId, modulesLoaded) {
     const { createApp } = Vue;
 
     const components = {};
-    if (modulesLoaded.checkboxOptions && window.CheckboxOptions) {
-        components.CheckboxOptions = window.CheckboxOptions;
+    if (modulesLoaded.checkboxOptions && window.pwcaCheckboxOptions) {
+        components.PwcaCheckboxOptions = window.pwcaCheckboxOptions;
     }
-    if (modulesLoaded.quantityDiscountSlider && window.QuantityDiscountSlider) {
-        components.QuantityDiscountSlider = window.QuantityDiscountSlider;
+    if (modulesLoaded.quantityDiscountSlider && window.pwcaQuantityDiscountSlider) {
+        components.QuantityDiscountSlider = window.pwcaQuantityDiscountSlider;
     }
-    if (modulesLoaded.productAccessories && window.ProductAccessories) {
-        components.ProductAccessories = window.ProductAccessories;
+    if (modulesLoaded.productAccessories && window.pwcaProductAccessories) {
+        components.PwcaProductAccessories = window.pwcaProductAccessories;
     }
     if (modulesLoaded.customColorsButton && window.pwcaCustomColorsButton) {
         components.CustomColorsButton = window.pwcaCustomColorsButton;
@@ -233,13 +233,13 @@ function initializeBasicApp(productId, modulesLoaded) {
                 <h2>Basic Product Page</h2>
                 <p>{{ message }}</p>
                 <p>Product ID: {{ productId }}</p>
-                <div v-if="$options.components && $options.components.CheckboxOptions">
+                <div v-if="$options.components && $options.components.PwcaCheckboxOptions">
                     <h4>Checkbox Options (Basic):</h4>
-                    <CheckboxOptions />
+                    <PwcaCheckboxOptions />
                 </div>
-                <div v-if="$options.components && $options.components.ProductAccessories">
+                <div v-if="$options.components && $options.components.PwcaProductAccessories">
                     <h4>Product Accessories (Basic):</h4>
-                    <ProductAccessories />
+                    <PwcaProductAccessories />
                 </div>
                 <div v-if="$options.components && $options.components.CustomColorsButton">
                     <h4>Custom Colors (Basic):</h4>

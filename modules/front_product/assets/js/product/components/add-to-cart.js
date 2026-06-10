@@ -3,8 +3,8 @@
  * Handles cart functionality using shared store
  */
 
-const AddToCart = {
-    name: 'AddToCart',
+const PwcaAddToCart = {
+    name: 'PwcaAddToCart',
     
     setup() {
         const store = window.pwcaUseProductStore();
@@ -54,4 +54,4 @@ const AddToCart = {
 };
 
 // Register component globally
-window.AddToCart = AddToCart;
+window.pwcaAddToCart = PwcaAddToCart;

@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function pwcaHandleColorSwatchClick(color) {
-        window.currentColor = color;
+        window.pwcaCurrentColor = color;
 
         if (window.clearAllGradientRects) {
             window.clearAllGradientRects();
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function pwcaApplyColorTint() {
             const tintFn =
-                typeof window.applyTintFilter === 'function' ? window.applyTintFilter : null;
+                typeof window.pwcaApplyTintFilter === 'function' ? window.pwcaApplyTintFilter : null;
             if (!tintFn) {
                 return;
             }
@@ -220,21 +220,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (pwcaIsFirstView()) {
-            if (typeof window.applyColorToAllViews === 'function') {
-                window.applyColorToAllViews(color);
+            if (typeof window.pwcaApplyColorToAllViews === 'function') {
+                window.pwcaApplyColorToAllViews(color);
             } else {
                 pwcaApplyColorTint();
             }
         } else {
             const tintAvailable =
-                typeof window.applyTintFilter === 'function' || typeof applyTintFilter === 'function';
+                typeof window.pwcaApplyTintFilter === 'function' || typeof applyTintFilter === 'function';
 
             if (tintAvailable) {
                 pwcaApplyColorTint();
             } else {
                 const checkInterval = setInterval(() => {
                     if (
-                        typeof window.applyTintFilter === 'function' ||
+                        typeof window.pwcaApplyTintFilter === 'function' ||
                         typeof applyTintFilter === 'function'
                     ) {
                         clearInterval(checkInterval);
@@ -250,14 +250,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    window.isFourGridView =
-        window.isFourGridView ||
+    window.pwcaIsFourGridView =
+        window.pwcaIsFourGridView ||
         function (view) {
             return !!(window.pwcaIsFourGridFlow && window.pwcaIsFourGridFlow(view));
         };
-    const isFourGridView = window.isFourGridView;
+    const isFourGridView = window.pwcaIsFourGridView;
 
-    window.applyColorToView = function (view, color, tintFunction) {
+    window.pwcaApplyColorToView = function (view, color, tintFunction) {
         if (!view) {
             console.warn('无法应用颜色：视图数据无效');
             return;
@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const effectiveTint =
             tintFunction ||
-            (typeof window.applyTintFilter === 'function' ? window.applyTintFilter : null);
+            (typeof window.pwcaApplyTintFilter === 'function' ? window.pwcaApplyTintFilter : null);
         if (typeof effectiveTint !== 'function') {
             return;
         }
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.applyColorToAllViews = function (color) {
+    window.pwcaApplyColorToAllViews = function (color) {
         const stateAccess = pwcaGetUiStateAccess();
         const views =
             stateAccess && typeof stateAccess.getViews === 'function'
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const tintFunction =
-            typeof window.applyTintFilter === 'function' ? window.applyTintFilter : null;
+            typeof window.pwcaApplyTintFilter === 'function' ? window.pwcaApplyTintFilter : null;
         if (typeof tintFunction !== 'function') {
             console.warn('applyTintFilter 函数不可用');
             return;
@@ -326,11 +326,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 hasFourGrid = true;
                 return;
             }
-            window.applyColorToView(view, color, tintFunction);
+            window.pwcaApplyColorToView(view, color, tintFunction);
         });
 
         if (hasFourGrid) {
-            window.currentColor = color;
+            window.pwcaCurrentColor = color;
         }
 
         if (typeof window.__pwcaUpdatePriceDisplay === 'function') {
@@ -341,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('layerPanelViewSwitch', (ev) => {
         try {
             const viewId = ev && ev.detail ? ev.detail.viewId : null;
-            const color = window.currentColor;
+            const color = window.pwcaCurrentColor;
             if (!viewId || !color || color === '#000000') {
                 return;
             }
@@ -373,13 +373,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const tintFunction =
-                    typeof window.applyTintFilter === 'function' ? window.applyTintFilter : null;
+                    typeof window.pwcaApplyTintFilter === 'function' ? window.pwcaApplyTintFilter : null;
                 if (typeof tintFunction !== 'function') {
                     console.warn('applyTintFilter 函数不可用，无法在视图切换时应用颜色');
                     return;
                 }
 
-                window.applyColorToView(view, color, tintFunction);
+                window.pwcaApplyColorToView(view, color, tintFunction);
             };
 
             requestAnimationFrame(pwcaTryApply);
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.applyGradientToView = function (view, startColor, endColor, direction) {
+    window.pwcaApplyGradientToView = function (view, startColor, endColor, direction) {
         if (!view || typeof fabric === 'undefined') {
             return;
         }
@@ -664,7 +664,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.clearAllGradientRects();
         }
 
-        window.currentColor = '#000000';
+        window.pwcaCurrentColor = '#000000';
 
         const colorSwatches = document.querySelectorAll('.pwca-color-swatch');
         colorSwatches.forEach((s) => s.classList.remove('selected'));
@@ -742,8 +742,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.pwcaClearAllColorEffects = pwcaClearAllColorEffects;
 
-    window.updateColorStatusUI = function (color) {
-        window.currentColor = color;
+    window.pwcaUpdateColorStatusUI = function (color) {
+        window.pwcaCurrentColor = color;
 
         if (!colorStatusDisplay) return;
 
@@ -770,7 +770,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.clearExplicitColorSelection = function () {
+    window.pwcaClearExplicitColorSelection = function () {
         try {
             const swatches = document.querySelectorAll('.pwca-color-swatch');
             swatches.forEach((s) => s.classList.remove('selected'));
@@ -782,7 +782,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (picker) {
                 picker.value = '#000000';
             }
-            window.currentColor = '#000000';
+            window.pwcaCurrentColor = '#000000';
         } catch (e) {
             console.warn('清除显式颜色选择状态时发生错误:', e);
         }
@@ -823,11 +823,11 @@ document.addEventListener('DOMContentLoaded', () => {
         applyCustomColorBtn.addEventListener('click', () => {
             const color = customColorPicker.value;
 
-            if (typeof window.clearExplicitColorSelection === 'function') {
-                window.clearExplicitColorSelection();
+            if (typeof window.pwcaClearExplicitColorSelection === 'function') {
+                window.pwcaClearExplicitColorSelection();
             }
 
-            window.currentColor = color;
+            window.pwcaCurrentColor = color;
 
             if (window.clearAllGradientRects) {
                 window.clearAllGradientRects();
@@ -835,7 +835,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             function pwcaApplyCustomColorToBaseLayer() {
                 const tintFn =
-                    typeof window.applyTintFilter === 'function' ? window.applyTintFilter : null;
+                    typeof window.pwcaApplyTintFilter === 'function' ? window.pwcaApplyTintFilter : null;
                 if (!tintFn) return;
 
                 const stateAccess = pwcaGetUiStateAccess();
@@ -852,8 +852,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!currentView || !currentView.base_layer) return;
 
                 if (typeof isFourGridView === 'function' && isFourGridView(currentView)) {
-                    if (typeof window.applyColorToAllViews === 'function') {
-                        window.applyColorToAllViews(color);
+                    if (typeof window.pwcaApplyColorToAllViews === 'function') {
+                        window.pwcaApplyColorToAllViews(color);
                     }
                     return;
                 }
@@ -887,20 +887,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
 
-                if (typeof window.applyColorToAllViews === 'function') {
-                    window.applyColorToAllViews(color);
+                if (typeof window.pwcaApplyColorToAllViews === 'function') {
+                    window.pwcaApplyColorToAllViews(color);
                 }
             }
 
             const tintAvailable =
-                typeof window.applyTintFilter === 'function' || typeof applyTintFilter === 'function';
+                typeof window.pwcaApplyTintFilter === 'function' || typeof applyTintFilter === 'function';
 
             if (tintAvailable) {
                 pwcaApplyCustomColorToBaseLayer();
             } else {
                 const checkInterval = setInterval(() => {
                     if (
-                        typeof window.applyTintFilter === 'function' ||
+                        typeof window.pwcaApplyTintFilter === 'function' ||
                         typeof applyTintFilter === 'function'
                     ) {
                         clearInterval(checkInterval);
@@ -941,9 +941,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (typeof window.showGradientModal === 'function') {
-        const originalShowGradientModal = window.showGradientModal;
-        window.showGradientModal = function () {
+    if (typeof window.pwcaShowGradientModal === 'function') {
+        const originalShowGradientModal = window.pwcaShowGradientModal;
+        window.pwcaShowGradientModal = function () {
             originalShowGradientModal();
 
             setTimeout(() => {
@@ -1048,9 +1048,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         window.clearAllGradientRects();
                     }
 
-                    if (typeof window.applyGradientToView === 'function') {
+                    if (typeof window.pwcaApplyGradientToView === 'function') {
                         if (!isFourGridView(currentView)) {
-                            window.applyGradientToView(currentView, color1, color2, direction);
+                            window.pwcaApplyGradientToView(currentView, color1, color2, direction);
                         }
 
                         const isMainView =
@@ -1063,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     if (isFourGridView(view)) {
                                         return;
                                     }
-                                    window.applyGradientToView(view, color1, color2, direction);
+                                    window.pwcaApplyGradientToView(view, color1, color2, direction);
                                 }
                             });
                         }
@@ -1214,8 +1214,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (switchColorLink) {
                     switchColorLink.addEventListener('click', (e) => {
                         e.preventDefault();
-                        if (typeof window.showGradientModal === 'function') {
-                            window.showGradientModal();
+                        if (typeof window.pwcaShowGradientModal === 'function') {
+                            window.pwcaShowGradientModal();
                         }
                     });
                 }
@@ -1224,8 +1224,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const swatches = document.querySelectorAll('.pwca-color-swatch');
             swatches.forEach((s) => s.classList.remove('selected'));
 
-            if (typeof window.hideGradientModal === 'function') {
-                window.hideGradientModal();
+            if (typeof window.pwcaHideGradientModal === 'function') {
+                window.pwcaHideGradientModal();
             }
         });
     }

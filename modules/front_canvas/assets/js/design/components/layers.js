@@ -514,7 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
 });
 
-window.addLayerToStore = function (layerId, layerName, layerType) {
+window.pwcaAddLayerToStore = function (layerId, layerName, layerType) {
     if (typeof window.pwcaUseCanvasStore === 'function') {
         try {
             const store = window.pwcaUseCanvasStore();

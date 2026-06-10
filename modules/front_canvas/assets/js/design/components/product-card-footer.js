@@ -71,5 +71,5 @@ export const ProductCardFooter = {
   const app = createApp(ProductCardFooter);
   app.use(pinia);
   app.mount('#product-card-footer');
-  window.ProductCardFooter = ProductCardFooter;
+  window.pwcaProductCardFooter = ProductCardFooter;
 })();

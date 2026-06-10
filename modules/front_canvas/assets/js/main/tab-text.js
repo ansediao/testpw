@@ -74,8 +74,8 @@
     }
 
     function pwcaNotifyLayerStore(layerId, text) {
-        if (typeof window.addLayerToStore === 'function') {
-            window.addLayerToStore(layerId, text, 'text');
+        if (typeof window.pwcaAddLayerToStore === 'function') {
+            window.pwcaAddLayerToStore(layerId, text, 'text');
         } else {
             // eslint-disable-next-line no-console
             console.warn('Layer management system not initialized');

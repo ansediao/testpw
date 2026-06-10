@@ -14,10 +14,10 @@
     }
 
     function pwcaEnsureUploadedImagesStore() {
-        if (!Array.isArray(window.uploadedImages)) {
-            window.uploadedImages = [];
+        if (!Array.isArray(window.pwcaUploadedImages)) {
+            window.pwcaUploadedImages = [];
         }
-        return window.uploadedImages;
+        return window.pwcaUploadedImages;
     }
 
     function pwcaGetCanvasStore() {
@@ -580,8 +580,8 @@
 
     function pwcaNotifyLayerStoreForImage(layerId, fileName) {
         const layerName = fileName || 'Image';
-        if (typeof window.addLayerToStore === 'function') {
-            window.addLayerToStore(layerId, layerName, 'image');
+        if (typeof window.pwcaAddLayerToStore === 'function') {
+            window.pwcaAddLayerToStore(layerId, layerName, 'image');
 
             window.setTimeout(function () {
                 const layersBox = document.getElementById('layers-box');

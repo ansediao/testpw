@@ -4,8 +4,8 @@
  * 提供两个复选框：Buy Sample 和 Blank Product
  */
 
-const CheckboxOptions = {
-    name: 'CheckboxOptions',
+const PwcaCheckboxOptions = {
+    name: 'PwcaCheckboxOptions',
     template: `
         <div class="pw-checkbox-options">
             <label v-show="store.showBuySampleCheckbox">
@@ -44,4 +44,4 @@ const CheckboxOptions = {
 };
 
 // 7. 导出到全局
-window.CheckboxOptions = CheckboxOptions;
+window.pwcaCheckboxOptions = PwcaCheckboxOptions;

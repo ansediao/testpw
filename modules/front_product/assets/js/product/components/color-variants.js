@@ -4,7 +4,7 @@
  */
 
 // 颜色变体组件
-const ColorVariants = {
+const PwcaColorVariants = {
     template: `
         <div class="pwca-color-variants-module">
             <div class="pwca-color-variants-header">
@@ -51,7 +51,7 @@ const ColorVariants = {
         // 直接使用 Store 中的响应式数据
         const showVariants = computed(() => {
             const hasVariants = !store.loading && store.variants.length > 0;
-            // ColorVariants: showVariants 计算
+            // PwcaColorVariants: showVariants 计算
             return hasVariants;
         });
 
@@ -86,4 +86,4 @@ const ColorVariants = {
 };
 
 // 导出组件
-window.ColorVariants = ColorVariants;
+window.pwcaColorVariants = PwcaColorVariants;

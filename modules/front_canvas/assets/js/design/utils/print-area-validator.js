@@ -345,7 +345,7 @@ function pwcaAddPrintAreaValidationListeners(canvas, viewId) {
 }
 
 // 将函数暴露到全局作用域
-window.PrintAreaValidator = {
+window.pwcaPrintAreaValidator = {
     pwcaHasPrintMethodAssigned,
     pwcaGetPrintAreaBounds,
     pwcaCalculateOverlapArea,
@@ -387,7 +387,7 @@ window.PrintAreaValidator = {
 
 /**
  * 测试函数 - 用于验证打印区域检查功能
- * 在浏览器控制台中运行：window.PrintAreaValidator.pwcaTestPrintAreaValidation()
+ * 在浏览器控制台中运行：window.pwcaPrintAreaValidator.pwcaTestPrintAreaValidation()
  */
 function pwcaTestPrintAreaValidation() {
     
@@ -534,8 +534,8 @@ function pwcaManualAddListeners() {
 }
 
 // 将测试函数添加到暴露的对象中
-window.PrintAreaValidator.pwcaTestPrintAreaValidation = pwcaTestPrintAreaValidation;
-window.PrintAreaValidator.pwcaTestDragEndValidation = pwcaTestDragEndValidation;
-window.PrintAreaValidator.pwcaManualAddListeners = pwcaManualAddListeners;
+window.pwcaPrintAreaValidator.pwcaTestPrintAreaValidation = pwcaTestPrintAreaValidation;
+window.pwcaPrintAreaValidator.pwcaTestDragEndValidation = pwcaTestDragEndValidation;
+window.pwcaPrintAreaValidator.pwcaManualAddListeners = pwcaManualAddListeners;
 
 // 模块加载完成

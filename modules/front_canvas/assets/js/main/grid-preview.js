@@ -264,9 +264,9 @@ function pwcaUpdateBoundaryFromLayerDrawable(drawable, placement, renderSize, im
         imageUrl
     };
 
-    window.cupBoundary = boundary;
-    if (window.baseCupBoundaryImageUrl && window.baseCupBoundaryImageUrl === imageUrl) {
-        window.baseCupBoundary = Object.assign({}, boundary);
+    window.pwcaCupBoundary = boundary;
+    if (window.pwcaBaseCupBoundaryImageUrl && window.pwcaBaseCupBoundaryImageUrl === imageUrl) {
+        window.pwcaBaseCupBoundary = Object.assign({}, boundary);
     }
 }
 
@@ -371,9 +371,9 @@ async function pwcaGenerateCompositeImageForGrid(options) {
     const tempCanvas = document.createElement('canvas'); tempCanvas.width = canvasWidth; tempCanvas.height = canvasHeight; const ctx = tempCanvas.getContext('2d');
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
     try {
-        window.cupBoundary = null;
-        window.baseCupBoundary = null;
-        window.baseCupBoundaryImageUrl = baseLayer?.layer_data?.content?.imageURL || null;
+        window.pwcaCupBoundary = null;
+        window.pwcaBaseCupBoundary = null;
+        window.pwcaBaseCupBoundaryImageUrl = baseLayer?.layer_data?.content?.imageURL || null;
 
         if (backgroundLayer?.layer_data?.content?.imageURL) {
             await pwcaDrawLayerForGridComposite(ctx, backgroundLayer, canvasWidth, canvasHeight);
@@ -416,8 +416,8 @@ async function pwcaDrawLayerImageForGrid(ctx, imageUrl, width, height) {
             const imageData = tempCtx.getImageData(0, 0, targetWidth, targetHeight); const data = imageData.data;
             let minX = targetWidth, maxX = 0, minY = targetHeight, maxY = 0;
             for (let y2 = 0; y2 < targetHeight; y2++) { for (let x2 = 0; x2 < targetWidth; x2++) { const alpha = data[(y2 * targetWidth + x2) * 4 + 3]; if (alpha > 10) { minX = Math.min(minX, x2); maxX = Math.max(maxX, x2); minY = Math.min(minY, y2); maxY = Math.max(maxY, y2); } } }
-            window.cupBoundary = { x: x + minX, y: y + minY, width: maxX - minX, height: maxY - minY, originalX: x, originalY: y, originalWidth: targetWidth, originalHeight: targetHeight, imageUrl: imageUrl };
-            if (window.baseCupBoundaryImageUrl && window.baseCupBoundaryImageUrl === imageUrl) { window.baseCupBoundary = Object.assign({}, window.cupBoundary); }
+            window.pwcaCupBoundary = { x: x + minX, y: y + minY, width: maxX - minX, height: maxY - minY, originalX: x, originalY: y, originalWidth: targetWidth, originalHeight: targetHeight, imageUrl: imageUrl };
+            if (window.pwcaBaseCupBoundaryImageUrl && window.pwcaBaseCupBoundaryImageUrl === imageUrl) { window.pwcaBaseCupBoundary = Object.assign({}, window.pwcaCupBoundary); }
             ctx.drawImage(img, x, y, targetWidth, targetHeight);
             resolve();
         };
@@ -436,8 +436,8 @@ async function pwcaDrawLayerImageForGridWithColor(ctx, imageUrl, width, height, 
             const imageData = tempCtx.getImageData(0, 0, targetWidth, targetHeight); const data = imageData.data;
             let minX = targetWidth, maxX = 0, minY = targetHeight, maxY = 0;
             for (let y2 = 0; y2 < targetHeight; y2++) { for (let x2 = 0; x2 < targetWidth; x2++) { const alpha = data[(y2 * targetWidth + x2) * 4 + 3]; if (alpha > 10) { minX = Math.min(minX, x2); maxX = Math.max(maxX, x2); minY = Math.min(minY, y2); maxY = Math.max(maxY, y2); } } }
-            window.cupBoundary = { x: x + minX, y: y + minY, width: maxX - minX, height: maxY - minY, originalX: x, originalY: y, originalWidth: targetWidth, originalHeight: targetHeight, imageUrl: imageUrl };
-            if (window.baseCupBoundaryImageUrl && window.baseCupBoundaryImageUrl === imageUrl) { window.baseCupBoundary = Object.assign({}, window.cupBoundary); }
+            window.pwcaCupBoundary = { x: x + minX, y: y + minY, width: maxX - minX, height: maxY - minY, originalX: x, originalY: y, originalWidth: targetWidth, originalHeight: targetHeight, imageUrl: imageUrl };
+            if (window.pwcaBaseCupBoundaryImageUrl && window.pwcaBaseCupBoundaryImageUrl === imageUrl) { window.pwcaBaseCupBoundary = Object.assign({}, window.pwcaCupBoundary); }
             ctx.drawImage(tempCanvas, x, y);
             resolve();
         };
@@ -451,7 +451,7 @@ async function pwcaDrawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cr
         const img = new Image();
         img.onload = async () => {
             const sourceWidth = img.width; const sourceHeight = img.height;
-            const cupBoundary = window.cupBoundary;
+            const cupBoundary = window.pwcaCupBoundary;
             ctx.save();
             let tempCanvas;
             if (cropConfig.extraCrop) {
@@ -500,7 +500,7 @@ function pwcaDrawCanvasWithinBoundaryForWindow(ctx, sourceCanvas, cupBoundary) {
 }
 
 function pwcaDrawCanvasWithinBoundary(ctx, sourceCanvas, targetWidth, targetHeight) {
-    const cupBoundary = window.cupBoundary;
+    const cupBoundary = window.pwcaCupBoundary;
     if (!cupBoundary) {
         const drawHeight = targetHeight * 0.8; const aspectRatio = sourceCanvas.width / sourceCanvas.height; const drawWidth = drawHeight * aspectRatio; const x = (targetWidth - drawWidth) / 2; const y = (targetHeight - drawHeight) / 2; ctx.drawImage(sourceCanvas, x, y, drawWidth, drawHeight); return;
     }

@@ -1219,5 +1219,5 @@ function pwcaQueueDesignUsage(meta) {
     document.addEventListener('canvasPiniaReady', handler);
 }
 
-window.recordDesignUsage = pwcaRecordDesignUsage;
-window.queueDesignUsage = pwcaQueueDesignUsage;
+window.pwcaRecordDesignUsage = pwcaRecordDesignUsage;
+window.pwcaQueueDesignUsage = pwcaQueueDesignUsage;

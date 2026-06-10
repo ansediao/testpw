@@ -3,7 +3,7 @@ function pwcaInitializeCanvasEventListeners(fabricCanvas, options = {}) {
     pwcaAddCanvasEventListeners(fabricCanvas);
     pwcaAddCanvasSelectionListeners(fabricCanvas);
     if (options.delayLayerListeners !== false) {
-        if (window.CanvasInitializationState && window.CanvasInitializationState.isInitializing) {
+        if (window.pwcaCanvasInitializationState && window.pwcaCanvasInitializationState.isInitializing) {
             const completeHandler = () => {
                 pwcaAddCanvasLayerListeners(fabricCanvas);
                 document.removeEventListener('canvasInitializationComplete', completeHandler);
@@ -166,10 +166,10 @@ function pwcaSyncOperationPanelBySelectedObject(selectedObj) {
     }
 
     const activeTabId = pwcaGetSelectionActiveTabId();
-    const fromLayerList = window.pw_selectionFromLayerList === true;
+    const fromLayerList = window.pwcaSelectionFromLayerList === true;
 
     if (activeTabId === 'tab-tuan' && fromLayerList) {
-        window.pw_selectionFromLayerList = false;
+        window.pwcaSelectionFromLayerList = false;
         return;
     }
 

@@ -149,7 +149,7 @@ function syncPiniaToElement(elementId, storeAccessor, valuePath) {
 }
 
 // 将函数暴露到全局作用域，以便其他脚本使用
-window.syncPiniaToElement = syncPiniaToElement;
+window.pwcaSyncPiniaToElement = syncPiniaToElement;
 
 // 如果在模块环境中，也支持导出
 if (typeof module !== "undefined" && module.exports) {

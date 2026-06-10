@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    window.canvasInitTextUI = function () {
+    window.pwcaCanvasInitTextUI = function () {
         try {
             const textInputBtn = document.getElementById('text_input');
             if (textInputBtn) {
@@ -116,8 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         activeObject.type === 'i-text' ||
                         activeObject.type === 'textbox')
                 ) {
-                    if (typeof window.canvasInitTextUI === 'function') {
-                        window.canvasInitTextUI();
+                    if (typeof window.pwcaCanvasInitTextUI === 'function') {
+                        window.pwcaCanvasInitTextUI();
                     }
                 }
             }

@@ -132,8 +132,8 @@ export function createThumbnailHelpers(getCanvasInstance) {
                 }
             }
 
-            if (!imageSrc && window.uploadedImages) {
-                const matchedImg = window.uploadedImages.find((img) => {
+            if (!imageSrc && window.pwcaUploadedImages) {
+                const matchedImg = window.pwcaUploadedImages.find((img) => {
                     return (
                         img.fileName === obj.layerName ||
                         (obj.id && img.layerId === obj.id)
@@ -335,8 +335,8 @@ export function createThumbnailHelpers(getCanvasInstance) {
                 src = obj.src;
             }
 
-            if (src && window.uploadedImages) {
-                const matchedImg = window.uploadedImages.find(
+            if (src && window.pwcaUploadedImages) {
+                const matchedImg = window.pwcaUploadedImages.find(
                     (img) => img.src === src
                 );
                 if (matchedImg && matchedImg.fileName) {

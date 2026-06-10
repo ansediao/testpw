@@ -1788,9 +1788,9 @@ const canvasStateManager = new CanvasStateManager();
 export { CanvasStateManager, canvasStateManager, CURRENT_VERSION, DataValidator, ErrorHandler, ErrorTypes };
 
 // 挂载到全局对象，方便非模块化代码访问
-window.CanvasStateManager = CanvasStateManager;
+window.pwcaCanvasStateManagerCtor = CanvasStateManager;
 window.pwcaCanvasStateManager = canvasStateManager;
-window.CANVAS_STATE_VERSION = CURRENT_VERSION;
-window.CanvasStateDataValidator = DataValidator;
-window.CanvasStateErrorHandler = ErrorHandler;
-window.CanvasStateErrorTypes = ErrorTypes;
+window.pwcaCanvasStateVersion = CURRENT_VERSION;
+window.pwcaCanvasStateDataValidator = DataValidator;
+window.pwcaCanvasStateErrorHandler = ErrorHandler;
+window.pwcaCanvasStateErrorTypes = ErrorTypes;

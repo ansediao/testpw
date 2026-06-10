@@ -78,42 +78,42 @@ document.addEventListener('DOMContentLoaded', function() {
         colorSelectionInitialized = true;
     }
 
-    window.showGradientModal = function() {
+    window.pwcaShowGradientModal = function() {
         gradientColorModal.classList.add('is-open');
         gradientColorModal.setAttribute('aria-hidden', 'false');
         initializeSwatchBackgrounds();
         handleColorSelection();
 
-        if (typeof window.lastGradientColors !== 'undefined' && window.lastGradientColors) {
-            if (window.lastGradientColors.color1) {
-                const color1Option = document.querySelector(`.gradient-colors-container > div:first-child .color-option[data-color="${window.lastGradientColors.color1}"]`);
+        if (typeof window.pwcaLastGradientColors !== 'undefined' && window.pwcaLastGradientColors) {
+            if (window.pwcaLastGradientColors.color1) {
+                const color1Option = document.querySelector(`.gradient-colors-container > div:first-child .color-option[data-color="${window.pwcaLastGradientColors.color1}"]`);
                 if (color1Option) {
                     const color1Options = document.querySelectorAll('.gradient-colors-container > div:first-child .color-option');
                     color1Options.forEach(opt => opt.classList.remove('selected'));
                     color1Option.classList.add('selected');
-                    gradientColor1.value = window.lastGradientColors.color1;
+                    gradientColor1.value = window.pwcaLastGradientColors.color1;
                 }
             }
 
-            if (window.lastGradientColors.color2) {
-                const color2Option = document.querySelector(`.gradient-colors-container > div:last-child .color-option[data-color="${window.lastGradientColors.color2}"]`);
+            if (window.pwcaLastGradientColors.color2) {
+                const color2Option = document.querySelector(`.gradient-colors-container > div:last-child .color-option[data-color="${window.pwcaLastGradientColors.color2}"]`);
                 if (color2Option) {
                     const color2Options = document.querySelectorAll('.gradient-colors-container > div:last-child .color-option');
                     color2Options.forEach(opt => opt.classList.remove('selected'));
                     color2Option.classList.add('selected');
-                    gradientColor2.value = window.lastGradientColors.color2;
+                    gradientColor2.value = window.pwcaLastGradientColors.color2;
                 }
             }
 
-            if (window.lastGradientColors.direction) {
-                gradientDirection.value = window.lastGradientColors.direction;
+            if (window.pwcaLastGradientColors.direction) {
+                gradientDirection.value = window.pwcaLastGradientColors.direction;
             }
         } else {
             initializeColorSelection();
         }
     };
 
-    window.hideGradientModal = function() {
+    window.pwcaHideGradientModal = function() {
         clearAllColorSelections();
         colorSelectionInitialized = false;
         gradientColorModal.classList.remove('is-open');
@@ -124,17 +124,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (gradientColorBtn) {
         gradientColorBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            window.showGradientModal();
+            window.pwcaShowGradientModal();
         });
     }
 
     closeGradientColorModal.addEventListener('click', function() {
-        window.hideGradientModal();
+        window.pwcaHideGradientModal();
     });
 
     gradientColorModalOverlay.addEventListener('click', function(e) {
         if (e.target === gradientColorModalOverlay) {
-            window.hideGradientModal();
+            window.pwcaHideGradientModal();
         }
     });
 
@@ -143,10 +143,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const color2 = gradientColor2.value;
         const direction = gradientDirection.value;
 
-        if (typeof window.lastGradientColors === 'undefined') {
-            window.lastGradientColors = {};
+        if (typeof window.pwcaLastGradientColors === 'undefined') {
+            window.pwcaLastGradientColors = {};
         }
-        window.lastGradientColors = {
+        window.pwcaLastGradientColors = {
             color1: color1,
             color2: color2,
             direction: direction
@@ -363,6 +363,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const colorSwatches = document.querySelectorAll('.color-swatch');
         colorSwatches.forEach(s => s.classList.remove('selected'));
 
-        window.hideGradientModal();
+        window.pwcaHideGradientModal();
     });
 });

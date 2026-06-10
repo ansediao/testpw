@@ -610,8 +610,8 @@ async function pwcaInitializeEmptyCanvas(canvasId, canvasWidth, canvasHeight, vi
         window.pwcaInitializeCanvasEventListeners(canvas);
     }
 
-    if (window.PrintAreaValidator) {
-        window.PrintAreaValidator.pwcaAddPrintAreaValidationListeners(canvas, view.id);
+    if (window.pwcaPrintAreaValidator) {
+        window.pwcaPrintAreaValidator.pwcaAddPrintAreaValidationListeners(canvas, view.id);
     }
 
     canvasElement.__fabricCanvas = canvas;

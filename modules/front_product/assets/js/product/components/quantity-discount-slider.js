@@ -3,8 +3,8 @@
  * Displays quantity discount tiers with visual slider
  */
 
-const QuantityDiscountSlider = {
-    name: 'QuantityDiscountSlider',
+const PwcaQuantityDiscountSlider = {
+    name: 'PwcaQuantityDiscountSlider',
     
     setup() {
         // Access shared store
@@ -118,4 +118,4 @@ const QuantityDiscountSlider = {
 };
 
 // Register component globally
-window.QuantityDiscountSlider = QuantityDiscountSlider;
+window.pwcaQuantityDiscountSlider = PwcaQuantityDiscountSlider;

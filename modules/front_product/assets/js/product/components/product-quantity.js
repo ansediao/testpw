@@ -3,8 +3,8 @@
  * Simple component showing how to use shared store
  */
 
-const ProductQuantity = {
-    name: 'ProductQuantity',
+const PwcaProductQuantity = {
+    name: 'PwcaProductQuantity',
     
     setup() {
         // Access shared store
@@ -61,7 +61,7 @@ const ProductQuantity = {
         
         // 检查QuantityDiscountSlider组件是否可用且启用
         const hasDiscountSlider = Vue.computed(() => {
-            return typeof window.QuantityDiscountSlider !== 'undefined' && 
+            return typeof window.pwcaQuantityDiscountSlider !== 'undefined' && 
                    store.quantityDiscountEnabled && 
                    !store.buySampleChecked;
         });
@@ -158,4 +158,4 @@ const ProductQuantity = {
 };
 
 // Register component globally
-window.ProductQuantity = ProductQuantity;
+window.pwcaProductQuantity = PwcaProductQuantity;

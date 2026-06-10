@@ -70,8 +70,8 @@
                         if (typeof window.pwca_apply_color_to_all_views === 'function') {
                             window.pwca_apply_color_to_all_views(savedColor);
                         }
-                        if (typeof window.updateColorStatusUI === 'function') {
-                            window.updateColorStatusUI(savedColor);
+                        if (typeof window.pwcaUpdateColorStatusUI === 'function') {
+                            window.pwcaUpdateColorStatusUI(savedColor);
                         } else {
                             window.pwca_current_color = savedColor;
                         }
@@ -87,8 +87,8 @@
         }
 
         canvasStore.views.forEach((view) => {
-            if (window.CanvasInitializationState) {
-                window.CanvasInitializationState.startInitialization(view.id);
+            if (window.pwcaCanvasInitializationState) {
+                window.pwcaCanvasInitializationState.startInitialization(view.id);
             }
         });
 
@@ -107,13 +107,13 @@
                     window.pwcaCanvasManager.setActiveCanvas(view.id);
                 }
 
-                if (window.PrintAreaValidator) {
-                    window.PrintAreaValidator.pwcaAddPrintAreaValidationListeners(canvas, view.id);
+                if (window.pwcaPrintAreaValidator) {
+                    window.pwcaPrintAreaValidator.pwcaAddPrintAreaValidationListeners(canvas, view.id);
                 }
 
                 setTimeout(() => {
-                    if (window.CanvasInitializationState) {
-                        window.CanvasInitializationState.completeInitialization(view.id);
+                    if (window.pwcaCanvasInitializationState) {
+                        window.pwcaCanvasInitializationState.completeInitialization(view.id);
                     }
                 }, 500);
             }

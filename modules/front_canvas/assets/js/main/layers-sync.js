@@ -32,7 +32,7 @@ function pwcaGetUiStateAccess() {
 }
 
 function pwcaSyncCanvasObjectToStore(obj, action) {
-    if (window.CanvasInitializationState && window.CanvasInitializationState.isInitializing) return;
+    if (window.pwcaCanvasInitializationState && window.pwcaCanvasInitializationState.isInitializing) return;
     if (!window.pwcaIsUserInitiatedAction || !window.pwcaIsUserInitiatedAction(obj)) return;
     const stateAccess = pwcaGetUiStateAccess();
     if (stateAccess && typeof stateAccess.pwcaGetCanvasStore === 'function') {
@@ -171,8 +171,8 @@ function pwcaControlMainWrapperDisplayArea(objectId) {
     if (!centerRectCoords || isNaN(centerRectCoords.width) || isNaN(centerRectCoords.height) || centerRectCoords.width <= 0 || centerRectCoords.height <= 0) return;
     const applyClipForObject = (obj) => {
         let isBound = false;
-        if (window.PrintAreaValidator && typeof window.PrintAreaValidator.pwcaHasPrintMethodAssigned === 'function') {
-            isBound = !!window.PrintAreaValidator.pwcaHasPrintMethodAssigned(obj);
+        if (window.pwcaPrintAreaValidator && typeof window.pwcaPrintAreaValidator.pwcaHasPrintMethodAssigned === 'function') {
+            isBound = !!window.pwcaPrintAreaValidator.pwcaHasPrintMethodAssigned(obj);
         } else {
             const pmStore =
                 stateAccess && typeof stateAccess.pwcaGetPrintMethodStore === 'function'

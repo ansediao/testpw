@@ -294,8 +294,8 @@ const HeaderControls = {
             if (store.views && store.views.length > 0) {
                 if (typeof window.pwcaRunGeneratePdfFlow === 'function') {
                     await window.pwcaRunGeneratePdfFlow(productName, store);
-                } else if (typeof window.generateMultiViewPDF === 'function') {
-                    await window.generateMultiViewPDF(productName, store);
+                } else if (typeof window.pwcaGenerateMultiViewPDF === 'function') {
+                    await window.pwcaGenerateMultiViewPDF(productName, store);
                 } else {
                     console.error('generateMultiViewPDF not found');
                 }

@@ -44,7 +44,7 @@ export function createLayerOperations(options) {
 
     const selectLayer = (layerId) => {
         store.setActiveObjectId(layerId);
-        window.pw_selectionFromLayerList = true;
+        window.pwcaSelectionFromLayerList = true;
 
         syncLayerSelectionToCanvas(layerId);
         controlMaskCanvasVisibility(layerId);

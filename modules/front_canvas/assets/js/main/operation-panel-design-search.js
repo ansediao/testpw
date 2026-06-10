@@ -81,8 +81,8 @@ const DesignSearchApp = {
         };
 
         const addDesign = (designId) => {
-            if (typeof window.addDesignToCanvas === 'function') {
-                window.addDesignToCanvas(designId);
+            if (typeof window.pwcaAddDesignToCanvas === 'function') {
+                window.pwcaAddDesignToCanvas(designId);
             }
         };
 
