@@ -13,14 +13,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function pwcaGenerateDefaultColors(container, selectedColor = null) {
-        const defaultColors = [];
+        const defaultColors = [
+            { color: '#FF0000', name: 'Red' },
+            { color: '#0000FF', name: 'Blue' },
+            { color: '#008000', name: 'Green' },
+            { color: '#FFFF00', name: 'Yellow' },
+            { color: '#000000', name: 'Black' },
+            { color: '#FFFFFF', name: 'White' },
+        ];
         container.innerHTML = '';
         defaultColors.forEach((colorData, index) => {
             const colorSwatch = document.createElement('div');
             const isSelected = selectedColor
                 ? colorData.color === selectedColor
                 : index === 0;
-            colorSwatch.className = 'color-swatch' + (isSelected ? ' selected' : '');
+            colorSwatch.className = 'pwca-color-swatch' + (isSelected ? ' selected' : '');
             colorSwatch.style.backgroundColor = colorData.color;
             colorSwatch.setAttribute('data-color', colorData.color);
             colorSwatch.title = colorData.name;
@@ -538,7 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    function pwcaGenerateColorSwatches() {
+    function pwcaGenerateColorSwatches(storeFromCaller) {
         const container = colorSwatchesContainer;
         if (!container) return;
 
@@ -547,11 +554,33 @@ document.addEventListener('DOMContentLoaded', () => {
             ? currentSelected.getAttribute('data-color')
             : null;
 
-        const stateAccess = pwcaGetUiStateAccess();
-        const variants =
-            stateAccess && typeof stateAccess.getProductVariants === 'function'
-                ? stateAccess.getProductVariants()
-                : [];
+        // 优先使用传入的 store 引用（来自 $subscribe 闭包），避免在 Vue flush 期间
+        // 通过 pwcaGetCanvasStore() 重新获取可能失败的问题
+        const store = storeFromCaller || pwcaGetUiStateAccess();
+        const storeAccess = store && typeof store.productData !== 'undefined'
+            ? store
+            : (store && typeof store.getCanvasStore === 'function'
+                ? store.getCanvasStore()
+                : null);
+
+        let variants = [];
+        if (storeAccess && storeAccess.productData) {
+            const data = storeAccess.productData.variants && storeAccess.productData.variants.data;
+            if (Array.isArray(data)) {
+                variants = data;
+            }
+        }
+
+        // Fallback: 通过 uiStateAccess 获取
+        if (variants.length === 0) {
+            const stateAccess = pwcaGetUiStateAccess();
+            variants =
+                stateAccess && typeof stateAccess.getProductVariants === 'function'
+                    ? stateAccess.getProductVariants()
+                    : (storeAccess && storeAccess.productData && storeAccess.productData.variants && storeAccess.productData.variants.data)
+                    ? storeAccess.productData.variants.data
+                    : [];
+        }
 
         if (variants.length === 0) {
             console.warn('CanvasStore 未加载，使用默认颜色');
@@ -579,7 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isSelected = selectedColor
                 ? variant.variant_color === selectedColor
                 : false;
-            colorSwatch.className = 'color-swatch' + (isSelected ? ' selected' : '');
+            colorSwatch.className = 'pwca-color-swatch' + (isSelected ? ' selected' : '');
             colorSwatch.style.backgroundColor = variant.variant_color;
             colorSwatch.setAttribute('data-color', variant.variant_color);
             colorSwatch.setAttribute('data-variant-id', variant.id);
@@ -635,7 +664,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     state.productData.variants.data;
 
                 if (Array.isArray(variants) && variants.length > 0) {
-                    pwcaGenerateColorSwatches();
+                    // 传递已捕获的 store 引用，避免在 Vue flush 期间重新获取失败
+                    pwcaGenerateColorSwatches(store);
                 }
             });
         }
