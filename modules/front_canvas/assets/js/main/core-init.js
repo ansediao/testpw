@@ -82,8 +82,8 @@ function pwcaNormalizeOperationModules(modules) {
         .filter(Boolean);
 }
 
-function pwcaGetEnabledOperationModules() {
-    const store = pwcaGetCanvasStore();
+function pwcaGetEnabledOperationModules(storeFromCaller) {
+    const store = storeFromCaller || pwcaGetCanvasStore();
     if (!store) {
         return [];
     }
@@ -99,8 +99,14 @@ function pwcaGetEnabledOperationModules() {
         return [];
     }
 
+    // 尝试从 getter 获取启用的模块列表
     if (Array.isArray(store.currentViewEnabledModules) && store.currentViewEnabledModules.length > 0) {
-        return pwcaNormalizeOperationModules(store.currentViewEnabledModules);
+        const normalized = pwcaNormalizeOperationModules(store.currentViewEnabledModules);
+        // 防御性检查：如果归一化后为空（例如原始数组包含无效条目），不回退到此结果，
+        // 而是继续向下尝试备用数据源
+        if (normalized.length > 0) {
+            return normalized;
+        }
     }
 
     const mergedSettings = store.currentViewCustomizationSettings;
@@ -121,21 +127,21 @@ function pwcaGetEnabledOperationModules() {
     return [...pwcaDefaultOptionalModules];
 }
 
-function pwcaIsOperationPanelTabAvailable(tabId) {
+function pwcaIsOperationPanelTabAvailable(tabId, storeFromCaller) {
     if (!Object.prototype.hasOwnProperty.call(pwcaOptionalTabModuleMap, tabId)) {
         return true;
     }
 
-    return pwcaGetEnabledOperationModules().includes(pwcaOptionalTabModuleMap[tabId]);
+    return pwcaGetEnabledOperationModules(storeFromCaller).includes(pwcaOptionalTabModuleMap[tabId]);
 }
 
-function pwcaGetAvailableOperationPanelTabs() {
+function pwcaGetAvailableOperationPanelTabs(storeFromCaller) {
     const validTabs = ['tab-pinming', 'tab-tuan', 'tab-pianquan', 'tab-wenzi', 'tab-sheji'];
-    return validTabs.filter((tabId) => pwcaIsOperationPanelTabAvailable(tabId));
+    return validTabs.filter((tabId) => pwcaIsOperationPanelTabAvailable(tabId, storeFromCaller));
 }
 
-function pwcaResolveOperationPanelFallbackTab(preferredTabId) {
-    const availableTabs = pwcaGetAvailableOperationPanelTabs();
+function pwcaResolveOperationPanelFallbackTab(preferredTabId, storeFromCaller) {
+    const availableTabs = pwcaGetAvailableOperationPanelTabs(storeFromCaller);
     if (availableTabs.length === 0) {
         return null;
     }
@@ -152,20 +158,24 @@ function pwcaResolveOperationPanelFallbackTab(preferredTabId) {
     return availableTabs[0];
 }
 
-function pwcaDispatchOperationPanelModulesUpdated() {
+function pwcaDispatchOperationPanelModulesUpdated(storeFromCaller) {
     document.dispatchEvent(
         new CustomEvent('pwcaOperationPanelModulesUpdated', {
             detail: {
-                enabledModules: pwcaGetEnabledOperationModules(),
-                availableTabs: pwcaGetAvailableOperationPanelTabs()
+                enabledModules: pwcaGetEnabledOperationModules(storeFromCaller),
+                availableTabs: pwcaGetAvailableOperationPanelTabs(storeFromCaller)
             }
         })
     );
 }
 
-function pwcaApplyOperationPanelModuleVisibility() {
+function pwcaApplyOperationPanelModuleVisibility(storeFromCaller) {
+    const enabledModules = pwcaGetEnabledOperationModules(storeFromCaller);
+    let anyOptionalHidden = false;
+
     Object.keys(pwcaOptionalTabModuleMap).forEach((tabId) => {
-        const shouldShow = pwcaIsOperationPanelTabAvailable(tabId);
+        const shouldShow = enabledModules.includes(pwcaOptionalTabModuleMap[tabId]);
+        if (!shouldShow) anyOptionalHidden = true;
         const tabElement = document.getElementById(tabId);
         const contentElement = document.getElementById(tabId.replace('tab-', 'content-'));
 
@@ -183,16 +193,29 @@ function pwcaApplyOperationPanelModuleVisibility() {
         }
     });
 
+    // 运行时诊断：如果所有可选标签页都隐藏了，记录 store 关键状态
+    if (anyOptionalHidden) {
+        const store = storeFromCaller || pwcaGetCanvasStore();
+        console.warn('[PW Canvas] 操作面板可选标签页被隐藏', {
+            enabledModules,
+            storeState: store ? {
+                hasProductData: !!store.productData,
+                activeViewId: store.activeViewId,
+                viewsCount: Array.isArray(store.views) ? store.views.length : 0
+            } : 'store unavailable'
+        });
+    }
+
     const activeTab = document.querySelector('.pwca-tabs-nav .pwca-tab.active');
     const activeTabId = activeTab ? activeTab.id : null;
-    if (!activeTabId || !pwcaIsOperationPanelTabAvailable(activeTabId)) {
-        const fallbackTabId = pwcaResolveOperationPanelFallbackTab();
+    if (!activeTabId || !pwcaIsOperationPanelTabAvailable(activeTabId, storeFromCaller)) {
+        const fallbackTabId = pwcaResolveOperationPanelFallbackTab(activeTabId, storeFromCaller);
         if (fallbackTabId) {
             pwcaSwitchOperationPanelTab(fallbackTabId, { force: true });
         }
     }
 
-    pwcaDispatchOperationPanelModulesUpdated();
+    pwcaDispatchOperationPanelModulesUpdated(storeFromCaller);
 }
 
 let pwcaOperationPanelModuleSyncBound = false;
@@ -205,18 +228,20 @@ function pwcaBindOperationPanelModuleSync() {
     }
 
     if (pwcaOperationPanelModuleSyncBound) {
-        pwcaApplyOperationPanelModuleVisibility();
+        pwcaApplyOperationPanelModuleVisibility(store);
         return;
     }
 
     // 立即应用一次可见性
-    pwcaApplyOperationPanelModuleVisibility();
+    pwcaApplyOperationPanelModuleVisibility(store);
 
     // 监听 Store 变化，动态更新面板
     if (typeof store.$subscribe === 'function') {
         store.$subscribe((mutation) => {
             // 当 store 状态变化时（如产品数据加载完成、视图切换等），更新面板可见性
-            pwcaApplyOperationPanelModuleVisibility();
+            // 重要：传递已捕获的 store 引用，避免在 Vue flush 微任务期间通过
+            // pwcaGetCanvasStore() 重新获取可能失败的问题
+            pwcaApplyOperationPanelModuleVisibility(store);
         });
     }
 

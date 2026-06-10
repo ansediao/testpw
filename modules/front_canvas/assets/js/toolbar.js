@@ -1123,7 +1123,7 @@ function pwcaAddDesignToCanvas(designId) {
     }
     
     // 获取设计图片的 DOM 元素
-    const designImg = document.querySelector(`.design-item img[data-design-id="${designId}"]`);
+    const designImg = document.querySelector(`.pwca-design-item img[data-design-id="${designId}"]`);
     if (!designImg) {
         console.warn(`Design image not found for ID: ${designId}`);
         return;
