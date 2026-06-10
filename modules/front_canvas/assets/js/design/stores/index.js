@@ -1,6 +1,6 @@
 // src/store/index.js
 
-import { fetchCanvasProductData } from '../api/product-data-api.js';
+import { pwcaFetchCanvasProductData } from '../api/product-data-api.js';
 import {
     pwcaClearSelectedColorByView,
     pwcaGetSelectedColorByView,
@@ -516,7 +516,7 @@ export const useCanvasStore = defineStore('canvas', {
             this.setProductDataError(null);
             this.setStoreCustomizationSettingsError(null);
             try {
-                const result = await fetchCanvasProductData(pwId);
+                const result = await pwcaFetchCanvasProductData(pwId);
                 const data = pwcaPrepareCanvasProductData(result.data);
 
                 if (result.meta && result.meta.cacheHit) {

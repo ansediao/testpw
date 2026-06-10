@@ -34,8 +34,8 @@
         }
 
         if (window.PrintAreaValidator &&
-            typeof window.PrintAreaValidator.hasPrintMethodAssigned === 'function' &&
-            !window.PrintAreaValidator.hasPrintMethodAssigned(activeObject)) {
+            typeof window.PrintAreaValidator.pwcaHasPrintMethodAssigned === 'function' &&
+            !window.PrintAreaValidator.pwcaHasPrintMethodAssigned(activeObject)) {
 
             if (typeof window.pwcaTriggerPrintMethodModal === 'function') {
                 window.pwcaTriggerPrintMethodModal(activeObject.id);

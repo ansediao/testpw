@@ -23,14 +23,14 @@ const CanvasInitializationState = {
     }
 };
 
-function isUserInitiatedAction(obj) {
+function pwcaIsUserInitiatedAction(obj) {
     if (obj.skipLayerSync === true) return false;
     if (obj.isSystemImage === true) return false;
     return obj.userInitiated === true || obj.fromToolbar === true || obj.fromButton === true;
 }
 
 window.CanvasInitializationState = CanvasInitializationState;
-window.isUserInitiatedAction = isUserInitiatedAction;
+window.pwcaIsUserInitiatedAction = pwcaIsUserInitiatedAction;
 
 const pwcaOptionalTabModuleMap = {
     'tab-pianquan': 'UPLOAD',

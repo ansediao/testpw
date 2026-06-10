@@ -49,7 +49,7 @@
      * @param {string} name - 参数名
      * @returns {string|null} - 参数值
      */
-    function getUrlParam(name) {
+    function pwcaGetUrlParam(name) {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(name);
     }
@@ -58,8 +58,8 @@
      * 处理 edit=true 参数
      * 隐藏指定元素，只显示 #content-tuan
      */
-    function handleEditMode() {
-        const isEditMode = getUrlParam('edit') === 'true';
+    function pwcaHandleEditMode() {
+        const isEditMode = pwcaGetUrlParam('edit') === 'true';
         
         if (!isEditMode) return;
 
@@ -115,8 +115,8 @@
      * 处理 view 参数
      * 根据视图 ID 切换到对应的视图
      */
-    function handleViewMode() {
-        const viewParam = getUrlParam('view');
+    function pwcaHandleViewMode() {
+        const viewParam = pwcaGetUrlParam('view');
         
         if (!viewParam) return;
 
@@ -133,18 +133,18 @@
         }
 
         // 切换到指定视图（包括 'main' 以外的具体视图 ID）
-        waitForStoreAndSwitchView(viewParam);
+        pwcaWaitForStoreAndSwitchView(viewParam);
     }
 
     /**
      * 等待 store 加载完成后切换到指定视图
      * @param {string} viewId - 视图 ID
      */
-    function waitForStoreAndSwitchView(viewId) {
+    function pwcaWaitForStoreAndSwitchView(viewId) {
         // 如果是 'main' 这种通用值，不需要特殊切换，使用默认第一个视图
         if (viewId === 'main') return;
 
-        function trySwitch() {
+        function pwcaTrySwitch() {
             const views = pwcaGetViews();
             if (views.length > 0) {
                 // 查找匹配的视图
@@ -166,11 +166,11 @@
                 return;
             }
             // 如果 store 还没准备好，继续等待
-            setTimeout(trySwitch, 200);
+            setTimeout(pwcaTrySwitch, 200);
         }
 
         // 延迟执行，等待页面初始化
-        setTimeout(trySwitch, 500);
+        setTimeout(pwcaTrySwitch, 500);
     }
 
     /**
@@ -178,11 +178,11 @@
      * 在 edit=true 模式下，由于 .customization-area 被隐藏，
      * 需要确保视图仍然能正确显示
      */
-    function ensureViewInitialized() {
-        const isEditMode = getUrlParam('edit') === 'true';
+    function pwcaEnsureViewInitialized() {
+        const isEditMode = pwcaGetUrlParam('edit') === 'true';
         if (!isEditMode) return;
 
-        function tryInit() {
+        function pwcaTryInit() {
             const views = pwcaGetViews();
             if (views.length > 0) {
                 // 确保第一个视图容器是可见的
@@ -202,11 +202,11 @@
                 return;
             }
             // 继续等待
-            setTimeout(tryInit, 200);
+            setTimeout(pwcaTryInit, 200);
         }
 
         // 延迟执行
-        setTimeout(tryInit, 800);
+        setTimeout(pwcaTryInit, 800);
     }
 
     /**
@@ -216,23 +216,23 @@
         // DOM 加载完成后执行
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() {
-                // handleEditMode();
-                handleViewMode();
-                ensureViewInitialized();
+                // pwcaHandleEditMode();
+                pwcaHandleViewMode();
+                pwcaEnsureViewInitialized();
             });
         } else {
-            // handleEditMode();
-            handleViewMode();
-            ensureViewInitialized();
+            // pwcaHandleEditMode();
+            pwcaHandleViewMode();
+            pwcaEnsureViewInitialized();
         }
     }
 
     // 暴露到全局，方便其他模块调用
     window.pwcaUrlParamsHandler = {
-        getUrlParam: getUrlParam,
-        handleEditMode: handleEditMode,
-        handleViewMode: handleViewMode,
-        ensureViewInitialized: ensureViewInitialized,
+        pwcaGetUrlParam: pwcaGetUrlParam,
+        pwcaHandleEditMode: pwcaHandleEditMode,
+        pwcaHandleViewMode: pwcaHandleViewMode,
+        pwcaEnsureViewInitialized: pwcaEnsureViewInitialized,
         init: init
     };
 

@@ -1,4 +1,4 @@
-export function convertApiDataToInternalFormat(apiMethod) {
+export function pwcaConvertApiDataToInternalFormat(apiMethod) {
     return {
         id: apiMethod.id,
         name: apiMethod.name,
@@ -69,7 +69,7 @@ export function convertApiDataToInternalFormat(apiMethod) {
     };
 }
 
-export function attachCustomColorsToMethod(method, customColors) {
+export function pwcaAttachCustomColorsToMethod(method, customColors) {
     if (!method || !Array.isArray(customColors)) {
         return method;
     }
@@ -91,7 +91,7 @@ export function attachCustomColorsToMethod(method, customColors) {
     };
 }
 
-export function normalizePrintMethodsApiPayload(result) {
+export function pwcaNormalizePrintMethodsApiPayload(result) {
     const apiData = result && result.data ? (result.data.data || result.data) : result;
 
     if (Array.isArray(apiData)) {

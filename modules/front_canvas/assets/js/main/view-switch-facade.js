@@ -1,12 +1,12 @@
 (function () {
     'use strict';
 
-    function getUiStateAccess() {
+    function pwcaGetUiStateAccess() {
         return window.pwcaUiStateAccess || null;
     }
 
-    function getCanvasStore() {
-        const uiStateAccess = getUiStateAccess();
+    function pwcaGetCanvasStore() {
+        const uiStateAccess = pwcaGetUiStateAccess();
         if (uiStateAccess && typeof uiStateAccess.pwcaGetCanvasStore === 'function') {
             return uiStateAccess.pwcaGetCanvasStore();
         }
@@ -14,28 +14,28 @@
         return null;
     }
 
-    function getViews() {
-        const uiStateAccess = getUiStateAccess();
+    function pwcaGetViews() {
+        const uiStateAccess = pwcaGetUiStateAccess();
         if (uiStateAccess && typeof uiStateAccess.pwcaGetViews === 'function') {
             return uiStateAccess.pwcaGetViews();
         }
 
-        const store = getCanvasStore();
+        const store = pwcaGetCanvasStore();
         return store && Array.isArray(store.views) ? store.views : [];
     }
 
-    function getCurrentActiveViewId() {
-        const uiStateAccess = getUiStateAccess();
+    function pwcaGetCurrentActiveViewId() {
+        const uiStateAccess = pwcaGetUiStateAccess();
         if (uiStateAccess && typeof uiStateAccess.pwcaGetActiveViewId === 'function') {
             return uiStateAccess.pwcaGetActiveViewId();
         }
 
-        const store = getCanvasStore();
+        const store = pwcaGetCanvasStore();
         return store && store.activeViewId ? store.activeViewId : null;
     }
 
-    function getCanvasByViewId(viewId) {
-        const uiStateAccess = getUiStateAccess();
+    function pwcaGetCanvasByViewId(viewId) {
+        const uiStateAccess = pwcaGetUiStateAccess();
         if (uiStateAccess && typeof uiStateAccess.pwcaGetCanvasByViewId === 'function') {
             return uiStateAccess.pwcaGetCanvasByViewId(viewId);
         }
@@ -43,8 +43,8 @@
         return null;
     }
 
-    function getAllViewCanvases() {
-        const uiStateAccess = getUiStateAccess();
+    function pwcaGetAllViewCanvases() {
+        const uiStateAccess = pwcaGetUiStateAccess();
         if (uiStateAccess && typeof uiStateAccess.pwcaGetAllViewCanvases === 'function') {
             return uiStateAccess.pwcaGetAllViewCanvases();
         }
@@ -52,8 +52,8 @@
         return [];
     }
 
-    function waitForStore(callback, attempts = 0) {
-        const store = getCanvasStore();
+    function pwcaWaitForStore(callback, attempts = 0) {
+        const store = pwcaGetCanvasStore();
         if (store) {
             callback(store);
             return;
@@ -64,12 +64,12 @@
         }
 
         window.setTimeout(() => {
-            waitForStore(callback, attempts + 1);
+            pwcaWaitForStore(callback, attempts + 1);
         }, 100);
     }
 
-    function getViewById(store, viewId) {
-        const views = store && Array.isArray(store.views) ? store.views : getViews();
+    function pwcaGetViewById(store, viewId) {
+        const views = store && Array.isArray(store.views) ? store.views : pwcaGetViews();
         if (!Array.isArray(views) || views.length === 0) {
             return null;
         }
@@ -84,7 +84,7 @@
         ) || null;
     }
 
-    function syncViewContainers(viewId) {
+    function pwcaSyncViewContainers(viewId) {
         document.querySelectorAll('.pwca-view-container').forEach((container) => {
             container.style.display = 'none';
         });
@@ -95,7 +95,7 @@
         }
     }
 
-    function syncCanvasManager(viewId) {
+    function pwcaSyncCanvasManager(viewId) {
         const canvasManager = window.pwcaCanvasManager;
         if (!canvasManager) {
             return null;
@@ -106,14 +106,14 @@
         }
 
         const canvas = typeof canvasManager.getCanvas === 'function'
-            ? (getCanvasByViewId(viewId) || canvasManager.getCanvas(viewId))
-            : getCanvasByViewId(viewId);
+            ? (pwcaGetCanvasByViewId(viewId) || canvasManager.getCanvas(viewId))
+            : pwcaGetCanvasByViewId(viewId);
 
         if (!canvas) {
             return null;
         }
 
-        getAllViewCanvases().forEach((viewCanvas) => {
+        pwcaGetAllViewCanvases().forEach((viewCanvas) => {
             if (viewCanvas && typeof viewCanvas.discardActiveObject === 'function') {
                 viewCanvas.discardActiveObject();
                 if (typeof viewCanvas.renderAll === 'function') {
@@ -136,7 +136,7 @@
         return canvas;
     }
 
-    function emitViewSwitch(viewId, source) {
+    function pwcaEmitViewSwitch(viewId, source) {
         document.dispatchEvent(new CustomEvent('layerPanelViewSwitch', {
             detail: {
                 viewId,
@@ -145,9 +145,9 @@
         }));
     }
 
-    function switchToView(viewId, options = {}) {
-        waitForStore((store) => {
-            const targetView = getViewById(store, viewId);
+    function pwcaSwitchToView(viewId, options = {}) {
+        pwcaWaitForStore((store) => {
+            const targetView = pwcaGetViewById(store, viewId);
             if (!targetView) {
                 return;
             }
@@ -161,22 +161,22 @@
                 store.setActiveViewId(targetView.id);
             }
 
-            if (forceDomSync || getCurrentActiveViewId() === targetView.id) {
-                syncViewContainers(targetView.id);
-                syncCanvasManager(targetView.id);
+            if (forceDomSync || pwcaGetCurrentActiveViewId() === targetView.id) {
+                pwcaSyncViewContainers(targetView.id);
+                pwcaSyncCanvasManager(targetView.id);
             }
 
             if (shouldDispatchEvent) {
-                emitViewSwitch(targetView.id, source);
+                pwcaEmitViewSwitch(targetView.id, source);
             }
         });
     }
 
     window.pwcaViewSwitchFacade = {
-        waitForStore,
-        getViewById,
-        syncViewContainers,
-        syncCanvasManager,
-        switchToView
+        waitForStore: pwcaWaitForStore,
+        getViewById: pwcaGetViewById,
+        syncViewContainers: pwcaSyncViewContainers,
+        syncCanvasManager: pwcaSyncCanvasManager,
+        switchToView: pwcaSwitchToView
     };
 })();

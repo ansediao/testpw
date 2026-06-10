@@ -1,4 +1,4 @@
-export async function fetchPrintMethodsByIds(printingMethodIds) {
+export async function pwcaFetchPrintMethodsByIds(printingMethodIds) {
     const response = await fetch('/wp-json/pwca/v1/print-methods', {
         method: 'POST',
         headers: {
@@ -21,7 +21,7 @@ export async function fetchPrintMethodsByIds(printingMethodIds) {
     return result;
 }
 
-export async function fetchCustomColorsByListId(colorListId) {
+export async function pwcaFetchCustomColorsByListId(colorListId) {
     const response = await fetch('/wp-json/pwca/v1/custom-colors', {
         method: 'POST',
         headers: {

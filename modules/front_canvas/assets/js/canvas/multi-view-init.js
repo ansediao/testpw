@@ -8,7 +8,7 @@ const PWCA_IMAGE_LAYER_LOAD_TIMEOUT_MS = 15000;
  * @param {string} anchorPoint - 例如 "top-left", "center"。
  * @returns {{originX: string, originY: string}} Fabric.js 的原点对象。
  */
-function getOriginFromAnchorPoint(anchorPoint) {
+function pwcaGetOriginFromAnchorPoint(anchorPoint) {
     // 处理单个值的情况（如 'center'）。
     if (anchorPoint === 'center') {
         return {
@@ -46,7 +46,7 @@ function getOriginFromAnchorPoint(anchorPoint) {
  * @param {string} originY - Fabric.js 的 originY。
  * @returns {{x: number, y: number}} 转换后的坐标
  */
-function convertCoordinatesForOrigin(x, y, width, height, originX, originY) {
+function pwcaConvertCoordinatesForOrigin(x, y, width, height, originX, originY) {
     let convertedX = x;
     let convertedY = y;
 
@@ -68,7 +68,7 @@ function convertCoordinatesForOrigin(x, y, width, height, originX, originY) {
     };
 }
 
-function getLayerRenderSize(layer, fallback = {}) {
+function pwcaGetLayerRenderSize(layer, fallback = {}) {
     const dimensions = layer?.layer_data?.dimensions || {};
     const layerSize = dimensions.layerSize || {};
     const contentArea = dimensions.contentArea || {};
@@ -82,7 +82,7 @@ function getLayerRenderSize(layer, fallback = {}) {
     };
 }
 
-function getCanvasHeightValue(canvas) {
+function pwcaGetCanvasHeightValue(canvas) {
     if (!canvas) {
         return 0;
     }
@@ -91,7 +91,7 @@ function getCanvasHeightValue(canvas) {
     return Number(height || 0);
 }
 
-function getFabricPlacementForLayer(canvas, position = {}, renderSize = {}) {
+function pwcaGetFabricPlacementForLayer(canvas, position = {}, renderSize = {}) {
     const x = Number(position.coordinates?.x || 0);
     const y = Number(position.coordinates?.y || 0);
     const width = Number(renderSize.width || 0);
@@ -99,7 +99,7 @@ function getFabricPlacementForLayer(canvas, position = {}, renderSize = {}) {
     const anchorPoint = String(position.anchorPoint || 'bottom-left').trim();
 
     if (anchorPoint === 'bottom-left') {
-        const canvasHeight = getCanvasHeightValue(canvas);
+        const canvasHeight = pwcaGetCanvasHeightValue(canvas);
         return {
             left: x,
             top: canvasHeight - y - height,
@@ -117,8 +117,8 @@ function getFabricPlacementForLayer(canvas, position = {}, renderSize = {}) {
         };
     }
 
-    const origins = getOriginFromAnchorPoint(anchorPoint);
-    const convertedCoords = convertCoordinatesForOrigin(
+    const origins = pwcaGetOriginFromAnchorPoint(anchorPoint);
+    const convertedCoords = pwcaConvertCoordinatesForOrigin(
         x,
         y,
         width,
@@ -192,7 +192,7 @@ if (typeof window !== 'undefined') {
         window.pwcaApplyArcPathToTextObject || pwcaApplyArcPathToTextObject;
 }
 
-function getTargetCanvasIdForLayer(layer, view, store) {
+function pwcaGetTargetCanvasIdForLayer(layer, view, store) {
     const layerName = String(layer?.name || '').trim();
     const flowConfig = window.pwcaGetFlowConfig ? window.pwcaGetFlowConfig(view, store) : null;
 
@@ -216,13 +216,13 @@ function getTargetCanvasIdForLayer(layer, view, store) {
     return `mainCanvas-${view.id}`;
 }
 
-function getViewRenderableLayers(view) {
+function pwcaGetViewRenderableLayers(view) {
     const viewData = view && view.data ? view.data : null;
     const layerConfig = viewData && viewData.layer_config ? viewData.layer_config : null;
     return layerConfig && Array.isArray(layerConfig.layers) ? layerConfig.layers : [];
 }
 
-function getFlowSizingReferenceLayer(layers, view, store) {
+function pwcaGetFlowSizingReferenceLayer(layers, view, store) {
     if (!Array.isArray(layers) || layers.length === 0) {
         return null;
     }
@@ -235,11 +235,11 @@ function getFlowSizingReferenceLayer(layers, view, store) {
     return layers[0];
 }
 
-function getCanvasDimensionsForView(view, store, fallback = { width: 567, height: 567 }) {
+function pwcaGetCanvasDimensionsForView(view, store, fallback = { width: 567, height: 567 }) {
     const layers = Array.isArray(view && view.layers) && view.layers.length > 0
         ? view.layers
-        : getViewRenderableLayers(view);
-    const targetLayer = getFlowSizingReferenceLayer(layers, view, store);
+        : pwcaGetViewRenderableLayers(view);
+    const targetLayer = pwcaGetFlowSizingReferenceLayer(layers, view, store);
 
     if (!targetLayer) {
         return {
@@ -248,10 +248,10 @@ function getCanvasDimensionsForView(view, store, fallback = { width: 567, height
         };
     }
 
-    return getLayerRenderSize(targetLayer, fallback);
+    return pwcaGetLayerRenderSize(targetLayer, fallback);
 }
 
-function buildCanvasConfigsForView(view, layers, store) {
+function pwcaBuildCanvasConfigsForView(view, layers, store) {
     const canvasConfigs = [
         { canvasId: `baseCanvas-${view.id}`, layers: [] },
         { canvasId: `mainCanvas-${view.id}`, layers: [] },
@@ -260,7 +260,7 @@ function buildCanvasConfigsForView(view, layers, store) {
     const canvasConfigMap = new Map(canvasConfigs.map((config) => [config.canvasId, config]));
 
     for (const layer of layers) {
-        const canvasId = getTargetCanvasIdForLayer(layer, view, store);
+        const canvasId = pwcaGetTargetCanvasIdForLayer(layer, view, store);
         if (!canvasId) {
             continue;
         }
@@ -274,7 +274,7 @@ function buildCanvasConfigsForView(view, layers, store) {
     return canvasConfigs;
 }
 
-async function renderCanvasConfigsForView(view, store, canvasConfigs) {
+async function pwcaRenderCanvasConfigsForView(view, store, canvasConfigs) {
     for (const config of canvasConfigs) {
         const targetLayers = config.layers;
         if (targetLayers.length === 0) {
@@ -297,17 +297,17 @@ async function renderCanvasConfigsForView(view, store, canvasConfigs) {
             (a, b) => (a.sort_order || 0) - (b.sort_order || 0)
         );
         for (const layer of sortedLayers) {
-            await renderLayerToSpecificCanvas(canvas, layer, store, view);
+            await pwcaRenderLayerToSpecificCanvas(canvas, layer, store, view);
         }
         canvas.renderAll();
     }
 }
 
-async function applyFlowPostInitialization(view, store) {
+async function pwcaApplyFlowPostInitialization(view, store) {
     const flowConfig = window.pwcaGetFlowConfig ? window.pwcaGetFlowConfig(view, store) : null;
 
     const flowHandlers = {
-        'handleFourGridContentArea': handleFourGridContentArea
+        'pwcaHandleFourGridContentArea': pwcaHandleFourGridContentArea
     };
 
     if (flowConfig && flowConfig.postInit) {
@@ -318,7 +318,7 @@ async function applyFlowPostInitialization(view, store) {
         }
     }
 
-    clearContentAreaClip(view.id);
+    pwcaClearContentAreaClip(view.id);
 }
 
 /**
@@ -327,7 +327,7 @@ async function applyFlowPostInitialization(view, store) {
  * @param {object} layer - 来自 API 的单个图层对象。
  * @returns {Promise<fabric.Object|null>} 一个 Promise，如果图层无法创建，则解析为 fabric 对象或 null。
  */
-function createFabricObjectFromLayer(canvas, layer) {
+function pwcaCreateFabricObjectFromLayer(canvas, layer) {
     return new Promise((resolve) => {
         if (!canvas || !layer || !layer.layer_data) {
             resolve(null);
@@ -406,7 +406,7 @@ function createFabricObjectFromLayer(canvas, layer) {
 
                         const imgWidth = img.width || 1;
                         const imgHeight = img.height || 1;
-                        const renderSize = getLayerRenderSize(layer, {
+                        const renderSize = pwcaGetLayerRenderSize(layer, {
                             width: imgWidth,
                             height: imgHeight
                         });
@@ -419,7 +419,7 @@ function createFabricObjectFromLayer(canvas, layer) {
 
                         const scaleX = renderSize.width / imgWidth;
                         const scaleY = renderSize.height / imgHeight;
-                        const placement = getFabricPlacementForLayer(canvas, position, renderSize);
+                        const placement = pwcaGetFabricPlacementForLayer(canvas, position, renderSize);
 
                         img.set({
                             left: placement.left,
@@ -460,7 +460,7 @@ function createFabricObjectFromLayer(canvas, layer) {
                     return;
                 }
 
-                const textRenderSize = getLayerRenderSize(layer, {
+                const textRenderSize = pwcaGetLayerRenderSize(layer, {
                     width: 0,
                     height: 0
                 });
@@ -469,7 +469,7 @@ function createFabricObjectFromLayer(canvas, layer) {
                     resolve(null);
                     return;
                 }
-                const placement = getFabricPlacementForLayer(canvas, position, textRenderSize);
+                const placement = pwcaGetFabricPlacementForLayer(canvas, position, textRenderSize);
                 const arcValue = pwcaNormalizeArcValue(data.content.arc);
 
                 const textObj = new fabric.Textbox(data.content.text, {
@@ -594,7 +594,7 @@ window.pwcaApplyGradientFilter = pwcaApplyGradientFilter;
  * @param {Object} view - 视图对象
  * @param {Object} store - Pinia store
  */
-async function initializeEmptyCanvas(canvasId, canvasWidth, canvasHeight, view, store) {
+async function pwcaInitializeEmptyCanvas(canvasId, canvasWidth, canvasHeight, view, store) {
     const canvasElement = document.getElementById(canvasId);
     if (!canvasElement || typeof fabric === 'undefined') {
         return null;
@@ -611,7 +611,7 @@ async function initializeEmptyCanvas(canvasId, canvasWidth, canvasHeight, view, 
     }
 
     if (window.PrintAreaValidator) {
-        window.PrintAreaValidator.addPrintAreaValidationListeners(canvas, view.id);
+        window.PrintAreaValidator.pwcaAddPrintAreaValidationListeners(canvas, view.id);
     }
 
     canvasElement.__fabricCanvas = canvas;
@@ -646,13 +646,13 @@ async function initializeEmptyCanvas(canvasId, canvasWidth, canvasHeight, view, 
  * @param {object} view - 当前视图对象
  * @returns {Promise<fabric.Object|null>} 返回创建的 fabric 对象
  */
-async function renderLayerToSpecificCanvas(canvas, layer, store, view) {
+async function pwcaRenderLayerToSpecificCanvas(canvas, layer, store, view) {
     if (!canvas || !layer) {
         return null;
     }
 
     try {
-        const fabricObject = await createFabricObjectFromLayer(canvas, layer);
+        const fabricObject = await pwcaCreateFabricObjectFromLayer(canvas, layer);
 
         if (fabricObject && layer.name === 'Base Layer' && view && store && Array.isArray(store.views)) {
             const viewIndex = store.views.findIndex((v) => v.id === view.id);
@@ -679,7 +679,7 @@ async function renderLayerToSpecificCanvas(canvas, layer, store, view) {
  * 清除指定视图主画布上的内容区域裁剪限制。
  * @param {number|string} viewId - 视图 ID。
  */
-function clearContentAreaClip(viewId) {
+function pwcaClearContentAreaClip(viewId) {
     const mainCanvasElement = document.getElementById(`mainCanvas-${viewId}`);
     if (!mainCanvasElement || !mainCanvasElement.__fabricCanvas) {
         return;
@@ -705,7 +705,7 @@ function clearContentAreaClip(viewId) {
  * @param {fabric.Canvas} canvas - 需要应用裁剪的画布。
  * @param {fabric.Object} referenceObject - 参考的内容区域图层对象。
  */
-function applyContentAreaClip(canvas, referenceObject) {
+function pwcaApplyContentAreaClip(canvas, referenceObject) {
     if (!canvas || !referenceObject || typeof fabric === 'undefined') {
         return;
     }
@@ -738,7 +738,7 @@ function applyContentAreaClip(canvas, referenceObject) {
  * @param {Object} view - 当前视图对象。
  * @param {Object} store - Pinia store。
  */
-async function handleFourGridContentArea(view, store) {
+async function pwcaHandleFourGridContentArea(view, store) {
     const viewLayers = view?.data?.layer_config?.layers;
     if (!Array.isArray(viewLayers) || viewLayers.length === 0) {
         return;
@@ -777,21 +777,21 @@ async function handleFourGridContentArea(view, store) {
     }
 
     if (!contentAreaLayer) {
-        clearContentAreaClip(view.id);
+        pwcaClearContentAreaClip(view.id);
         return;
     }
     // 不考虑内容视图的图片资源，直接渲染
     // const imageURL = contentAreaLayer?.layer_data?.content?.imageURL;
-    // if (!isValidImageURL(imageURL)) {
+    // if (!pwcaIsValidImageURL(imageURL)) {
     //     console.warn('Content Area Layer 不包含可用的图片资源，将跳过渲染与裁剪。');
-    //     clearContentAreaClip(view.id);
+    //     pwcaClearContentAreaClip(view.id);
     //     return;
     // }
 
     try {
-        const contentAreaObject = await createFabricObjectFromLayer(baseCanvas, contentAreaLayer);
+        const contentAreaObject = await pwcaCreateFabricObjectFromLayer(baseCanvas, contentAreaLayer);
         if (!contentAreaObject) {
-            clearContentAreaClip(view.id);
+            pwcaClearContentAreaClip(view.id);
             return;
         }
 
@@ -805,10 +805,10 @@ async function handleFourGridContentArea(view, store) {
         baseCanvas.bringToFront(contentAreaObject);
         baseCanvas.renderAll();
 
-        applyContentAreaClip(mainCanvas, contentAreaObject);
+        pwcaApplyContentAreaClip(mainCanvas, contentAreaObject);
     } catch (error) {
         console.error('渲染 Content Area Layer 时发生错误', error);
-        clearContentAreaClip(view.id);
+        pwcaClearContentAreaClip(view.id);
     }
 }
 
@@ -817,7 +817,7 @@ async function handleFourGridContentArea(view, store) {
  * @param {string} url - 待检测的 URL 字符串。
  * @returns {boolean} 如果可能是图片则返回 true。
  */
-function isValidImageURL(url) {
+function pwcaIsValidImageURL(url) {
     if (typeof url !== 'string') {
         return false;
     }
@@ -840,31 +840,31 @@ function isValidImageURL(url) {
  * @param {Object} view - 视图对象
  * @param {Object} store - Pinia store
  */
-async function initializeMultiLayerCanvases(view, store) {
+async function pwcaInitializeMultiLayerCanvases(view, store) {
     console.info('[PW Canvas][MultiView] 开始初始化视图', {
         viewId: view && view.id ? view.id : null,
         viewName: view && view.name ? view.name : null
     });
 
-    const layers = getViewRenderableLayers(view);
+    const layers = pwcaGetViewRenderableLayers(view);
     if (layers.length === 0) {
         console.error('未在视图数据中找到有效的图层配置进行渲染。');
         return;
     }
 
-    const canvasSize = getCanvasDimensionsForView(view, store, { width: 0, height: 0 });
+    const canvasSize = pwcaGetCanvasDimensionsForView(view, store, { width: 0, height: 0 });
     const canvasWidth = canvasSize.width;
     const canvasHeight = canvasSize.height;
 
-    const canvasConfigs = buildCanvasConfigsForView(view, layers, store);
+    const canvasConfigs = pwcaBuildCanvasConfigsForView(view, layers, store);
     const allCanvasIds = canvasConfigs.map((config) => config.canvasId);
 
     for (const canvasId of allCanvasIds) {
-        await initializeEmptyCanvas(canvasId, canvasWidth, canvasHeight, view, store);
+        await pwcaInitializeEmptyCanvas(canvasId, canvasWidth, canvasHeight, view, store);
     }
 
-    await renderCanvasConfigsForView(view, store, canvasConfigs);
-    await applyFlowPostInitialization(view, store);
+    await pwcaRenderCanvasConfigsForView(view, store, canvasConfigs);
+    await pwcaApplyFlowPostInitialization(view, store);
 
     setTimeout(() => {
         if (typeof window.pwcaTriggerAutoZoomAdjustment === 'function') {
@@ -884,7 +884,7 @@ async function initializeMultiLayerCanvases(view, store) {
  * @param {Object} view - 视图对象
  * @param {Object} store - Pinia store
  */
-async function initializeMaskCanvas(canvasId, view, store) {
+async function pwcaInitializeMaskCanvas(canvasId, view, store) {
     const flowConfig = window.pwcaGetFlowConfig ? window.pwcaGetFlowConfig(view, store) : null;
     const hasMask = flowConfig ? flowConfig.hasMask : true;
 
@@ -897,7 +897,7 @@ async function initializeMaskCanvas(canvasId, view, store) {
         return null;
     }
 
-    const canvasSize = getCanvasDimensionsForView(view, store, { width: 456, height: 456 });
+    const canvasSize = pwcaGetCanvasDimensionsForView(view, store, { width: 456, height: 456 });
     const canvasWidth = canvasSize.width;
     const canvasHeight = canvasSize.height;
 
@@ -1176,7 +1176,7 @@ function pwcaGetRenderableViews(views) {
 function pwcaEstimateMultiViewInitTimeoutMs(views) {
     const renderableViews = pwcaGetRenderableViews(views);
     const imageLayerCount = renderableViews.reduce((count, view) => {
-        const layers = getViewRenderableLayers(view);
+        const layers = pwcaGetViewRenderableLayers(view);
         return count + layers.filter((layer) => layer && layer.type === 'image').length;
     }, 0);
 
@@ -1312,7 +1312,7 @@ function pwcaCreateViewContainers(views, store) {
     }
 
     const initPromises = renderableViews.map((view, index) => {
-        const canvasSize = getCanvasDimensionsForView(view, store, { width: 567, height: 567 });
+        const canvasSize = pwcaGetCanvasDimensionsForView(view, store, { width: 567, height: 567 });
         const canvasWidth = canvasSize.width;
         const canvasHeight = canvasSize.height;
 
@@ -1355,8 +1355,8 @@ function pwcaCreateViewContainers(views, store) {
         return new Promise((resolve, reject) => {
             setTimeout(async () => {
                 try {
-                    await initializeMultiLayerCanvases(view, store);
-                    await initializeMaskCanvas(`maskCanvas-${view.id}`, view, store);
+                    await pwcaInitializeMultiLayerCanvases(view, store);
+                    await pwcaInitializeMaskCanvas(`maskCanvas-${view.id}`, view, store);
                     resolve();
                 } catch (error) {
                     console.error('[PW Canvas][MultiView] 单个视图初始化失败', {

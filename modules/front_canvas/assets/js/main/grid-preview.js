@@ -117,8 +117,8 @@ async function pwcaDrawLayerByConfig(ctx, view, layerConfig, canvasWidth, canvas
     });
     const placement = pwcaGetLayerPlacement(layer, canvasHeight, renderSize);
     const applySelectedColor = !!layerConfig?.applySelectedColor;
-    const selectedColor = typeof window.getExplicitSelectedColor === 'function'
-        ? window.getExplicitSelectedColor()
+    const selectedColor = typeof window.pwcaGetExplicitSelectedColor === 'function'
+        ? window.pwcaGetExplicitSelectedColor()
         : null;
 
     if (applySelectedColor && selectedColor) {
@@ -192,7 +192,7 @@ async function pwcaGenerateGridMockupPreview(view, config, activeCanvas) {
     const overlayLayer = pwcaGetViewLayerByName(view, config?.overlayLayerName || 'Overlay Layer');
     const mappingLayer = pwcaGetViewLayerByName(view, config?.mappingLayerName || 'Mapping Layer');
 
-    return generateCompositeImageForGrid({
+    return pwcaGenerateCompositeImageForGrid({
         canvasWidth: canvasSize.width,
         canvasHeight: canvasSize.height,
         backgroundLayer,
@@ -206,7 +206,7 @@ async function pwcaGenerateGridMockupPreview(view, config, activeCanvas) {
 
 async function pwcaGenerateConfiguredPreviewImage(view, config, activeCanvas) {
     if (config?.mode === 'capturedView') {
-        const capturedImage = await captureViewImage(view);
+        const capturedImage = await pwcaCaptureViewImage(view);
         const canvasSize = pwcaGetCanvasSizeFromConfig(view, config);
         return pwcaResizeImageDataUrl(capturedImage, canvasSize.width, canvasSize.height);
     }
@@ -219,7 +219,7 @@ async function pwcaGenerateConfiguredPreviewImage(view, config, activeCanvas) {
         return pwcaGenerateGridMockupPreview(view, config, activeCanvas);
     }
 
-    return captureViewImage(view);
+    return pwcaCaptureViewImage(view);
 }
 
 function pwcaUpdateBoundaryFromLayerDrawable(drawable, placement, renderSize, imageUrl) {
@@ -298,7 +298,7 @@ async function pwcaDrawLayerForGridComposite(ctx, layer, canvasWidth, canvasHeig
     };
 }
 
-async function generateUniversalViewImages(views) {
+async function pwcaGenerateUniversalViewImages(views) {
     const images = [];
 
     for (const view of views) {
@@ -308,9 +308,9 @@ async function generateUniversalViewImages(views) {
                 : [];
 
             if (Array.isArray(flowPreviewConfigs) && flowPreviewConfigs.length > 0) {
-                images.push(await generate4GridImagesForView(view, { configs: flowPreviewConfigs }));
+                images.push(await pwcaGenerate4GridImagesForView(view, { configs: flowPreviewConfigs }));
             } else {
-                images.push(await captureViewImage(view));
+                images.push(await pwcaCaptureViewImage(view));
             }
         } catch (error) {
             images.push(pwcaCreateImageErrorDataUrl('Screenshot failed'));
@@ -320,7 +320,7 @@ async function generateUniversalViewImages(views) {
     return images;
 }
 
-async function generate4GridImagesForView(view, options = {}) {
+async function pwcaGenerate4GridImagesForView(view, options = {}) {
     if (!view) {
         const fallbackImage = pwcaCreateImageErrorDataUrl('Failed to get view');
         return options.onlyFirst ? fallbackImage : [fallbackImage];
@@ -335,7 +335,7 @@ async function generate4GridImagesForView(view, options = {}) {
     const enabledPreviews = configuredPreviews.filter(function (c) { return c.enabled !== false; });
 
     if (!Array.isArray(enabledPreviews) || enabledPreviews.length === 0) {
-        const capturedImage = await captureViewImage(view);
+        const capturedImage = await pwcaCaptureViewImage(view);
         return options.onlyFirst ? capturedImage : [capturedImage];
     }
 
@@ -366,7 +366,7 @@ async function generate4GridImagesForView(view, options = {}) {
     return options.onlyFirst ? images[0] : images;
 }
 
-async function generateCompositeImageForGrid(options) {
+async function pwcaGenerateCompositeImageForGrid(options) {
     const { canvasWidth, canvasHeight, backgroundLayer, baseLayer, overlayLayer, mappingLayer, activeCanvas, cropConfig } = options;
     const tempCanvas = document.createElement('canvas'); tempCanvas.width = canvasWidth; tempCanvas.height = canvasHeight; const ctx = tempCanvas.getContext('2d');
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -379,7 +379,7 @@ async function generateCompositeImageForGrid(options) {
             await pwcaDrawLayerForGridComposite(ctx, backgroundLayer, canvasWidth, canvasHeight);
         }
         if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL) {
-            const explicitColor = typeof window.getExplicitSelectedColor === 'function' ? window.getExplicitSelectedColor() : null;
+            const explicitColor = typeof window.pwcaGetExplicitSelectedColor === 'function' ? window.pwcaGetExplicitSelectedColor() : null;
             await pwcaDrawLayerForGridComposite(ctx, baseLayer, canvasWidth, canvasHeight, {
                 tintColor: explicitColor,
                 captureBoundary: true
@@ -389,9 +389,9 @@ async function generateCompositeImageForGrid(options) {
             await pwcaDrawLayerForGridComposite(ctx, overlayLayer, canvasWidth, canvasHeight);
         }
         let imageAnalysisData = null;
-        if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL && typeof window.analyzeImageInfo === 'function') { imageAnalysisData = await window.analyzeImageInfo(baseLayer.layer_data.content.imageURL); }
+        if (baseLayer && baseLayer.layer_data && baseLayer.layer_data.content && baseLayer.layer_data.content.imageURL && typeof window.pwcaAnalyzeImageInfo === 'function') { imageAnalysisData = await window.pwcaAnalyzeImageInfo(baseLayer.layer_data.content.imageURL); }
         if (activeCanvas) {
-            await drawCroppedCanvasRegionWithWindowEffect(
+            await pwcaDrawCroppedCanvasRegionWithWindowEffect(
                 ctx,
                 activeCanvas,
                 cropConfig,
@@ -405,7 +405,7 @@ async function generateCompositeImageForGrid(options) {
     } catch (error) { throw error; }
 }
 
-async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
+async function pwcaDrawLayerImageForGrid(ctx, imageUrl, width, height) {
     return new Promise((resolve, reject) => {
         const img = new Image(); img.crossOrigin = 'anonymous';
         img.onload = () => {
@@ -425,7 +425,7 @@ async function drawLayerImageForGrid(ctx, imageUrl, width, height) {
     });
 }
 
-async function drawLayerImageForGridWithColor(ctx, imageUrl, width, height, color) {
+async function pwcaDrawLayerImageForGridWithColor(ctx, imageUrl, width, height, color) {
     return new Promise((resolve, reject) => {
         const img = new Image(); img.crossOrigin = 'anonymous';
         img.onload = () => {
@@ -445,7 +445,7 @@ async function drawLayerImageForGridWithColor(ctx, imageUrl, width, height, colo
     });
 }
 
-async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropConfig, targetWidth, targetHeight, imageAnalysisData, maskLayer = null) {
+async function pwcaDrawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropConfig, targetWidth, targetHeight, imageAnalysisData, maskLayer = null) {
     return new Promise((resolve) => {
         const sourceDataURL = sourceCanvas.toDataURL('image/png');
         const img = new Image();
@@ -476,7 +476,7 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
             try {
                 if (maskLayer?.layer_data?.content?.imageURL) {
                     maskCanvas = document.createElement('canvas'); maskCanvas.width = targetWidth; maskCanvas.height = targetHeight; const maskCtx = maskCanvas.getContext('2d');
-                    const explicitColor = typeof window.getExplicitSelectedColor === 'function' ? window.getExplicitSelectedColor() : null;
+                    const explicitColor = typeof window.pwcaGetExplicitSelectedColor === 'function' ? window.pwcaGetExplicitSelectedColor() : null;
                     await pwcaDrawLayerForGridComposite(maskCtx, maskLayer, targetWidth, targetHeight, {
                         tintColor: explicitColor
                     });
@@ -492,14 +492,14 @@ async function drawCroppedCanvasRegionWithWindowEffect(ctx, sourceCanvas, cropCo
     });
 }
 
-function drawCanvasWithinBoundaryForWindow(ctx, sourceCanvas, cupBoundary) {
+function pwcaDrawCanvasWithinBoundaryForWindow(ctx, sourceCanvas, cupBoundary) {
     const scaleX = cupBoundary.width / sourceCanvas.width; const scaleY = cupBoundary.height / sourceCanvas.height; const scale = Math.max(scaleX, scaleY) * 0.95; const adjustedScale = Math.max(scale, 0.9);
     const scaledWidth = sourceCanvas.width * adjustedScale; const scaledHeight = sourceCanvas.height * adjustedScale;
     const x = cupBoundary.x + (cupBoundary.width - scaledWidth) / 2; const y = cupBoundary.y + (cupBoundary.height - scaledHeight) / 2;
     ctx.drawImage(sourceCanvas, x, y, scaledWidth, scaledHeight);
 }
 
-function drawCanvasWithinBoundary(ctx, sourceCanvas, targetWidth, targetHeight) {
+function pwcaDrawCanvasWithinBoundary(ctx, sourceCanvas, targetWidth, targetHeight) {
     const cupBoundary = window.cupBoundary;
     if (!cupBoundary) {
         const drawHeight = targetHeight * 0.8; const aspectRatio = sourceCanvas.width / sourceCanvas.height; const drawWidth = drawHeight * aspectRatio; const x = (targetWidth - drawWidth) / 2; const y = (targetHeight - drawHeight) / 2; ctx.drawImage(sourceCanvas, x, y, drawWidth, drawHeight); return;
@@ -510,7 +510,7 @@ function drawCanvasWithinBoundary(ctx, sourceCanvas, targetWidth, targetHeight) 
     ctx.drawImage(sourceCanvas, x, y, scaledWidth, scaledHeight);
 }
 
-function cropImageWithConfig(imageDataUrl, cropConfig) {
+function pwcaCropImageWithConfig(imageDataUrl, cropConfig) {
     return new Promise((resolve) => {
         const img = new Image();
         img.onload = function () {
@@ -525,7 +525,7 @@ function cropImageWithConfig(imageDataUrl, cropConfig) {
     });
 }
 
-async function captureViewImage(view) {
+async function pwcaCaptureViewImage(view) {
     try {
         const baseCanvasElement = document.getElementById(`baseCanvas-${view.id}`);
         const mainCanvasElement = document.getElementById(`mainCanvas-${view.id}`);
@@ -535,7 +535,7 @@ async function captureViewImage(view) {
             const fabricCanvas = pwcaGetGridCanvasByViewId(view.id);
             if (fabricCanvas) {
                 fabricCanvas.renderAll();
-                const imageData = await window.captureMultiLayerCanvasWithMask({ baseCanvas: baseCanvasElement, mainCanvas: mainCanvasElement, overlayCanvas: overlayCanvasElement, maskCanvas: maskCanvasElement, fabricCanvas: fabricCanvas }, view);
+                const imageData = await window.pwcaCaptureMultiLayerCanvasWithMask({ baseCanvas: baseCanvasElement, mainCanvas: mainCanvasElement, overlayCanvas: overlayCanvasElement, maskCanvas: maskCanvasElement, fabricCanvas: fabricCanvas }, view);
                 return imageData;
             } else {
                 return 'data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">Failed to load view</text></svg>');
@@ -548,13 +548,13 @@ async function captureViewImage(view) {
     }
 }
 
-window.generate4GridImagesForView = generate4GridImagesForView;
-window.generateCompositeImageForGrid = generateCompositeImageForGrid;
-window.drawLayerImageForGrid = drawLayerImageForGrid;
-window.drawLayerImageForGridWithColor = drawLayerImageForGridWithColor;
-window.drawCroppedCanvasRegionWithWindowEffect = drawCroppedCanvasRegionWithWindowEffect;
-window.drawCanvasWithinBoundaryForWindow = drawCanvasWithinBoundaryForWindow;
-window.drawCanvasWithinBoundary = drawCanvasWithinBoundary;
-window.cropImageWithConfig = cropImageWithConfig;
-window.captureViewImage = captureViewImage;
-window.pwcaGenerateUniversalViewImages = generateUniversalViewImages;
+window.pwcaGenerate4GridImagesForView = pwcaGenerate4GridImagesForView;
+window.pwcaGenerateCompositeImageForGrid = pwcaGenerateCompositeImageForGrid;
+window.pwcaDrawLayerImageForGrid = pwcaDrawLayerImageForGrid;
+window.pwcaDrawLayerImageForGridWithColor = pwcaDrawLayerImageForGridWithColor;
+window.pwcaDrawCroppedCanvasRegionWithWindowEffect = pwcaDrawCroppedCanvasRegionWithWindowEffect;
+window.pwcaDrawCanvasWithinBoundaryForWindow = pwcaDrawCanvasWithinBoundaryForWindow;
+window.pwcaDrawCanvasWithinBoundary = pwcaDrawCanvasWithinBoundary;
+window.pwcaCropImageWithConfig = pwcaCropImageWithConfig;
+window.pwcaCaptureViewImage = pwcaCaptureViewImage;
+window.pwcaGenerateUniversalViewImages = pwcaGenerateUniversalViewImages;

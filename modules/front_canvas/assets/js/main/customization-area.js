@@ -12,22 +12,22 @@
         return uiStateAccess.getCanvasStore();
     };
 
-    const waitForStore = (callback) => {
+    const pwcaWaitForStore = (callback) => {
         const store = pwcaGetCanvasStore();
         if (store) {
             callback(store);
             return;
         }
         window.setTimeout(() => {
-            waitForStore(callback);
+            pwcaWaitForStore(callback);
         }, 100);
     };
 
-    const setupStoreWatcher = (store) => {
+    const pwcaSetupStoreWatcher = (store) => {
         let previousLoadingState = store.isLoadingProductData;
 
         if (!store.isLoadingProductData && store.views && store.views.length > 0) {
-            createViewButtons(store);
+            pwcaCreateViewButtons(store);
         }
 
         store.$subscribe((mutation, state) => {
@@ -38,13 +38,13 @@
                 state.views &&
                 state.views.length > 0
             ) {
-                createViewButtons(store);
+                pwcaCreateViewButtons(store);
             }
             previousLoadingState = state.isLoadingProductData;
         });
     };
 
-    const createViewButtons = (store) => {
+    const pwcaCreateViewButtons = (store) => {
         const container = document.getElementById('pw-view-switcher-container');
         if (!container || !Array.isArray(store.views)) {
             return;
@@ -123,9 +123,9 @@
         }
     };
 
-    const initViewSwitcher = () => {
-        waitForStore(setupStoreWatcher);
+    const pwcaInitViewSwitcher = () => {
+        pwcaWaitForStore(pwcaSetupStoreWatcher);
     };
 
-    document.addEventListener('DOMContentLoaded', initViewSwitcher);
+    document.addEventListener('DOMContentLoaded', pwcaInitViewSwitcher);
 })();

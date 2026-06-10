@@ -1,4 +1,4 @@
-function getCurrentSelectedColor() {
+function pwcaGetCurrentSelectedColor() {
     const selectedSwatch = document.querySelector('.pwca-color-swatch.selected');
     if (selectedSwatch) {
         const color = selectedSwatch.getAttribute('data-color');
@@ -10,7 +10,7 @@ function getCurrentSelectedColor() {
     return '#000000';
 }
 
-function getExplicitSelectedColor() {
+function pwcaGetExplicitSelectedColor() {
     const selectedSwatch = document.querySelector('.pwca-color-swatch.selected');
     if (selectedSwatch) {
         const color = selectedSwatch.getAttribute('data-color');
@@ -22,5 +22,5 @@ function getExplicitSelectedColor() {
     return null;
 }
 
-window.getCurrentSelectedColor = getCurrentSelectedColor;
-window.getExplicitSelectedColor = getExplicitSelectedColor;
+window.pwcaGetCurrentSelectedColor = pwcaGetCurrentSelectedColor;
+window.pwcaGetExplicitSelectedColor = pwcaGetExplicitSelectedColor;

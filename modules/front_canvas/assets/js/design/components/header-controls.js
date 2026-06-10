@@ -46,7 +46,7 @@ const HeaderControls = {
         // History management per view
         const viewHistories = reactive({});
 
-        const initHistory = (viewId) => {
+        const pwcaInitHistory = (viewId) => {
             if (!window.VueUse) return;
             if (viewHistories[viewId]) return;
 
@@ -87,7 +87,7 @@ const HeaderControls = {
                     const objects = canvas.getObjects();
                     
                     // Helper to restore image element
-                    const restoreImage = (obj) => {
+                    const pwcaRestoreImage = (obj) => {
                         return new Promise(resolve => {
                             if (!obj.src) {
                                 resolve();
@@ -111,7 +111,7 @@ const HeaderControls = {
                     if (objects && objects.length) {
                         const restorePromises = objects.map(obj => {
                             if (obj.type === 'image' || obj.type === 'image-filter') {
-                                return restoreImage(obj);
+                                return pwcaRestoreImage(obj);
                             }
                             return Promise.resolve();
                         });
@@ -135,7 +135,7 @@ const HeaderControls = {
             }, { flush: 'sync' });
 
             // Update history from canvas events
-            const updateHistory = (e) => {
+            const pwcaUpdateHistory = (e) => {
                 if (isRestoring) {
                     return;
                 }
@@ -161,20 +161,20 @@ const HeaderControls = {
             };
 
             // Attach listeners
-            // Debounce the updateHistory to avoid rapid-fire updates during drag/resize
+            // Debounce the pwcaUpdateHistory to avoid rapid-fire updates during drag/resize
             // We can use a simple timeout for this
             let updateTimeout;
-            const debouncedUpdateHistory = (e) => {
+            const pwcaDebouncedUpdateHistory = (e) => {
                 if (updateTimeout) clearTimeout(updateTimeout);
                 updateTimeout = setTimeout(() => {
-                    updateHistory(e);
+                    pwcaUpdateHistory(e);
                 }, 100); // 100ms debounce
             };
 
-            canvas.on('object:added', debouncedUpdateHistory);
-            canvas.on('object:modified', debouncedUpdateHistory);
-            canvas.on('object:removed', debouncedUpdateHistory);
-            canvas.on('path:created', debouncedUpdateHistory); // For free drawing
+            canvas.on('object:added', pwcaDebouncedUpdateHistory);
+            canvas.on('object:modified', pwcaDebouncedUpdateHistory);
+            canvas.on('object:removed', pwcaDebouncedUpdateHistory);
+            canvas.on('path:created', pwcaDebouncedUpdateHistory); // For free drawing
 
             // Store in reactive object
             viewHistories[viewId] = {
@@ -187,26 +187,26 @@ const HeaderControls = {
         };
 
         // Listen for initialization complete
-        const startHistory = () => {
+        const pwcaStartHistory = () => {
             // Wait a bit to ensure everything is settled
             setTimeout(() => {
                 if (store.views && store.views.length > 0) {
                     store.views.forEach(view => {
-                        initHistory(view.id);
+                        pwcaInitHistory(view.id);
                     });
                 }
             }, 500);
         };
 
-        document.addEventListener('multiViewInitComplete', startHistory);
+        document.addEventListener('multiViewInitComplete', pwcaStartHistory);
         // Also listen to the system standard event just in case
-        // document.addEventListener('canvasInitializationComplete', startHistory);
+        // document.addEventListener('canvasInitializationComplete', pwcaStartHistory);
 
         // Watch for views changes (e.g. if loaded later)
         watch(() => store.views, (newViews) => {
             if (newViews && newViews.length > 0) {
                 nextTick(() => {
-                    startHistory();
+                    pwcaStartHistory();
                 });
             }
         }, { deep: true });
@@ -218,13 +218,13 @@ const HeaderControls = {
         //         const ids = window.pwcaCanvasManager.getAllCanvasIds();
         //         if (ids && ids.length > 0) {
         //             console.log('HeaderControls: CanvasManager already ready, starting history...', ids);
-        //             startHistory();
+        //             pwcaStartHistory();
         //         }
         //     }
         // });
 
         // Helper functions for template
-        const handleUndo = (viewId) => {
+        const pwcaHandleUndo = (viewId) => {
             if (viewHistories[viewId]) {
                 // Check if it's a ref (not unwrapped) or value (unwrapped)
                 const canUndo = viewHistories[viewId].canUndo;
@@ -235,7 +235,7 @@ const HeaderControls = {
             }
         };
 
-        const handleRedo = (viewId) => {
+        const pwcaHandleRedo = (viewId) => {
             if (viewHistories[viewId]) {
                 const canRedo = viewHistories[viewId].canRedo;
                 if (canRedo === true || (canRedo && canRedo.value === true)) {
@@ -244,14 +244,14 @@ const HeaderControls = {
             }
         };
 
-        const getCanUndo = (viewId) => {
+        const pwcaGetCanUndo = (viewId) => {
             if (!viewHistories[viewId]) return false;
             // Handle reactive unwrapping
             const val = viewHistories[viewId].canUndo;
             return typeof val === 'boolean' ? val : !!val.value;
         };
 
-        const getCanRedo = (viewId) => {
+        const pwcaGetCanRedo = (viewId) => {
             if (!viewHistories[viewId]) return false;
             // Handle reactive unwrapping
             const val = viewHistories[viewId].canRedo;
@@ -259,11 +259,11 @@ const HeaderControls = {
         };
 
         // Helper to get product name from page title or elsewhere
-        const getProductName = () => {
+        const pwcaGetProductName = () => {
             return document.title.split(' - ')[1] || 'Product';
         };
 
-        const switchTab = async (tab) => {
+        const pwcaSwitchTab = async (tab) => {
             activeTab.value = tab;
             
             if (tab === 'viewMockup') {
@@ -287,8 +287,8 @@ const HeaderControls = {
             document.dispatchEvent(new CustomEvent('tab-switched', { detail: { tab } }));
         };
 
-        const generatePdf = async () => {
-            const productName = getProductName();
+        const pwcaGeneratePdf = async () => {
+            const productName = pwcaGetProductName();
             
             // Check for Multi-View mode
             if (store.views && store.views.length > 0) {
@@ -307,12 +307,12 @@ const HeaderControls = {
         return {
             store,
             activeTab,
-            switchTab,
-            generatePdf,
-            handleUndo,
-            handleRedo,
-            getCanUndo,
-            getCanRedo
+            switchTab: pwcaSwitchTab,
+            generatePdf: pwcaGeneratePdf,
+            handleUndo: pwcaHandleUndo,
+            handleRedo: pwcaHandleRedo,
+            getCanUndo: pwcaGetCanUndo,
+            getCanRedo: pwcaGetCanRedo
         };
     },
     props: {

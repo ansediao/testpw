@@ -1,21 +1,21 @@
-function addCanvasLayerListeners(fabricCanvas) {
+function pwcaAddCanvasLayerListeners(fabricCanvas) {
     if (!fabricCanvas) return;
     fabricCanvas.on('object:added', function (e) {
         const obj = e.target;
         if (!obj.id) obj.id = `layer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        syncCanvasObjectToStore(obj, 'added');
+        pwcaSyncCanvasObjectToStore(obj, 'added');
     });
     fabricCanvas.on('object:removed', function (e) {
         const obj = e.target;
-        syncCanvasObjectToStore(obj, 'removed');
+        pwcaSyncCanvasObjectToStore(obj, 'removed');
     });
     fabricCanvas.on('selection:created', function (e) {
-        if (e.selected && e.selected.length > 0 && e.selected[0].id) syncSelectionToStore(e.selected[0].id);
+        if (e.selected && e.selected.length > 0 && e.selected[0].id) pwcaSyncSelectionToStore(e.selected[0].id);
     });
     fabricCanvas.on('selection:updated', function (e) {
-        if (e.selected && e.selected.length > 0 && e.selected[0].id) syncSelectionToStore(e.selected[0].id);
+        if (e.selected && e.selected.length > 0 && e.selected[0].id) pwcaSyncSelectionToStore(e.selected[0].id);
     });
-    fabricCanvas.on('selection:cleared', function () { syncSelectionToStore(null); });
+    fabricCanvas.on('selection:cleared', function () { pwcaSyncSelectionToStore(null); });
     fabricCanvas.on('object:modified', function (e) {
         const obj = e.target;
         if (obj && obj.id) {
@@ -31,9 +31,9 @@ function pwcaGetUiStateAccess() {
     return window.pwcaUiStateAccess || null;
 }
 
-function syncCanvasObjectToStore(obj, action) {
+function pwcaSyncCanvasObjectToStore(obj, action) {
     if (window.CanvasInitializationState && window.CanvasInitializationState.isInitializing) return;
-    if (!window.isUserInitiatedAction || !window.isUserInitiatedAction(obj)) return;
+    if (!window.pwcaIsUserInitiatedAction || !window.pwcaIsUserInitiatedAction(obj)) return;
     const stateAccess = pwcaGetUiStateAccess();
     if (stateAccess && typeof stateAccess.pwcaGetCanvasStore === 'function') {
         try {
@@ -65,20 +65,20 @@ function syncCanvasObjectToStore(obj, action) {
     }
 }
 
-function syncSelectionToStore(objectId) {
+function pwcaSyncSelectionToStore(objectId) {
     const stateAccess = pwcaGetUiStateAccess();
     if (stateAccess && typeof stateAccess.pwcaGetCanvasStore === 'function') {
         try {
             const store = stateAccess.pwcaGetCanvasStore();
             store.setActiveObjectId(objectId);
-            updateDongtaiAreaButtons(objectId);
-            controlMaskCanvasFromMain(objectId);
-            controlMainWrapperDisplayArea(objectId);
+            pwcaUpdateDongtaiAreaButtons(objectId);
+            pwcaControlMaskCanvasFromMain(objectId);
+            pwcaControlMainWrapperDisplayArea(objectId);
         } catch (error) {}
     }
 }
 
-function updateDongtaiAreaButtons(objectId) {
+function pwcaUpdateDongtaiAreaButtons(objectId) {
     const dongtaiArea = document.querySelector('.pwca-dongtai-area');
     if (!dongtaiArea) return;
     const stateAccess = pwcaGetUiStateAccess();
@@ -88,11 +88,11 @@ function updateDongtaiAreaButtons(objectId) {
             : (typeof window.pwcaGetActiveCanvas === 'function' ? window.pwcaGetActiveCanvas() : null);
     if (!canvas || !objectId) { dongtaiArea.style.display = 'none'; return; }
     const selectedObject = canvas.getObjects().find(obj => obj.id === objectId);
-    if (selectedObject) { dongtaiArea.style.display = 'block'; showRelevantButtonGroup(selectedObject); }
+    if (selectedObject) { dongtaiArea.style.display = 'block'; pwcaShowRelevantButtonGroup(selectedObject); }
     else { dongtaiArea.style.display = 'none'; }
 }
 
-function showRelevantButtonGroup(selectedObject) {
+function pwcaShowRelevantButtonGroup(selectedObject) {
     if (!selectedObject) return;
     const textToolbar = document.querySelector('.pwca-text-toolbar');
     const imgToolbar = document.querySelector('.pwca-img-toolbar');
@@ -111,7 +111,7 @@ function showRelevantButtonGroup(selectedObject) {
     if (typeof window.pwcaUpdateDynamicToolbar === 'function') window.pwcaUpdateDynamicToolbar(selectedObject);
 }
 
-function controlMaskCanvasFromMain(objectId) {
+function pwcaControlMaskCanvasFromMain(objectId) {
     const stateAccess = pwcaGetUiStateAccess();
     const store = stateAccess && stateAccess.pwcaGetCanvasStore ? stateAccess.pwcaGetCanvasStore() : null;
     const currentViewId = stateAccess && stateAccess.pwcaGetActiveViewId ? stateAccess.pwcaGetActiveViewId() : null;
@@ -129,7 +129,7 @@ function controlMaskCanvasFromMain(objectId) {
     maskWrapper.style.display = isGrouped ? 'block' : 'none';
 }
 
-function controlMainWrapperDisplayArea(objectId) {
+function pwcaControlMainWrapperDisplayArea(objectId) {
     const stateAccess = pwcaGetUiStateAccess();
     const store = stateAccess && stateAccess.pwcaGetCanvasStore ? stateAccess.pwcaGetCanvasStore() : null;
     const currentViewId = stateAccess && stateAccess.pwcaGetActiveViewId ? stateAccess.pwcaGetActiveViewId() : null;
@@ -171,8 +171,8 @@ function controlMainWrapperDisplayArea(objectId) {
     if (!centerRectCoords || isNaN(centerRectCoords.width) || isNaN(centerRectCoords.height) || centerRectCoords.width <= 0 || centerRectCoords.height <= 0) return;
     const applyClipForObject = (obj) => {
         let isBound = false;
-        if (window.PrintAreaValidator && typeof window.PrintAreaValidator.hasPrintMethodAssigned === 'function') {
-            isBound = !!window.PrintAreaValidator.hasPrintMethodAssigned(obj);
+        if (window.PrintAreaValidator && typeof window.PrintAreaValidator.pwcaHasPrintMethodAssigned === 'function') {
+            isBound = !!window.PrintAreaValidator.pwcaHasPrintMethodAssigned(obj);
         } else {
             const pmStore =
                 stateAccess && typeof stateAccess.pwcaGetPrintMethodStore === 'function'
@@ -220,12 +220,12 @@ function pwcaGetLayerType(obj) {
     return 'shape';
 }
 
-window.pwcaAddCanvasLayerListeners = addCanvasLayerListeners;
-window.pwcaSyncCanvasObjectToStore = syncCanvasObjectToStore;
-window.pwcaSyncSelectionToStore = syncSelectionToStore;
-window.pwcaUpdateDongtaiAreaButtons = updateDongtaiAreaButtons;
-window.pwcaShowRelevantButtonGroup = showRelevantButtonGroup;
-window.pwcaControlMaskCanvasFromMain = controlMaskCanvasFromMain;
-window.pwcaControlMainWrapperDisplayArea = controlMainWrapperDisplayArea;
+window.pwcaAddCanvasLayerListeners = pwcaAddCanvasLayerListeners;
+window.pwcaSyncCanvasObjectToStore = pwcaSyncCanvasObjectToStore;
+window.pwcaSyncSelectionToStore = pwcaSyncSelectionToStore;
+window.pwcaUpdateDongtaiAreaButtons = pwcaUpdateDongtaiAreaButtons;
+window.pwcaShowRelevantButtonGroup = pwcaShowRelevantButtonGroup;
+window.pwcaControlMaskCanvasFromMain = pwcaControlMaskCanvasFromMain;
+window.pwcaControlMainWrapperDisplayArea = pwcaControlMainWrapperDisplayArea;
 window.pwcaGetLayerName = pwcaGetLayerName;
 window.pwcaGetLayerType = pwcaGetLayerType;

@@ -1,13 +1,13 @@
 // src/stores/printMethodStore.js
 
 import {
-    fetchCustomColorsByListId,
-    fetchPrintMethodsByIds
+    pwcaFetchCustomColorsByListId,
+    pwcaFetchPrintMethodsByIds
 } from '../api/print-method-api.js';
 import {
-    attachCustomColorsToMethod,
-    convertApiDataToInternalFormat,
-    normalizePrintMethodsApiPayload
+    pwcaAttachCustomColorsToMethod,
+    pwcaConvertApiDataToInternalFormat,
+    pwcaNormalizePrintMethodsApiPayload
 } from './print-method-mapper.js';
 
 // 确保Pinia已加载
@@ -294,16 +294,16 @@ export const usePrintMethodStore = window.Pinia.defineStore('printMethod', {
             this.printMethodsError = null;
 
             try {
-                const result = await fetchPrintMethodsByIds(printingMethodIds);
-                const apiMethods = normalizePrintMethodsApiPayload(result);
+                const result = await pwcaFetchPrintMethodsByIds(printingMethodIds);
+                const apiMethods = pwcaNormalizePrintMethodsApiPayload(result);
                 const convertedData = await Promise.all(
                     apiMethods.map(async (apiMethod) => {
-                        let convertedMethod = convertApiDataToInternalFormat(apiMethod);
+                        let convertedMethod = pwcaConvertApiDataToInternalFormat(apiMethod);
 
                         if (apiMethod.color_list_id) {
                             try {
-                                const customColors = await fetchCustomColorsByListId(apiMethod.color_list_id);
-                                convertedMethod = attachCustomColorsToMethod(convertedMethod, customColors);
+                                const customColors = await pwcaFetchCustomColorsByListId(apiMethod.color_list_id);
+                                convertedMethod = pwcaAttachCustomColorsToMethod(convertedMethod, customColors);
                             } catch (colorError) {
                             }
                         }

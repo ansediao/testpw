@@ -11,7 +11,7 @@
  * @param {Object} printArea - 打印区域边界
  * @param {string} viewId - 视图ID
  */
-function adjustObjectPosition(canvas, object, objectBounds, printArea, viewId) {
+function pwcaAdjustObjectPosition(canvas, object, objectBounds, printArea, viewId) {
     // 计算需要调整的距离
     let newLeft = object.left;
     let newTop = object.top;
@@ -49,7 +49,7 @@ function adjustObjectPosition(canvas, object, objectBounds, printArea, viewId) {
  * @param {fabric.Object} obj - Fabric.js 对象
  * @returns {boolean} 是否分配了打印方式
  */
-function hasPrintMethodAssigned(obj) {
+function pwcaHasPrintMethodAssigned(obj) {
     if (!obj || !obj.id) return false;
     
     const printMethodStore = window.pwcaUsePrintMethodStore ? window.pwcaUsePrintMethodStore() : null;
@@ -77,7 +77,7 @@ function hasPrintMethodAssigned(obj) {
  * @param {string} viewId - 视图ID
  * @returns {Object} 打印区域边界对象 { left, top, right, bottom, width, height, centerX, centerY }
  */
-function getPrintAreaBounds(viewId) {
+function pwcaGetPrintAreaBounds(viewId) {
     // 优先从 maskCanvas 的 printAreaRect 获取边界
     try {
         const maskCanvasElement = document.getElementById(`maskCanvas-${viewId}`);
@@ -149,7 +149,7 @@ function getPrintAreaBounds(viewId) {
  * @param {Object} printAreaBounds - 打印区域边界
  * @returns {number} 重叠面积（像素平方）
  */
-function calculateOverlapArea(obj, printAreaBounds) {
+function pwcaCalculateOverlapArea(obj, printAreaBounds) {
     if (!obj || !printAreaBounds) return 0;
     
     // 获取对象的边界框
@@ -178,7 +178,7 @@ function calculateOverlapArea(obj, printAreaBounds) {
  * @param {Object} printAreaBounds - 打印区域边界
  * @returns {Object} 检查结果 { isValid, overlapRatio, overlapArea, objectArea }
  */
-function isObjectInPrintArea(obj, printAreaBounds) {
+function pwcaIsObjectInPrintArea(obj, printAreaBounds) {
     if (!obj || !printAreaBounds) {
         return { isValid: true, overlapRatio: 1, overlapArea: 0, objectArea: 0 };
     }
@@ -192,7 +192,7 @@ function isObjectInPrintArea(obj, printAreaBounds) {
     }
     
     // 计算重叠面积
-    const overlapArea = calculateOverlapArea(obj, printAreaBounds);
+    const overlapArea = pwcaCalculateOverlapArea(obj, printAreaBounds);
     
     // 计算重叠比例
     const overlapRatio = overlapArea / objectArea;
@@ -214,7 +214,7 @@ function isObjectInPrintArea(obj, printAreaBounds) {
  * @param {fabric.Canvas} canvas - Fabric.js 画布
  * @param {Object} printAreaBounds - 打印区域边界
  */
-function moveObjectToCanvasCenter(obj, canvas, printAreaBounds) {
+function pwcaMoveObjectToCanvasCenter(obj, canvas, printAreaBounds) {
     if (!obj || !canvas) {
         return;
     }
@@ -252,13 +252,13 @@ function moveObjectToCanvasCenter(obj, canvas, printAreaBounds) {
  * @param {string} viewId - 视图ID
  * @returns {Object} 验证结果 { wasValid, wasMoved, overlapRatio }
  */
-function validateAndRepositionObject(obj, viewId) {
+function pwcaValidateAndRepositionObject(obj, viewId) {
     if (!obj || !viewId) {
         return { wasValid: true, wasMoved: false, overlapRatio: 1 };
     }
 
     // 检查对象是否分配了打印方式（保持与其他视图一致）
-    const hasPrintMethod = hasPrintMethodAssigned(obj);
+    const hasPrintMethod = pwcaHasPrintMethodAssigned(obj);
     if (!hasPrintMethod) {
         return { wasValid: true, wasMoved: false, overlapRatio: 1 };
     }
@@ -270,21 +270,21 @@ function validateAndRepositionObject(obj, viewId) {
     }
 
     // 获取打印区域边界
-    const bounds = getPrintAreaBounds(viewId);
+    const bounds = pwcaGetPrintAreaBounds(viewId);
 
     if (!bounds) {
         return { wasValid: true, wasMoved: false, overlapRatio: 1 };
     }
 
     // 检查对象是否在检测边界内（重叠比例 >= 10%）
-    const checkResult = isObjectInPrintArea(obj, bounds);
+    const checkResult = pwcaIsObjectInPrintArea(obj, bounds);
 
     if (checkResult.isValid) {
         return { wasValid: true, wasMoved: false, overlapRatio: checkResult.overlapRatio };
     }
 
     // 不满足重叠比例，回到中心（中心对齐方式与其它视图一致）
-    moveObjectToCanvasCenter(obj, canvas, bounds);
+    pwcaMoveObjectToCanvasCenter(obj, canvas, bounds);
     return { wasValid: false, wasMoved: true, overlapRatio: checkResult.overlapRatio };
 }
 
@@ -293,7 +293,7 @@ function validateAndRepositionObject(obj, viewId) {
  * @param {fabric.Canvas} canvas - Fabric.js 画布
  * @param {string} viewId - 视图ID
  */
-function addPrintAreaValidationListeners(canvas, viewId) {
+function pwcaAddPrintAreaValidationListeners(canvas, viewId) {
     if (!canvas || !viewId) {
         return;
     }
@@ -306,7 +306,7 @@ function addPrintAreaValidationListeners(canvas, viewId) {
         const obj = e.target;
         if (obj) {
             setTimeout(() => {
-                validateAndRepositionObject(obj, viewId);
+                pwcaValidateAndRepositionObject(obj, viewId);
             }, 100); // 增加延迟确保位置更新完成
         }
     });
@@ -324,7 +324,7 @@ function addPrintAreaValidationListeners(canvas, viewId) {
     canvas.on('mouse:up', function(e) {
         if (isDragging && draggedObject) {
             setTimeout(() => {
-                validateAndRepositionObject(draggedObject, viewId);
+                pwcaValidateAndRepositionObject(draggedObject, viewId);
             }, 100);
         }
         
@@ -346,13 +346,13 @@ function addPrintAreaValidationListeners(canvas, viewId) {
 
 // 将函数暴露到全局作用域
 window.PrintAreaValidator = {
-    hasPrintMethodAssigned,
-    getPrintAreaBounds,
-    calculateOverlapArea,
-    isObjectInPrintArea,
-    moveObjectToCanvasCenter,
-    validateAndRepositionObject,
-    addPrintAreaValidationListeners,
+    pwcaHasPrintMethodAssigned,
+    pwcaGetPrintAreaBounds,
+    pwcaCalculateOverlapArea,
+    pwcaIsObjectInPrintArea,
+    pwcaMoveObjectToCanvasCenter,
+    pwcaValidateAndRepositionObject,
+    pwcaAddPrintAreaValidationListeners,
     // 添加调试方法
     checkModuleStatus: function() {
         
@@ -387,9 +387,9 @@ window.PrintAreaValidator = {
 
 /**
  * 测试函数 - 用于验证打印区域检查功能
- * 在浏览器控制台中运行：window.PrintAreaValidator.testPrintAreaValidation()
+ * 在浏览器控制台中运行：window.PrintAreaValidator.pwcaTestPrintAreaValidation()
  */
-function testPrintAreaValidation() {
+function pwcaTestPrintAreaValidation() {
     
     
     // 获取当前激活的画布
@@ -405,7 +405,7 @@ function testPrintAreaValidation() {
     }
     
     // 获取打印区域边界
-    const printAreaBounds = getPrintAreaBounds(viewId);
+    const printAreaBounds = pwcaGetPrintAreaBounds(viewId);
     if (!printAreaBounds) {
         return;
     }
@@ -419,13 +419,13 @@ function testPrintAreaValidation() {
     }
     
     // 检查对象是否分配了打印方式
-    const hasPrintMethod = hasPrintMethodAssigned(activeObject);
+    const hasPrintMethod = pwcaHasPrintMethodAssigned(activeObject);
     
     // 检查对象与打印区域的重叠情况
-    const overlapCheck = isObjectInPrintArea(activeObject, printAreaBounds);
+    const overlapCheck = pwcaIsObjectInPrintArea(activeObject, printAreaBounds);
     
     // 执行验证和重新定位
-    const validationResult = validateAndRepositionObject(activeObject, viewId);
+    const validationResult = pwcaValidateAndRepositionObject(activeObject, viewId);
     
     
 }
@@ -433,7 +433,7 @@ function testPrintAreaValidation() {
 /**
  * 手动触发拖拽结束验证（用于调试）
  */
-function testDragEndValidation() {
+function pwcaTestDragEndValidation() {
     
     
     // 检查 CanvasManager 是否存在
@@ -461,7 +461,7 @@ function testDragEndValidation() {
                 }
                 
                 
-                validateAndRepositionObject(activeObject, firstViewId);
+                pwcaValidateAndRepositionObject(activeObject, firstViewId);
                 return;
             }
         }
@@ -484,7 +484,7 @@ function testDragEndValidation() {
             const canvas = window.pwcaCanvasManager.getCanvas(viewId);
             if (canvas === activeCanvas) {
                 
-                validateAndRepositionObject(activeObject, viewId);
+                pwcaValidateAndRepositionObject(activeObject, viewId);
                 return;
             }
         }
@@ -493,13 +493,13 @@ function testDragEndValidation() {
     }
     
     
-    validateAndRepositionObject(activeObject, currentViewId);
+    pwcaValidateAndRepositionObject(activeObject, currentViewId);
 }
 
 /**
  * 手动为当前激活画布添加事件监听器（用于调试）
  */
-function manualAddListeners() {
+function pwcaManualAddListeners() {
     
     
     const activeCanvas = window.pwcaCanvasManager ? window.pwcaCanvasManager.getActiveCanvas() : null;
@@ -522,7 +522,7 @@ function manualAddListeners() {
     
     
     // 调用添加函数
-    addPrintAreaValidationListeners(activeCanvas, currentViewId);
+    pwcaAddPrintAreaValidationListeners(activeCanvas, currentViewId);
     
     // 检查添加后的监听器数量
     const afterMouseUp = activeCanvas.__eventListeners['mouse:up'] ? activeCanvas.__eventListeners['mouse:up'].length : 0;
@@ -534,8 +534,8 @@ function manualAddListeners() {
 }
 
 // 将测试函数添加到暴露的对象中
-window.PrintAreaValidator.testPrintAreaValidation = testPrintAreaValidation;
-window.PrintAreaValidator.testDragEndValidation = testDragEndValidation;
-window.PrintAreaValidator.manualAddListeners = manualAddListeners;
+window.PrintAreaValidator.pwcaTestPrintAreaValidation = pwcaTestPrintAreaValidation;
+window.PrintAreaValidator.pwcaTestDragEndValidation = pwcaTestDragEndValidation;
+window.PrintAreaValidator.pwcaManualAddListeners = pwcaManualAddListeners;
 
 // 模块加载完成

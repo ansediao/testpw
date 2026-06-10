@@ -89,7 +89,7 @@
         const body = document.body;
         let previousBodyOverflow = '';
 
-        function openInquiryModal() {
+        function pwcaOpenInquiryModal() {
             if (!inquiryModal) {
                 return;
             }
@@ -106,7 +106,7 @@
             }
         }
 
-        function closeInquiryModal() {
+        function pwcaCloseInquiryModal() {
             if (!inquiryModal) {
                 return;
             }
@@ -116,7 +116,7 @@
             body.style.overflow = previousBodyOverflow || '';
         }
 
-        function handleOverlayAndCloseButtons() {
+        function pwcaHandleOverlayAndCloseButtons() {
             if (!inquiryModal) {
                 return;
             }
@@ -125,7 +125,7 @@
             if (overlay) {
                 overlay.addEventListener('click', function (e) {
                     if (e.target === overlay && overlay.hasAttribute('data-micromodal-close')) {
-                        closeInquiryModal();
+                        pwcaCloseInquiryModal();
                     }
                 });
             }
@@ -134,18 +134,18 @@
             closeTriggers.forEach(function (el) {
                 el.addEventListener('click', function (e) {
                     e.preventDefault();
-                    closeInquiryModal();
+                    pwcaCloseInquiryModal();
                 });
             });
         }
 
-        function handleEscKey(event) {
+        function pwcaHandleEscKey(event) {
             if (event.key === 'Escape' && inquiryModal && inquiryModal.classList.contains('is-open')) {
-                closeInquiryModal();
+                pwcaCloseInquiryModal();
             }
         }
 
-        function setupInquiryButton() {
+        function pwcaSetupInquiryButton() {
             const inquiryBtn = document.getElementById('pwca-inquiry-btn');
             if (!inquiryBtn) {
                 return;
@@ -159,11 +159,11 @@
                     console.error('Product ID not found in URL');
                     return;
                 }
-                openInquiryModal();
+                pwcaOpenInquiryModal();
             });
         }
 
-        function handleFormSubmit(event) {
+        function pwcaHandleFormSubmit(event) {
             event.preventDefault();
 
             if (!inquiryForm) {
@@ -213,7 +213,7 @@
                         pwcaShowMessage(data.message || 'Your inquiry has been sent successfully!', 'success');
                         inquiryForm.reset();
                         window.setTimeout(function () {
-                            closeInquiryModal();
+                            pwcaCloseInquiryModal();
                         }, 2000);
                     } else {
                         const msg = data && data.message ? data.message : 'An error occurred. Please try again.';
@@ -233,16 +233,16 @@
                 });
         }
 
-        handleOverlayAndCloseButtons();
-        setupInquiryButton();
-        document.addEventListener('keydown', handleEscKey);
+        pwcaHandleOverlayAndCloseButtons();
+        pwcaSetupInquiryButton();
+        document.addEventListener('keydown', pwcaHandleEscKey);
 
         if (inquiryForm) {
-            inquiryForm.addEventListener('submit', handleFormSubmit);
+            inquiryForm.addEventListener('submit', pwcaHandleFormSubmit);
             pwcaSetupValidation(inquiryForm);
         }
 
-        window.pwcaOpenInquiryModal = openInquiryModal;
-        window.pwcaCloseInquiryModal = closeInquiryModal;
+        window.pwcaOpenInquiryModal = pwcaOpenInquiryModal;
+        window.pwcaCloseInquiryModal = pwcaCloseInquiryModal;
     });
 })();

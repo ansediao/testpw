@@ -20,7 +20,7 @@ function pwcaGetPrintMethodStore() {
     return null;
 }
 
-async function captureAllViewsImages(views) {
+async function pwcaCaptureAllViewsImages(views) {
     const images = [];
     for (const view of views) {
         try {
@@ -32,7 +32,7 @@ async function captureAllViewsImages(views) {
                 const fabricCanvas = pwcaGetCanvasByViewId(view.id);
                 if (fabricCanvas) {
                     fabricCanvas.renderAll();
-                    const imageData = await captureMultiLayerCanvasWithMask({ baseCanvas: baseCanvasElement, mainCanvas: mainCanvasElement, overlayCanvas: overlayCanvasElement, maskCanvas: maskCanvasElement, fabricCanvas: fabricCanvas }, view);
+                    const imageData = await pwcaCaptureMultiLayerCanvasWithMask({ baseCanvas: baseCanvasElement, mainCanvas: mainCanvasElement, overlayCanvas: overlayCanvasElement, maskCanvas: maskCanvasElement, fabricCanvas: fabricCanvas }, view);
                     images.push(imageData);
                 } else {
                     images.push('data:image/svg+xml;base64,' + btoa('<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999">Failed to load view</text></svg>'));
@@ -47,7 +47,7 @@ async function captureAllViewsImages(views) {
     return images;
 }
 
-async function captureViewForPDF(viewId) {
+async function pwcaCaptureViewForPDF(viewId) {
     try {
         const baseCanvas = document.getElementById(`baseCanvas-${viewId}`);
         const mainCanvas = document.getElementById(`mainCanvas-${viewId}`);
@@ -56,13 +56,13 @@ async function captureViewForPDF(viewId) {
         const fabricCanvas = pwcaGetCanvasByViewId(viewId);
         const canvasLayers = { baseCanvas, mainCanvas, overlayCanvas, maskCanvas, fabricCanvas };
         const view = { id: viewId, name: `View ${viewId}` };
-        return await captureMultiLayerCanvasWithMask(canvasLayers, view);
+        return await pwcaCaptureMultiLayerCanvasWithMask(canvasLayers, view);
     } catch (error) {
         return null;
     }
 }
 
-function captureMultiLayerCanvasWithMask(canvasLayers, view) {
+function pwcaCaptureMultiLayerCanvasWithMask(canvasLayers, view) {
     return new Promise((resolve) => {
         try {
             const { baseCanvas, mainCanvas, overlayCanvas, maskCanvas, fabricCanvas } = canvasLayers;
@@ -93,7 +93,7 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                             const dataURL = canvasElement.toDataURL('image/png');
                             const img = new Image();
                             img.onload = () => {
-                                const explicitColor = typeof window.getExplicitSelectedColor === 'function' ? window.getExplicitSelectedColor() : null;
+                                const explicitColor = typeof window.pwcaGetExplicitSelectedColor === 'function' ? window.pwcaGetExplicitSelectedColor() : null;
                                 const fc = canvasElement.__fabricCanvas || canvasElement.fabric || canvasElement.__canvas || null;
                                 let hasGradientOverlay = false; let hasTintFilter = false;
                                 if (fc && typeof fc.getObjects === 'function') {
@@ -130,8 +130,8 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                         if (fabricCanvas && typeof fabricCanvas.getObjects === 'function' && fabricCanvas.lowerCanvasEl) {
                             const objs = fabricCanvas.getObjects() || []; const originalVisibility = objs.map(o => o.visible);
                             const assigned = []; const unassigned = [];
-                            if (window.PrintAreaValidator && typeof window.PrintAreaValidator.hasPrintMethodAssigned === 'function') {
-                                for (const obj of objs) { if (obj && obj.id && window.PrintAreaValidator.hasPrintMethodAssigned(obj)) assigned.push(obj); else unassigned.push(obj); }
+                            if (window.PrintAreaValidator && typeof window.PrintAreaValidator.pwcaHasPrintMethodAssigned === 'function') {
+                                for (const obj of objs) { if (obj && obj.id && window.PrintAreaValidator.pwcaHasPrintMethodAssigned(obj)) assigned.push(obj); else unassigned.push(obj); }
                             }
                             for (const obj of assigned) { obj.visible = false; } fabricCanvas.renderAll(); finalCtx.drawImage(fabricCanvas.lowerCanvasEl, 0, 0);
                             objs.forEach((obj, i) => { obj.visible = originalVisibility[i]; }); fabricCanvas.renderAll();
@@ -150,7 +150,7 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
                         for (let i = 3; i < binaryImageData.data.length; i += 4) { if (binaryImageData.data[i] > 0) { binaryImageData.data[i] = 255; } }
                         try {
                             const viewId = view && (view.id || view.view_id) ? (view.id || view.view_id) : null; let bounds = null;
-                            if (viewId && window.PrintAreaValidator && typeof window.PrintAreaValidator.getPrintAreaBounds === 'function') { bounds = window.PrintAreaValidator.getPrintAreaBounds(viewId); }
+                            if (viewId && window.PrintAreaValidator && typeof window.PrintAreaValidator.pwcaGetPrintAreaBounds === 'function') { bounds = window.PrintAreaValidator.pwcaGetPrintAreaBounds(viewId); }
                             if (!bounds) { const w = finalCanvas.width; const h = finalCanvas.height; const left = Math.floor((w - printAreaWidth) / 2); const top = Math.floor((h - printAreaHeight) / 2); bounds = { left, top, right: left + Math.floor(printAreaWidth), bottom: top + Math.floor(printAreaHeight) }; }
                             if (bounds) {
                                 const w = binaryMaskCanvas.width; const h = binaryMaskCanvas.height; const left = Math.max(0, Math.floor(bounds.left)); const top = Math.max(0, Math.floor(bounds.top)); const right = Math.min(w, Math.ceil(bounds.right)); const bottom = Math.min(h, Math.ceil(bounds.bottom));
@@ -175,7 +175,7 @@ function captureMultiLayerCanvasWithMask(canvasLayers, view) {
     });
 }
 
-function captureCanvasById(fabricCanvas) {
+function pwcaCaptureCanvasById(fabricCanvas) {
     return new Promise((resolve) => {
         try {
             fabricCanvas.renderAll();
@@ -190,7 +190,7 @@ function captureCanvasById(fabricCanvas) {
     });
 }
 
-function closeMultiViewPreview() {
+function pwcaCloseMultiViewPreview() {
     const modal = document.getElementById('multi-view-preview-modal');
     if (modal) {
         modal.style.display = 'none';
@@ -203,8 +203,8 @@ function closeMultiViewPreview() {
     }
 }
 
-window.captureAllViewsImages = captureAllViewsImages;
-window.pwcaCaptureViewForPDF = captureViewForPDF;
-window.captureMultiLayerCanvasWithMask = captureMultiLayerCanvasWithMask;
-window.captureCanvasById = captureCanvasById;
-window.closeMultiViewPreview = closeMultiViewPreview;
+window.pwcaCaptureAllViewsImages = pwcaCaptureAllViewsImages;
+window.pwcaCaptureViewForPDF = pwcaCaptureViewForPDF;
+window.pwcaCaptureMultiLayerCanvasWithMask = pwcaCaptureMultiLayerCanvasWithMask;
+window.pwcaCaptureCanvasById = pwcaCaptureCanvasById;
+window.pwcaCloseMultiViewPreview = pwcaCloseMultiViewPreview;

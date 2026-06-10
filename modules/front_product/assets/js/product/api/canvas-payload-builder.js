@@ -42,8 +42,8 @@
         const views = canvasStore && Array.isArray(canvasStore.views) ? canvasStore.views : [];
         let viewImagesPayload = [];
 
-        if (views.length > 0 && typeof window.generateUniversalViewImages === 'function') {
-            const images = await window.generateUniversalViewImages(views);
+        if (views.length > 0 && typeof window.pwcaGenerateUniversalViewImages === 'function') {
+            const images = await window.pwcaGenerateUniversalViewImages(views);
             viewImagesPayload = images.map((imgData, index) => {
                 const view = views[index] || {};
                 const imageArray = Array.isArray(imgData) ? imgData : [imgData];

@@ -1,4 +1,4 @@
-export async function fetchCanvasProductData(pwId) {
+export async function pwcaFetchCanvasProductData(pwId) {
     const response = await fetch(`/wp-json/pwca/v1/product-data/${pwId}`);
 
     if (!response.ok) {

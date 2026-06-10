@@ -33,7 +33,7 @@
 
         document.addEventListener('multiViewInitComplete', () => {
             console.log('[PW Canvas] Canvas initialization completed');
-            triggerAutoZoomAdjustment();
+            pwcaTriggerAutoZoomAdjustment();
 
             const currentStore = window.Pinia && window.pwcaUseCanvasStore ? window.pwcaUseCanvasStore() : canvasStore;
             if (!currentStore || !currentStore.views) {
@@ -108,7 +108,7 @@
                 }
 
                 if (window.PrintAreaValidator) {
-                    window.PrintAreaValidator.addPrintAreaValidationListeners(canvas, view.id);
+                    window.PrintAreaValidator.pwcaAddPrintAreaValidationListeners(canvas, view.id);
                 }
 
                 setTimeout(() => {
@@ -134,23 +134,23 @@
                 zoomState.manualOverride = true;
                 zoomState.currentPercent = currentZoom;
                 zoomValue.textContent = currentZoom + '%';
-                updateCanvasZoom(currentZoom / 100);
+                pwcaUpdateCanvasZoom(currentZoom / 100);
             });
 
             zoomState.initialized = true;
         }
 
         if (!zoomState.manualOverride) {
-            const autoZoom = calculateAutoZoom();
+            const autoZoom = pwcaCalculateAutoZoom();
             zoomState.currentPercent = autoZoom;
         }
 
         zoomSlider.value = zoomState.currentPercent;
         zoomValue.textContent = zoomState.currentPercent + '%';
-        updateCanvasZoom(zoomState.currentPercent / 100);
+        pwcaUpdateCanvasZoom(zoomState.currentPercent / 100);
     }
 
-    function calculateAutoZoom() {
+    function pwcaCalculateAutoZoom() {
         try {
             const multiViewContainer = document.getElementById('multi-view-container');
             const canvasBox = document.querySelector('.pwca-canvas-box');
@@ -163,13 +163,13 @@
                 return 95;
             }
 
-            return calculateOptimalZoom();
+            return pwcaCalculateOptimalZoom();
         } catch (error) {
             return 95;
         }
     }
 
-    function calculateOptimalZoom() {
+    function pwcaCalculateOptimalZoom() {
         const multiViewContainer = document.getElementById('multi-view-container');
         const canvasBox = document.querySelector('.pwca-canvas-box');
 
@@ -196,7 +196,7 @@
         return 95;
     }
 
-    function updateCanvasZoom(scale) {
+    function pwcaUpdateCanvasZoom(scale) {
         const multiViewContainer = document.getElementById('multi-view-container');
         if (multiViewContainer) {
             multiViewContainer.style.transform = `scale(${scale})`;
@@ -205,19 +205,19 @@
         }
     }
 
-    function triggerAutoZoomAdjustment() {
+    function pwcaTriggerAutoZoomAdjustment() {
         if (zoomState.manualOverride) {
             const zoomSlider = document.getElementById('zoomSlider');
             const zoomValue = document.getElementById('zoomValue');
             if (zoomSlider && zoomValue) {
                 zoomSlider.value = zoomState.currentPercent;
                 zoomValue.textContent = zoomState.currentPercent + '%';
-                updateCanvasZoom(zoomState.currentPercent / 100);
+                pwcaUpdateCanvasZoom(zoomState.currentPercent / 100);
             }
             return;
         }
 
-        const actualZoom = calculateOptimalZoom();
+        const actualZoom = pwcaCalculateOptimalZoom();
         zoomState.currentPercent = actualZoom;
 
         const zoomSlider = document.getElementById('zoomSlider');
@@ -226,17 +226,17 @@
             zoomSlider.value = actualZoom;
             zoomValue.textContent = actualZoom + '%';
         }
-        updateCanvasZoom(actualZoom / 100);
+        pwcaUpdateCanvasZoom(actualZoom / 100);
     }
 
-    function handleViewSwitch(event) {
+    function pwcaHandleViewSwitch(event) {
         const { viewId } = event.detail;
         if (window.pwcaCanvasManager) {
             window.pwcaCanvasManager.setActiveCanvas(viewId);
         }
     }
 
-    document.addEventListener('viewSwitched', handleViewSwitch);
+    document.addEventListener('viewSwitched', pwcaHandleViewSwitch);
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
@@ -247,7 +247,7 @@
     document.addEventListener('canvasManagerReady', init);
 
     window.pwcaInitCanvasSystem = init;
-    window.pwcaTriggerAutoZoomAdjustment = triggerAutoZoomAdjustment;
-    window.pwcaUpdateCanvasZoom = updateCanvasZoom;
+    window.pwcaTriggerAutoZoomAdjustment = pwcaTriggerAutoZoomAdjustment;
+    window.pwcaUpdateCanvasZoom = pwcaUpdateCanvasZoom;
     window.pwcaInitializeZoom = initializeZoom;
 })();

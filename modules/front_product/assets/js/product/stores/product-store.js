@@ -23,7 +23,7 @@
         });
     });
 
-    const createProductStore = () => {
+    const pwcaCreateProductStore = () => {
     // State
     const productId = Vue.ref(null);
     const productData = Vue.ref(null);
@@ -841,7 +841,7 @@
     let storeInstance = null;
     const useProductStore = () => {
         if (!storeInstance) {
-            storeInstance = createProductStore();
+            storeInstance = pwcaCreateProductStore();
         }
         return storeInstance;
     };

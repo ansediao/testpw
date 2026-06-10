@@ -27,15 +27,15 @@ export const pwcaDecodePromowaresUnicodeText = (value) => {
     }
 
     try {
-        const decodeHex = (hex) => String.fromCharCode(parseInt(hex, 16));
+        const pwcaDecodeHex = (hex) => String.fromCharCode(parseInt(hex, 16));
 
         let normalized = value.replace(/\\u([0-9a-fA-F]{4})/g, (match, hex) =>
-            decodeHex(hex)
+            pwcaDecodeHex(hex)
         );
 
         return normalized.replace(/(?:u[0-9a-fA-F]{4})+/g, (segment) =>
             segment.replace(/u([0-9a-fA-F]{4})/g, (match, hex) =>
-                decodeHex(hex)
+                pwcaDecodeHex(hex)
             )
         );
     } catch (error) {
@@ -334,49 +334,49 @@ export const pwcaBuildMergedLayerControls = (layerControls, storeSettings) => {
     const layerControlsData =
         layerControls && typeof layerControls === 'object' ? layerControls : {};
 
-    const getStoreValue = (key, defaultVal) => {
+    const pwcaGetStoreValue = (key, defaultVal) => {
         const storeVal = storeSettingsData[key];
         return storeVal !== undefined && storeVal !== null ? storeVal : defaultVal;
     };
 
-    const getLayerValue = (key, defaultVal) => {
+    const pwcaGetLayerValue = (key, defaultVal) => {
         const layerVal = layerControlsData[key];
         return layerVal !== undefined && layerVal !== null ? layerVal : defaultVal;
     };
 
-    const storeMovable = getStoreValue(
+    const storeMovable = pwcaGetStoreValue(
         'moveable',
         PWCA_DEFAULT_LAYER_CONTROLS.movable
     );
-    const layerMovable = getLayerValue('movable', undefined);
+    const layerMovable = pwcaGetLayerValue('movable', undefined);
     const movable = layerMovable !== undefined ? layerMovable : storeMovable;
 
-    const storeScalable = getStoreValue(
+    const storeScalable = pwcaGetStoreValue(
         'scalable',
         PWCA_DEFAULT_LAYER_CONTROLS.scalable
     );
-    const layerScalable = getLayerValue('scalable', undefined);
+    const layerScalable = pwcaGetLayerValue('scalable', undefined);
     const scalable = layerScalable !== undefined ? layerScalable : storeScalable;
 
-    const storeRotatable = getStoreValue(
+    const storeRotatable = pwcaGetStoreValue(
         'rotatable',
         PWCA_DEFAULT_LAYER_CONTROLS.rotatable
     );
-    const layerRotatable = getLayerValue('rotatable', undefined);
+    const layerRotatable = pwcaGetLayerValue('rotatable', undefined);
     const rotatable = layerRotatable !== undefined ? layerRotatable : storeRotatable;
 
-    const storeDeletable = getStoreValue(
+    const storeDeletable = pwcaGetStoreValue(
         'removable',
         PWCA_DEFAULT_LAYER_CONTROLS.deletable
     );
-    const layerDeletable = getLayerValue('deletable', undefined);
+    const layerDeletable = pwcaGetLayerValue('deletable', undefined);
     const deletable = layerDeletable !== undefined ? layerDeletable : storeDeletable;
 
-    const storeAllowUnproportional = getStoreValue(
+    const storeAllowUnproportional = pwcaGetStoreValue(
         'allow_unproportional_scaling',
         PWCA_DEFAULT_LAYER_CONTROLS.allowUnproportionalScaling
     );
-    const layerAllowUnproportional = getLayerValue(
+    const layerAllowUnproportional = pwcaGetLayerValue(
         'allowUnproportionalScaling',
         undefined
     );
@@ -385,28 +385,28 @@ export const pwcaBuildMergedLayerControls = (layerControls, storeSettings) => {
             ? layerAllowUnproportional
             : storeAllowUnproportional;
 
-    const storeMinScaleLimit = getStoreValue(
+    const storeMinScaleLimit = pwcaGetStoreValue(
         'min_scale_limit',
         PWCA_DEFAULT_LAYER_CONTROLS.minScaleLimit
     );
-    const layerMinScaleLimit = getLayerValue('minScaleLimit', undefined);
+    const layerMinScaleLimit = pwcaGetLayerValue('minScaleLimit', undefined);
     const minScaleLimit =
         layerMinScaleLimit !== undefined ? layerMinScaleLimit : storeMinScaleLimit;
 
-    const storeScaleBy = getStoreValue(
+    const storeScaleBy = pwcaGetStoreValue(
         'scale_by',
         PWCA_DEFAULT_LAYER_CONTROLS.scaleBy
     );
-    const layerScaleBy = getLayerValue('scaleBy', undefined);
+    const layerScaleBy = pwcaGetLayerValue('scaleBy', undefined);
     const scaleBy = layerScaleBy !== undefined ? layerScaleBy : storeScaleBy;
 
     const storeExportable = PWCA_DEFAULT_LAYER_CONTROLS.exportable;
-    const layerExportable = getLayerValue('exportable', undefined);
+    const layerExportable = pwcaGetLayerValue('exportable', undefined);
     const exportable =
         layerExportable !== undefined ? layerExportable : storeExportable;
 
     const storeVisibility = PWCA_DEFAULT_LAYER_CONTROLS.visibility;
-    const layerVisibility = getLayerValue('visibility', undefined);
+    const layerVisibility = pwcaGetLayerValue('visibility', undefined);
     const visibility =
         layerVisibility !== undefined ? layerVisibility : storeVisibility;
 

@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const colorSwatchesContainer = document.getElementById('color-swatches-container');
-    const getUiStateAccess = () => window.pwcaUiStateAccess || null;
+    const pwcaGetUiStateAccess = () => window.pwcaUiStateAccess || null;
 
-    function isLightColor(color) {
+    function pwcaIsLightColor(color) {
         const hex = String(color || '').replace('#', '');
         if (hex.length !== 6) return false;
         const r = parseInt(hex.substr(0, 2), 16);
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return brightness > 200;
     }
 
-    function generateDefaultColors(container, selectedColor = null) {
+    function pwcaGenerateDefaultColors(container, selectedColor = null) {
         const defaultColors = [];
         container.innerHTML = '';
         defaultColors.forEach((colorData, index) => {
@@ -25,25 +25,25 @@ document.addEventListener('DOMContentLoaded', () => {
             colorSwatch.setAttribute('data-color', colorData.color);
             colorSwatch.title = colorData.name;
 
-            if (isLightColor(colorData.color)) {
+            if (pwcaIsLightColor(colorData.color)) {
                 colorSwatch.style.border = '1px solid #9ca3af';
             }
 
             container.appendChild(colorSwatch);
         });
 
-        bindColorSwatchEvents();
+        pwcaBindColorSwatchEvents();
     }
 
-    function handleColorSwatchClick(color) {
+    function pwcaHandleColorSwatchClick(color) {
         window.currentColor = color;
 
         if (window.clearAllGradientRects) {
             window.clearAllGradientRects();
         }
 
-        function saveColorToStore(selectedColor) {
-            const stateAccess = getUiStateAccess();
+        function pwcaSaveColorToStore(selectedColor) {
+            const stateAccess = pwcaGetUiStateAccess();
             const store =
                 stateAccess && typeof stateAccess.getCanvasStore === 'function'
                     ? stateAccess.getCanvasStore()
@@ -140,10 +140,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        saveColorToStore(color);
+        pwcaSaveColorToStore(color);
 
         (function calculateBulkOrderRts() {
-            const stateAccess = getUiStateAccess();
+            const stateAccess = pwcaGetUiStateAccess();
             if (stateAccess && typeof stateAccess.getCanvasStore === 'function') {
                 const store = stateAccess.getCanvasStore();
                 const totalRts = store.getTotalMaxRtsForBulkOrder;
@@ -155,14 +155,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         })();
 
-        function applyColorTint() {
+        function pwcaApplyColorTint() {
             const tintFn =
                 typeof window.applyTintFilter === 'function' ? window.applyTintFilter : null;
             if (!tintFn) {
                 return;
             }
 
-            const stateAccess = getUiStateAccess();
+            const stateAccess = pwcaGetUiStateAccess();
             const store =
                 stateAccess && typeof stateAccess.getCanvasStore === 'function'
                     ? stateAccess.getCanvasStore()
@@ -205,8 +205,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        function isFirstView() {
-            const stateAccess = getUiStateAccess();
+        function pwcaIsFirstView() {
+            const stateAccess = pwcaGetUiStateAccess();
             const views =
                 stateAccess && typeof stateAccess.getViews === 'function'
                     ? stateAccess.getViews()
@@ -219,18 +219,18 @@ document.addEventListener('DOMContentLoaded', () => {
             return views[0].id === activeViewId;
         }
 
-        if (isFirstView()) {
+        if (pwcaIsFirstView()) {
             if (typeof window.applyColorToAllViews === 'function') {
                 window.applyColorToAllViews(color);
             } else {
-                applyColorTint();
+                pwcaApplyColorTint();
             }
         } else {
             const tintAvailable =
                 typeof window.applyTintFilter === 'function' || typeof applyTintFilter === 'function';
 
             if (tintAvailable) {
-                applyColorTint();
+                pwcaApplyColorTint();
             } else {
                 const checkInterval = setInterval(() => {
                     if (
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         typeof applyTintFilter === 'function'
                     ) {
                         clearInterval(checkInterval);
-                        applyColorTint();
+                        pwcaApplyColorTint();
                     }
                 }, 100);
 
@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
             view.base_layer.applyFilters();
         }
 
-        const stateAccess = getUiStateAccess();
+        const stateAccess = pwcaGetUiStateAccess();
         const canvas =
             view.base_layer.canvas ||
             (stateAccess && typeof stateAccess.getCanvasByViewId === 'function'
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.applyColorToAllViews = function (color) {
-        const stateAccess = getUiStateAccess();
+        const stateAccess = pwcaGetUiStateAccess();
         const views =
             stateAccess && typeof stateAccess.getViews === 'function'
                 ? stateAccess.getViews()
@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!viewId || !color || color === '#000000') {
                 return;
             }
-            const stateAccess = getUiStateAccess();
+            const stateAccess = pwcaGetUiStateAccess();
             const store =
                 stateAccess && typeof stateAccess.getCanvasStore === 'function'
                     ? stateAccess.getCanvasStore()
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!store) return;
             let attempts = 0;
 
-            const tryApply = () => {
+            const pwcaTryApply = () => {
                 const view =
                     stateAccess && typeof stateAccess.findViewById === 'function'
                         ? stateAccess.findViewById(viewId)
@@ -367,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!view.base_layer) {
                     attempts++;
                     if (attempts < 30) {
-                        setTimeout(tryApply, 100);
+                        setTimeout(pwcaTryApply, 100);
                     }
                     return;
                 }
@@ -382,13 +382,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.applyColorToView(view, color, tintFunction);
             };
 
-            requestAnimationFrame(tryApply);
+            requestAnimationFrame(pwcaTryApply);
         } catch (err) {
             console.warn('视图切换颜色同步时出现错误:', err);
         }
     });
 
-    const getGradientCoords = (direction, width, height) => {
+    const pwcaGetGradientCoords = (direction, width, height) => {
         switch (direction) {
             case 'to right':
                 return { x1: 0, y1: 0, x2: width, y2: 0 };
@@ -419,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const baseCanvasId = `baseCanvas-${view.id}`;
         let baseCanvas = null;
-        const stateAccess = getUiStateAccess();
+        const stateAccess = pwcaGetUiStateAccess();
 
         if (stateAccess && typeof stateAccess.getBaseCanvasByViewId === 'function') {
             baseCanvas = stateAccess.getBaseCanvasByViewId(view.id);
@@ -486,7 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         overlaysToRemove.forEach((obj) => baseCanvas.remove(obj));
 
-        const gradientCoords = getGradientCoords(direction, imageWidth, imageHeight);
+        const gradientCoords = pwcaGetGradientCoords(direction, imageWidth, imageHeight);
 
         const gradient = new fabric.Gradient({
             type: 'linear',
@@ -538,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    function generateColorSwatches() {
+    function pwcaGenerateColorSwatches() {
         const container = colorSwatchesContainer;
         if (!container) return;
 
@@ -547,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ? currentSelected.getAttribute('data-color')
             : null;
 
-        const stateAccess = getUiStateAccess();
+        const stateAccess = pwcaGetUiStateAccess();
         const variants =
             stateAccess && typeof stateAccess.getProductVariants === 'function'
                 ? stateAccess.getProductVariants()
@@ -555,7 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (variants.length === 0) {
             console.warn('CanvasStore 未加载，使用默认颜色');
-            generateDefaultColors(container, selectedColor);
+            pwcaGenerateDefaultColors(container, selectedColor);
             return;
         }
 
@@ -568,7 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (normalVariants.length === 0) {
             console.warn('没有找到有效的颜色变体，使用默认颜色');
-            generateDefaultColors(container, selectedColor);
+            pwcaGenerateDefaultColors(container, selectedColor);
             return;
         }
 
@@ -586,17 +586,17 @@ document.addEventListener('DOMContentLoaded', () => {
             colorSwatch.setAttribute('data-variant-name', variant.variant_name);
             colorSwatch.title = variant.variant_name || variant.variant_color;
 
-            if (isLightColor(variant.variant_color)) {
+            if (pwcaIsLightColor(variant.variant_color)) {
                 colorSwatch.style.border = '1px solid #9ca3af';
             }
 
             container.appendChild(colorSwatch);
         });
 
-        bindColorSwatchEvents();
+        pwcaBindColorSwatchEvents();
     }
 
-    function bindColorSwatchEvents() {
+    function pwcaBindColorSwatchEvents() {
         const colorSwatches = document.querySelectorAll('.pwca-color-swatch');
         colorSwatches.forEach((swatch) => {
             if (swatch._colorSwatchHandler) {
@@ -607,22 +607,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 colorSwatches.forEach((s) => s.classList.remove('selected'));
                 swatch.classList.add('selected');
                 const color = swatch.getAttribute('data-color');
-                handleColorSwatchClick(color);
+                pwcaHandleColorSwatchClick(color);
             };
 
             swatch.addEventListener('click', swatch._colorSwatchHandler);
         });
     }
 
-    function waitForCanvasData() {
-        const stateAccess = getUiStateAccess();
+    function pwcaWaitForCanvasData() {
+        const stateAccess = pwcaGetUiStateAccess();
         const store =
             stateAccess && typeof stateAccess.getCanvasStore === 'function'
                 ? stateAccess.getCanvasStore()
                 : null;
 
         if (stateAccess && typeof stateAccess.hasProductVariants === 'function' && stateAccess.hasProductVariants()) {
-            generateColorSwatches();
+            pwcaGenerateColorSwatches();
             return;
         }
 
@@ -635,13 +635,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     state.productData.variants.data;
 
                 if (Array.isArray(variants) && variants.length > 0) {
-                    generateColorSwatches();
+                    pwcaGenerateColorSwatches();
                 }
             });
         }
 
         setTimeout(() => {
-            const refreshedStateAccess = getUiStateAccess();
+            const refreshedStateAccess = pwcaGetUiStateAccess();
             const hasVariants =
                 refreshedStateAccess &&
                 typeof refreshedStateAccess.hasProductVariants === 'function' &&
@@ -655,11 +655,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2000);
     }
 
-    waitForCanvasData();
+    pwcaWaitForCanvasData();
 
     const colorStatusDisplay = document.getElementById('colorStatusDisplay');
 
-    function clearAllColorEffects() {
+    function pwcaClearAllColorEffects() {
         if (window.clearAllGradientRects) {
             window.clearAllGradientRects();
         }
@@ -669,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const colorSwatches = document.querySelectorAll('.pwca-color-swatch');
         colorSwatches.forEach((s) => s.classList.remove('selected'));
 
-        const stateAccess = getUiStateAccess();
+        const stateAccess = pwcaGetUiStateAccess();
         const views =
             stateAccess && typeof stateAccess.getViews === 'function'
                 ? stateAccess.getViews()
@@ -740,7 +740,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    window.clearAllColorEffects = clearAllColorEffects;
+    window.pwcaClearAllColorEffects = pwcaClearAllColorEffects;
 
     window.updateColorStatusUI = function (color) {
         window.currentColor = color;
@@ -754,7 +754,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (clearColorLink) {
             clearColorLink.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (window.clearAllColorEffects) window.clearAllColorEffects();
+                if (window.pwcaClearAllColorEffects) window.pwcaClearAllColorEffects();
             });
         }
 
@@ -833,12 +833,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.clearAllGradientRects();
             }
 
-            function applyCustomColorToBaseLayer() {
+            function pwcaApplyCustomColorToBaseLayer() {
                 const tintFn =
                     typeof window.applyTintFilter === 'function' ? window.applyTintFilter : null;
                 if (!tintFn) return;
 
-                const stateAccess = getUiStateAccess();
+                const stateAccess = pwcaGetUiStateAccess();
                 const activeViewId =
                     stateAccess && typeof stateAccess.getActiveViewId === 'function'
                         ? stateAccess.getActiveViewId()
@@ -896,7 +896,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 typeof window.applyTintFilter === 'function' || typeof applyTintFilter === 'function';
 
             if (tintAvailable) {
-                applyCustomColorToBaseLayer();
+                pwcaApplyCustomColorToBaseLayer();
             } else {
                 const checkInterval = setInterval(() => {
                     if (
@@ -904,7 +904,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         typeof applyTintFilter === 'function'
                     ) {
                         clearInterval(checkInterval);
-                        applyCustomColorToBaseLayer();
+                        pwcaApplyCustomColorToBaseLayer();
                     }
                 }, 100);
 
@@ -921,7 +921,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (clearColorLink) {
                     clearColorLink.addEventListener('click', (e) => {
                         e.preventDefault();
-                        clearAllColorEffects();
+                        pwcaClearAllColorEffects();
                     });
                 }
 
@@ -1018,8 +1018,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.pwcaProductImageCanvas.switchToCanvas(color1);
             }
 
-            function applyGradientToBaseLayer() {
-                const stateAccess = getUiStateAccess();
+            function pwcaApplyGradientToBaseLayer() {
+                const stateAccess = pwcaGetUiStateAccess();
                 const activeViewId =
                     stateAccess && typeof stateAccess.getActiveViewId === 'function'
                         ? stateAccess.getActiveViewId()
@@ -1054,8 +1054,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         const isMainView =
-                            stateAccess && typeof stateAccess.isFirstView === 'function'
-                                ? stateAccess.isFirstView(activeViewId)
+                            stateAccess && typeof stateAccess.pwcaIsFirstView === 'function'
+                                ? stateAccess.pwcaIsFirstView(activeViewId)
                                 : false;
                         if (isMainView) {
                             views.forEach((view) => {
@@ -1196,7 +1196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            applyGradientToBaseLayer();
+            pwcaApplyGradientToBaseLayer();
 
             if (colorStatusDisplay) {
                 colorStatusDisplay.innerHTML = `渐变色: ${color1} <a href="#" id="clearColorLink" style="margin-left: 10px; color: #dc3545; text-decoration: none; font-size: 16px; font-weight: bold;">✕</a> <a href="#" id="switchColorLink" style="margin-left: 10px; color: #007cba; text-decoration: none;">切换颜色</a>`;
@@ -1206,7 +1206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (clearColorLink) {
                     clearColorLink.addEventListener('click', (e) => {
                         e.preventDefault();
-                        clearAllColorEffects();
+                        pwcaClearAllColorEffects();
                     });
                 }
 
@@ -1236,13 +1236,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sampleCheckbox.addEventListener('change', function () {
             if (this.checked) {
-                calculateSampleOrderRts();
+                pwcaCalculateSampleOrderRts();
             } else {
             }
         });
 
-        function calculateSampleOrderRts() {
-            const stateAccess = getUiStateAccess();
+        function pwcaCalculateSampleOrderRts() {
+            const stateAccess = pwcaGetUiStateAccess();
             if (stateAccess && typeof stateAccess.getCanvasStore === 'function') {
                 const store = stateAccess.getCanvasStore();
                 const totalRts = store.getTotalMaxRtsForSampleOrder;

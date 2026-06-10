@@ -10,16 +10,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return [];
     };
 
-    const getActiveCanvas = () => {
+    const pwcaGetActiveCanvas = () => {
         const uiStateAccess = getUiStateAccess();
-        if (uiStateAccess && typeof uiStateAccess.getActiveCanvas === 'function') {
-            return uiStateAccess.getActiveCanvas();
+        if (uiStateAccess && typeof uiStateAccess.pwcaGetActiveCanvas === 'function') {
+            return uiStateAccess.pwcaGetActiveCanvas();
         }
 
         return window.pwcaCanvas || window.pwcaFabricCanvas || null;
     };
 
-    const discardSelectionForAllViewCanvases = () => {
+    const pwcaDiscardSelectionForAllViewCanvases = () => {
         getAllViewCanvases().forEach((canvas) => {
             if (canvas && typeof canvas.discardActiveObject === 'function') {
                 canvas.discardActiveObject();
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (tab.id === 'tab-pianquan') {
                 try {
-                    discardSelectionForAllViewCanvases();
+                    pwcaDiscardSelectionForAllViewCanvases();
 
                     if (typeof window.pwcaUpdateDynamicToolbar === 'function') {
                         window.pwcaUpdateDynamicToolbar(null);
@@ -98,12 +98,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 try {
-                    discardSelectionForAllViewCanvases();
+                    pwcaDiscardSelectionForAllViewCanvases();
                 } catch (err) {
                     console.warn('点击文字选项卡时清空选区失败:', err);
                 }
 
-                const activeCanvas = getActiveCanvas();
+                const activeCanvas = pwcaGetActiveCanvas();
 
                 const activeObject =
                     activeCanvas && typeof activeCanvas.getActiveObject === 'function'

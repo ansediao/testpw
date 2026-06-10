@@ -1,7 +1,7 @@
 // 绘制边缘限制
 const BOUNDARY_MARGIN = 10; // 边缘限制的宽度
 
-function drawBoundary() {
+function pwcaDrawBoundary() {
     // 获取当前激活视图的 boundary canvas
     const canvasStore = window.pwcaPinia && window.pwcaUseCanvasStore ? window.pwcaUseCanvasStore() : null;
     let boundaryCanvas = null;
@@ -39,7 +39,7 @@ function drawBoundary() {
 }
 
 // 为所有视图绘制边界
-function drawBoundaryForAllViews() {
+function pwcaDrawBoundaryForAllViews() {
     const canvasStore = window.pwcaPinia && window.pwcaUseCanvasStore ? window.pwcaUseCanvasStore() : null;
     
     if (canvasStore && canvasStore.views) {
@@ -64,6 +64,6 @@ function drawBoundaryForAllViews() {
         });
     } else {
         // 兼容模式：绘制单个边界
-        drawBoundary();
+        pwcaDrawBoundary();
     }
 }

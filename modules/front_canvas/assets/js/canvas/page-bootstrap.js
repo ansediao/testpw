@@ -1,4 +1,4 @@
-const getSettings = () => {
+const pwcaGetSettings = () => {
   const settings = window.pwcaFrontCanvasSettings;
   if (!settings || typeof settings !== 'object') {
     const appEl = document.getElementById('app');
@@ -32,7 +32,7 @@ const getSettings = () => {
   }
 })();
 
-const onReady = (handler) => {
+const pwcaOnReady = (handler) => {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', handler, { once: true });
     return;
@@ -40,7 +40,7 @@ const onReady = (handler) => {
   handler();
 };
 
-const waitFor = async (predicate, { timeoutMs = 8000, intervalMs = 50 } = {}) => {
+const pwcaWaitFor = async (predicate, { timeoutMs = 8000, intervalMs = 50 } = {}) => {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
     const value = predicate();
@@ -67,7 +67,7 @@ const pwcaLogAsyncFlow = (level, message, payload) => {
 };
 
 const pwcaCreateAsyncContext = () => ({
-  settings: getSettings(),
+  settings: pwcaGetSettings(),
   startedAt: Date.now(),
   store: null,
   productData: null,
@@ -125,7 +125,7 @@ const pwcaRunAsyncTask = async (context, taskName, runner) => {
 };
 
 const pwcaWaitForCanvasStore = async () => {
-  const store = await waitFor(
+  const store = await pwcaWaitFor(
     () => (typeof window.pwcaUseCanvasStore === 'function' ? window.pwcaUseCanvasStore() : null),
     { timeoutMs: 10000, intervalMs: 50 }
   );
@@ -275,8 +275,8 @@ const pwcaGetPageBootstrapAllViewCanvases = () => {
   return [];
 };
 
-const initFetchProductData = async () => {
-  const { pwId } = getSettings();
+const pwcaInitFetchProductData = async () => {
+  const { pwId } = pwcaGetSettings();
   if (!pwId) return;
 
   const store = await pwcaWaitForCanvasStore();
@@ -291,7 +291,7 @@ const initFetchProductData = async () => {
   }
 };
 
-const buildDesignPayload = () => {
+const pwcaBuildDesignPayload = () => {
   const ds =
     typeof window.pwcaUseDesignUsageStore === 'function' && window.pwcaPinia ? window.pwcaUseDesignUsageStore(window.pwcaPinia) : null;
 
@@ -311,7 +311,7 @@ const buildDesignPayload = () => {
   };
 };
 
-const buildViewPrintMethodsPayload = () => {
+const pwcaBuildViewPrintMethodsPayload = () => {
   const payload = [];
   try {
     const store = typeof window.pwcaUsePrintMethodStore === 'function' ? window.pwcaUsePrintMethodStore() : null;
@@ -341,7 +341,7 @@ const buildViewPrintMethodsPayload = () => {
   return payload;
 };
 
-const resolveMoqAndDiscount = () => {
+const pwcaResolveMoqAndDiscount = () => {
   let minOrderQuantity = 1;
   let batchQuantity = 1;
   let sellInBatch = '0';
@@ -384,7 +384,7 @@ const resolveMoqAndDiscount = () => {
   };
 };
 
-const buildViewImagesPayload = async (previewContainerExists) => {
+const pwcaBuildViewImagesPayload = async (previewContainerExists) => {
   let viewImagesPayload = [];
   try {
     pwcaGetPageBootstrapAllViewCanvases().forEach((fc, index) => {
@@ -408,8 +408,8 @@ const buildViewImagesPayload = async (previewContainerExists) => {
     const store = pwcaGetPageBootstrapCanvasStore();
     const views = store && Array.isArray(store.views) ? store.views : [];
 
-    if (views.length > 0 && typeof window.generateUniversalViewImages === 'function') {
-      const images = await window.generateUniversalViewImages(views);
+    if (views.length > 0 && typeof window.pwcaGenerateUniversalViewImages === 'function') {
+      const images = await window.pwcaGenerateUniversalViewImages(views);
       viewImagesPayload = images.map((imgData, idx) => {
         const v = views[idx] || {};
         const imageArray = Array.isArray(imgData) ? imgData : [imgData];
@@ -429,7 +429,7 @@ const buildViewImagesPayload = async (previewContainerExists) => {
   return viewImagesPayload;
 };
 
-const readAccessoriesNames = (productId) => {
+const pwcaReadAccessoriesNames = (productId) => {
   const accessoriesStorageKey = `pwca-accessories-names-${productId}`;
 
   try {
@@ -451,7 +451,7 @@ const readAccessoriesNames = (productId) => {
   }
 };
 
-const captureCanvasStateJson = () => {
+const pwcaCaptureCanvasStateJson = () => {
   try {
     if (window.pwcaCanvasStateManager && typeof window.pwcaCanvasStateManager.saveAllViewStates === 'function') {
       window.pwcaCanvasStateManager.saveAllViewStates();
@@ -467,7 +467,7 @@ const captureCanvasStateJson = () => {
   return '';
 };
 
-const buildAddToCartRequestBody = ({
+const pwcaBuildAddToCartRequestBody = ({
   settings,
   productId,
   quantity,
@@ -514,7 +514,7 @@ const buildAddToCartRequestBody = ({
   return body;
 };
 
-const submitAddToCartRequest = async (settings, body) => {
+const pwcaSubmitAddToCartRequest = async (settings, body) => {
   const response = await fetch(settings.ajaxUrl, {
     method: 'POST',
     headers: {
@@ -531,7 +531,7 @@ const submitAddToCartRequest = async (settings, body) => {
  * 从购物车获取当前行项目的完整画布状态
  * 仅在编辑模式下（edit=true 且具有 cart_key）使用
  */
-const fetchCartCanvasState = async (cartKey, settings) => {
+const pwcaFetchCartCanvasState = async (cartKey, settings) => {
   if (!cartKey || !settings || !settings.ajaxUrl) {
     return null;
   }
@@ -562,8 +562,8 @@ const fetchCartCanvasState = async (cartKey, settings) => {
   }
 };
 
-const addCustomizedProductToCart = async () => {
-  const settings = getSettings();
+const pwcaAddCustomizedProductToCart = async () => {
+  const settings = pwcaGetSettings();
   const productId = Number(settings.productId || 0);
   if (!productId) {
     alert('未指定产品，无法加入购物车');
@@ -578,12 +578,12 @@ const addCustomizedProductToCart = async () => {
   }
 
   const previewContainerExists = !!document.querySelector('.preview-canvas-container');
-  const moq = resolveMoqAndDiscount();
-  const { designs, designFeeTotal } = buildDesignPayload();
-  const viewPrintMethods = buildViewPrintMethodsPayload();
+  const moq = pwcaResolveMoqAndDiscount();
+  const { designs, designFeeTotal } = pwcaBuildDesignPayload();
+  const viewPrintMethods = pwcaBuildViewPrintMethodsPayload();
 
   let customImage = await capturePrimaryImage(previewContainerExists);
-  const viewImagesPayload = await buildViewImagesPayload(previewContainerExists);
+  const viewImagesPayload = await pwcaBuildViewImagesPayload(previewContainerExists);
   if (viewImagesPayload.length > 0 && Array.isArray(viewImagesPayload[0].images) && viewImagesPayload[0].images.length > 0) {
     customImage = viewImagesPayload[0].images[0];
   }
@@ -593,9 +593,9 @@ const addCustomizedProductToCart = async () => {
     return;
   }
 
-  const canvasStateJson = captureCanvasStateJson();
-  const accessoriesNames = readAccessoriesNames(productId);
-  const body = buildAddToCartRequestBody({
+  const canvasStateJson = pwcaCaptureCanvasStateJson();
+  const accessoriesNames = pwcaReadAccessoriesNames(productId);
+  const body = pwcaBuildAddToCartRequestBody({
     settings,
     productId,
     quantity,
@@ -610,7 +610,7 @@ const addCustomizedProductToCart = async () => {
   });
 
   try {
-    const json = await submitAddToCartRequest(settings, body);
+    const json = await pwcaSubmitAddToCartRequest(settings, body);
     if (json && json.success) {
       const cartUrl = settings.cartUrl || '/cart/';
       window.location.href = cartUrl;
@@ -625,7 +625,7 @@ const addCustomizedProductToCart = async () => {
   }
 };
 
-const toggleVisibleViewContainer = (viewId) => {
+const pwcaToggleVisibleViewContainer = (viewId) => {
   const targetViewContainer = document.getElementById(`view-container-${viewId}`);
   if (!targetViewContainer) {
     return;
@@ -637,7 +637,7 @@ const toggleVisibleViewContainer = (viewId) => {
   targetViewContainer.style.display = 'block';
 };
 
-const syncGlobalCanvasForView = (viewId) => {
+const pwcaSyncGlobalCanvasForView = (viewId) => {
   if (window.pwcaCanvasManager) {
     window.pwcaCanvasManager.setActiveCanvas(viewId);
   }
@@ -675,7 +675,7 @@ const syncGlobalCanvasForView = (viewId) => {
   return canvas;
 };
 
-const clearAllViewSelections = () => {
+const pwcaClearAllViewSelections = () => {
   const allViewCanvases = pwcaGetPageBootstrapAllViewCanvases();
   if (!Array.isArray(allViewCanvases) || allViewCanvases.length === 0) {
     return;
@@ -703,7 +703,7 @@ const clearAllViewSelections = () => {
   });
 };
 
-const generateSingleViewPDF = async (productName) => {
+const pwcaGenerateSingleViewPDF = async (productName) => {
   const previewContainerExists = !!document.querySelector('.preview-canvas-container');
   const imageData = await capturePrimaryImage(previewContainerExists);
   if (!imageData) return;
@@ -746,8 +746,8 @@ const generateSingleViewPDF = async (productName) => {
   doc.save(fileName);
 };
 
-const waitForViewCanvasReady = async (viewId) => {
-  const readyCanvas = await waitFor(() => {
+const pwcaWaitForViewCanvasReady = async (viewId) => {
+  const readyCanvas = await pwcaWaitFor(() => {
     const canvas = window.pwcaCanvasManager && typeof window.pwcaCanvasManager.getCanvas === 'function'
       ? window.pwcaCanvasManager.getCanvas(viewId)
       : null;
@@ -764,7 +764,7 @@ const waitForViewCanvasReady = async (viewId) => {
   return readyCanvas;
 };
 
-const saveMultiViewPdfDocument = (productName, exportedImages) => {
+const pwcaSaveMultiViewPdfDocument = (productName, exportedImages) => {
   const { jsPDF } = window.jspdf || {};
   if (!jsPDF || exportedImages.length === 0) {
     throw new Error('jsPDF is not available or no exported images were generated.');
@@ -834,9 +834,9 @@ const createPreviewRenderTasks = (context) => ([
     }
   }),
   pwcaCreateInterruptibleQueueTask(context, 'clearCanvasSelections', async () => {
-    clearAllViewSelections();
+    pwcaClearAllViewSelections();
   }),
-  pwcaCreateInterruptibleQueueTask(context, 'showUniversalViewPreview', async (currentContext) => {
+  pwcaCreateInterruptibleQueueTask(context, 'pwcaShowUniversalViewPreview', async (currentContext) => {
     if (typeof window.pwcaShowUniversalViewPreview !== 'function') {
       throw new Error('window.pwcaShowUniversalViewPreview is not defined.');
     }
@@ -866,7 +866,7 @@ const createMultiViewPdfTasks = (context) => {
       }
     }),
     pwcaCreateInterruptibleQueueTask(context, 'clearCanvasSelections', async () => {
-      clearAllViewSelections();
+      pwcaClearAllViewSelections();
     }),
   ];
 
@@ -874,9 +874,9 @@ const createMultiViewPdfTasks = (context) => {
     tasks.push(
       pwcaCreateInterruptibleQueueTask(context, `capturePdfView:${view.id}`, async (currentContext) => {
         currentContext.store.setActiveViewId(view.id);
-        toggleVisibleViewContainer(view.id);
-        syncGlobalCanvasForView(view.id);
-        await waitForViewCanvasReady(view.id);
+        pwcaToggleVisibleViewContainer(view.id);
+        pwcaSyncGlobalCanvasForView(view.id);
+        await pwcaWaitForViewCanvasReady(view.id);
 
         const imageDataUrl = typeof window.pwcaCaptureViewForPDF === 'function'
           ? await window.pwcaCaptureViewForPDF(view.id)
@@ -897,14 +897,14 @@ const createMultiViewPdfTasks = (context) => {
 
   tasks.push(
     pwcaCreateInterruptibleQueueTask(context, 'saveMultiViewPdf', async (currentContext) => {
-      saveMultiViewPdfDocument(currentContext.productName || 'Product', currentContext.exportedImages || []);
+      pwcaSaveMultiViewPdfDocument(currentContext.productName || 'Product', currentContext.exportedImages || []);
     })
   );
 
   return tasks;
 };
 
-const finalizeManagedActionFlow = (context) => {
+const pwcaFinalizeManagedActionFlow = (context) => {
   const durationMs = Date.now() - context.startedAt;
   pwcaLogAsyncFlow('info', `${context.flowName} finished`, {
     durationMs,
@@ -916,17 +916,17 @@ const finalizeManagedActionFlow = (context) => {
   return context;
 };
 
-const runPreviewRenderFlow = async (store) => {
+const pwcaRunPreviewRenderFlow = async (store) => {
   const context = pwcaCreateActionContext('preview-render-flow', {
     store: store || null,
     views: store && Array.isArray(store.views) ? store.views : null,
   });
   const tasks = createPreviewRenderTasks(context);
   const finalContext = await pwcaRunManagedQueue(tasks, context, '预览渲染流程');
-  return finalizeManagedActionFlow(finalContext);
+  return pwcaFinalizeManagedActionFlow(finalContext);
 };
 
-const runGeneratePdfFlow = async (productName, store) => {
+const pwcaRunGeneratePdfFlow = async (productName, store) => {
   const resolvedStore = store || pwcaGetPageBootstrapCanvasStore();
   const resolvedViews = resolvedStore && Array.isArray(resolvedStore.views) ? resolvedStore.views : [];
   const context = pwcaCreateActionContext('generate-pdf-flow', {
@@ -940,19 +940,19 @@ const runGeneratePdfFlow = async (productName, store) => {
   try {
     const tasks = createMultiViewPdfTasks(context);
     const finalContext = await pwcaRunManagedQueue(tasks, context, 'PDF 生成流程');
-    return finalizeManagedActionFlow(finalContext);
+    return pwcaFinalizeManagedActionFlow(finalContext);
   } finally {
     if (context.store && context.originalActiveViewId) {
       context.store.setActiveViewId(context.originalActiveViewId);
-      toggleVisibleViewContainer(context.originalActiveViewId);
-      syncGlobalCanvasForView(context.originalActiveViewId);
+      pwcaToggleVisibleViewContainer(context.originalActiveViewId);
+      pwcaSyncGlobalCanvasForView(context.originalActiveViewId);
     }
   }
 };
 
-const generateMultiViewPDF = async (productName, store) => runGeneratePdfFlow(productName, store);
+const pwcaGenerateMultiViewPDF = async (productName, store) => pwcaRunGeneratePdfFlow(productName, store);
 
-const resolveCartEditKey = () => {
+const pwcaResolveCartEditKey = () => {
   if (window.pwcaCartKeyForCanvasEdit) {
     return window.pwcaCartKeyForCanvasEdit;
   }
@@ -965,7 +965,7 @@ const resolveCartEditKey = () => {
   }
 };
 
-const waitForCanvasStateIntegration = () =>
+const pwcaWaitForCanvasStateIntegration = () =>
   new Promise((resolve) => {
     if (typeof window.pwcaEnsureCanvasStateIntegrationReady === 'function') {
       window.pwcaEnsureCanvasStateIntegrationReady()
@@ -994,19 +994,19 @@ const waitForCanvasStateIntegration = () =>
     document.addEventListener('canvasStateIntegrationReady', handler, { once: true });
   });
 
-const initCartEditCanvasState = async () => {
-  const settings = getSettings();
+const pwcaInitCartEditCanvasState = async () => {
+  const settings = pwcaGetSettings();
   if (!settings || !settings.isEdit) {
     return;
   }
 
-  const cartKey = resolveCartEditKey();
+  const cartKey = pwcaResolveCartEditKey();
 
   if (!cartKey) {
     return;
   }
 
-  const externalState = await fetchCartCanvasState(cartKey, settings);
+  const externalState = await pwcaFetchCartCanvasState(cartKey, settings);
   if (!externalState) {
     return;
   }
@@ -1015,7 +1015,7 @@ const initCartEditCanvasState = async () => {
   window.pwcaInitialCanvasState = externalState;
 
   try {
-    const integration = await waitForCanvasStateIntegration();
+    const integration = await pwcaWaitForCanvasStateIntegration();
     if (integration && typeof integration.applyExternalState === 'function') {
       await integration.applyExternalState(externalState);
     }
@@ -1041,7 +1041,7 @@ const pwcaStartupTaskFetchProductData = async (currentContext) => {
     return;
   }
 
-  currentContext.productData = await initFetchProductData();
+  currentContext.productData = await pwcaInitFetchProductData();
 };
 
 const pwcaStartupTaskEnsureActiveViewPrintMethodsLoaded = async (currentContext) => {
@@ -1076,7 +1076,7 @@ const pwcaStartupTaskRestoreCartEditCanvasState = async (currentContext) => {
     return;
   }
 
-  currentContext.externalCanvasState = await initCartEditCanvasState();
+  currentContext.externalCanvasState = await pwcaInitCartEditCanvasState();
 };
 
 const pwcaStartupTaskSyncUiState = async (currentContext) => {
@@ -1131,7 +1131,7 @@ const pwcaStartupTaskSyncFooterVisibility = async (currentContext) => {
   }
 };
 
-const buildStartupTasks = (context) => {
+const pwcaBuildStartupTasks = (context) => {
   // 定义初始化任务序列
   const tasks = [
     // 1. 等待 Pinia Store 就绪
@@ -1178,7 +1178,7 @@ const buildStartupTasks = (context) => {
   return tasks;
 };
 
-const finalizeAsyncStartup = (finalContext) => {
+const pwcaFinalizeAsyncStartup = (finalContext) => {
   const durationMs = Date.now() - finalContext.startedAt;
   pwcaLogAsyncFlow('info', 'Design page async startup flow finished', {
     durationMs,
@@ -1193,41 +1193,41 @@ const finalizeAsyncStartup = (finalContext) => {
 
 const pwcaInitializeAsyncStartup = async () => {
   const context = pwcaCreateAsyncContext();
-  const tasks = buildStartupTasks(context);
+  const tasks = pwcaBuildStartupTasks(context);
   
   // 使用 useAsyncQueue 执行任务序列
   const finalContext = await pwcaRunStartupQueue(tasks, context);
   
   // 结束初始化流程
-  const resolvedContext = finalizeAsyncStartup(finalContext);
+  const resolvedContext = pwcaFinalizeAsyncStartup(finalContext);
   
   return resolvedContext;
 };
 
-const bindAddToCartButton = () => {
+const pwcaBindAddToCartButton = () => {
   const addToCartBtn = document.getElementById('addToCartBtn');
   if (!addToCartBtn) {
     return;
   }
 
   addToCartBtn.addEventListener('click', () => {
-    addCustomizedProductToCart();
+    pwcaAddCustomizedProductToCart();
   });
 };
 
-const initializePageBootstrap = () => {
-  bindAddToCartButton();
+const pwcaInitializePageBootstrap = () => {
+  pwcaBindAddToCartButton();
   window.pwcaCanvasStartupPromise = pwcaInitializeAsyncStartup().catch((error) => {
     pwcaLogAsyncFlow('error', 'Uncaught exception in design page async startup flow', error);
     throw error;
   });
 };
 
-onReady(() => {
-  initializePageBootstrap();
+pwcaOnReady(() => {
+  pwcaInitializePageBootstrap();
 });
 
 
-window.generateMultiViewPDF = generateMultiViewPDF;
-window.pwcaRunPreviewRenderFlow = runPreviewRenderFlow;
-window.pwcaRunGeneratePdfFlow = runGeneratePdfFlow;
+window.pwcaGenerateMultiViewPDF = pwcaGenerateMultiViewPDF;
+window.pwcaRunPreviewRenderFlow = pwcaRunPreviewRenderFlow;
+window.pwcaRunGeneratePdfFlow = pwcaRunGeneratePdfFlow;

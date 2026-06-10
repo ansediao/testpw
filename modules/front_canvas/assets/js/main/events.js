@@ -5,15 +5,15 @@ function pwcaInitializeCanvasEventListeners(fabricCanvas, options = {}) {
     if (options.delayLayerListeners !== false) {
         if (window.CanvasInitializationState && window.CanvasInitializationState.isInitializing) {
             const completeHandler = () => {
-                addCanvasLayerListeners(fabricCanvas);
+                pwcaAddCanvasLayerListeners(fabricCanvas);
                 document.removeEventListener('canvasInitializationComplete', completeHandler);
             };
             document.addEventListener('canvasInitializationComplete', completeHandler);
         } else {
-            addCanvasLayerListeners(fabricCanvas);
+            pwcaAddCanvasLayerListeners(fabricCanvas);
         }
     } else {
-        addCanvasLayerListeners(fabricCanvas);
+        pwcaAddCanvasLayerListeners(fabricCanvas);
     }
 }
 
